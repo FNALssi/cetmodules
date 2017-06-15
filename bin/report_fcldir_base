@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+#
+# use product_deps
+
+use strict;
+use warnings;
+
+use File::Basename;
+use lib dirname($0);
+
+my $inputdir;
+
+if( $#ARGV >= 0 ) {
+   $inputdir = $ARGV[0];
+} else {
+    print "\n";
+    print "ERROR: directory not specified\n";
+    print "USAGE: report_fcldir <input-directory>\n";
+    print "       input-directory  = directory containing product_deps\n";
+    print "\n";
+    exit 1;
+}
+
+require cmake_parse_deps;
+
+my $pfile=$inputdir."/product_deps";
+my $fcl_directory = get_cmake_fcl_directory( $pfile );
+my $fcl_name =basename($fcl_directory);
+print "$fcl_name\n";
+
+exit 0;

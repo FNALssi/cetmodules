@@ -1,0 +1,63 @@
+#!/usr/bin/env perl
+#
+# report product, version, etc.
+
+use strict;
+use warnings;
+
+if( $#ARGV < 1 ) {
+    print "\n";
+    print "USAGE: report_product_info <input-directory> <info>+\n";
+    print "       input-directory = directory containing cetpkg_variable_report\n";
+    print "       info = all product version default_version qualifier type compiler\n";
+    print "       for \"all\", variables are printed as VAR=val, one per line.\n";
+    print "\n";
+    exit 1;
+}
+
+my $inputdir = $ARGV[0];
+my $info_type = lc $ARGV[1];
+
+my $report=$inputdir."/cetpkg_variable_report";
+
+open(PIN, "< $report") or die "Couldn't open $report";
+my $info = {};
+my $line;
+while ( $line=<PIN> ) {
+  chop $line;
+  my @words = split(/\s+/,$line);
+  if ( $words[0] ) {
+    if ( $words[0] eq "CETPKG_NAME" ) {
+      $info->{product} = $words[1];
+    } elsif ( $words[0] eq "CETPKG_VERSION" ) {
+      $info->{version} = $words[1];
+    } elsif ( $words[0] eq "CETPKG_DEFAULT_VERSION" ) {
+      $info->{default_version} = $words[1];
+    } elsif ( $words[0] eq "CETPKG_ONLY_FOR_BUILD" ) {
+      $info->{only_for_build} = $words[1];
+    } elsif ( $words[0] eq "CETPKG_QUAL" ) {
+      if ( $words[1] eq "-nq-" ) {
+	$info->{qualifier} = "";
+      } else {
+	$info->{qualifier} = $words[1];
+      }
+    } elsif ( $words[0] eq "CETPKG_TYPE" ) {
+      $info->{type} = $words[1];
+    } elsif ( $words[0] =~ "CETPKG_(CC|CXX|FC)") {
+      $info->{lc ${1}} = $words[1];
+    }
+  }
+}
+close(PIN);
+
+if (exists $info->{$info_type}) {
+  print "$info->{$info_type}\n";
+} elsif ($info_type eq "all") {
+  print map { sprintf("CETPKG_%s='%s'\n", uc $_, ($info->{$_}||"")) } sort keys %$info;
+} else {
+  printf STDERR " Could not find CETPKG_%s in $report\n", ${info_type};
+  exit(1);
+}
+
+exit(0);
+

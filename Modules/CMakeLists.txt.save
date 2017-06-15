@@ -1,0 +1,18 @@
+
+INSTALL(FILES
+  BasicPlugin.cmake
+  CetCMakeEnv.cmake
+  CetCMakeUtils.cmake
+  CetCopy.cmake
+  CetCurrentSubdir.cmake
+  CetMake.cmake
+  CetRegexEscape.cmake
+  CetTest.cmake
+  FindUpsPackage.cmake
+  InstallHeaders.cmake
+  InstallLicense.cmake
+  InstallSource.cmake
+  SetCompilerFlags.cmake
+  UseCPack.cmake
+  DESTINATION Modules
+  )

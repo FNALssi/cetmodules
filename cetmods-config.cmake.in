@@ -1,0 +1,9 @@
+
+@PACKAGE_INIT@
+
+#-----------------------------------------------------------------------
+# Settings for this project
+#
+set_and_check(@PROJECT_NAME@_MODULE_PATH "@CMAKE_INSTALL_PREFIX@/Modules")
+set_and_check(@PROJECT_NAME@_BINDIR "@CMAKE_INSTALL_PREFIX@/bin")
+
