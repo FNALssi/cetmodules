@@ -1,7 +1,7 @@
 # start by finding  report_product_info
-find_program(GET_PRODUCT_INFO report_product_info "${cetmods_BINDIR}")
+find_program(GET_PRODUCT_INFO report_product_info "${cetmodules_BINDIR}")
 if ( NOT GET_PRODUCT_INFO )
-  MESSAGE(FATAL_ERROR "CetGetProductInfo.cmake: could not find report_product_info in ${cetmods_BINDIR}")
+  MESSAGE(FATAL_ERROR "CetGetProductInfo.cmake: could not find report_product_info in ${cetmodules_BINDIR}")
 endif ( NOT GET_PRODUCT_INFO )
 
 function(cet_get_product_info_item ITEM OUTPUT_VAR)

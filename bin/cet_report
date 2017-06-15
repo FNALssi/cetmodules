@@ -1,0 +1,91 @@
+#!/usr/bin/env perl
+# cet_report <item> <input-directory>
+# <item> = bindir|fcldir|fcldir_base|fwdir|gdmldir|incdir|libdir|perlib|testdir
+#
+# TODO : Error checking of CL args. usage/help options. Treat a ups dir like
+#  a .git/svn dir (i.e. don't require a directory to be supplied?)
+#
+#-----------------------------------------------------------------------
+# Copyright 2015 Ben Morgan <Ben.Morgan@warwick.ac.uk
+# Copyright 2015 University of Warwick
+#
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file LICENSE for details
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
+#-----------------------------------------------------------------------
+
+use strict;
+use warnings;
+use File::Basename;
+use Cwd;
+use lib dirname($0);
+require cmake_parse_deps;
+
+# - Subcommand Hash
+my %subcommands = (
+  bindir => \&get_cmake_bin_directory,
+  fcldir => \&get_cmake_fcl_directory,
+  fcldir_base => sub {return basename(get_cmake_fcl_directory($_[0]));},
+  fwdir  => \&get_cmake_fw_directory,
+  gdmldir => \&get_cmake_gdml_directory,
+  incdir => \&get_cmake_inc_directory,
+  libdir => \&get_cmake_lib_directory,
+  perllib => \&get_cmake_perllib,
+  testdir => \&get_cmake_test_directory
+);
+
+# - Help and Usage
+# This probably should use GetOpt long term...
+sub do_usage {
+  print "USAGE: cet_report <item> <basedir>\n";
+}
+
+sub do_help {
+  do_usage;
+  print "\nCetbuildtools UPS table report tool\n\n";
+  print "ARGUMENTS:\n";
+  print "  <item>        UPS attribute to extract and print\n";
+  print "    available items: bindir fcldir fwdir gdmldir incdir libdir perllib \n";
+  print "  <basedir>     Directory holding 'product_deps' table\n";
+  print "\n";
+  print "OPTIONS:\n";
+  print "  -?|-h|help    Print this help message\n";
+  print "\n";
+}
+
+# - Process CL args
+if (scalar @ARGV == 0) {
+  # No arguments is not an error...
+  do_usage;
+  exit 1;
+}
+
+if (scalar @ARGV > 2) {
+  print "ERROR: unrecognised additional arguments\n";
+  do_usage;
+  exit 1;
+}
+
+my $item = $ARGV[0];
+my $inputdir = $ARGV[1] ? $ARGV[1] : getcwd;
+
+if ($item =~ /\-\?|\-h|help/) {
+  do_help;
+  exit 0;
+}
+
+if(!exists($subcommands{$item})) {
+  print "ERROR: item $item is not valid\n";
+  exit 1;
+}
+
+# - Process the item from the file
+my $pfile=$inputdir."/product_deps";
+my $item_value = $subcommands{$item}($pfile);
+print "$item_value\n";
+
+exit 0;
+

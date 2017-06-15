@@ -1,12 +1,15 @@
 ##
-message(STATUS "cetmods_BINDIR = ${cetmods_BINDIR}")
+message(STATUS "cetmodules_BINDIR = ${cetmodules_BINDIR}")
 
 include(CetGetProductInfo)
 
 # Verify that the compiler is set as desired, and is consistent with our
 # current known use of qualifiers.
 
-function(_verify_cc COMPILER)
+##function(_verify_cc COMPILER)
+function(_verify_cc )
+  # no-op for now
+  return()
   if(NOT CMAKE_C_COMPILER) # Languages disabled.
     return()
   endif()
@@ -38,6 +41,69 @@ function(_verify_cc COMPILER)
   endif()
 endfunction()
 
+##function(_verify_cxx COMPILER)
+function(_verify_cxx )
+  # no-op for now
+  return()
+  if(NOT CMAKE_CXX_COMPILER) # Languages disabled.
+    return()
+  endif()
+  if(COMPILER STREQUAL "c++")
+    set(compiler_ref "^/usr/bin/c\\+\\+$")
+  elseif(COMPILER MATCHES "^(g\\+\\+.*)$")
+    cet_regex_escape("$ENV{GCC_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
+    set(compiler_ref "^${escaped_path}$")
+  elseif(COMPILER STREQUAL icpc)
+    set(compiler_ref "$ENV{ICC_FQ_DIR}/bin/intel64/${COMPILER}")
+  ##elseif(COMPILER STREQUAL clang++)
+  ##  message(FATAL_ERROR "Clang not yet supported.")
+  elseif(COMPILER MATCHES "^(clang\\+\\+.*)$")
+    cet_regex_escape("$ENV{APPLE_CLANG_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
+    set(compiler_ref "^${escaped_path}$")
+  elseif(COMPILER MATCHES "[-_]g\\+\\+$")
+    message(FATAL_ERROR "Cross-compiling not yet supported")
+  else()
+    message(FATAL_ERROR "Unrecognized C++ compiler \"${COMPILER}\": use c++, g++(-XXX)?, icpc, or clang++.")
+  endif()
+  get_filename_component(cr_dir "${compiler_ref}" DIRECTORY)
+  _cet_real_dir("${cr_dir}" cr_dir)
+  get_filename_component(cr_name "${compiler_ref}" NAME)
+  set(compiler_ref "${cr_dir}/${cr_name}")
+  if(NOT (CMAKE_CXX_COMPILER MATCHES "${compiler_ref}"))
+    message(FATAL_ERROR "CMAKE_CXX_COMPILER set to ${CMAKE_CXX_COMPILER}: expected match to \"${compiler_ref}\".\n"
+      "Use buildtool or preface cmake invocation with \"env CXX=${CETPKG_CXX}.\" Use buildtool -c if changing qualifier.")
+  endif()
+endfunction()
+
+##function(_verify_fc COMPILER)
+function(_verify_fc )
+  # no-op for now
+  return()
+  if(NOT CMAKE_Fortran_COMPILER) # Languages disabled.
+    return()
+  endif()
+  if(COMPILER MATCHES "^(gfortran.*)$")
+    cet_regex_escape("$ENV{GCC_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
+    set(compiler_ref "^${escaped_path}$")
+  elseif(COMPILER STREQUAL ifort)
+    set(compiler_ref "$ENV{ICC_FQ_DIR}/bin/intel64/${COMPILER}")
+  elseif(COMPILER STREQUAL clang)
+    message(FATAL_ERROR "Clang not yet supported.")
+  elseif(COMPILER MATCHES "[-_]gfortran$")
+    message(FATAL_ERROR "Cross-compiling not yet supported")
+  else()
+    message(FATAL_ERROR "Unrecognized Fortran compiler \"${COMPILER}\": use , gfortran(-XXX)? or ifort.")
+  endif()
+  get_filename_component(cr_dir "${compiler_ref}" DIRECTORY)
+  _cet_real_dir("${cr_dir}" cr_dir)
+  get_filename_component(cr_name "${compiler_ref}" NAME)
+  set(compiler_ref "${cr_dir}/${cr_name}")
+  if(NOT (CMAKE_Fortran_COMPILER MATCHES "${compiler_ref}"))
+    message(FATAL_ERROR "CMAKE_Fortran_COMPILER set to ${CMAKE_Fortran_COMPILER}: expected match to \"${compiler_ref}\".\n"
+      "Use buildtool or preface cmake invocation with \"env FC=${CETPKG_FC}.\" Use buildtool -c if changing qualifier.")
+  endif()
+endfunction()
+
 function(_study_compiler CTYPE)
   # CTYPE = CC, CXX or FC
   if (NOT CTYPE STREQUAL "CC" AND
@@ -45,10 +111,10 @@ function(_study_compiler CTYPE)
       NOT CTYPE STREQUAL "FC")
     message(FATAL_ERROR "INTERNAL ERROR: unrecognized CTYPE ${CTYPE} to _study_compiler")
   endif()
-  cet_get_product_info_item(${CTYPE} rcompiler ec_compiler)
-  if (NOT rcompiler)
-    message(FATAL_ERROR "Unable to obtain compiler suite setting: re-source setup_for_development?")
-  endif()
+  ##cet_get_product_info_item(${CTYPE} rcompiler ec_compiler)
+  ##if (NOT rcompiler)
+  ##  message(FATAL_ERROR "Unable to obtain compiler suite setting: re-source setup_for_development?")
+  ##endif()
   if (CTYPE STREQUAL "CC")
     _verify_cc(${rcompiler})
   elseif(CTYPE STREQUAL "CXX")
@@ -97,16 +163,15 @@ macro(cet_cmake_env)
 
   # Useful includes.
   include(FindUpsPackage)
+  include(FindUpsBoost)
   include(SetCompilerFlags)
+  include(InstallSource)
   include(InstallLicense)
   include(InstallHeaders)
-  include(InstallSource)
-  #include(InstallFiles)
-  #include(InstallPerllib)
+  include(InstallPerllib)
   include(CetCMakeUtils)
-
-  # install license and readme if found
-  install_license()
+  include(CetMake)
+  include(CetCMakeConfig)
 
   # initialize cmake config file fragments
   _cet_init_config_var()
@@ -118,9 +183,116 @@ macro(cet_cmake_env)
   _verify_compiler_quals()
   endif()
 
+  # find $CETMODULES_DIR/bin/cet_report
+  set(CET_REPORT ${cetmodules_BINDIR}/cet_report)
+  message(STATUS "CET_REPORT: ${CET_REPORT}")
+  # some definitions
+  cet_set_lib_directory()
+  cet_set_bin_directory()
+  cet_set_inc_directory()
+  cet_set_fcl_directory()
+  cet_set_fw_directory()
+  cet_set_gdml_directory()
+  cet_set_perllib_directory()
+  cet_set_test_directory()
+
   # install directories 
   set( ${product}_bin_dir bin CACHE STRING "Package bin directory" FORCE )
   set( ${product}_inc_dir include CACHE STRING "Package include directory" FORCE )
   set( ${product}_lib_dir lib CACHE STRING "Package lib directory" FORCE )
+  message( STATUS "cet_cmake_env debug: ${product}_bin_dir ${${product}_bin_dir}")
+  message( STATUS "cet_cmake_env debug: ${product}_lib_dir ${${product}_lib_dir}")
+
+  # add to the include path
+  include_directories ("${PROJECT_BINARY_DIR}")
+  include_directories("${PROJECT_SOURCE_DIR}" )
+  # make sure all libraries are in one directory
+  set(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
+  # make sure all executables are in one directory
+  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+  # install license and readme if found
+  install_license()
 
 endmacro(cet_cmake_env)
+
+
+macro( cet_set_lib_directory )
+  set( ${product}_lib_dir lib CACHE STRING "Package lib directory" FORCE )
+  message( STATUS "cet_set_lib_directory: ${product}_lib_dir is ${${product}_lib_dir}")
+endmacro( cet_set_lib_directory )
+
+macro( cet_set_bin_directory )
+  set( ${product}_bin_dir bin CACHE STRING "Package bin directory" FORCE )
+  message( STATUS "cet_set_bin_directory: ${product}_bin_dir is ${${product}_bin_dir}")
+endmacro( cet_set_bin_directory )
+
+macro( cet_set_fcl_directory )
+  set( ${product}_fcl_dir fcl CACHE STRING "Package fcl directory" FORCE )
+  message( STATUS "cet_set_fcl_directory: ${product}_fcl_dir is ${${product}_fcl_dir}")
+endmacro( cet_set_fcl_directory )
+
+macro( cet_set_fw_directory )
+  execute_process(COMMAND ${CET_REPORT} fwdir ${cet_ups_dir}
+    OUTPUT_VARIABLE REPORT_FW_DIR_MSG
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+  #message( STATUS "${CET_REPORT} fwdir returned ${REPORT_FW_DIR_MSG}")
+   if( ${REPORT_FW_DIR_MSG} MATCHES "DEFAULT" )
+     set( ${product}_fw_dir "NONE" CACHE STRING "Package fw directory" FORCE )
+  elseif( ${REPORT_FW_DIR_MSG} MATCHES "NONE" )
+     set( ${product}_fw_dir ${REPORT_FW_DIR_MSG} CACHE STRING "Package fw directory" FORCE )
+  elseif( ${REPORT_FW_DIR_MSG} MATCHES "ERROR" )
+     set( ${product}_fw_dir ${REPORT_FW_DIR_MSG} CACHE STRING "Package fw directory" FORCE )
+  else()
+    STRING( REGEX REPLACE "flavorqual_dir" "${flavorqual_dir}" fdir1 "${REPORT_FW_DIR_MSG}" )
+    STRING( REGEX REPLACE "product_dir" "${product}/${version}" fdir2 "${fdir1}" )
+    set( ${product}_fw_dir ${fdir2}  CACHE STRING "Package fw directory" FORCE )
+  endif()
+  message( STATUS "cet_set_fw_directory: ${product}_fw_dir is ${${product}_fw_dir}")
+endmacro( cet_set_fw_directory )
+
+macro( cet_set_gdml_directory )
+  execute_process(COMMAND ${CET_REPORT} gdmldir ${cet_ups_dir}
+    OUTPUT_VARIABLE REPORT_GDML_DIR_MSG
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+  #message( STATUS "${CET_REPORT} gdmldir returned ${REPORT_GDML_DIR_MSG}")
+  if( ${REPORT_GDML_DIR_MSG} MATCHES "DEFAULT" )
+     set( ${product}_gdml_dir "NONE" CACHE STRING "Package gdml directory" FORCE )
+  elseif( ${REPORT_GDML_DIR_MSG} MATCHES "NONE" )
+     set( ${product}_gdml_dir ${REPORT_GDML_DIR_MSG} CACHE STRING "Package gdml directory" FORCE )
+  elseif( ${REPORT_GDML_DIR_MSG} MATCHES "ERROR" )
+     set( ${product}_gdml_dir ${REPORT_GDML_DIR_MSG} CACHE STRING "Package gdml directory" FORCE )
+  else()
+    STRING( REGEX REPLACE "flavorqual_dir" "${flavorqual_dir}" fdir1 "${REPORT_GDML_DIR_MSG}" )
+    STRING( REGEX REPLACE "product_dir" "${product}/${version}" fdir2 "${fdir1}" )
+    set( ${product}_gdml_dir ${fdir2}  CACHE STRING "Package gdml directory" FORCE )
+  endif()
+  message( STATUS "cet_set_gdml_directory: ${product}_gdml_dir is ${${product}_gdml_dir}")
+endmacro( cet_set_gdml_directory )
+
+macro( cet_set_perllib_directory )
+  set( ${product}_perllib "" CACHE STRING "Package perllib directory" FORCE )
+  message( STATUS "cet_set_perllib_directory: ${product}_perllib is ${${product}_perllib}")
+  message( STATUS "cet_set_perllib_directory: ${product}_perllib_subdir is ${${product}_perllib_subdir}")
+endmacro( cet_set_perllib_directory )
+
+macro( cet_set_inc_directory )
+  set( ${product}_inc_dir "include" CACHE STRING "Package include directory" FORCE )
+  message( STATUS "cet_set_inc_directory: ${product}_inc_dir is ${${product}_inc_dir}")
+endmacro( cet_set_inc_directory )
+
+macro( cet_set_test_directory )
+  # The default is product_dir/test
+  set( ${product}_test_dir test CACHE STRING "Package test directory" FORCE )
+  message( STATUS "cet_set_test_directory: ${product}_test_dir is ${${product}_test_dir}")
+endmacro( cet_set_test_directory )
+
+macro(_cet_debug_message)
+  if( ${CMAKE_BUILD_TYPE} )
+  string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
+    if( ${BTYPE_UC} MATCHES "DEBUG" )
+      message( STATUS "${ARGN}")
+    endif()
+  endif( ${CMAKE_BUILD_TYPE} )
+endmacro(_cet_debug_message)
