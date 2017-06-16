@@ -63,7 +63,7 @@ macro( cet_cmake_config  )
   message(STATUS "cet_cmake_config debug: will install cmake configure files in ${distdir}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_UPS_COMMANDS}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
-  message(STATUS "cet_cmake_config debug: ${CONFIG_LIBRARY_LIST}")
+  #message(STATUS "cet_cmake_config debug: ${CONFIG_LIBRARY_LIST}")
 
   string(TOUPPER  ${PROJECT_NAME} ${PROJECT_NAME}_UC )
   # add to library list for package configure file
@@ -76,7 +76,7 @@ macro( cet_cmake_config  )
     ##message(STATUS "cet_cmake_config: cet_find_library( ${${my_library}_UC} NAMES ${my_library} PATHS ENV ${${PROJECT_NAME}_UC}_LIB NO_DEFAULT_PATH )" )
     ##message(STATUS "cet_cmake_config: set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
   endforeach(my_library)
-  message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
+  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
 
   # add include path to CONFIG_FIND_LIBRARY_COMMANDS
   ##message(STATUS "cet_cmake_config: ${PROJECT_NAME}_inc_dir is ${${PROJECT_NAME}_inc_dir}")
