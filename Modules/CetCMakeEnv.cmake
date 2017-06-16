@@ -161,6 +161,8 @@ macro(cet_cmake_env)
   message(STATUS "Product is ${product} ${version} ${${product}_full_qualifier}")
   message(STATUS "Module path is ${CMAKE_MODULE_PATH}")
 
+  set_install_root()
+
   # Useful includes.
   include(FindUpsPackage)
   include(FindUpsBoost)
@@ -200,8 +202,8 @@ macro(cet_cmake_env)
   set( ${product}_bin_dir bin CACHE STRING "Package bin directory" FORCE )
   set( ${product}_inc_dir include CACHE STRING "Package include directory" FORCE )
   set( ${product}_lib_dir lib CACHE STRING "Package lib directory" FORCE )
-  message( STATUS "cet_cmake_env debug: ${product}_bin_dir ${${product}_bin_dir}")
-  message( STATUS "cet_cmake_env debug: ${product}_lib_dir ${${product}_lib_dir}")
+  ##message( STATUS "cet_cmake_env debug: ${product}_bin_dir ${${product}_bin_dir}")
+  ##message( STATUS "cet_cmake_env debug: ${product}_lib_dir ${${product}_lib_dir}")
 
   # add to the include path
   include_directories ("${PROJECT_BINARY_DIR}")
@@ -213,22 +215,31 @@ macro(cet_cmake_env)
   # install license and readme if found
   install_license()
 
+  # Update the documentation string of CMAKE_BUILD_TYPE for GUIs
+  SET( CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel Opt Prof."
+    FORCE )
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "" FORCE)
+  endif()
+  #message(STATUS "cet_cmake_env debug: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}" )
+
 endmacro(cet_cmake_env)
 
 
 macro( cet_set_lib_directory )
   set( ${product}_lib_dir lib CACHE STRING "Package lib directory" FORCE )
-  message( STATUS "cet_set_lib_directory: ${product}_lib_dir is ${${product}_lib_dir}")
+  #message( STATUS "cet_set_lib_directory: ${product}_lib_dir is ${${product}_lib_dir}")
 endmacro( cet_set_lib_directory )
 
 macro( cet_set_bin_directory )
   set( ${product}_bin_dir bin CACHE STRING "Package bin directory" FORCE )
-  message( STATUS "cet_set_bin_directory: ${product}_bin_dir is ${${product}_bin_dir}")
+  #message( STATUS "cet_set_bin_directory: ${product}_bin_dir is ${${product}_bin_dir}")
 endmacro( cet_set_bin_directory )
 
 macro( cet_set_fcl_directory )
   set( ${product}_fcl_dir fcl CACHE STRING "Package fcl directory" FORCE )
-  message( STATUS "cet_set_fcl_directory: ${product}_fcl_dir is ${${product}_fcl_dir}")
+  #message( STATUS "cet_set_fcl_directory: ${product}_fcl_dir is ${${product}_fcl_dir}")
 endmacro( cet_set_fcl_directory )
 
 macro( cet_set_fw_directory )
@@ -248,7 +259,7 @@ macro( cet_set_fw_directory )
     STRING( REGEX REPLACE "product_dir" "${product}/${version}" fdir2 "${fdir1}" )
     set( ${product}_fw_dir ${fdir2}  CACHE STRING "Package fw directory" FORCE )
   endif()
-  message( STATUS "cet_set_fw_directory: ${product}_fw_dir is ${${product}_fw_dir}")
+  #message( STATUS "cet_set_fw_directory: ${product}_fw_dir is ${${product}_fw_dir}")
 endmacro( cet_set_fw_directory )
 
 macro( cet_set_gdml_directory )
@@ -268,24 +279,24 @@ macro( cet_set_gdml_directory )
     STRING( REGEX REPLACE "product_dir" "${product}/${version}" fdir2 "${fdir1}" )
     set( ${product}_gdml_dir ${fdir2}  CACHE STRING "Package gdml directory" FORCE )
   endif()
-  message( STATUS "cet_set_gdml_directory: ${product}_gdml_dir is ${${product}_gdml_dir}")
+  #message( STATUS "cet_set_gdml_directory: ${product}_gdml_dir is ${${product}_gdml_dir}")
 endmacro( cet_set_gdml_directory )
 
 macro( cet_set_perllib_directory )
   set( ${product}_perllib "" CACHE STRING "Package perllib directory" FORCE )
-  message( STATUS "cet_set_perllib_directory: ${product}_perllib is ${${product}_perllib}")
-  message( STATUS "cet_set_perllib_directory: ${product}_perllib_subdir is ${${product}_perllib_subdir}")
+  #message( STATUS "cet_set_perllib_directory: ${product}_perllib is ${${product}_perllib}")
+  #message( STATUS "cet_set_perllib_directory: ${product}_perllib_subdir is ${${product}_perllib_subdir}")
 endmacro( cet_set_perllib_directory )
 
 macro( cet_set_inc_directory )
   set( ${product}_inc_dir "include" CACHE STRING "Package include directory" FORCE )
-  message( STATUS "cet_set_inc_directory: ${product}_inc_dir is ${${product}_inc_dir}")
+  #message( STATUS "cet_set_inc_directory: ${product}_inc_dir is ${${product}_inc_dir}")
 endmacro( cet_set_inc_directory )
 
 macro( cet_set_test_directory )
   # The default is product_dir/test
   set( ${product}_test_dir test CACHE STRING "Package test directory" FORCE )
-  message( STATUS "cet_set_test_directory: ${product}_test_dir is ${${product}_test_dir}")
+  #message( STATUS "cet_set_test_directory: ${product}_test_dir is ${${product}_test_dir}")
 endmacro( cet_set_test_directory )
 
 macro(_cet_debug_message)
@@ -296,3 +307,8 @@ macro(_cet_debug_message)
     endif()
   endif( ${CMAKE_BUILD_TYPE} )
 endmacro(_cet_debug_message)
+
+macro( set_install_root )
+  set( PACKAGE_TOP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  message( STATUS "set_install_root: PACKAGE_TOP_DIRECTORY is ${PACKAGE_TOP_DIRECTORY}")
+endmacro( set_install_root )
