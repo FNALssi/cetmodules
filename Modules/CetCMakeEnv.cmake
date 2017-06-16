@@ -166,6 +166,7 @@ macro(cet_cmake_env)
   # Useful includes.
   include(FindUpsPackage)
   include(FindUpsBoost)
+  include(FindUpsRoot)
   include(SetCompilerFlags)
   include(InstallSource)
   include(InstallLicense)
