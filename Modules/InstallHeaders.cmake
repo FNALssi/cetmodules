@@ -17,6 +17,21 @@ macro( _cet_check_inc_directory )
   endif()
 endmacro( _cet_check_inc_directory )
 
+macro( _cet_check_build_directory_for_headers )
+  FILE(GLOB build_directory_headers
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.h
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.hh
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.H
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.hpp
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.icc
+	    ${CMAKE_CURRENT_BINARY_DIR}/[^.]*.tcc
+	    )
+  if( build_directory_headers )
+    INSTALL( FILES ${build_directory_headers}
+             DESTINATION ${header_install_dir} )
+  endif( build_directory_headers )
+endmacro( _cet_check_build_directory_for_headers )
+
 macro( _cet_install_header_without_list   )
   #message( STATUS "headers will be installed in ${header_install_dir}" )
   FILE(GLOB headers [^.]*.h [^.]*.hh [^.]*.H [^.]*.hpp [^.]*.icc [^.]*.tcc )
@@ -85,4 +100,7 @@ macro( install_headers   )
     endif( IHDR_EXTRAS )
     _cet_install_header_without_list()
   endif()
+
+  _cet_check_build_directory_for_headers()
+
 endmacro( install_headers )

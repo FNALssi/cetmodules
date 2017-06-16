@@ -72,7 +72,7 @@
 cmake_policy(VERSION 3.0.1) # We've made this work for 3.0.1.
 
 include(CetParseArgs)
-##include(CetPackagePath)
+include(CetPackagePath)
 include(InstallSource)
 
 macro( _cet_check_lib_directory )
