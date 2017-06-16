@@ -5,7 +5,7 @@
 # use cmake 3.2 or later
 cmake_minimum_required(VERSION 3.2)
 # Project setup
-project(cetmodules VERSION 0.01.00
+project(cetmodules VERSION 0.02.00
                    LANGUAGES NONE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
