@@ -7,3 +7,9 @@
 set_and_check(@PROJECT_NAME@_MODULE_PATH "@CMAKE_INSTALL_PREFIX@/Modules")
 set_and_check(@PROJECT_NAME@_BINDIR "@CMAKE_INSTALL_PREFIX@/bin")
 
+
+if (IS_DIRECTORY "${PACKAGE_PREFIX_DIR}/Modules")
+  list(APPEND CMAKE_MODULE_PATH "${PACKAGE_PREFIX_DIR}/Modules")
+endif()
+
+check_required_components(@PROJECT_NAME@)
