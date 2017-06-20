@@ -71,20 +71,13 @@ macro( cet_cmake_config  )
     string(TOUPPER  ${my_library} ${my_library}_UC )
     string(TOUPPER  ${PROJECT_NAME} ${PROJECT_NAME}_UC )
     set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-      set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
+    find_library( ${${my_library}_UC} NAMES ${my_library} PATHS \"\${${PROJECT_NAME}_LIBDIR}\" NO_DEFAULT_PATH )" )
+      #set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
     #cet_find_library( ${${my_library}_UC} NAMES ${my_library} PATHS ENV ${${PROJECT_NAME}_UC}_LIB NO_DEFAULT_PATH )" )
     ##message(STATUS "cet_cmake_config: cet_find_library( ${${my_library}_UC} NAMES ${my_library} PATHS ENV ${${PROJECT_NAME}_UC}_LIB NO_DEFAULT_PATH )" )
     ##message(STATUS "cet_cmake_config: set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
   endforeach(my_library)
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
-
-  # add include path to CONFIG_FIND_LIBRARY_COMMANDS
-  ##message(STATUS "cet_cmake_config: ${PROJECT_NAME}_inc_dir is ${${PROJECT_NAME}_inc_dir}")
-  if( NOT ${${PROJECT_NAME}_inc_dir} MATCHES "NONE" )
-    set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-      include_directories ( \$ENV{${${PROJECT_NAME}_UC}_INC} )" )
-  endif()
-  ##message(STATUS "cet_cmake_config: CONFIG_INCLUDE_DIRECTORY is ${CONFIG_INCLUDE_DIRECTORY}")
 
   # get perl library directory
   #message( STATUS "config_pm: ${PROJECT_NAME}_perllib is ${${PROJECT_NAME}_perllib}")
