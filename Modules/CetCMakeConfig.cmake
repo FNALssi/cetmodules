@@ -60,7 +60,7 @@ macro( cet_cmake_config  )
     set( distdir "lib/${PROJECT_NAME}/cmake" )
   endif()
 
-  message(STATUS "cet_cmake_config debug: will install cmake configure files in ${distdir}")
+  #message(STATUS "cet_cmake_config debug: will install cmake configure files in ${distdir}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_UPS_COMMANDS}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_LIBRARY_LIST}")
@@ -89,12 +89,12 @@ macro( cet_cmake_config  )
   #message( STATUS "config_pm: mypmdir ${mypmdir}")
   # PluginVersionInfo is a special case
   if( CONFIG_PM_VERSION )
-    message(STATUS "CONFIG_PM_VERSION is ${CONFIG_PM_VERSION}" )
+    #message(STATUS "CONFIG_PM_VERSION is ${CONFIG_PM_VERSION}" )
     string(REGEX REPLACE "\\." "_" my_pm_ver "${CONFIG_PM_VERSION}" )
     string(TOUPPER  ${my_pm_ver} PluginVersionInfo_UC )
     set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
       set( ${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} )" )
-    message(STATUS "${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} " )
+    #message(STATUS "${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} " )
   endif()
   # add to pm list for package configure file
   foreach( my_pm ${CONFIG_PERL_PLUGIN_LIST} )
@@ -105,7 +105,7 @@ macro( cet_cmake_config  )
     string(TOUPPER  ${my_pm_dash} ${my_pm_name}_UC )
     set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
       set( ${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
-    message(STATUS "${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
+    #message(STATUS "${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
   endforeach(my_pm)
   foreach( my_pm ${CONFIG_PM_LIST} )
     #message( STATUS "config_pm: my_pm ${my_pm}")
@@ -117,15 +117,15 @@ macro( cet_cmake_config  )
     string(TOUPPER  ${my_pm_slash} ${my_pm_name}_UC )
     set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
       set( ${${PROJECT_NAME}_UC}${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
-    message(STATUS "${${PROJECT_NAME}_UC}${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
+    #message(STATUS "${${PROJECT_NAME}_UC}${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
   endforeach(my_pm)
 
   _config_package_config_file()
 
   # allowed COMPATIBILITY values are:
   # AnyNewerVersion ExactVersion SameMajorVersion
-  message(STATUS "cet_cmake_config: PROJECT_NAME ${PROJECT_NAME}")
-  message(STATUS "cet_cmake_config: PROJECT_VERSION ${PROJECT_VERSION}")
+  #message(STATUS "cet_cmake_config: PROJECT_NAME ${PROJECT_NAME}")
+  #message(STATUS "cet_cmake_config: PROJECT_VERSION ${PROJECT_VERSION}")
   write_basic_package_version_file(
              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
 	     VERSION ${PROJECT_VERSION}

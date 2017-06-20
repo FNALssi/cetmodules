@@ -158,8 +158,8 @@ macro(cet_cmake_env)
   # because the binaries might be relocated
   set(CMAKE_SKIP_RPATH)
 
-  message(STATUS "Product is ${product} ${version} ${${product}_full_qualifier}")
-  message(STATUS "Module path is ${CMAKE_MODULE_PATH}")
+  #message(STATUS "Product is ${product} ${version} ${${product}_full_qualifier}")
+  #message(STATUS "Module path is ${CMAKE_MODULE_PATH}")
 
   set_install_root()
 
@@ -176,6 +176,7 @@ macro(cet_cmake_env)
   include(CetCMakeUtils)
   include(CetMake)
   include(CetCMakeConfig)
+  include(ProcessUpsFiles)
 
   # initialize cmake config file fragments
   _cet_init_config_var()
@@ -189,7 +190,7 @@ macro(cet_cmake_env)
 
   # find $CETMODULES_DIR/bin/cet_report
   set(CET_REPORT ${cetmodules_BINDIR}/cet_report)
-  message(STATUS "CET_REPORT: ${CET_REPORT}")
+  #message(STATUS "CET_REPORT: ${CET_REPORT}")
   # some definitions
   cet_set_lib_directory()
   cet_set_bin_directory()

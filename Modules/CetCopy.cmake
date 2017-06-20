@@ -45,7 +45,7 @@ include (CMakeParseArguments)
 get_filename_component(abs_build ${CMAKE_BINARY_DIR} REALPATH CACHE)
 string(LENGTH "${abs_build}" abs_build_len)
 function (cet_copy)
-  message(STATUS "cet_copy debug: abs_build ${abs_build}")
+  #message(STATUS "cet_copy debug: abs_build ${abs_build}")
   cmake_parse_arguments(CETC "PROGRAMS;NAME_AS_TARGET"
     "DESTINATION;NAME;WORKING_DIRECTORY"
     "DEPENDENCIES"
@@ -68,9 +68,9 @@ function (cet_copy)
       get_filename_component(target ${dest_path} NAME)
     else()
       string(FIND "${dest_path}" "${abs_build}" abs_build_found)
-      message(STATUS "cet_copy debug: abs_build ${abs_build}")
-      message(STATUS "cet_copy debug: dest_path ${dest_path}")
-      message(STATUS "cet_copy debug: abs_build_found ${abs_build_found}")
+      #message(STATUS "cet_copy debug: abs_build ${abs_build}")
+      #message(STATUS "cet_copy debug: dest_path ${dest_path}")
+      #message(STATUS "cet_copy debug: abs_build_found ${abs_build_found}")
       if (abs_build_found EQUAL 0)
         string(SUBSTRING "${dest_path}" ${abs_build_len} -1 dest_path_target)
         string(REPLACE "/" "+" target "${dest_path_target}")
@@ -78,8 +78,8 @@ function (cet_copy)
         string(REPLACE "/" "+" target "${dest_path}")
       endif()
     endif()
-    message(STATUS "cet_copy debug: dest_path ${dest_path}")
-    message(STATUS "cet_copy debug: target ${target}")
+    #message(STATUS "cet_copy debug: dest_path ${dest_path}")
+    #message(STATUS "cet_copy debug: target ${target}")
     add_custom_command(OUTPUT "${dest_path}"
       WORKING_DIRECTORY "${CETC_WORKING_DIRECTORY}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${real_dest}"
