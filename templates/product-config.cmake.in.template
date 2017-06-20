@@ -1,4 +1,3 @@
-
 @PACKAGE_INIT@
 
 set_and_check(@PROJECT_NAME@_LIBDIR "${PACKAGE_PREFIX_DIR}/lib")

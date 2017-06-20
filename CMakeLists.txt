@@ -37,6 +37,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 include(InstallLicense)
 install_license()
 
+add_subdirectory(templates)
 add_subdirectory( Modules )
 add_subdirectory( bin )
 
