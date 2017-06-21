@@ -46,9 +46,7 @@ macro(cet_find_library)
     set(cet_find_library_list ${ARGV2} ${cet_find_library_list} )
     # add to library list for package configure file
     set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-    if( NOT ${ARGV0} )
-      cet_find_library( ${find_library_commands} )
-    endif()" )
+    find_library( ${find_library_commands} )" )
   endif()
 
   # call find_library
