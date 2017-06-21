@@ -1,5 +1,5 @@
 ##
-message(STATUS "cetmodules_BINDIR = ${cetmodules_BINDIR}")
+##message(STATUS "cetmodules_BINDIR = ${cetmodules_BINDIR}")
 
 include(CetGetProductInfo)
 
@@ -313,5 +313,5 @@ endmacro(_cet_debug_message)
 
 macro( set_install_root )
   set( PACKAGE_TOP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  message( STATUS "set_install_root: PACKAGE_TOP_DIRECTORY is ${PACKAGE_TOP_DIRECTORY}")
+  #message( STATUS "set_install_root: PACKAGE_TOP_DIRECTORY is ${PACKAGE_TOP_DIRECTORY}")
 endmacro( set_install_root )
