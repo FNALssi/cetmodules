@@ -10,11 +10,6 @@ project(cetmodules VERSION 0.06.00
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
-include(CetCMakeEnv)
-
-# cetbuildtools has no architecture dependence
-cet_cmake_env( noarch )
-
 # cetmodules-config.cmake
 include(CMakePackageConfigHelpers)
 
