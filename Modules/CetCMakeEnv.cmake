@@ -188,6 +188,8 @@ macro(cet_cmake_env)
   _verify_compiler_quals()
   endif()
 
+  # we use ups/product_deps
+  set( cet_ups_dir ${CMAKE_CURRENT_SOURCE_DIR}/ups CACHE STRING "Package UPS directory" FORCE )
   # find $CETMODULES_DIR/bin/cet_report
   set(CET_REPORT ${cetmodules_BINDIR}/cet_report)
   #message(STATUS "CET_REPORT: ${CET_REPORT}")
