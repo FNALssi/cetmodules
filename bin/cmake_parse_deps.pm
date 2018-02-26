@@ -216,6 +216,51 @@ sub get_cmake_fw_directory {
   return ($fwdir);
 }
 
+sub get_cmake_setfw_list {
+  my @params = @_;
+  my $setfwdir = "NONE";
+  my @fwlist;
+  my $fwiter=-1;
+  my $line;
+  open(PIN, "< $params[0]") or die "Couldn't open $params[0]";
+  while ( $line=<PIN> ) {
+    chop $line;
+    if ( index($line,"#") == 0 ) {
+    } elsif ( $line !~ /\w+/ ) {
+    } else {
+      my @words = split(/\s+/,$line);
+      if( $words[0] eq "set_fwdir" ) {
+         ++$fwiter;
+         if( $words[1] eq "-" ) {
+	     $setfwdir = "NONE";
+	 } else { 
+            if( ! $words[2] ) { 
+               if( $words[1] eq "product_dir" ) {
+		  $setfwdir = "product_dir";
+               } elsif( $words[1] eq "fq_dir" ) {
+		  $setfwdir = "flavorqual_dir";
+	       } else {
+		  $setfwdir = "ERROR";
+	       }
+	    } else {
+	       my $fwsubdir = $words[2];
+               if( $words[1] eq "product_dir" ) {
+		  $setfwdir = "product_dir/$fwsubdir";
+               } elsif( $words[1] eq "fq_dir" ) {
+		  $setfwdir = "flavorqual_dir/$fwsubdir";
+	       } else {
+		  $setfwdir = "ERROR";
+	       }
+	    }
+	 }
+	 $fwlist[$fwiter]=$setfwdir;
+      }
+    }
+  }
+  close(PIN);
+  return ($fwiter, \@fwlist);
+}
+
 sub get_cmake_gdml_directory {
   my @params = @_;
   my $gdmldir = "NONE";

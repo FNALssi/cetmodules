@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+#
+#-----------------------------------------------------------------------
+
+use strict;
+use warnings;
+use File::Basename;
+use Cwd;
+use lib dirname($0);
+require cmake_parse_deps;
+
+
+my $inputdir;
+my $i;
+
+if( $#ARGV >= 0 ) {
+   $inputdir = $ARGV[0];
+} else {
+    print "\n";
+    print "ERROR: directory not specified\n";
+    print "USAGE: report_fw <input-directory>\n";
+    print "       input-directory  = directory containing product_deps\n";
+    print "\n";
+    exit 1;
+}
+
+my $pfile=$inputdir."/product_deps";
+
+my ($fwlen, $fwlist_ref) = get_cmake_setfw_list( $pfile );
+my @fwlist=@$fwlist_ref;
+foreach $i ( 0 .. $fwlen ) {
+  print "FW_SEARCH_PATH $fwlist[$i]\n";   
+}
+
+exit 0;
