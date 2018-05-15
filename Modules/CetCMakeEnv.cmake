@@ -3,135 +3,6 @@
 
 include(CetGetProductInfo)
 
-# Verify that the compiler is set as desired, and is consistent with our
-# current known use of qualifiers.
-
-##function(_verify_cc COMPILER)
-function(_verify_cc )
-  # no-op for now
-  return()
-  if(NOT CMAKE_C_COMPILER) # Languages disabled.
-    return()
-  endif()
-  if(COMPILER STREQUAL "cc")
-    set(compiler_ref "^/usr/bin/cc$")
-  elseif(COMPILER MATCHES "^(gcc.*)$")
-    cet_regex_escape("$ENV{GCC_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  elseif(COMPILER STREQUAL icc)
-    cet_regex_escape("$ENV{ICC_FQ_DIR}/bin/intel64/${COMPILER}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  #elseif(COMPILER STREQUAL clang)
-  #  message(FATAL_ERROR "Clang not yet supported.")
-  elseif(COMPILER MATCHES "^(clang.*)$")
-    cet_regex_escape("$ENV{APPLE_CLANG_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  elseif(COMPILER MATCHES "[-_]gcc\\$")
-    message(FATAL_ERROR "Cross-compiling not yet supported")
-  else()
-    message(FATAL_ERROR "Unrecognized C compiler \"${COMPILER}\": use cc, gcc(-XXX)?, icc, or clang.")
-  endif()
-  get_filename_component(cr_dir "${compiler_ref}" DIRECTORY)
-  _cet_real_dir("${cr_dir}" cr_dir)
-  get_filename_component(cr_name "${compiler_ref}" NAME)
-  set(compiler_ref "${cr_dir}/${cr_name}")
-  if(NOT (CMAKE_C_COMPILER MATCHES "${compiler_ref}"))
-    message(FATAL_ERROR "CMAKE_C_COMPILER set to ${CMAKE_C_COMPILER}: expected match to \"${compiler_ref}\".\n"
-      "Use buildtool or preface cmake invocation with \"env CC=${CETPKG_CC}.\" Use buildtool -c if changing qualifier.")
-  endif()
-endfunction()
-
-##function(_verify_cxx COMPILER)
-function(_verify_cxx )
-  # no-op for now
-  return()
-  if(NOT CMAKE_CXX_COMPILER) # Languages disabled.
-    return()
-  endif()
-  if(COMPILER STREQUAL "c++")
-    set(compiler_ref "^/usr/bin/c\\+\\+$")
-  elseif(COMPILER MATCHES "^(g\\+\\+.*)$")
-    cet_regex_escape("$ENV{GCC_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  elseif(COMPILER STREQUAL icpc)
-    set(compiler_ref "$ENV{ICC_FQ_DIR}/bin/intel64/${COMPILER}")
-  ##elseif(COMPILER STREQUAL clang++)
-  ##  message(FATAL_ERROR "Clang not yet supported.")
-  elseif(COMPILER MATCHES "^(clang\\+\\+.*)$")
-    cet_regex_escape("$ENV{APPLE_CLANG_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  elseif(COMPILER MATCHES "[-_]g\\+\\+$")
-    message(FATAL_ERROR "Cross-compiling not yet supported")
-  else()
-    message(FATAL_ERROR "Unrecognized C++ compiler \"${COMPILER}\": use c++, g++(-XXX)?, icpc, or clang++.")
-  endif()
-  get_filename_component(cr_dir "${compiler_ref}" DIRECTORY)
-  _cet_real_dir("${cr_dir}" cr_dir)
-  get_filename_component(cr_name "${compiler_ref}" NAME)
-  set(compiler_ref "${cr_dir}/${cr_name}")
-  if(NOT (CMAKE_CXX_COMPILER MATCHES "${compiler_ref}"))
-    message(FATAL_ERROR "CMAKE_CXX_COMPILER set to ${CMAKE_CXX_COMPILER}: expected match to \"${compiler_ref}\".\n"
-      "Use buildtool or preface cmake invocation with \"env CXX=${CETPKG_CXX}.\" Use buildtool -c if changing qualifier.")
-  endif()
-endfunction()
-
-##function(_verify_fc COMPILER)
-function(_verify_fc )
-  # no-op for now
-  return()
-  if(NOT CMAKE_Fortran_COMPILER) # Languages disabled.
-    return()
-  endif()
-  if(COMPILER MATCHES "^(gfortran.*)$")
-    cet_regex_escape("$ENV{GCC_FQ_DIR}/bin/${CMAKE_MATCH_0}" escaped_path)
-    set(compiler_ref "^${escaped_path}$")
-  elseif(COMPILER STREQUAL ifort)
-    set(compiler_ref "$ENV{ICC_FQ_DIR}/bin/intel64/${COMPILER}")
-  elseif(COMPILER STREQUAL clang)
-    message(FATAL_ERROR "Clang not yet supported.")
-  elseif(COMPILER MATCHES "[-_]gfortran$")
-    message(FATAL_ERROR "Cross-compiling not yet supported")
-  else()
-    message(FATAL_ERROR "Unrecognized Fortran compiler \"${COMPILER}\": use , gfortran(-XXX)? or ifort.")
-  endif()
-  get_filename_component(cr_dir "${compiler_ref}" DIRECTORY)
-  _cet_real_dir("${cr_dir}" cr_dir)
-  get_filename_component(cr_name "${compiler_ref}" NAME)
-  set(compiler_ref "${cr_dir}/${cr_name}")
-  if(NOT (CMAKE_Fortran_COMPILER MATCHES "${compiler_ref}"))
-    message(FATAL_ERROR "CMAKE_Fortran_COMPILER set to ${CMAKE_Fortran_COMPILER}: expected match to \"${compiler_ref}\".\n"
-      "Use buildtool or preface cmake invocation with \"env FC=${CETPKG_FC}.\" Use buildtool -c if changing qualifier.")
-  endif()
-endfunction()
-
-function(_study_compiler CTYPE)
-  # CTYPE = CC, CXX or FC
-  if (NOT CTYPE STREQUAL "CC" AND
-      NOT CTYPE STREQUAL "CXX" AND
-      NOT CTYPE STREQUAL "FC")
-    message(FATAL_ERROR "INTERNAL ERROR: unrecognized CTYPE ${CTYPE} to _study_compiler")
-  endif()
-  ##cet_get_product_info_item(${CTYPE} rcompiler ec_compiler)
-  ##if (NOT rcompiler)
-  ##  message(FATAL_ERROR "Unable to obtain compiler suite setting: re-source setup_for_development?")
-  ##endif()
-  if (CTYPE STREQUAL "CC")
-    _verify_cc(${rcompiler})
-  elseif(CTYPE STREQUAL "CXX")
-    _verify_cxx(${rcompiler})
-  elseif(CTYPE STREQUAL "FC")
-    _verify_fc(${rcompiler})
-  else()
-    message(FATAL_ERROR "INTERNAL ERROR: case missing for CTYPE ${CTYPE} in _study_compiler")
-  endif()
-endfunction()
-
-function(_verify_compiler_quals)
-  _study_compiler(CC)
-  _study_compiler(FC)
-  _study_compiler(CXX)
-endfunction()
-
 macro(cet_cmake_env)
 
   # project() must have been called before us.
@@ -147,16 +18,15 @@ macro(cet_cmake_env)
   ##message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
   ##message(STATUS "PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
   
-  # temporarily set this policy
-  # silently ignore non-existent dependencies
-  cmake_policy(SET CMP0046 OLD)
-
-  # Silently ignore the lack of an RPATH setting on OS X.
-  cmake_policy(SET CMP0042 OLD)
+  # Acknowledge new RPATH behavior on OS X.
+  cmake_policy(SET CMP0042 NEW)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+  endif()
 
   # do not embed full path in shared libraries or executables
   # because the binaries might be relocated
-  set(CMAKE_SKIP_RPATH)
+  #  set(CMAKE_SKIP_RPATH)
 
   #message(STATUS "Product is ${product} ${version} ${${product}_full_qualifier}")
   #message(STATUS "Module path is ${CMAKE_MODULE_PATH}")
@@ -180,13 +50,6 @@ macro(cet_cmake_env)
 
   # initialize cmake config file fragments
   _cet_init_config_var()
-
-  # Make sure compiler is set as the configuration requires.
-  if( "${arch}" MATCHES "noarch" )
-  message(STATUS "${product} is null flavored")
-  else()
-  _verify_compiler_quals()
-  endif()
 
   # we use ups/product_deps
   set( cet_ups_dir ${CMAKE_CURRENT_SOURCE_DIR}/ups CACHE STRING "Package UPS directory" FORCE )
