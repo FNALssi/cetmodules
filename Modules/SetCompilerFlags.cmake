@@ -3,19 +3,10 @@
 #
 #    sets the default compiler flags
 #
-# default gcc/g++ flags:
-# DEBUG           -g
-# RELEASE         -O3 -DNDEBUG
-# MINSIZEREL      -Os -DNDEBUG
-# RELWITHDEBINFO  -O2 -g
-#
-# CET flags
-# (debug)   DEBUG           -g -O0
-# (prof)    PROF            -O3 -g -DNDEBUG -fno-omit-frame-pointer
-# (opt)     OPT             -O3 -g -DNDEBUG
-# (prof)    MINSIZEREL      -O3 -g -DNDEBUG -fno-omit-frame-pointer
-# (opt)     RELEASE         -O3 -g -DNDEBUG
-# (default) RELWITHDEBINFO  unchanged
+# Debug           -g -O0
+# MinSizeRel      -Os
+# Release         -O3 -g -DNDEBUG
+# RelWithDebInfo  -O3 -g -DNDEBUG -fno-omit-frame-pointer
 #
 # Plus the diagnostic option set indicated by the DIAG option.
 #
@@ -34,7 +25,7 @@
 #      above emit DWARF4 by default; earlier compilers emit DWARF2.
 #    ENABLE_ASSERTS
 #      Enable asserts regardless of debug level (default is to disable
-#      asserts for PROF and OPT levels).
+#      asserts for RelWithDebInfo and Release levels).
 #    EXTRA_FLAGS (applied to both C and CXX) <flags>
 #    EXTRA_C_FLAGS <flags>
 #    EXTRA_CXX_FLAGS <flags>
@@ -130,111 +121,6 @@ macro( cet_report_compiler_flags )
   endif()
 endmacro( cet_report_compiler_flags )
 
-macro( _cet_process_flags PTYPE_UC )
-   # turn a space separated string into a colon separated list
-  STRING( REGEX REPLACE " " ";" tmp_cxx_flags "${CMAKE_CXX_FLAGS_${PTYPE_UC}}")
-  STRING( REGEX REPLACE " " ";" tmp_c_flags "${CMAKE_C_FLAGS_${PTYPE_UC}}")
-  ##message( STATUS "tmp_cxx_flags: ${tmp_cxx_flags}")
-  ##message( STATUS "tmp_c_flags: ${tmp_c_flags}")
-  foreach( flag ${tmp_cxx_flags} )
-     if( ${flag} MATCHES "^-W(.*)" )
-        ##message( STATUS "Warning: ${flag}" )
-     elseif( ${flag} MATCHES "-pedantic" )
-        ##message( STATUS "Ignoring: ${flag}" )
-     elseif( ${flag} MATCHES "-std[=]c[+][+]98" )
-        ##message( STATUS "Ignoring: ${flag}" )
-     else()
-        ##message( STATUS "keep ${flag}" )
-        list(APPEND TMP_CXX_FLAGS_${PTYPE_UC} ${flag} )
-     endif()
-  endforeach( flag )
-  foreach( flag ${tmp_c_flags} )
-     if( ${flag} MATCHES "^-W(.*)" )
-        ##message( STATUS "Warning: ${flag}" )
-     elseif( ${flag} MATCHES "-pedantic" )
-        ##message( STATUS "Ignoring: ${flag}" )
-     else()
-        ##message( STATUS "keep ${flag}" )
-        list(APPEND TMP_C_FLAGS_${PTYPE_UC} ${flag} )
-     endif()
-  endforeach( flag )
-  ##message( STATUS "TMP_CXX_FLAGS_${PTYPE_UC}: ${TMP_CXX_FLAGS_${PTYPE_UC}}")
-  ##message( STATUS "TMP_C_FLAGS_${PTYPE_UC}: ${TMP_C_FLAGS_${PTYPE_UC}}")
-
-endmacro( _cet_process_flags )
-
-macro( cet_base_flags )
-  foreach( mytype DEBUG;OPT;PROF )
-     ##message( STATUS "checking ${mytype}" )
-     _cet_process_flags( ${mytype} )
-     ##message( STATUS "${mytype} C   flags: ${TMP_C_FLAGS_${mytype}}")
-     ##message( STATUS "${mytype} CXX flags: ${TMP_CXX_FLAGS_${mytype}}")
-     set( CET_BASE_CXX_FLAG_${mytype} ${TMP_CXX_FLAGS_${mytype}}
-          CACHE STRING "base CXX ${mytype} flags for ups table"
-	  FORCE)
-     set( CET_BASE_C_FLAG_${mytype} ${TMP_C_FLAGS_${mytype}}
-          CACHE STRING "base C ${mytype} flags for ups table"
-	  FORCE)
-  endforeach( mytype )
-  ##message( STATUS "CET_BASE_CXX_FLAG_DEBUG: ${CET_BASE_CXX_FLAG_DEBUG}")
-  ##message( STATUS "CET_BASE_CXX_FLAG_OPT:   ${CET_BASE_CXX_FLAG_OPT}")
-  ##message( STATUS "CET_BASE_CXX_FLAG_PROF:  ${CET_BASE_CXX_FLAG_PROF}")
-endmacro( cet_base_flags )
-
-macro( _cet_add_build_types )
-  SET( CMAKE_CXX_FLAGS_OPT "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING
-    "Flags used by the C++ compiler for optimized builds."
-    FORCE )
-  SET( CMAKE_C_FLAGS_OPT "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING
-    "Flags used by the C compiler for optimized builds."
-    FORCE )
-  SET( CMAKE_EXE_LINKER_FLAGS_OPT "${CMAKE_EXE_LINKER_FLAGS_RELEASE}"
-    CACHE STRING
-    "Flags used for linking binaries for optimized builds."
-    FORCE )
-  SET( CMAKE_SHARED_LINKER_FLAGS_OPT "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}"
-    CACHE STRING
-    "Flags used by the shared libraries linker for optimized builds."
-    FORCE )
-  MARK_AS_ADVANCED(
-    CMAKE_CXX_FLAGS_OPT
-    CMAKE_C_FLAGS_OPT
-    CMAKE_EXE_LINKER_FLAGS_OPT
-    CMAKE_SHARED_LINKER_FLAGS_OPT )
-
-  SET( CMAKE_CXX_FLAGS_PROF "${CMAKE_CXX_FLAGS_MINSIZEREL}" CACHE STRING
-    "Flags used by the C++ compiler for optimized builds."
-    FORCE )
-  SET( CMAKE_C_FLAGS_PROF "${CMAKE_C_FLAGS_MINSIZEREL}" CACHE STRING
-    "Flags used by the C compiler for optimized builds."
-    FORCE )
-  SET( CMAKE_EXE_LINKER_FLAGS_PROF "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL}"
-    CACHE STRING
-    "Flags used for linking binaries for optimized builds."
-    FORCE )
-  SET( CMAKE_SHARED_LINKER_FLAGS_PROF "${CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL}"
-    CACHE STRING
-    "Flags used by the shared libraries linker for optimized builds."
-    FORCE )
-
-  MARK_AS_ADVANCED(
-    CMAKE_CXX_FLAGS_PROF
-    CMAKE_C_FLAGS_PROF
-    CMAKE_EXE_LINKER_FLAGS_PROF
-    CMAKE_SHARED_LINKER_FLAGS_PROF )
-
-endmacro( _cet_add_build_types )
-
-function(_verify_cxx_std_flag FLAGS FLAG_VAR)
-  _find_std_flag(FLAGS FOUND_STD_FLAG)
-  _std_flag_from_qual(QUAL_STD_FLAG)
-
-  if (FOUND_STD_FLAG AND QUAL_STD_FLAG AND NOT FOUND_STD_FLAG STREQUAL QUAL_STD_FLAG)
-    message(FATAL_ERROR "Qualifier specifies ${QUAL_STD_FLAG}, but user specifies ${FOUND_STD_FLAG}.\nPlease change qualifier or (preferably) remove user setting of ${FOUND_STD_FLAG}")
-  endif()
-  set(${FLAG_VAR} ${QUAL_STD_FLAG} PARENT_SCOPE)
-endfunction()
-
 macro( cet_enable_asserts )
   remove_definitions(-DNDEBUG)
 endmacro( cet_enable_asserts )
@@ -247,9 +133,7 @@ endmacro( cet_disable_asserts )
 macro( cet_maybe_disable_asserts )
   string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
   cet_enable_asserts() # Starting point
-  if( ${BTYPE_UC} MATCHES "OPT" OR
-      ${BTYPE_UC} MATCHES "PROF" OR
-      ${BTYPE_UC} MATCHES "RELEASE" OR
+  if( ${BTYPE_UC} MATCHES "RELEASE" OR
       ${BTYPE_UC} MATCHES "MINSIZEREL" )
     cet_disable_asserts()
   endif()
@@ -270,17 +154,19 @@ endmacro()
 
 macro( cet_add_compiler_flags )
   _parse_flags_options(${ARGN})
-  string(REGEX REPLACE ";" " " CSCF_ARGS "${CSCF_UNPARSED_ARGUMENTS}")
   string(REGEX MATCH "(^| )-std=" CSCF_HAVE_STD ${CSCF_ARGS})
-  string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-  # temporary hack while we wait for the real fix
-  #_verify_cxx_std_flag(${CSCF_CXX})
-  _verify_cxx_std_flag(CSCF_CXX QUAL_STD_FLAG)
-  foreach(acf_lang ${CSCF_LANGUAGES})
-    if (CSCF_HAVE_STD)
-      cet_remove_compiler_flags(LANGUAGES ${acf_lang} REGEX "-std=[^ ]*")
-    endif()
-    set(CMAKE_${acf_lang}_FLAGS_${BTYPE_UC} "${CMAKE_${acf_lang}_FLAGS_${BTYPE_UC}} ${CSCF_ARGS}")
+  if (CSCF_HAVE_STD)
+    message(FATAL_ERROR "cet_add_compiler_flags() called with -std=...: use CMAKE_<LANG>_STANDARD and CMAKE_<LANG>_EXTENSIONS instead")
+  endif()
+  if(CSCF_C AND CSCF_CXX)
+    add_compile_options(${CSCF_UNPARSED_ARGUMENTS}) # In bulk.
+    list(REMOVE_ITEM CSCF_LANGUAGES C CXX)
+  endif()
+  # For each language specified if not already handled above.
+  foreach(lang ${CSCF_LANGUAGES})
+    foreach(opt ${CSCF_UNPARSED_ARGUMENTS})
+      add_compile_options($<$<COMPILE_LANGUAGE:${lang}>:${opt}>)
+    endforeach()
   endforeach()
 endmacro( cet_add_compiler_flags )
 
@@ -309,41 +195,6 @@ macro( cet_remove_compiler_flags )
   endforeach()
 endmacro()
 
-# Find the first -std flag in the incoming list and put it in the
-# outgoing var.
-function(_find_std_flag IN_VAR OUT_VAR)
-  string(REGEX MATCH "(^| )-std=[^ ]*" found_std_flag "${${IN_VAR}}")
-  set(${OUT_VAR} "${found_std_flag}" PARENT_SCOPE)
-endfunction()
-
-function(_find_extra_std_flags IN_VAR OUT_VAR)
-  string(REGEX MATCHALL "(^| )-std=[^ ]*" found_std_flags "${${IN_VAR}}")
-  list(LENGTH found_std_flags fsf_len)
-  if (fsf_len GREATER 1)
-    list(GET found_std_flags 0 tmp)
-    set(${OUT_VAR} "${tmp}" PARENT_SCOPE)
-  else()
-    unset(${OUT_VAR} PARENT_SCOPE)
-  endif()
-endfunction()
-
-function(_std_flag_from_qual OUT_VAR)
-# complete hack
-      set(${OUT_VAR} "-std=c++14" PARENT_SCOPE)
-endfunction()
-
-macro(_remove_extra_std_flags VAR)
-  string(REGEX MATCHALL "(^| )-std=[^ ]*" found_std_flags "${${VAR}}")
-  list(LENGTH found_std_flags fsf_len)
-  if (fsf_len GREATER 1)
-    list(REMOVE_AT found_std_flags -1)
-    foreach (flag ${found_std_flags})
-      cet_regex_escape("${flag}" flag)
-      _rm_flag_trim_whitespace(${VAR} "${flag}")
-    endforeach()
-  endif()
-endmacro()
-
 macro( cet_set_compiler_flags )
   CET_PARSE_ARGS(CSCF
     "DIAGS;DWARF_VER;EXTRA_FLAGS;EXTRA_C_FLAGS;EXTRA_CXX_FLAGS;EXTRA_DEFINITIONS"
@@ -355,27 +206,57 @@ macro( cet_set_compiler_flags )
     message(FATAL_ERROR "Unexpected extra arguments: ${CSCF_DEFAULT_ARGS}.\nConsider EXTRA_FLAGS, EXTRA_C_FLAGS, EXTRA_CXX_FLAGS or EXTRA_DEFINITIONS")
   endif()
 
-  _verify_cxx_std_flag(CSCF_EXTRA_CXX_FLAGS QUAL_STD_FLAG)
-
-  # turn a colon separated list into a space separated string
-  STRING( REGEX REPLACE ";" " " CSCF_EXTRA_CXX_FLAGS "${CSCF_EXTRA_CXX_FLAGS}")
-  STRING( REGEX REPLACE ";" " " CSCF_EXTRA_C_FLAGS "${CSCF_EXTRA_C_FLAGS}")
-  STRING( REGEX REPLACE ";" " " CSCF_EXTRA_FLAGS "${CSCF_EXTRA_FLAGS}")
-
-  set( DFLAGS_CAVALIER "" )
-  set( DXXFLAGS_CAVALIER "" )
-  set( DFLAGS_CAUTIOUS "${DFLAGS_CAVALIER} -Wall -Werror=return-type" )
-  set( DXXFLAGS_CAUTIOUS "${DXXFLAGS_CAVALIER}" )
-  set( DFLAGS_VIGILANT "${DFLAGS_CAUTIOUS} -Wextra -Wno-long-long -Winit-self" )
-  if (NOT CMAKE_C_COMPILER MATCHES "/?icc$") # Not understood by ICC
-    set( DFLAGS_VIGILANT "${DFLAGS_VIGILANT} -Wno-unused-local-typedefs" )
-  endif()
-  set( DXXFLAGS_VIGILANT "${DXXFLAGS_CAUTIOUS} -Woverloaded-virtual" )
-  set( DFLAGS_PARANOID "${DFLAGS_VIGILANT} -pedantic -Wformat-y2k -Wswitch-default -Wsync-nand -Wtrampolines -Wlogical-op -Wshadow -Wcast-qual" )
-  set( DXXFLAGS_PARANOID "${DXXFLAGS_VIGILANT}" )
-
+  # Set options based on diagnostic option.
+  set(diags_vals CAVALIER CAUTIOUS VIGILANT PARANOID)
+  string(TOUPPER "${CSCF_DIAGS}" CSCF_DIAGS)
   if (NOT CSCF_DIAGS)
-    SET(CSCF_DIAGS "CAUTIOUS")
+    set(CSCF_DIAGS "CAUTIOUS")
+  endif()
+  list(FIND diags_vals ${CSCF_DIAGS} diag_idx)
+  if (diag_idx GREATER -1)
+    message(STATUS "Selected diagnostics option ${CSCF_DIAGS}")
+    if (diag_idx GREATER 0) # At least CAUTIOUS
+      add_compile_options(-Wall -Werror=return-type) # C & C++
+      if (diag_idx GREATER 1) # At least VIGILANT
+        add_compile_options(-Wextra -Wno-long-long -Winit-self)
+        if (NOT CMAKE_COMPILER_ID STREQUAL "Intel")
+          add_compile_options(-Wno-unused-local-typedefs)
+        endif()
+        foreach (opt -Woverloaded-virtual
+            -Wnon-virtual-dtor
+            -Wdelete-non-virtual-dtor)
+          add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${opt}>) # C++ only
+        endforeach()
+        if (diag_idx GREATER 2) # PARANOID
+          add_compile_options(-pedantic
+            -Wformat-y2k
+            -Wswitch-default
+            -Wsync-nand
+            -Wtrampolines
+            -Wlogical-op
+            -Wshadow
+            -Wcast-qual)
+        endif(diag_idx GREATER 2)
+      endif(diag_idx GREATER 1)
+    endif(diag_idx GREATER 0)
+    add_compile_options(${CSCF_EXTRA_FLAGS})
+    foreach (opt ${CSCF_EXTRA_C_FLAGS})
+      add_compile_options($<$<COMPILE_LANGUAGE:C>:${opt}>) # C only
+    endforeach()
+    foreach (opt ${CSCF_EXTRA_CXX_FLAGS})
+      add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${opt}>) # C++ only
+    endforeach()
+  else()
+    message(FATAL_ERROR "Unrecognized DIAGS option ${CSCF_DIAGS}")
+  endif()
+
+  if (CSCF_WERROR)
+    add_compile_options(-Werror)
+    if (CSCF_ALLOW_DEPRECATIONS)
+      add_compile_options(-Wno-error=deprecated-declarations)
+    endif()
+  elseif (CSCF_ALLOW_DEPRECATIONS)
+    message(WARNING "ALLOW_DEPRECATIONS ignored when WERROR not specified")
   endif()
 
   if (CSCF_NO_UNDEFINED)
@@ -388,37 +269,6 @@ macro( cet_set_compiler_flags )
     # Make OS X match default SLF6 behavior.
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-undefined,dynamic_lookup")
   endif()
-
-  if (CSCF_WERROR)
-    set(CSCF_WERROR "-Werror")
-    if (CSCF_ALLOW_DEPRECATIONS)
-      set(CSCF_WERROR "${CSCF_WERROR} -Wno-error=deprecated-declarations")
-    endif()
-  else()
-    set(CSCF_WERROR "")
-    if (CSCF_ALLOW_DEPRECATIONS)
-      message(WARNING "ALLOW_DEPRECATIONS ignored when WERROR not specified")
-    endif()
-  endif()
-
-  string(TOUPPER "${CSCF_DIAGS}" CSCF_DIAGS)
-  if (CSCF_DIAGS STREQUAL "CAVALIER" OR
-      CSCF_DIAGS STREQUAL "CAUTIOUS" OR
-      CSCF_DIAGS STREQUAL "VIGILANT" OR
-      CSCF_DIAGS STREQUAL "PARANOID")
-    message(STATUS "Selected diagnostics option ${CSCF_DIAGS}")
-  else()
-    message(FATAL_ERROR "Unrecognized DIAGS option ${CSCF_DIAGS}")
-  endif()
-
-  set( CMAKE_C_FLAGS_DEBUG "-g -O0 ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${CSCF_EXTRA_C_FLAGS} ${DFLAGS_${CSCF_DIAGS}}" )
-  set( CMAKE_CXX_FLAGS_DEBUG "-std=c++98 -g -O0 ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${QUAL_STD_FLAG} ${CSCF_EXTRA_CXX_FLAGS} ${DFLAGS_${CSCF_DIAGS}} ${DXXFLAGS_${CSCF_DIAGS}}" )
-  set( CMAKE_C_FLAGS_MINSIZEREL "-O3 -g -fno-omit-frame-pointer ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${CSCF_EXTRA_C_FLAGS} ${DFLAGS_${CSCF_DIAGS}}" )
-  set( CMAKE_CXX_FLAGS_MINSIZEREL "-std=c++98 -O3 -g -fno-omit-frame-pointer ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${QUAL_STD_FLAG} ${CSCF_EXTRA_CXX_FLAGS} ${DFLAGS_${CSCF_DIAGS}} ${DXXFLAGS_${CSCF_DIAGS}}" )
-  set( CMAKE_C_FLAGS_RELEASE "-O3 -g ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${CSCF_EXTRA_C_FLAGS} ${DFLAGS_${CSCF_DIAGS}}" )
-  set( CMAKE_CXX_FLAGS_RELEASE "-std=c++98 -O3 -g ${CSCF_WERROR} ${CSCF_EXTRA_FLAGS} ${QUAL_STD_FLAG} ${CSCF_EXTRA_CXX_FLAGS} ${DFLAGS_${CSCF_DIAGS}} ${DXXFLAGS_${CSCF_DIAGS}}" )
-
- _cet_add_build_types() 
 
   if( PACKAGE_TOP_DIRECTORY )
      STRING( REGEX REPLACE "^${PACKAGE_TOP_DIRECTORY}/(.*)" "\\1" CURRENT_SUBDIR "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -438,6 +288,7 @@ macro( cet_set_compiler_flags )
 
   string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
   remove_definitions(-DNDEBUG)
+  cet_remove_compiler_flags(C CXX -DNDEBUG)
   if ( CSCF_ENABLE_ASSERTS )
     cet_enable_asserts()
   else()
@@ -449,13 +300,10 @@ macro( cet_set_compiler_flags )
   if( CSCF_CD )
     message( STATUS "   DEFINE (-D): ${CSCF_CD}")
   endif()
- 
-  _remove_extra_std_flags(CMAKE_C_FLAGS_${BTYPE_UC})
-  _remove_extra_std_flags(CMAKE_CXX_FLAGS_${BTYPE_UC})
-  _remove_extra_std_flags(CMAKE_Fortran_FLAGS_${BTYPE_UC})
-  ##message(STATUS "cet_set_compiler_flags debug: CMAKE_CXX_FLAGS_MINSIZEREL ${CMAKE_CXX_FLAGS_MINSIZEREL}")
-  ##message(STATUS "cet_set_compiler_flags debug: CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG}")
-  ##message(STATUS "cet_set_compiler_flags debug: CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
+
+  # Be more aggressive with optimization for RelWithDebInfo
+  add_compile_options($<$<CONFIG:RELWITHDEBINFO>:-O3>)
+  add_compile_options($<$<CONFIG:RELWITHDEBINFO>:-fno-omit-frame-pointer>)
 
 endmacro( cet_set_compiler_flags )
 
