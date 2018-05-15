@@ -2,11 +2,13 @@
 #  cetmodules
 # ======================================================================
 
-# use cmake 3.2 or later
-cmake_minimum_required(VERSION 3.2)
-# Project setup
-project(cetmodules VERSION 0.06.00
-                   LANGUAGES NONE)
+# Required to keep CMake happy.
+cmake_minimum_required(VERSION ${CMAKE_VERSION} FATAL_ERROR)
+# Actual version requirement.
+cmake_policy(VERSION 3.2)
+
+# Project information.
+project(cetmodules VERSION 0.06.00 LANGUAGES NONE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
