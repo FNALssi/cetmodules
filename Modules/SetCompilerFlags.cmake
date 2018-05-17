@@ -107,8 +107,6 @@
 #
 ########################################################################
 include(CMakeParseArguments)
-include(CetGetProductInfo)
-#include(CetHaveQual)
 include(CetRegexEscape)
 
 macro( cet_report_compiler_flags )

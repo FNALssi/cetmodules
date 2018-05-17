@@ -17,6 +17,9 @@ function(_config_package_config_file)
     set(${path_type}_dir ${${PROJECT_NAME}_${path_type}_dir})
     ##message(STATUS "${path_type} has ${${PROJECT_NAME}_${path_type}_dir}")
   endforeach()
+  string(REPLACE ";" "\n"
+    CONFIG_FIND_LIBRARY_COMMANDS
+    "${CONFIG_FIND_LIBRARY_COMMAND_LIST}")
   configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/product-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
@@ -61,8 +64,7 @@ macro( cet_cmake_config  )
   endif()
 
   #message(STATUS "cet_cmake_config debug: will install cmake configure files in ${distdir}")
-  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_UPS_COMMANDS}")
-  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
+  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMAND_LIST}")
   #message(STATUS "cet_cmake_config debug: ${CONFIG_LIBRARY_LIST}")
 
   string(TOUPPER  ${PROJECT_NAME} ${PROJECT_NAME}_UC )
@@ -70,14 +72,17 @@ macro( cet_cmake_config  )
   foreach( my_library ${CONFIG_LIBRARY_LIST} )
     string(TOUPPER  ${my_library} ${my_library}_UC )
     string(TOUPPER  ${PROJECT_NAME} ${PROJECT_NAME}_UC )
-    set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-    find_library( ${${my_library}_UC} NAMES ${my_library} PATHS \"\${${PROJECT_NAME}_LIBDIR}\" NO_DEFAULT_PATH )" )
-      #set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
-    #cet_find_library( ${${my_library}_UC} NAMES ${my_library} PATHS ENV ${${PROJECT_NAME}_UC}_LIB NO_DEFAULT_PATH )" )
-    ##message(STATUS "cet_cmake_config: cet_find_library( ${${my_library}_UC} NAMES ${my_library} PATHS ENV ${${PROJECT_NAME}_UC}_LIB NO_DEFAULT_PATH )" )
-    ##message(STATUS "cet_cmake_config: set( ${${my_library}_UC}  \$ENV{${${PROJECT_NAME}_UC}_LIB}/lib${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX} )" )
+    get_target_property(lib_type ${my_library} TYPE)
+    if (lib_type STREQUAL "STATIC_LIBRARY")
+      set(lib_basename ${CMAKE_STATIC_LIBRARY_PREFIX}${my_library}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    else()
+      set(lib_basename ${CMAKE_SHARED_LIBRARY_PREFIX}${my_library}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    endif()
+    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
+      "set(${${my_library}_UC} \"\${${PROJECT_NAME}_LIBDIR}/${lib_basename}\")"
+      )
   endforeach(my_library)
-  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMANDS}")
+  #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMAND_LIST}")
 
   # get perl library directory
   #message( STATUS "config_pm: ${PROJECT_NAME}_perllib is ${${PROJECT_NAME}_perllib}")
@@ -92,8 +97,8 @@ macro( cet_cmake_config  )
     #message(STATUS "CONFIG_PM_VERSION is ${CONFIG_PM_VERSION}" )
     string(REGEX REPLACE "\\." "_" my_pm_ver "${CONFIG_PM_VERSION}" )
     string(TOUPPER  ${my_pm_ver} PluginVersionInfo_UC )
-    set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-      set( ${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} )" )
+    list(APPENDCONFIG_FIND_LIBRARY_COMMAND_LIST
+      "set( ${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} )" )
     #message(STATUS "${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} " )
   endif()
   # add to pm list for package configure file
@@ -103,8 +108,8 @@ macro( cet_cmake_config  )
     string(REGEX REPLACE "\\." "_" my_pm_dash "${my_pm_name}" )
     #message( STATUS "config_pm: my_pm_dash ${my_pm_dash}")
     string(TOUPPER  ${my_pm_dash} ${my_pm_name}_UC )
-    set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-      set( ${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
+    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
+      "set( ${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
     #message(STATUS "${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
   endforeach(my_pm)
   foreach( my_pm ${CONFIG_PM_LIST} )
@@ -115,8 +120,8 @@ macro( cet_cmake_config  )
     string(REGEX REPLACE "/" "_" my_pm_slash "${my_pm_dash}" )
     #message( STATUS "config_pm: my_pm_slash ${my_pm_slash}")
     string(TOUPPER  ${my_pm_slash} ${my_pm_name}_UC )
-    set(CONFIG_FIND_LIBRARY_COMMANDS "${CONFIG_FIND_LIBRARY_COMMANDS}
-      set( ${${PROJECT_NAME}_UC}${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
+    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
+      "set( ${${PROJECT_NAME}_UC}${${my_pm_name}_UC} ${mypmdir}${my_pm} )" )
     #message(STATUS "${${PROJECT_NAME}_UC}${${my_pm_name}_UC}  ${mypmdir}${my_pm} " )
   endforeach(my_pm)
 

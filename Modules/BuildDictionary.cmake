@@ -52,7 +52,7 @@ endif()
 if (HAVE_ROOT6)
   set(BD_WANT_ROOTMAP TRUE)
   set(BD_WANT_PCM TRUE)
-  set( GENREFLEX_FLAGS
+  set(GENREFLEX_FLAGS
     --fail_on_warnings
     )
   if (ROOT6_HAS_NOINCLUDEPATHS)
@@ -110,7 +110,7 @@ function( _generate_dictionary dictname )
 
   if (HAVE_ROOT6)
     list(APPEND GENREFLEX_FLAGS
-      -l ${LIBRARY_OUTPUT_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict${CMAKE_SHARED_LIBRARY_SUFFIX}
+      -l $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
   endif()
   if (GD_ROOTMAP_OUTPUT)
@@ -126,14 +126,18 @@ function( _generate_dictionary dictname )
       )
   endif()
   if (BD_WANT_PCM)
-    set(PCM_OUTPUT ${LIBRARY_OUTPUT_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict_rdict.pcm)
+    set(PCM_OUTPUT
+      $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict_rdict.pcm)
     if (GD_PCM_OUTPUT_VAR)
       set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
     endif()
   endif()
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
-    ${SOURCE_OUTPUT} ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
+    # Extra outputs commented out until custom_command OUTPUT supports
+    # generator flags. See
+    # https://gitlab.kitware.com/cmake/cmake/issues/12877.
+    ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
     COMMAND ${ROOT_GENREFLEX} ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
     -s ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
 		-I${CMAKE_SOURCE_DIR}
@@ -206,14 +210,15 @@ function ( build_dictionary )
   list(APPEND dictionary_liblist ${ROOT_CORE} ${ROOT_REFLEX})
   #message(STATUS "BUILD_DICTIONARY: building dictionary ${dictname}")
   #message(STATUS "BUILD_DICTIONARY: link dictionary ${dictname} with ${dictionary_liblist} ")
+  add_library(${dictname}_dict SHARED ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp )
   if (BD_WANT_ROOTMAP)
-    set(ROOTMAP_OUTPUT ${LIBRARY_OUTPUT_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict.rootmap)
+    set(ROOTMAP_OUTPUT
+      $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict.rootmap)
     _generate_dictionary( ${dictname} ROOTMAP_OUTPUT ${ROOTMAP_OUTPUT} PCM_OUTPUT_VAR PCM_OUTPUT)
   else()
     _generate_dictionary( ${dictname} PCM_OUTPUT_VAR PCM_OUTPUT)
   endif()
-  add_library(${dictname}_dict SHARED ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp )
-  if (BD_WANT_ROOTMAP AND NOT ROOT6_HAS_NOINCLUDEPATH)
+  if (BD_WANT_ROOTMAP AND NOT ROOT6_HAS_NOINCLUDEPATHS)
     # Header line and OS X lib name fixing only necessary for older ROOT6.
     add_custom_command(TARGET ${dictname}_dict POST_BUILD
       COMMAND perl -wapi.bak -e s&\\.dylib\\.so&.dylib&g ${ROOTMAP_OUTPUT}

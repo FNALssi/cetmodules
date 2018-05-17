@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# =========================================================================
+# This is a bash-completion script assuming the formatted printout is
+# according to Boost program options.  Boost prints out program
+# options like (e.g.):
+#   --opt1             Non-argument option
+#   --opt2 arg         Option with argument
+#   -O [ --opt3 ] arg  Long and short options with argument
+#
+# =========================================================================
+
+output=$1
+exec=$2
+user=${3:-""}
+
+regex_allowed_opt_char="[-[:alnum:]]"
+regex_long_opt="--$regex_allowed_opt_char+"
+regex_short_opt="-[[:alnum:]]"
+regex_line_with_long_opt="^[[:space:]]*($regex_long_opt)[[:space:]]+.*$"
+regex_line_with_both_opts="^[[:space:]]*($regex_short_opt)[[:space:]]+\[[[:space:]]*($regex_long_opt)[[:space:]]*\][[:space:]]+.*$"
+
+only_long_options=$($exec -h 2>&1 | grep -E "$regex_line_with_long_opt" | sed -r "s/$regex_line_with_long_opt/\1/")
+long_and_short_options=$($exec -h 2>&1 | grep -E "$regex_line_with_both_opts" | sed -r "s/$regex_line_with_both_opts/\1 \2/")
+
+# Sometimes it's necessary to rename the bash function since the exec
+# my have a hyphen in it.
+fcn=${exec//-/_}
+
+cat >$output <<EOF
+# Bash completions not supported by csh--bail out early.
+test \$?shell = 1 && exit
+
+_$fcn()
+{
+    # Disable path completion
+    compopt +o default
+    local cur prev opts
+    COMPREPLY=()
+    cur="\${COMP_WORDS[COMP_CWORD]}"
+    prev="\${COMP_WORDS[COMP_CWORD-1]}"
+    opts="$only_long_options $long_and_short_options"
+
+    # User-provided completions
+    $([ "$user" == "" ] && echo "# (none provided)" || cat $user)
+
+    # Standard completions
+    if [[ \${cur} == -* ]] ; then
+        COMPREPLY=( \$(compgen -W "\${opts}" -- \${cur}) )
+        return 0
+    fi
+
+    # Re-enable path completion
+    compopt -o default
+    COMPREPLY=()
+    return 0
+}
+complete -F _$fcn $exec
+EOF

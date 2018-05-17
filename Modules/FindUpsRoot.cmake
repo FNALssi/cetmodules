@@ -58,13 +58,13 @@ endif()
  ##_get_dotver( ${ROOT_VERSION} )
  ##set( ROOT_DOT_VERSION ${dotver} )
 # compare for recursion
-list(FIND cet_product_list root found_product_match)
-if( ${found_product_match} LESS 0 )
-  # add to product list
-  set(CONFIG_FIND_UPS_COMMANDS "${CONFIG_FIND_UPS_COMMANDS}
-    find_ups_root( ${minimum} )")
-  set(cet_product_list root ${cet_product_list} )
-endif()
+#list(FIND cet_product_list root found_product_match)
+#if( ${found_product_match} LESS 0 )
+#  # add to product list
+#  set(CONFIG_FIND_UPS_COMMANDS "${CONFIG_FIND_UPS_COMMANDS}
+#    find_ups_root( ${minimum} )")
+#  set(cet_product_list root ${cet_product_list} )
+#endif()
 
 find_package( ROOT PATHS "${ROOTSYS}" NO_DEFAULT_PATH )
 
@@ -90,16 +90,9 @@ endif()
 # add include directory to include path if it exists
 include_directories ( $ENV{ROOT_INC} )
 
-##check_ups_version(root ${ROOT_VERSION} v6_00_00
-##  PRODUCT_OLDER_VAR HAVE_ROOT5
-##  PRODUCT_MATCHES_VAR HAVE_ROOT6
-##  )
-
-# Uncomment below after filling in the ROOT version where it starts
-# working.
-#check_ups_version(root ${ROOT_VERSION} v6_??_??
-#  PRODUCT_MATCHES_VAR ROOT6_HAS_NOINCLUDEPATHS
-#  )
+check_ups_version(root ${ROOT_VERSION} v6_10_04
+  PRODUCT_MATCHES_VAR ROOT6_HAS_NOINCLUDEPATHS
+  )
 
 include_directories ( ${ROOTSYS}/include )
 
@@ -125,6 +118,7 @@ set(ROOT_BASIC_LIB_LIST ${ROOT_CORE}
                         ${ROOT_CINT} 
                         ${ROOT_RIO}
                         ${ROOT_NET}
+                        ${ROOT_INT}
                         ${ROOT_HIST} 
                         ${ROOT_GRAF}
                         ${ROOT_GRAF3D}

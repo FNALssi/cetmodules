@@ -1,12 +1,10 @@
 ##
 ##message(STATUS "cetmodules_BINDIR = ${cetmodules_BINDIR}")
 
-include(CetGetProductInfo)
-
 macro(cet_cmake_env)
 
   # project() must have been called before us.
-  if(NOT PROJECT_NAME)
+  if(NOT CMAKE_PROJECT_NAME)
     message (FATAL_ERROR
       "CMake project() command must have been invoked prior to cet_cmake_env()."
       "\nIt must be invoked at the top level, not in an included .cmake file.")
@@ -32,6 +30,7 @@ macro(cet_cmake_env)
   #message(STATUS "Module path is ${CMAKE_MODULE_PATH}")
 
   set_install_root()
+  enable_testing()
 
   # Useful includes.
   include(FindUpsPackage)
@@ -77,20 +76,12 @@ macro(cet_cmake_env)
   include_directories ("${PROJECT_BINARY_DIR}")
   include_directories("${PROJECT_SOURCE_DIR}" )
   # make sure all libraries are in one directory
-  set(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
   # make sure all executables are in one directory
-  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
   # install license and readme if found
   install_license()
-
-  # Update the documentation string of CMAKE_BUILD_TYPE for GUIs
-  SET( CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel Opt Prof."
-    FORCE )
-  if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "" FORCE)
-  endif()
-  #message(STATUS "cet_cmake_env debug: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}" )
 
 endmacro(cet_cmake_env)
 
@@ -168,12 +159,10 @@ macro( cet_set_test_directory )
 endmacro( cet_set_test_directory )
 
 macro(_cet_debug_message)
-  if( ${CMAKE_BUILD_TYPE} )
   string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-    if( ${BTYPE_UC} MATCHES "DEBUG" )
-      message( STATUS "${ARGN}")
-    endif()
-  endif( ${CMAKE_BUILD_TYPE} )
+  if( ${BTYPE_UC} MATCHES "DEBUG" )
+    message( STATUS "${ARGN}")
+  endif()
 endmacro(_cet_debug_message)
 
 macro( set_install_root )

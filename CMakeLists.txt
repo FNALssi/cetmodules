@@ -12,6 +12,10 @@ project(cetmodules VERSION 0.06.00 LANGUAGES NONE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
+include(CetCMakeEnv)
+
+cet_cmake_env()
+
 # cetmodules-config.cmake
 include(CMakePackageConfigHelpers)
 

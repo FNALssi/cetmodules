@@ -1,7 +1,5 @@
 include(CMakeParseArguments)
 
-##INCLUDE(CheckUpsVersion)
-
 set(CCV_DEFAULT_RECURSIVE FALSE
   CACHE BOOL "Default setting for recursive checks by checkClassVersion (may be time-consuming)."
   )
@@ -52,14 +50,28 @@ function(check_class_version)
     MESSAGE(FATAL_ERROR "CHECK_CLASS_VERSION must be called after BUILD_DICTIONARY.")
   ENDIF()
   IF(CCV_ENABLED)
+    set(ASAN_OPTIONS "detect_leaks=0:new_delete_type_mismatch=0")
+    if ("$ENV{ASAN_OPTIONS}")
+      string(PREPEND ASAN_OPTIONS "$ENV{ASAN_OPTIONS}:")
+    endif()
+    set(CMD_ENV "ASAN_OPTIONS=${ASAN_OPTIONS}")
+    if (CETB_SANITIZER_PRELOADS)
+      list(APPEND CMD_ENV "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
+    endif()
+    foreach(ev LSAN_OPTIONS MSAN_OPTIONS TSAN_OPTIONS UBSAN_OPTIONS)
+      if (DEFINED ENV{${ev}})
+        list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
+      endif()
+    endforeach()
     # Add the check to the end of the dictionary building step.
     add_custom_command(OUTPUT ${dictname}_dict_checked
-      COMMAND checkClassVersion ${CCV_EXTRA_ARGS}
-      -l ${LIBRARY_OUTPUT_PATH}/lib${dictname}_dict
+      COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV}
+      checkClassVersion ${CCV_EXTRA_ARGS}
+      -l $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict
       -x ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
       -t ${dictname}_dict_checked
       COMMENT "Checking class versions for ROOT dictionary ${dictname}"
-      DEPENDS ${LIBRARY_OUTPUT_PATH}/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict${CMAKE_SHARED_LIBRARY_SUFFIX}
+      DEPENDS $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
     add_custom_target(checkClassVersion_${dictname} ALL
       DEPENDS ${dictname}_dict_checked)

@@ -1,0 +1,120 @@
+#!/bin/bash
+########################################################################
+# cet_test
+#
+# Test wrapper to ensure clean working directory.
+#
+########################################################################
+
+function realdir() {
+  local dir="${1:-.}"
+  ( cd "$dir" && pwd -P )
+}
+
+prog=${0##*/}
+
+function usage() {
+  cat 1>&2<<EOF
+usage: $prog [--required-files <files>] --wd <test-working-dir> --datafiles <;-separated-datafiles> [--] <cmd> [<args>...]
+EOF
+  exit ${1:-1}
+}
+
+declare -a datafiles
+function set_datafiles() {
+  local IFS=';'
+  for i in ${1}; do datafiles[${#datafiles[@]}]=$(basename "$i"); done
+}
+
+getopt -T >/dev/null 2>&1                                               
+if (( $? != 4 )); then                                                  
+  echo "ERROR: GNU getopt required! Check SETUP_GETOPT and PATH." 1>&2  
+  exit 1                                                                
+fi                                                                      
+
+TEMP=`getopt -n "$prog" --long datafiles:,debug,required-files:,skip-return-code:,wd: -o + -- "${@}"`
+eval set -- "$TEMP"
+
+while true; do
+    case $1 in
+        --datafiles)
+            set_datafiles "$2"
+            shift; shift;
+            ;;
+        --debug)
+            vopt="v"
+            shift;
+            ;;
+        --required-files)
+            old_IFS="${IFS}"; IFS=';'; requiredfiles=($2); IFS=${old_IFS}
+            shift; shift;
+            ;;
+        --skip-return-code)
+            (( skip_code = ${2} ))
+            shift; shift;
+            ;;
+        --wd)
+            wd="$2"
+            shift; shift;
+            ;;
+        --)
+            shift;
+            break
+            ;;
+        *)
+          echo "Bad argument $1" 1>&2
+          usage 1
+    esac
+done
+
+if [[ -z "$wd" ]]; then
+  echo "Compulsory argument --wd missing." 1>&2
+  usage 1
+elif [[ "$(realdir "$wd")" != "$(realdir)" ]]; then
+  echo "$prog must be executed from the working directory \"$(realdir "$wd")\" (currently \"$(realdir)\") for the test invoking $1" 1>&2
+  usage 1
+fi
+
+if [[ -z "$1" ]]; then
+  echo "$prog needs a command to execute!" 1>&2
+  usage 1
+fi
+
+# Clean the current working directory of everything except what we know
+# we want to keep.
+shopt -s nullglob
+for i in *; do
+  (( found = 0 ))
+  for j in "${datafiles[@]}"; do
+    if [[ "$i" == "$j" ]]; then
+      (( found = 1 ))
+      break;
+    fi
+  done
+
+  if ! (( ${found:-0} )); then
+    rm -rv${vopt} "${i}"
+  fi
+done
+
+# Make sure required files exist.
+declare -a missingfiles
+for i in "${requiredfiles[@]}"; do
+  if [[ ! -e "$i" ]]; then
+    missingfiles[${#missingfiles[@]}]=$i
+  fi
+done
+
+for i in "${datafiles[@]}"; do
+  if [[ ! -e "$i" ]]; then
+    missingfiles[${#missingfiles[@]}]=$i
+  fi
+done
+
+if (( ${#missingfiles[@]} )); then
+  echo "Required files missing from ${wd} for test: ${missingfiles[@]}" 1>&2
+  exit ${skip_code:-247}
+else
+  # Execute command in now-clean environment.
+  exec "$@"
+fi
