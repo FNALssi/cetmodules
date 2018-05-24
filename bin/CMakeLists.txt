@@ -2,6 +2,8 @@ include(CetMake)
 INSTALL (PROGRAMS 
   checkClassVersion
   cet_report
+  filter-program-options
+  filter-output
   make_bash_completions
   report_fcldir_base
   report_product_info

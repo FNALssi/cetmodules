@@ -1,0 +1,23 @@
+#!/usr/bin/perl -w
+########################################################################
+# Get program options
+########################################################################
+use strict;
+
+my $regex_allowed_opt_char="[-[:alnum:]]";
+my $regex_long_opt="--$regex_allowed_opt_char+";
+my $regex_short_opt="-[[:alnum:]]";
+my $regex_line_with_long_opt="^\\s*($regex_long_opt)\\s+.*\$";
+my $regex_line_with_both_opts="^\\s*($regex_short_opt)\\s+\\[\\s*($regex_long_opt)\\s*\\]\\s+.*\$";
+
+while (<>) {
+    my @long_opts = m&$regex_line_with_long_opt&;
+    if (scalar(@long_opts) == 1) {
+        print "$long_opts[0]\n";
+    }
+    my @both_opts = m&$regex_line_with_both_opts&;
+    if (scalar(@both_opts) == 2) {
+        print "$both_opts[0]\n";
+        print "$both_opts[1]\n";
+    }
+}
