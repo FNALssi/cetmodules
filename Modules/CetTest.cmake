@@ -270,11 +270,6 @@ cmake_policy(VERSION 3.3) # For if (IN_LIST)
 
 find_file(CET_CATCH_MAIN_SOURCE cet_catch_main.cpp PATH_SUFFIXES src)
 
-# If Boost has been specified but the library hasn't, load the library.
-if ((NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY) AND BOOST_VERS)
-  find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
-endif()
-
 set(CET_TEST_ENV ""
   CACHE INTERNAL "Environment to add to every test"
   FORCE
@@ -542,15 +537,13 @@ function(cet_test CET_TARGET)
       set(CET_SOURCE ${CET_TARGET}.cc)
     endif()
     if (CET_USE_CATCH_MAIN)
+      find_package(catch)
       if (NOT TARGET cet_catch_main) # Make sure we only build one!
         if (NOT CET_CATCH_MAIN_SOURCE)
           message(FATAL_ERROR "cet_test() INTERNAL ERROR: unable to find cet_catch_main.cpp required by USE_CATCH_MAIN")
         endif()
         add_library(cet_catch_main STATIC EXCLUDE_FROM_ALL ${CET_CATCH_MAIN_SOURCE})
         set_property(TARGET cet_catch_main PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-        if (DEFINED ENV{CATCH_INC})
-          target_include_directories(cet_catch_main PUBLIC $ENV{CATCH_INC})
-        endif()
         # Strip (x10 shrinkage on Linux with GCC 6.3.0)!
         add_custom_command(TARGET cet_catch_main POST_BUILD
           COMMAND strip -S $<TARGET_FILE:cet_catch_main>
@@ -566,12 +559,14 @@ function(cet_test CET_TARGET)
     endif()
     cet_make_exec(${CET_TARGET} ${CET_NO_INSTALL}
       ${cme_args} ${CETP_UNPARSED_ARGUMENTS})
-    if (CET_USE_CATCH_MAIN AND DEFINED ENV{CATCH_INC})
-      target_include_directories(${CET_TARGET} PUBLIC $ENV{CATCH_INC})
+    if (CET_USE_CATCH_MAIN)
       target_link_libraries(${CET_TARGET} cet_catch_main)
     endif()
     if (CET_USE_BOOST_UNIT)
       # Make sure we have the correct library available.
+      if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
+        find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
+      endif()
       if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
         message(FATAL_ERROR "cet_test: target ${CET_TARGET} has USE_BOOST_UNIT "
           "option set but Boost Unit Test Framework Library cannot be found: is "
