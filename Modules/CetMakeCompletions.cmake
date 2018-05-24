@@ -46,7 +46,7 @@ function(cet_make_completions exec)
   endif()
   add_custom_command(
     OUTPUT ${output_file}
-    COMMAND ${cetbuildtools_BINDIR}/make_bash_completions ${output_file} ${exec} ${user_provided_completions}
+    COMMAND ${cetmodules_BINDIR}/make_bash_completions ${output_file} ${exec} ${user_provided_completions}
     COMMENT ${completion_comment})
   add_custom_target(MakeCompletions_${exec} ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
   add_dependencies(MakeCompletions_${exec} ${exec})
