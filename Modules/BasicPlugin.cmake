@@ -136,6 +136,7 @@ function(basic_plugin name type)
     endif( has_path ) 
   endforeach()
   if(BP_USE_BOOST_UNIT)
+    find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
     set_target_properties(${plugin_name}
       PROPERTIES
       COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK

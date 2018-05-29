@@ -39,6 +39,7 @@
 ########################################################################
 include(CMakeParseArguments)
 include(CetCurrentSubdir)
+include(CetGetCxxStandardFlag)
 include(CheckClassVersion)
 
 find_package(ROOT REQUIRED COMPONENTS Core)
@@ -134,6 +135,7 @@ function( _generate_dictionary dictname )
       set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
     endif()
   endif()
+  cet_get_cxx_standard_flag(CXX_STD_FLAG)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
     # Extra outputs commented out until custom_command OUTPUT supports
@@ -143,7 +145,9 @@ function( _generate_dictionary dictname )
     COMMAND ${ROOT_genreflex_CMD} ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
     -s ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
 		-I${CMAKE_SOURCE_DIR}
-		${GENREFLEX_INCLUDES} ${GENREFLEX_FLAGS}
+		${GENREFLEX_INCLUDES}
+    ${CXX_STD_FLAG}
+    ${GENREFLEX_FLAGS}
     -o ${dictname}_dict.cpp
     ${CLEANUP_COMMAND}
     IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
