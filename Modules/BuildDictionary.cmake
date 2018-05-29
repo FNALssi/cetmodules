@@ -41,6 +41,8 @@ include(CMakeParseArguments)
 include(CetCurrentSubdir)
 include(CheckClassVersion)
 
+find_package(ROOT REQUIRED COMPONENTS Core)
+
 # make sure ROOT_VERSION has been defined
 if( NOT ROOT_VERSION )
   message(FATAL_ERROR "build_dictionary: ROOT_VERSION is undefined")
@@ -138,7 +140,7 @@ function( _generate_dictionary dictname )
     # generator flags. See
     # https://gitlab.kitware.com/cmake/cmake/issues/12877.
     ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
-    COMMAND ${ROOT_GENREFLEX} ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
+    COMMAND ${ROOT_genreflex_CMD} ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
     -s ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
 		-I${CMAKE_SOURCE_DIR}
 		${GENREFLEX_INCLUDES} ${GENREFLEX_FLAGS}
@@ -207,7 +209,7 @@ function ( build_dictionary )
       endif( has_path )
     endforeach()
   endif()
-  list(APPEND dictionary_liblist ${ROOT_CORE} ${ROOT_REFLEX})
+  list(APPEND dictionary_liblist ${ROOT_Core_LIBRARY})
   #message(STATUS "BUILD_DICTIONARY: building dictionary ${dictname}")
   #message(STATUS "BUILD_DICTIONARY: link dictionary ${dictname} with ${dictionary_liblist} ")
   add_library(${dictname}_dict SHARED ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp )

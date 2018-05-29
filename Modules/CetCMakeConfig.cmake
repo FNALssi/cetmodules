@@ -97,7 +97,7 @@ macro( cet_cmake_config  )
     #message(STATUS "CONFIG_PM_VERSION is ${CONFIG_PM_VERSION}" )
     string(REGEX REPLACE "\\." "_" my_pm_ver "${CONFIG_PM_VERSION}" )
     string(TOUPPER  ${my_pm_ver} PluginVersionInfo_UC )
-    list(APPENDCONFIG_FIND_LIBRARY_COMMAND_LIST
+    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
       "set( ${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} )" )
     #message(STATUS "${${PROJECT_NAME}_UC}_${PluginVersionInfo_UC} ${mypmdir}/CetSkelPlugins/${PROJECT_NAME}/${CONFIG_PM_VERSION} " )
   endif()

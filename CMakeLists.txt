@@ -42,6 +42,3 @@ add_subdirectory(templates)
 add_subdirectory( Modules )
 add_subdirectory( bin )
 add_subdirectory( src )
-
-# packaging utility
-include(UseCPackNoarch)
