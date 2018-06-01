@@ -2,6 +2,7 @@ include(CetMake)
 INSTALL (PROGRAMS 
   checkClassVersion
   cet_report
+  cet_test_functions.sh
   filter-program-options
   filter-output
   make_bash_completions
