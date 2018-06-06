@@ -123,6 +123,9 @@ macro( cet_make_exec cet_exec_name )
   endif()
   IF(CME_USE_BOOST_UNIT)
     # Make sure we have the correct library available.
+    if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
+      find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
+    endif()
     IF (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
       MESSAGE(FATAL_ERROR "cet_make_exec: target ${cet_exec_name} has USE_BOOST_UNIT "
         "option set but Boost Unit Test Framework Library cannot be found: is "
