@@ -39,7 +39,6 @@
 ########################################################################
 include(CMakeParseArguments)
 include(CetCurrentSubdir)
-include(CetGetCxxStandardFlag)
 include(CheckClassVersion)
 
 find_package(ROOT REQUIRED COMPONENTS Core)
@@ -135,7 +134,17 @@ function( _generate_dictionary dictname )
       set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
     endif()
   endif()
-  cet_get_cxx_standard_flag(CXX_STD_FLAG)
+set(CXX_STD_FLAG "$<IF:$<BOOL:$<TARGET_PROPERTY:${dictname}_dict,CXX_EXTENSIONS>>,\
+$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_EXTENSION_COMPILE_OPTION},\
+${CMAKE_CXX98_EXTENSION_COMPILE_OPTION}>>>>,\
+$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_STANDARD_COMPILE_OPTION},\
+${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>")
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
     # Extra outputs commented out until custom_command OUTPUT supports
