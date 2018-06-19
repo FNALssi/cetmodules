@@ -537,7 +537,7 @@ function(cet_test CET_TARGET)
       set(CET_SOURCE ${CET_TARGET}.cc)
     endif()
     if (CET_USE_CATCH_MAIN)
-      find_package(catch)
+      find_package(Catch2 QUIET REQUIRED)
       if (NOT TARGET cet_catch_main) # Make sure we only build one!
         if (NOT CET_CATCH_MAIN_SOURCE)
           message(FATAL_ERROR "cet_test() INTERNAL ERROR: unable to find cet_catch_main.cpp required by USE_CATCH_MAIN")
