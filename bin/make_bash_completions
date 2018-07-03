@@ -14,14 +14,14 @@ output=$1
 exec=$2
 user=${3:-""}
 
-regex_allowed_opt_char="[-[:alnum:]]"
-regex_long_opt="--$regex_allowed_opt_char+"
-regex_short_opt="-[[:alnum:]]"
-regex_line_with_long_opt="^[[:space:]]*($regex_long_opt)[[:space:]]+.*$"
-regex_line_with_both_opts="^[[:space:]]*($regex_short_opt)[[:space:]]+\[[[:space:]]*($regex_long_opt)[[:space:]]*\][[:space:]]+.*$"
+filter="$(which filter-program_options 2>/dev/null)"
+filter="${filter:-$(dirname ${BASH_SOURCE[0]})/filter-program-options}"
 
-only_long_options=$($exec -h 2>&1 | grep -E "$regex_line_with_long_opt" | sed -r "s/$regex_line_with_long_opt/\1/")
-long_and_short_options=$($exec -h 2>&1 | grep -E "$regex_line_with_both_opts" | sed -r "s/$regex_line_with_both_opts/\1 \2/")
+[[ -x "${filter}" ]] || \
+  { echo "Unable to find required companion program filter-program-options" 1>&2
+  exit 1; }
+
+options=$("${exec}" -h 2>&1 | "${filter}")
 
 # Sometimes it's necessary to rename the bash function since the exec
 # my have a hyphen in it.
@@ -33,13 +33,11 @@ test \$?shell = 1 && exit
 
 _$fcn()
 {
-    # Disable path completion
-    compopt +o default
     local cur prev opts
     COMPREPLY=()
     cur="\${COMP_WORDS[COMP_CWORD]}"
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
-    opts="$only_long_options $long_and_short_options"
+    opts="$options"
 
     # User-provided completions
     $([ "$user" == "" ] && echo "# (none provided)" || cat $user)
@@ -50,10 +48,8 @@ _$fcn()
         return 0
     fi
 
-    # Re-enable path completion
-    compopt -o default
     COMPREPLY=()
     return 0
 }
-complete -F _$fcn $exec
+complete -F _$fcn -o filenames -A file $exec
 EOF
