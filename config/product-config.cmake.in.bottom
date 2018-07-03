@@ -1,0 +1,1 @@
+check_required_components(@CMAKE_PROJECT_NAME@)

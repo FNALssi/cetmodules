@@ -73,7 +73,7 @@ else() # ROOT5
     -DGNU_SOURCE
     -DGNU_GCC
     -D__STRICT_ANSI__
-    -DPROJECT_NAME="${PROJECT_NAME}"
+    -DPROJECT_NAME="${CMAKE_PROJECT_NAME}"
     -DPROJECT_VERSION="${version}"
     )
 endif()

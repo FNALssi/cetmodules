@@ -258,8 +258,6 @@
 include(CMakeParseArguments)
 # Copy function.
 include(CetCopy)
-# May need Boost Unit Test Framework library.
-include(FindUpsBoost)
 # Need cet_script for PREBUILT scripts
 include(CetMake)
 # May need to escape a string to avoid misinterpretation as regex
@@ -279,7 +277,7 @@ set(CET_TEST_ENV ""
 # Default comparator
 set(CET_RUNANDCOMPARE "${CMAKE_CURRENT_LIST_DIR}/RunAndCompare.cmake")
 # Test run wrapper
-set(CET_CET_EXEC_TEST "${cetmodules_BINDIR}/cet_exec_test")
+set(CET_CET_EXEC_TEST "${cetmodules_bin_dir}/cet_exec_test")
 
 function(_update_defined_test_groups)
   set(TMP_LIST ${CET_DEFINED_TEST_GROUPS} ${ARGN})

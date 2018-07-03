@@ -21,10 +21,10 @@
 #        include_directories(${INCLUDE_DIRECTORIES} ${CATCH_INCLUDE_DIR})                          #
 #                                                                                                  #
 #        file(GLOB SOURCE_FILES "*.cpp")                                                           #
-#        add_executable(${PROJECT_NAME} ${SOURCE_FILES})                                           #
+#        add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})                                           #
 #                                                                                                  #
 #        include(ParseAndAddCatchTests)                                                            #
-#        ParseAndAddCatchTests(${PROJECT_NAME}                                                     #
+#        ParseAndAddCatchTests(${CMAKE_PROJECT_NAME}                                                     #
 #                              [TargetVar <targetVar>]                                             #
 #                              [ExtraLabels <extraLabels>])                                        #
 #                                                                                                  #

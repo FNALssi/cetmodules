@@ -3,18 +3,19 @@
 #   Install perl libs for inclusion by other packages.
 #   Default extensions: .pm
 #
-# The SUBDIRS option allows you to search subdirectories (e.g. a detail subdirectory)
+# The SUBDIRS option allows you to search subdirectories (e.g. a detail
+# subdirectory)
 #
-# The EXTRAS option is intended to allow you to pick up extra files not otherwise found.
-# They should be specified by relative path (eg f1, subdir1/f2, etc.).
+# The EXTRAS option is intended to allow you to pick up extra files not
+# otherwise found.  They should be specified by relative path (eg f1,
+# subdir1/f2, etc.).
 #
-# The EXCLUDES option will exclude the specified files from the installation list.
+# The EXCLUDES option will exclude the specified files from the
+# installation list.
 #
 # The LIST option allows you to install from a list. When LIST is used,
 # we do not search for other files to install. Note that the LIST and
 # SUBDIRS options are mutually exclusive.
-#
-# The AS_TEST option for install_scripts will install scripts in a test subdirectory.
 #
 ####################################
 # Recommended use:
@@ -25,12 +26,15 @@
 # install_perllib( LIST file_list )
 #
 
-include(CetCurrentSubdir)
-include (CetExclude)
 include(CetCopy)
+include(CetCurrentSubdir)
+include(CetExclude)
+include(CetProjectVars)
 
+# Project variable.
 macro( _cet_perl_plugin_version )
-  configure_file(${cetlib_DIR}/../../../perllib/PluginVersionInfo.pm.in
+  find_package(cetlib REQUIRED)
+  configure_file(${cetlib_PLUGINVERSIONINFO_PM_IN}
     ${CMAKE_CURRENT_BINARY_DIR}/${product}/PluginVersionInfo.pm
     @ONLY)
     set(CONFIG_PM_VERSION "PluginVersionInfo.pm"
@@ -124,11 +128,13 @@ macro( _cet_install_perllib_without_list   )
 endmacro( _cet_install_perllib_without_list )
 
 macro( install_perllib   )
+  cet_project_var(perllib_dir perllib
+    DOCSTRING "Directory below prefix to install perl files")
   cmake_parse_arguments( IPRL "" "" "SUBDIRS;LIST;EXTRAS;EXCLUDES" ${ARGN})
   _cet_current_subdir( TEST_SUBDIR )
-  STRING( REGEX REPLACE "^/${${product}_perllib_subdir}(.*)" "\\1" CURRENT_SUBDIR "${TEST_SUBDIR}" )
-  set(perllib_install_dir "${${product}_perllib}${CURRENT_SUBDIR}")
-  set(prlpathname "${${product}_perllib_subdir}${CURRENT_SUBDIR}")
+  STRING( REGEX REPLACE "^/${${CMAKE_PROJECT_NAME}_perllib_dir}(.*)" "\\1" CURRENT_SUBDIR "${TEST_SUBDIR}" )
+  set(perllib_install_dir "${${CMAKE_PROJECT_NAME}_perllib_dir}${CURRENT_SUBDIR}")
+  set(prlpathname "${${CMAKE_PROJECT_NAME}_perllib_dir}${CURRENT_SUBDIR}")
   #message( STATUS "install_perllib: perllib scripts will be installed in ${perllib_install_dir}" )
   #message( STATUS "install_perllib: IPRL_SUBDIRS is ${IPRL_SUBDIRS}")
   get_filename_component( CURRENT_SUBDIR_NAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME )

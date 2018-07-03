@@ -131,9 +131,8 @@
 #    lib/test2.py
 #    lib/test2.pyc
 #
-# After install, the same files will be visible under
-# ${XX_DIR}/{doc,etc} and ${XX_FQ_DIR}/{lib,bin} in the installed
-# product.
+# After install, the same files will be visible under the corresponding
+# directory in the installed product.
 #
 ########################################################################
 
@@ -309,11 +308,11 @@ function(install_python)
   endif()
   add_custom_target(python_${IP_NAME}_build
     ALL
-    COMMAND python "${IP_SETUP_PY}" install --install-lib="${CMAKE_BINARY_DIR}/lib" --install-scripts="${CMAKE_BINARY_DIR}/lib" --install-headers="${product}"
+    COMMAND python "${IP_SETUP_PY}" install --install-lib="${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_lib_dir}" --install-scripts="${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_bin_dir}" --install-headers="${product}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     DEPENDS "${IP_SETUP_PY}"
     )
   if (NOT IP_NO_INSTALL)
-    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=${CMAKE_INSTALL_PREFIX}/${product}/${version} --install-lib=${CMAKE_INSTALL_PREFIX}/${${product}_lib_dir} --install-scripts=${CMAKE_INSTALL_PREFIX}/${${product}_bin_dir} --install-headers=${CMAKE_INSTALL_PREFIX}/${${product}_inc_dir})")
+    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=${CMAKE_INSTALL_PREFIX} --install-lib=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_lib_dir} --install-scripts=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_bin_dir} --install-headers=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_inc_dir})")
   endif()
 endfunction()

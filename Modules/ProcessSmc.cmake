@@ -16,7 +16,7 @@
 # by the state machine compiler.
 #
 ########################################################################
-
+message(FATAL_ERROR "SMC compilation is not yet supported with cetmodules")
 include(CMakeParseArguments)
 
 find_ups_product(smc_compiler v6_1_0)

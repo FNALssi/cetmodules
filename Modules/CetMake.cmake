@@ -47,7 +47,7 @@
 #             [GENERATED]
 #             [REMOVE_EXTENSIONS] )
 #
-#   Copy the named scripts to ${${product}_bin_dir} (usually bin/).
+#   Copy the named scripts to ${${CMAKE_PROJECT_NAME}_bin_dir} (usually bin/).
 #
 #   If the GENERATED option is used, the script will be copied from
 #   ${CMAKE_CURRENT_BINARY_DIR} (after being made by a CONFIGURE
@@ -80,22 +80,6 @@ include(CetCopy)
 include(CetParseArgs)
 include(CetPackagePath)
 include(InstallSource)
-
-macro( _cet_check_lib_directory )
-  if( ${${product}_lib_dir} MATCHES "NONE" )
-      message(FATAL_ERROR "Please specify a lib directory in product_deps")
-  elseif( ${${product}_lib_dir} MATCHES "ERROR" )
-      message(FATAL_ERROR "Invalid lib directory in product_deps")
-  endif()
-endmacro( _cet_check_lib_directory )
-
-macro( _cet_check_bin_directory )
-  if( ${${product}_bin_dir} MATCHES "NONE" )
-      message(FATAL_ERROR "Please specify a bin directory in product_deps")
-  elseif( ${${product}_bin_dir} MATCHES "ERROR" )
-      message(FATAL_ERROR "Invalid bin directory in product_deps")
-  endif()
-endmacro( _cet_check_bin_directory )
 
 macro( cet_make_exec cet_exec_name )
   set(cet_exec_file_list "")
@@ -160,9 +144,8 @@ macro( cet_make_exec cet_exec_name )
   if(CME_NO_INSTALL)
     #message(STATUS "${cet_exec_name} will not be installed")
   else()
-    _cet_check_bin_directory()
-    #message( STATUS "cet_make_exec: executables will be installed in ${${product}_bin_dir}")
-    install( TARGETS ${cet_exec_name} DESTINATION ${${product}_bin_dir} )
+    #message( STATUS "cet_make_exec: executables will be installed in ${${CMAKE_PROJECT_NAME}_bin_dir}")
+    install( TARGETS ${cet_exec_name} DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir} )
   endif()
 endmacro( cet_make_exec )
 
@@ -294,7 +277,7 @@ macro( cet_make )
        cet_make_library( LIBRARY_NAME ${cet_make_library_name}
                 	 SOURCE ${cet_make_library_src} )
     endif() 
-    #message( STATUS "cet_make debug: library ${cet_make_library_name} will be installed in ${${product}_lib_dir}")
+    #message( STATUS "cet_make debug: library ${cet_make_library_name} will be installed in ${${CMAKE_PROJECT_NAME}_lib_dir}")
   else( )
     _cet_debug_message("cet_make: no library for ${CMAKE_CURRENT_SOURCE_DIR}")
   endif( )
@@ -365,13 +348,12 @@ macro( cet_make_library )
   if( CML_NO_INSTALL )
     #message(STATUS "cet_make_library debug: ${CML_LIBRARY_NAME} will not be installed")
   else()
-    _cet_check_lib_directory()
     cet_add_to_library_list( ${CML_LIBRARY_NAME})
-    ##_cet_debug_message( "cet_make_library: ${CML_LIBRARY_NAME} will be installed in ${${product}_lib_dir}")
+    ##_cet_debug_message( "cet_make_library: ${CML_LIBRARY_NAME} will be installed in ${${CMAKE_PROJECT_NAME}_lib_dir}")
     install( TARGETS  ${CML_LIBRARY_NAME} 
-	     RUNTIME DESTINATION ${${product}_bin_dir}
-	     LIBRARY DESTINATION ${${product}_lib_dir}
-	     ARCHIVE DESTINATION ${${product}_lib_dir}
+	     RUNTIME DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir}
+	     LIBRARY DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
+	     ARCHIVE DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
              )
   endif()
   if( CML_WITH_STATIC_LIBRARY )
@@ -387,9 +369,9 @@ macro( cet_make_library )
       #message(STATUS "cet_make_library debug: ${CML_LIBRARY_NAME}S will not be installed")
     else()
       install( TARGETS  ${CML_LIBRARY_NAME}S 
-	       RUNTIME DESTINATION ${${product}_bin_dir}
-	       LIBRARY DESTINATION ${${product}_lib_dir}
-	       ARCHIVE DESTINATION ${${product}_lib_dir}
+	       RUNTIME DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir}
+	       LIBRARY DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
+	       ARCHIVE DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
                )
     endif()
   endif( CML_WITH_STATIC_LIBRARY )
@@ -419,7 +401,7 @@ macro (cet_script)
     # Install in product if desired.
     if (NOT CS_NO_INSTALL)
       install(PROGRAMS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}"
-        DESTINATION "${${product}_bin_dir}")
+        DESTINATION "${${CMAKE_PROJECT_NAME}_bin_dir}")
     endif()
   endforeach()
 endmacro()

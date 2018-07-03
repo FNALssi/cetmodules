@@ -1,0 +1,10 @@
+if (IS_DIRECTORY "${@CMAKE_PROJECT_NAME@_modules_dir}")
+  list(APPEND CMAKE_MODULE_PATH "${@CMAKE_PROJECT_NAME@_modules_dir}")
+endif()
+
+if (IS_DIRECTORY "${@CMAKE_PROJECT_NAME@_inc_dir}")
+  include_directories(${@CMAKE_PROJECT_NAME@_inc_dir})
+endif()
+
+@CONFIG_FIND_LIBRARY_COMMANDS@
+

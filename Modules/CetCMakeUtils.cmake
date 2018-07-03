@@ -15,15 +15,13 @@
 macro(_cet_init_config_var)
   # initialize cmake config file fragments
   set(CONFIG_FIND_LIBRARY_COMMAND_LIST "## find_library directives"
-    CACHE STRING "find_library directives for config" FORCE
+    CACHE INTERNAL "find_library directives for config"
     )
   set(CONFIG_LIBRARY_LIST "" CACHE INTERNAL "libraries created by this package" )
   set(CONFIG_PM_LIST "" CACHE INTERNAL "perl libraries created by this package" )
   set(CONFIG_PERL_PLUGIN_LIST "" CACHE INTERNAL "perl plugin libraries created by this package" )
   set(CONFIG_PM_VERSION "" CACHE INTERNAL "just for PluginVersionInfo.pm" )
-  # we use cet_product_list to make sure there is only one find_ups_product call
-  set(cet_product_list "" CACHE STRING "list of ups products" FORCE)
-  set(cet_find_library_list "" CACHE STRING "list of calls to cet_find_library" FORCE)
+  set(cet_find_library_list "" CACHE INTERNAL "list of calls to cet_find_library")
 endmacro(_cet_init_config_var)
 
 macro(cet_add_to_library_list libname)
@@ -32,14 +30,20 @@ macro(cet_add_to_library_list libname)
 	 CACHE INTERNAL "libraries created by this package" )
 endmacro(cet_add_to_library_list)
 
-macro(cet_find_library)
+function(cet_find_library)
   STRING( REGEX REPLACE ";" " " find_library_commands "${ARGN}" )
   #message(STATUS "cet_find_library debug: find_library_commands ${find_library_commands}" )
 
   #message(STATUS "cet_find_library debug: cet_find_library_list ${cet_find_library_list}")
-  list(FIND cet_find_library_list ${ARGV2} found_library_match)
+  if (ARGV2 STREQUAL "NAMES")
+    set(lib_label ${ARGV3})
+  else()
+    set(lib_label ${ARGV2})
+  endif()
+  list(FIND cet_find_library_list ${lib_label} found_library_match)
   if( ${found_library_match} LESS 0 )
-    set(cet_find_library_list ${ARGV2} ${cet_find_library_list} )
+    set(cet_find_library_list ${lib_label} ${cet_find_library_list}
+      CACHE INTERNAL "list of calls to cet_find_library")
     # add to library list for package configure file
     list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
     "find_library( ${find_library_commands} )" )
@@ -47,4 +51,4 @@ macro(cet_find_library)
 
   # call find_library
   find_library( ${ARGN} )
-endmacro(cet_find_library)
+endfunction(cet_find_library)
