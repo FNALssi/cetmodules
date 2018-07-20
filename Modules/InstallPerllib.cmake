@@ -37,10 +37,13 @@ macro( _cet_perl_plugin_version )
   configure_file(${cetlib_PLUGINVERSIONINFO_PM_IN}
     ${CMAKE_CURRENT_BINARY_DIR}/${product}/PluginVersionInfo.pm
     @ONLY)
-    set(CONFIG_PM_VERSION "PluginVersionInfo.pm"
-	   CACHE INTERNAL "just for PluginVersionInfo.pm" )
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${product}/PluginVersionInfo.pm
-    DESTINATION ${perllib_install_dir}/${product}/)
+    DESTINATION ${perllib_install_dir}/${product}/
+    )
+  cet_project_var(PLUGINVERSIONINFO_PM TYPE FILEPATH
+    DOCSTRING "Location of Perl PluginVersionInfo.pm file"
+    ${perllib_install_dir}/${product}/PluginVersionInfo.pm
+    )
 endmacro( _cet_perl_plugin_version )
 
 macro( _cet_copy_perllib )
@@ -64,31 +67,25 @@ macro( _cet_copy_perllib )
   #message(STATUS "_cet_copy_perllib: copying to ${perllibbuildpath}")
 endmacro( _cet_copy_perllib )
 
-macro(_cet_add_to_pm_list libname)
-     # add to perl library list for package configure file
-     set(CONFIG_PM_LIST ${CONFIG_PM_LIST} ${libname}
-	 CACHE INTERNAL "perl libraries installed by this package" )
-endmacro(_cet_add_to_pm_list)
-
-macro(_cet_add_to_perl_plugin_list libname)
-     # add to perl library list for package configure file
-     set(CONFIG_PERL_PLUGIN_LIST ${CONFIG_PERL_PLUGIN_LIST} ${libname}
-	 CACHE INTERNAL "perl plugin libraries installed by this package" )
-endmacro(_cet_add_to_perl_plugin_list)
-
-macro( _cet_perllib_config_setup  )
-  if( ${CURRENT_SUBDIR_NAME} MATCHES "CetSkelPlugins" )
-    foreach( pmfile ${ARGN} )
-      get_filename_component( pmfilename "${pmfile}" NAME )
-      _cet_add_to_perl_plugin_list( ${CURRENT_SUBDIR}/${pmfilename} )
-    endforeach( pmfile )
-  else()
-    foreach( pmfile ${ARGN} )
-      get_filename_component( pmfilename "${pmfile}" NAME )
-      _cet_add_to_pm_list( ${CURRENT_SUBDIR}/${pmfilename} )
-    endforeach( pmfile )
-  endif()
-endmacro( _cet_perllib_config_setup )
+function( _cet_perllib_config_setup  )
+  foreach (pmfile ${ARGN})
+    get_filename_component(pmfilename "${pmfile}" NAME)
+    set(pmfilepath "${CURRENT_SUBDIR}/${pmfilename}")
+    if ("${CURRENT_SUBDIR_NAME}" MATCHES "CetSkelPlugins" )
+      set(pmvarname "${pmfilename}")
+      set(docstring "Location of cetmod plugin module")
+    else()
+      set(pmvarname "${pmfilepath}")
+      set(docstring "Location of cetmod plugin support file")
+    endif()
+    string(REGEX REPLACE "[-./ ]" "_" pmvarname "${pmvarname}")
+    string(TOUPPER "${pmvarname}" pmvarname)
+    cet_project_var("${pmvarname}" TYPE FILEPATH
+      DOCSTRING "${docstring}"
+      "${${CMAKE_PROJECT_NAME}_perllib_dir}/${pmfilepath}"
+      )
+  endforeach()
+endfunction( _cet_perllib_config_setup )
 
 macro( _cet_install_perllib_without_list   )
   #message( STATUS "_cet_install_perllib_without_list: perl lib scripts will be installed in ${perllib_install_dir}" )
@@ -132,9 +129,9 @@ macro( install_perllib   )
     DOCSTRING "Directory below prefix to install perl files")
   cmake_parse_arguments( IPRL "" "" "SUBDIRS;LIST;EXTRAS;EXCLUDES" ${ARGN})
   _cet_current_subdir( TEST_SUBDIR )
-  STRING( REGEX REPLACE "^/${${CMAKE_PROJECT_NAME}_perllib_dir}(.*)" "\\1" CURRENT_SUBDIR "${TEST_SUBDIR}" )
-  set(perllib_install_dir "${${CMAKE_PROJECT_NAME}_perllib_dir}${CURRENT_SUBDIR}")
-  set(prlpathname "${${CMAKE_PROJECT_NAME}_perllib_dir}${CURRENT_SUBDIR}")
+  STRING( REGEX REPLACE "^/${${CMAKE_PROJECT_NAME}_perllib_dir}/(.*)" "\\1" CURRENT_SUBDIR "${TEST_SUBDIR}" )
+  set(perllib_install_dir "${${CMAKE_PROJECT_NAME}_perllib_dir}/${CURRENT_SUBDIR}")
+  set(prlpathname "${${CMAKE_PROJECT_NAME}_perllib_dir}/${CURRENT_SUBDIR}")
   #message( STATUS "install_perllib: perllib scripts will be installed in ${perllib_install_dir}" )
   #message( STATUS "install_perllib: IPRL_SUBDIRS is ${IPRL_SUBDIRS}")
   get_filename_component( CURRENT_SUBDIR_NAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME )

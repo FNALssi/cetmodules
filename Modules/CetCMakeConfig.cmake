@@ -129,40 +129,6 @@ macro( cet_cmake_config  )
   endforeach(my_library)
   #message(STATUS "cet_cmake_config debug: ${CONFIG_FIND_LIBRARY_COMMAND_LIST}")
 
-  # get perl library directory
-  # PluginVersionInfo is a special case
-  if( CONFIG_PM_VERSION )
-    #message(STATUS "CONFIG_PM_VERSION is ${CONFIG_PM_VERSION}" )
-    string(REGEX REPLACE "\\." "_" my_pm_ver "${CONFIG_PM_VERSION}" )
-    string(TOUPPER  ${my_pm_ver} PluginVersionInfo_UC )
-    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
-      "set( ${${CMAKE_PROJECT_NAME}_UC}_${PluginVersionInfo_UC} @PACKAGE_perllib_dir@/CetSkelPlugins/${CMAKE_PROJECT_NAME}/${CONFIG_PM_VERSION} )" )
-    #message(STATUS "${${CMAKE_PROJECT_NAME}_UC}_${PluginVersionInfo_UC} @PACKAGE_perllib_dir@//CetSkelPlugins/${CMAKE_PROJECT_NAME}/${CONFIG_PM_VERSION} " )
-  endif()
-  # add to pm list for package configure file
-  foreach( my_pm ${CONFIG_PERL_PLUGIN_LIST} )
-    #message( STATUS "config_pm: my_pm ${my_pm}")
-    get_filename_component( my_pm_name ${my_pm} NAME )
-    string(REGEX REPLACE "\\." "_" my_pm_dash "${my_pm_name}" )
-    #message( STATUS "config_pm: my_pm_dash ${my_pm_dash}")
-    string(TOUPPER  ${my_pm_dash} ${my_pm_name}_UC )
-    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
-      "set( ${${my_pm_name}_UC}@PACKAGE_perllib_dir@/${my_pm} )" )
-    #message(STATUS "${${my_pm_name}_UC}  @PACKAGE_perllib_dir@/${my_pm} " )
-  endforeach(my_pm)
-  foreach( my_pm ${CONFIG_PM_LIST} )
-    #message( STATUS "config_pm: my_pm ${my_pm}")
-    get_filename_component( my_pm_name ${my_pm} NAME )
-    string(REGEX REPLACE "\\." "_" my_pm_dash "${my_pm}" )
-    #message( STATUS "config_pm: my_pm_dash ${my_pm_dash}")
-    string(REGEX REPLACE "/" "_" my_pm_slash "${my_pm_dash}" )
-    #message( STATUS "config_pm: my_pm_slash ${my_pm_slash}")
-    string(TOUPPER  ${my_pm_slash} ${my_pm_name}_UC )
-    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
-      "set(${${CMAKE_PROJECT_NAME}_UC}${${my_pm_name}_UC} @PACKAGE_perllib_dir@/${my_pm})" )
-    #message(STATUS "${${CMAKE_PROJECT_NAME}_UC}${${my_pm_name}_UC}  @PACKAGE_perllib_dir@/${my_pm} " )
-  endforeach(my_pm)
-
   _config_package_config_file(${CCC_CONFIG_FRAGMENTS})
 
   # allowed COMPATIBILITY values are:

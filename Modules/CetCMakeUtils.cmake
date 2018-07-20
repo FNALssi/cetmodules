@@ -18,9 +18,6 @@ macro(_cet_init_config_var)
     CACHE INTERNAL "find_library directives for config"
     )
   set(CONFIG_LIBRARY_LIST "" CACHE INTERNAL "libraries created by this package" )
-  set(CONFIG_PM_LIST "" CACHE INTERNAL "perl libraries created by this package" )
-  set(CONFIG_PERL_PLUGIN_LIST "" CACHE INTERNAL "perl plugin libraries created by this package" )
-  set(CONFIG_PM_VERSION "" CACHE INTERNAL "just for PluginVersionInfo.pm" )
   set(cet_find_library_list "" CACHE INTERNAL "list of calls to cet_find_library")
 endmacro(_cet_init_config_var)
 
