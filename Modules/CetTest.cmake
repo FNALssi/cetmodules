@@ -262,11 +262,29 @@ include(CetCopy)
 include(CetMake)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
+# Needed to compare versions
+inclde(CheckProdVersion)
 
 cmake_policy(PUSH)
 cmake_policy(VERSION 3.3) # For if (IN_LIST)
 
-find_file(CET_CATCH_MAIN_SOURCE cet_catch_main.cpp PATH_SUFFIXES src)
+if (DEFINED ENV{CATCH_VERSION})
+  check_prod_version(catch $ENV{CATCH_VERSION} v2_4_0
+    PRODUCT_MATCHES_VAR CATCH_INCLUDE_SUBDIR_IS_CATCH2
+    )
+  if (CATCH_INCLUDE_SUBDIR_IS_CATCH2)
+    set(CATCH_INCLUDE_SUBDIR catch2)
+  else()
+    set(CATCH_INCLUDE_SUBDIR catch)
+  endif()
+  find_file(CET_CATCH_MAIN_SOURCE
+    cet_${CATCH_INCLUDE_SUBDIR}_main.cpp
+    PATH_SUFFIXES src
+    QUIET
+    )
+else()
+  unset(CET_CATCH_MAIN_SOURCE)
+endif()
 
 set(CET_TEST_ENV ""
   CACHE INTERNAL "Environment to add to every test"
@@ -536,15 +554,19 @@ function(cet_test CET_TARGET)
     endif()
     if (CET_USE_CATCH_MAIN)
       find_package(Catch2 QUIET REQUIRED)
-      if (NOT TARGET cet_catch_main) # Make sure we only build one!
+      if (NOT CATCH_INCLUDE_SUBDIR)
+        message(FATAL_ERROR
+          "cet_test(): Unable to identify Catch2 details -- unavailable?.")
+      endif()
+      if (NOT TARGET cet_${CATCH_INCLUDE_SUBDIR}_main) # Make sure we only build one!
         if (NOT CET_CATCH_MAIN_SOURCE)
-          message(FATAL_ERROR "cet_test() INTERNAL ERROR: unable to find cet_catch_main.cpp required by USE_CATCH_MAIN")
+          message(FATAL_ERROR "cet_test() INTERNAL ERROR: unable to find cet_${CATCH_INCLUDE_SUBDIR}_main.cpp required by USE_CATCH_MAIN")
         endif()
-        add_library(cet_catch_main STATIC EXCLUDE_FROM_ALL ${CET_CATCH_MAIN_SOURCE})
-        set_property(TARGET cet_catch_main PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+        add_library(cet_${CATCH_INCLUDE_SUBDIR}_main STATIC EXCLUDE_FROM_ALL ${CET_CATCH_MAIN_SOURCE})
+        set_property(TARGET cet_${CATCH_INCLUDE_SUBDIR}_main PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
         # Strip (x10 shrinkage on Linux with GCC 6.3.0)!
-        add_custom_command(TARGET cet_catch_main POST_BUILD
-          COMMAND strip -S $<TARGET_FILE:cet_catch_main>
+        add_custom_command(TARGET cet_${CATCH_INCLUDE_SUBDIR}_main POST_BUILD
+          COMMAND strip -S $<TARGET_FILE:cet_${CATCH_INCLUDE_SUBDIR}_main>
           COMMENT "Stripping Catch main library"
           )
       endif()
@@ -558,7 +580,7 @@ function(cet_test CET_TARGET)
     cet_make_exec(${CET_TARGET} ${CET_NO_INSTALL}
       ${cme_args} ${CETP_UNPARSED_ARGUMENTS})
     if (CET_USE_CATCH_MAIN)
-      target_link_libraries(${CET_TARGET} cet_catch_main)
+      target_link_libraries(${CET_TARGET} cet_${CATCH_INCLUDE_SUBDIR}_main)
     endif()
     if (CET_USE_BOOST_UNIT)
       # Make sure we have the correct library available.
