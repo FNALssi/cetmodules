@@ -263,7 +263,7 @@ include(CetMake)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
 # Needed to compare versions
-inclde(CheckProdVersion)
+include(CheckProdVersion)
 
 cmake_policy(PUSH)
 cmake_policy(VERSION 3.3) # For if (IN_LIST)
