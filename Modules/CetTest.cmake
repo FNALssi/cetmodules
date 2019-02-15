@@ -268,8 +268,8 @@ include(CheckProdVersion)
 cmake_policy(PUSH)
 cmake_policy(VERSION 3.3) # For if (IN_LIST)
 
-if (DEFINED ENV{CATCH_VERSION})
-  check_prod_version(catch $ENV{CATCH_VERSION} v2_4_0
+if (DEFINED Catch2_VERSION)
+  check_prod_version(catch ${Catch2_VERSION} v2_4_0
     PRODUCT_MATCHES_VAR CATCH_INCLUDE_SUBDIR_IS_CATCH2
     )
   if (CATCH_INCLUDE_SUBDIR_IS_CATCH2)
