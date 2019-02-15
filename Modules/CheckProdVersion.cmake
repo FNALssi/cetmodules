@@ -2,12 +2,12 @@
 # Utility macros and functions, mostly for private use by other
 # cetbuildtools CMake utilities.
 #
-# Also provides the public function check_ups_version.
+# Also provides the public function check_prod_version.
 #
 ####################################
-# check_ups_version(product version minimum
-#                   [PRODUCT_OLDER_VAR <var>]
-#                   [PRODUCT_MATCHES_VAR <var>])
+# check_prod_version(product version minimum
+#                    [PRODUCT_OLDER_VAR <var>]
+#                    [PRODUCT_MATCHES_VAR <var>])
 #
 # Options and arguments:
 #
@@ -83,7 +83,7 @@ function(_parse_version version )
    # special cases
    # convert va_b_c_d to a.b.c.d
    # convert vx_y to x.y
-   
+
    string(REGEX MATCH "^v([0-9]*)(_([0-9]*)(_([0-9]*)(.*))?)?" smatch ${version})
 #   message(STATUS "CMAKE_MATCH_COUNT = ${CMAKE_MATCH_COUNT}")
    if (CMAKE_MATCH_COUNT GREATER 4)
@@ -144,7 +144,7 @@ macro( _check_version product version  )
   endif()
   #message( STATUS "${product} ${THISVER} meets minimum required version ${MINVER}")
 endmacro( _check_version product version minimum )
- 
+
 function( check_prod_version product version minimum )
   cmake_parse_arguments(CV "" "PRODUCT_OLDER_VAR;PRODUCT_MATCHES_VAR" "" ${ARGN})
   if ((NOT CV_PRODUCT_OLDER_VAR) AND (NOT CV_PRODUCT_MATCHES_VAR))
