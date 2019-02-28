@@ -4,6 +4,7 @@ install(PROGRAMS
   cet_test_functions.sh
   filter-program-options
   filter-output
+  format-code
   make_bash_completions
   DESTINATION bin)
 
