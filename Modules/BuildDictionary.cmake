@@ -41,7 +41,7 @@ include(CMakeParseArguments)
 include(CetCurrentSubdir)
 include(CheckClassVersion)
 
-find_package(ROOT REQUIRED COMPONENTS Core)
+find_package(ROOT QUIET REQUIRED COMPONENTS Core)
 
 # make sure ROOT_VERSION has been defined
 if( NOT ROOT_VERSION )
