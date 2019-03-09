@@ -109,7 +109,7 @@
 include(CMakeParseArguments)
 include(CetRegexEscape)
 
-macro( cet_report_compiler_flags )
+function( cet_report_compiler_flags )
   string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
   message( STATUS "compiler flags for directory " ${CURRENT_SUBDIR} " and below")
   message( STATUS "   C++     FLAGS: ${CMAKE_CXX_FLAGS_${BTYPE_UC}}")
@@ -117,7 +117,7 @@ macro( cet_report_compiler_flags )
   if (CMAKE_Fortran_COMPILER)
     message( STATUS "   Fortran FLAGS: ${CMAKE_Fortran_FLAGS_${BTYPE_UC}}")
   endif()
-endmacro( cet_report_compiler_flags )
+endfunction( cet_report_compiler_flags )
 
 macro( cet_enable_asserts )
   remove_definitions(-DNDEBUG)
@@ -132,6 +132,7 @@ macro( cet_maybe_disable_asserts )
   string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
   cet_enable_asserts() # Starting point
   if( ${BTYPE_UC} MATCHES "RELEASE" OR
+      ${BTYPE_UC} MATCHES "RELWITHDEBINFO" OR
       ${BTYPE_UC} MATCHES "MINSIZEREL" )
     cet_disable_asserts()
   endif()
@@ -193,10 +194,11 @@ macro( cet_remove_compiler_flags )
   endforeach()
 endmacro()
 
-macro( cet_set_compiler_flags )
-  CET_PARSE_ARGS(CSCF
-    "DIAGS;DWARF_VER;EXTRA_FLAGS;EXTRA_C_FLAGS;EXTRA_CXX_FLAGS;EXTRA_DEFINITIONS"
+macro(cet_set_compiler_flags)
+  cmake_parse_arguments(CSCF
     "ALLOW_DEPRECATIONS;DWARF_STRICT;ENABLE_ASSERTS;NO_UNDEFINED;WERROR"
+    ""
+    "DIAGS;DWARF_VER;EXTRA_FLAGS;EXTRA_C_FLAGS;EXTRA_CXX_FLAGS;EXTRA_DEFINITIONS"
     ${ARGN}
     )
 
@@ -237,16 +239,17 @@ macro( cet_set_compiler_flags )
         endif(diag_idx GREATER 2)
       endif(diag_idx GREATER 1)
     endif(diag_idx GREATER 0)
-    add_compile_options(${CSCF_EXTRA_FLAGS})
-    foreach (opt ${CSCF_EXTRA_C_FLAGS})
-      add_compile_options($<$<COMPILE_LANGUAGE:C>:${opt}>) # C only
-    endforeach()
-    foreach (opt ${CSCF_EXTRA_CXX_FLAGS})
-      add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${opt}>) # C++ only
-    endforeach()
   else()
     message(FATAL_ERROR "Unrecognized DIAGS option ${CSCF_DIAGS}")
   endif()
+  message(STATUS "Adding CSCF_EXTRA_FLAGS = ${CSCF_EXTRA_FLAGS}")
+  add_compile_options(${CSCF_EXTRA_FLAGS})
+  foreach (opt ${CSCF_EXTRA_C_FLAGS})
+    add_compile_options($<$<COMPILE_LANGUAGE:C>:${opt}>) # C only
+  endforeach()
+  foreach (opt ${CSCF_EXTRA_CXX_FLAGS})
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${opt}>) # C++ only
+  endforeach()
 
   if (CSCF_WERROR)
     add_compile_options(-Werror)
