@@ -2,6 +2,8 @@
 # install_wp([SUBDIRNAME dir] LIST files...)
 #   Install WP data in ${${CMAKE_PROJECT_NAME}_wp_dir}/${SUBDIRNAME}
 #
+# N.B. fp_dir must be set prior to calling install_wp(),, otherwise
+# install_wp() will generate a FATAL_ERROR.
 ########################################################################
 include(CetProjectVars)
 

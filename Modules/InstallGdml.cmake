@@ -1,7 +1,8 @@
 ########################################################################
 #
 # install_gdml()
-#   Install gdml scripts in a top level gdml subdirectory
+#   Install gdml scripts in a top level gdml subdirectory ${gdml_dir}.
+#
 #   Default extensions:
 #     .gdml
 #
@@ -24,6 +25,8 @@
 #                [EXCLUDES exclusions] )
 # install_gdml( LIST file_list )
 #
+# N.B. gdml_dir must be set prior to calling install_gdml(), otherwise
+# install_gdml() will generate a FATAL_ERROR.
 ########################################################################
 include (CetCopy)
 include (CetExclude)

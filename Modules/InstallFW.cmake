@@ -2,6 +2,8 @@
 # install_fw([SUBDIRNAME dir] LIST files...)
 #   Install FW data in ${${CMAKE_PROJECT_NAME}_fw_dir}/${SUBDIRNAME}
 #
+# N.B. fw_dir must be set prior to calling install_fw(), otherwise
+# install_fw() will generate a FATAL_ERROR.
 ########################################################################
 include(CetProjectVars)
 

@@ -1,6 +1,6 @@
 ########################################################################
 # install_perllib()
-#   Install perl libs for inclusion by other packages.
+#   Install perl libs in ${perllib_dir} for inclusion by other packages.
 #   Default extensions: .pm
 #
 # The SUBDIRS option allows you to search subdirectories (e.g. a detail
@@ -16,6 +16,8 @@
 # The LIST option allows you to install from a list. When LIST is used,
 # we do not search for other files to install. Note that the LIST and
 # SUBDIRS options are mutually exclusive.
+#
+# perllib_dir defaults to perllib if not set.
 #
 ####################################
 # Recommended use:

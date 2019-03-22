@@ -24,6 +24,8 @@
 #                [EXCLUDES exclusions] )
 # install_fhicl( LIST file_list )
 #
+# N.B. fhicl_dir must be set prior to calling install_fhicl(), otherwise
+# install_fhicl() will generate a FATAL_ERROR.
 ########################################################################
 include (CetCopy)
 include (CetExclude)
