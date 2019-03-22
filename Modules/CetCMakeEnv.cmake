@@ -16,6 +16,12 @@ cet_project_var(modules_dir Modules
 cet_project_var(test_dir test
   MISSING_OK
   DOCSTRING "Directory below prefix to install test scripts")
+cet_project_var(gdml_dir gdml
+  MISSING_OK
+  DOCSTRING "Directory below prefix to install gdml files")
+cet_project_var(fcl_dir fcl
+  MISSING_OK
+  DOCSTRING "Directory below prefix to install fcl files")
 
 macro(cet_cmake_env)
   # project() must have been called before us.
