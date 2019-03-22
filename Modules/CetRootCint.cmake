@@ -5,15 +5,17 @@
 include(CMakeParseArguments)
 include(CetPackagePath)
 
+find_package(ROOT QUIET REQUIRED COMPONENTS Core)
+
 # make sure ROOT_VERSION has been defined
 if( NOT ROOT_VERSION )
   message(FATAL_ERROR "cet_rootcint: ROOT_VERSION is undefined")
 elseif(NOT (HAVE_ROOT6 OR HAVE_ROOT5))
-  message(FATAL_ERROR "cet_rootcint: missing ROOT classification variables.")
+  set(HAVE_ROOT6 "true")
 endif()
 
 if (HAVE_ROOT6)
-  set(RC_PROG ${ROOTCLING})
+  set(RC_PROG ${ROOT_rootcling_CMD})
   set(RC_DICT_TYPE "ROOT Cling")
   if (ROOT6_HAS_NOINCLUDEPATHS)
     set(RC_FLAGS -noIncludePaths)
@@ -21,7 +23,7 @@ if (HAVE_ROOT6)
     set(RC_FLAGS)
   endif()
 else() # ROOT5
-  set(RC_PROG ${ROOTCINT})
+  set(RC_PROG ${ROOT_rootcint_CMD})
   set(RC_DICT_TYPE "ROOT CINT")
   set(RC_FLAGS
     -c # Generate code for interactive interpreter use.
@@ -76,6 +78,8 @@ function(cet_rootcint rc_output_name)
         set(RC_LIB_TARGET ${rc_output_name}_dict)
       elseif (TARGET ${rc_output_name})
         set(RC_LIB_TARGET ${rc_output_name})
+      else()
+        message(FATAL_ERROR "Unable to find dictionary target based on output name ${rc_output_name}")
       endif()
     endif()
     if (RC_LIB_TARGET)
