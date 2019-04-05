@@ -3,7 +3,8 @@
 #
 # Build and install PackageConfig.cmake and PackageConfigVersion.cmake.
 #
-# These files are installed in lib/${CMAKE_PROJECT_NAME}/cmake unless
+# These files are installed in
+# ${${CMAKE_PROJECT_NAME}_lib_dir}/${CMAKE_PROJECT_NAME}/cmake unless
 # NO_FLAVOR is specified, in which case the files are installed in the
 # top directory.
 #
@@ -87,7 +88,7 @@ macro( cet_cmake_config  )
   if( CCC_NO_FLAVOR )
     set( distdir "." )
   else()
-    set( distdir "lib/${CMAKE_PROJECT_NAME}/cmake" )
+    set( distdir "${${CMAKE_PROJECT_NAME}_lib_dir}/${CMAKE_PROJECT_NAME}/cmake" )
   endif()
 
   #message(STATUS "cet_cmake_config debug: will install cmake configure files in ${distdir}")
