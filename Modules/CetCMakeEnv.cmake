@@ -64,7 +64,7 @@ option(WANT_UPS "Activate the generation of UPS table and version files and Unif
 
 include(CetProjectVars)
 
-set(_ARCH_DEP_DIRS BINDIR SBINDIR LIBDIR LIBEXECDIR ETC)
+set(_ARCH_DEP_DIRS BINDIR SBINDIR LIBDIR LIBEXECDIR SYSCONFDIR)
 
 macro(cet_cmake_env)
   # project() must have been called before us.
