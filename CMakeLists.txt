@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.11...3.14 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 1.00.00 LANGUAGES NONE)
+project(cetmodules VERSION 1.01.00 LANGUAGES NONE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
