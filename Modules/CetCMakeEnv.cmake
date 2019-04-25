@@ -94,9 +94,8 @@ macro(cet_cmake_env)
   
   # Acknowledge new RPATH behavior on OS X.
   cmake_policy(SET CMP0042 NEW)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-  endif()
+  # Ensure link path is used in install RPATH.
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 
   set_install_root()
   enable_testing()
