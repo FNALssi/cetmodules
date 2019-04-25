@@ -254,7 +254,7 @@ def main():
             sys.stderr.write('WARNING: --recursive ignored: required features of canvas are not available.\n')
 
     # ROOT 5 only.
-    if (0 == os.environ['ROOT_VERSION'].find("v5", 0, 2)):
+    if ROOT.gROOT.GetVersionInt() >= 50000 and ROOT.gROOT.GetVersionInt() < 60000:
         if (ROOT.gSystem.Load("libCintex") >= 0):
             ROOT.Cintex.Enable()
         else:
