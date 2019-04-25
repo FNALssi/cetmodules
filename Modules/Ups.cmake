@@ -9,7 +9,7 @@
 # set and the cet_cmake_env() function called in order to make these
 # functions available.
 ########################################################################
-cmake_minimum_required(VERSION 3.11) # For STRING(JOIN...)
+cmake_minimum_required(VERSION 3.11...3.14 FATAL_ERROR) # For STRING(JOIN...)
 
 set(_known_compiler_quals e10 e14 e15 e16 e17 e19 c2 c5 c7)
 
