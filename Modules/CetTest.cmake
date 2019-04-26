@@ -584,19 +584,12 @@ function(cet_test CET_TARGET)
     endif()
     if (CET_USE_BOOST_UNIT)
       # Make sure we have the correct library available.
-      if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-        find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
-      endif()
-      if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-        message(FATAL_ERROR "cet_test: target ${CET_TARGET} has USE_BOOST_UNIT "
-          "option set but Boost Unit Test Framework Library cannot be found: is "
-          "boost set up?")
-      endif()
+      find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
       # Compile options (-Dxxx) for simple-format unit tests.
       set_target_properties(${CET_TARGET} PROPERTIES
         COMPILE_DEFINITIONS "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK"
         )
-      target_link_libraries(${CET_TARGET} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+      target_link_libraries(${CET_TARGET} Boost::unit_test_framework)
     endif()
     if (COMMAND find_tbb_offloads)
       find_tbb_offloads(FOUND_VAR have_tbb_offload ${CET_SOURCE})

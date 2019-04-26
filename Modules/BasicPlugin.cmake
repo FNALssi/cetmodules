@@ -142,7 +142,7 @@ function(basic_plugin name type)
       COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
       COMPILE_FLAGS -Wno-overloaded-virtual
       )
-    list(INSERT basic_plugin_liblist 0 ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    list(INSERT basic_plugin_liblist 0 Boost::unit_test_framework)
   endif()
   if(COMMAND find_tbb_offloads)
     find_tbb_offloads(FOUND_VAR have_tbb_offload ${BP_SOURCE})
