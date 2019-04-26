@@ -18,9 +18,11 @@ my $commit;
 my $directory;
 my $verbose;
 my $use_available;
+my $dry_run;
 GetOptions("help|h|?" => \&help_message,
            "directory|d=s" => \$directory,
            "commit|c" => \$commit,
+           "dry-run|n" => \$dry_run,
            "verbose|v" => \$verbose,
            "use-available" => \$use_available)
     or die_while_processing_options();
@@ -28,6 +30,11 @@ GetOptions("help|h|?" => \&help_message,
 if (!defined $directory) {
     print "The 'directory|d' command-line option is required:\n";
     usage();
+    exit 1;
+}
+
+if (defined $dry_run) {
+    print "The 'dry-run' option is not yet supported.\n";
     exit 1;
 }
 
@@ -45,8 +52,7 @@ sub help_message {
     print "  -n [--dry-run]         No changes will be made.\n";
     print "  -v [--verbose]\n";
     print "  --use-available        Use the version of clang-format already set up for use.\n";
-    print "                         This option can be used to override default clang-format\n";
-    print "                         version $clang_version.\n";
+    print "                         This option can be used to override clang-format $clang_version.\n";
     exit;
 }
 
@@ -74,7 +80,7 @@ sub check_for_clean_working_area {
 }
 
 sub find_files {
-  my $cpp_files_str = `find $directory \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -printf "%p "`;
+  my $cpp_files_str = `find -L $directory \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -printf "%p "`;
   return $cpp_files_str;
 }
 
