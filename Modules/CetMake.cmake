@@ -106,23 +106,15 @@ macro( cet_make_exec cet_exec_name )
       set_target_properties(${cet_exec_name} PROPERTIES LINK_FLAGS ${TBB_OFFLOAD_FLAG})
     endif()
   endif()
-  IF(CME_USE_BOOST_UNIT)
+  if(CME_USE_BOOST_UNIT)
     # Make sure we have the correct library available.
-    if (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-      find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
-    endif()
-    IF (NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-      MESSAGE(FATAL_ERROR "cet_make_exec: target ${cet_exec_name} has USE_BOOST_UNIT "
-        "option set but Boost Unit Test Framework Library cannot be found: is "
-        "boost set up?")
-    ENDIF()
+    find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
     # Compile options (-Dxxx) for simple-format unit tests.
-    SET_TARGET_PROPERTIES(${cet_exec_name} PROPERTIES
-      COMPILE_DEFINITIONS BOOST_TEST_MAIN
-      COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
+    set_target_properties(${cet_exec_name} PROPERTIES
+      COMPILE_DEFINITIONS "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK"
       )
-    target_link_libraries(${cet_exec_name} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  ENDIF()
+    target_link_libraries(${cet_exec_name} Boost::unit_test_framework)
+  endif()
   if(CME_LIBRARIES)
      set(link_lib_list "")
   foreach (lib ${CME_LIBRARIES})

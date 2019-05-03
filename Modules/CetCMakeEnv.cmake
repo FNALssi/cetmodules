@@ -66,6 +66,8 @@ include(CetProjectVars)
 
 set(_ARCH_DEP_DIRS BINDIR SBINDIR LIBDIR LIBEXECDIR SYSCONFDIR)
 
+option(BUILD_SHARED_LIBS "Build shared libraries for this project." ON)
+
 macro(cet_cmake_env)
   # project() must have been called before us.
   if(NOT CMAKE_PROJECT_NAME)
