@@ -33,7 +33,7 @@ include (CetExclude)
 include (CetProjectVars)
 
 function(install_gdml)
-  cet_project_var(gdml_dir
+  cet_project_var(gdml_dir MISSING_OK
     DOCSTRING "Directory below prefix to install GDML files")
   cmake_parse_arguments( IGDML "" "" "SUBDIRS;LIST;EXTRAS;EXCLUDES" ${ARGN})
   if (NOT ${CMAKE_PROJECT_NAME}_gdml_dir)

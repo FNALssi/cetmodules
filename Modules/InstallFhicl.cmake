@@ -32,7 +32,7 @@ include (CetExclude)
 include (CetProjectVars)
 
 function(install_fhicl)
-  cet_project_var(fcl_dir
+  cet_project_var(fcl_dir MISSING_OK
     DOCSTRING "Directory below prefix to install FHiCL files")
   cmake_parse_arguments( IFCL "" "" "SUBDIRS;LIST;EXTRAS;EXCLUDES" ${ARGN})
   if (NOT ${CMAKE_PROJECT_NAME}_fcl_dir)
