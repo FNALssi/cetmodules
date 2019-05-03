@@ -74,6 +74,7 @@
 #   X systems).
 #
 ########################################################################
+cmake_policy(PUSH)
 cmake_policy(VERSION 3.0.1) # We've made this work for 3.0.1.
 
 include(CetCopy)
@@ -416,3 +417,5 @@ function(cet_lib_alias LIB_TARGET)
       VERBATIM)
   endforeach()
 endfunction()
+
+cmake_policy(POP)

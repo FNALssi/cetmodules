@@ -65,9 +65,10 @@
 #   * <non-numeric-version> is SAME as <non-numeric-version>.
 #
 ########################################################################
-cmake_policy(VERSION 3.3.2)
-
 include(CMakeParseArguments)
+
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.3.2)
 
 #internal macro
 macro(_get_dotver myversion )
@@ -207,3 +208,5 @@ macro(_check_if_version_greater product version minimum)
   check_prod_version(${product} ${version} ${minimum}
     PRODUCT_OLDER_VAR product_version_less)
 endmacro(_check_if_version_greater product version minimum)
+
+cmake_policy(POP)
