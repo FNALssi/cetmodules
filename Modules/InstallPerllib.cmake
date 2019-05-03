@@ -127,7 +127,7 @@ macro( _cet_install_perllib_without_list   )
 endmacro( _cet_install_perllib_without_list )
 
 macro( install_perllib   )
-  cet_project_var(perllib_dir perllib
+  cet_project_var(perllib_dir perllib MISSING_OK
     DOCSTRING "Directory below prefix to install perl files")
   cmake_parse_arguments( IPRL "" "" "SUBDIRS;LIST;EXTRAS;EXCLUDES" ${ARGN})
   _cet_current_subdir( TEST_SUBDIR )

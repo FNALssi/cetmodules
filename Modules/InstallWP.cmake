@@ -8,7 +8,7 @@
 include(CetProjectVars)
 
 function(install_wp)
-  cet_project_var(wp_dir
+  cet_project_var(wp_dir MISSING_OK
     DOCSTRING "Directory below prefix to install WP files")
   cmake_parse_arguments(IWP "" "SUBDIRNAME" "LIST" ${ARGN})
   if (NOT ${CMAKE_PROJECT_NAME}_wp_dir)

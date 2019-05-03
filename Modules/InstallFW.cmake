@@ -8,7 +8,7 @@
 include(CetProjectVars)
 
 function(install_fw)
-  cet_project_var(fw_dir
+  cet_project_var(fw_dir MISSING_OK
     DOCSTRING "Directory below prefix to install FW files")
   cmake_parse_arguments(IFW "" "SUBDIRNAME" "LIST" ${ARGN})
   if (NOT ${CMAKE_PROJECT_NAME}_fw_dir)
