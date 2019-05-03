@@ -269,7 +269,7 @@ cmake_policy(PUSH)
 cmake_policy(VERSION 3.3) # For if (IN_LIST)
 
 if (DEFINED Catch2_VERSION)
-  check_prod_version(catch ${Catch2_VERSION} v2_4_0
+  check_prod_version(catch ${Catch2_VERSION} v2_3_0
     PRODUCT_MATCHES_VAR CATCH_INCLUDE_SUBDIR_IS_CATCH2
     )
   if (CATCH_INCLUDE_SUBDIR_IS_CATCH2)
@@ -752,14 +752,14 @@ CONFIGURATIONS DATAFILES NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT_FILTER OUTPUT
   if (CET_INSTALL_EXAMPLE)
     # Install to examples directory of product.
     install(FILES ${CET_SOURCE} ${CET_DATAFILES}
-      DESTINATION ${product}/${version}/example
+      DESTINATION example
       )
   endif()
   if (CET_INSTALL_SOURCE)
     # Install to sources/test (will need to be amended for eg ART's
     # multiple test directories.
     install(FILES ${CET_SOURCE}
-      DESTINATION ${product}/${version}/source/test
+      DESTINATION ${${CMAKE_PROJECT_NAME}_test_dir}
       )
   endif()
 endfunction(cet_test)

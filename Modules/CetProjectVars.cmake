@@ -49,8 +49,13 @@ function(cet_project_var VAR_NAME)
   if (NOT CPV_TYPE)
     set(CPV_TYPE "PATH")
   endif()
-  set(${CMAKE_PROJECT_NAME}_${VAR_NAME} ${CPV_UNPARSED_ARGUMENTS}
+  if (DEFINED ${VAR_NAME})
+    set(${CMAKE_PROJECT_NAME}_${VAR_NAME} ${${VAR_NAME}}
     CACHE ${CPV_TYPE} ${CPV_DOCSTRING})
+  elseif (CPV_UNPARSED_ARGUMENTS)
+    set(${CMAKE_PROJECT_NAME}_${VAR_NAME} ${CPV_UNPARSED_ARGUMENTS}
+      CACHE ${CPV_TYPE} ${CPV_DOCSTRING})
+  endif()
   if (NOT (${CMAKE_PROJECT_NAME}_${VAR_NAME} OR ${CPV_EMPTY_OK}))
     message(FATAL_ERROR "cet_project_var: attempt to set project variable ${CMAKE_PROJECT_NAME}_${VAR_NAME} to empty or invalid value \"${{CMAKE_PROJECT_NAME}_{${VAR_NAME}}\"")
   endif()

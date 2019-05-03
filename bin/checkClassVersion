@@ -12,6 +12,8 @@
 # Chris Green
 ########################################################################
 
+from __future__ import print_function
+
 from optparse import OptionParser
 import ROOT
 import os
@@ -95,9 +97,9 @@ class XmlParser(object):
 
         try:
             p.Parse(nxml)
-        except xml.parsers.expat.ExpatError, e:
-            print '--->> checkClassVersion: ERROR: parsing selection file ', self._file
-            print '--->> checkClassVersion: ERROR: Error is:', e
+        except xml.parsers.expat.ExpatError as e:
+            print('--->> checkClassVersion: ERROR: parsing selection file ', self._file)
+            print('--->> checkClassVersion: ERROR: Error is:', e)
             raise
         f.close()
 
@@ -106,7 +108,7 @@ class XmlParser(object):
             if 'name' in attrs:
                 normalizedName = self.genNName(attrs['name'])
                 if 'ClassVersion' in attrs:
-                    classVersion = string.atol(attrs['ClassVersion'])
+                    classVersion = int(attrs['ClassVersion'])
                     if classVersion > 0:
                         self.classes[normalizedName] = [attrs['name'], classVersion, []]
                 else:
@@ -114,16 +116,16 @@ class XmlParser(object):
                 self._presentClass = normalizedName
 
         if (name == 'version') and \
-                (string.atol(attrs['ClassVersion']) > 0):
+                (int(attrs['ClassVersion']) > 0):
             self.classes[self._presentClass][XmlParser.versionsToChecksumIndex].\
-                append([string.atol(attrs['ClassVersion']), string.atol(attrs['checksum'])])
+                append([int(attrs['ClassVersion']), int(attrs['checksum'])])
 
     def end_element(self, name):
         if name in ('class', 'struct'):
             self._presentClass = None
 
     def genNName(self, name ):
-        n_name = string.join(name.split())
+        n_name = ' '.join(name.split())
         for e in [
             [' const ', '%%scs%%'],
             ['const ', '%%cs%%'],
@@ -252,7 +254,7 @@ def main():
             sys.stderr.write('WARNING: --recursive ignored: required features of canvas are not available.\n')
 
     # ROOT 5 only.
-    if (0 == string.find(os.environ['ROOT_VERSION'], "v5", 0, 2)):
+    if (0 == os.environ['ROOT_VERSION'].find("v5", 0, 2)):
         if (ROOT.gSystem.Load("libCintex") >= 0):
             ROOT.Cintex.Enable()
         else:
@@ -264,7 +266,7 @@ def main():
     p = XmlParser(options.xmlfile)
     #print p.classes
     foundErrors = dict()
-    for name, info in p.classes.iteritems():
+    for name, info in p.classes.items():
         errorCode = noError
         #print name
         if dictChecker:
@@ -278,7 +280,7 @@ def main():
                 foundErrors[name] = (errorCode, classChecksum, rootClassVersion)
     foundFatalError = False
     originalToNormalizedNames = dict()
-    for name, retValues in foundErrors.iteritems():
+    for name, retValues in foundErrors.items():
         origName = p.classes[name][XmlParser.originalNameIndex]
         originalToNormalizedNames[origName] = name
         code = retValues[0]
@@ -287,57 +289,57 @@ def main():
             classChecksum = retValues[1]
         if code == errorRootDoesNotMatchClassDef:
             foundFatalError = True
-            print "ERROR: for class '" + \
+            print("ERROR: for class '" + \
                   name + \
                   "' ROOT says the ClassVersion is " + \
                   str(rootClassVersion) + \
                   " but classes_def.xml says it is " + \
                   str(classVersion) + \
-                  ".  Are you sure everything compiled correctly?"
+                  ".  Are you sure everything compiled correctly?")
         elif code == errorMustUpdateClassVersion:
             if options.generate:
                 pass
             elif options.generate_in_place:
-                print "INFO: class '" + \
+                print("INFO: class '" + \
                       name + \
                       "' has a different checksum for ClassVersion " + \
                       str(classVersion) + \
                       ". Incrementing ClassVersion to " + \
                       str(classVersion+1) + \
                       " and assigning it to checksum " + \
-                      str(classChecksum)
+                      str(classChecksum))
             else:
-                print "ERROR: class '" + \
+                print("ERROR: class '" + \
                       name + \
                       "' has a different checksum for ClassVersion " + \
                       str(classVersion) + \
                       ". Increment ClassVersion to " + \
                       str(classVersion+1) + \
                       " and assign it to checksum " + \
-                      str(classChecksum)
+                      str(classChecksum))
         elif code == errorMustAddChecksum :
             if options.generate:
                 pass
             elif options.generate_in_place:
-                print "INFO: adding version info for class '" + \
+                print("INFO: adding version info for class '" + \
                       name + \
                       "':" + '<version ClassVersion="' + \
                       str(classVersion) + \
                       '" checksum="' + \
                       str(classChecksum) + \
-                      '"/>'
+                      '"/>')
             else:
-                print "ERROR: class '" + \
+                print("ERROR: class '" + \
                       name + \
-                      "' needs to include the following as part of its 'class' declaration"
-                print '   <version ClassVersion="' + \
+                      "' needs to include the following as part of its 'class' declaration")
+                print('   <version ClassVersion="' + \
                       str(classVersion) + \
                       '" checksum="' + \
                       str(classChecksum) + \
-                      '"/>'
+                      '"/>')
         else: # code == errorMissingEntries
             foundFatalError = True
-            print retValues[1]
+            print(retValues[1])
 
     if (len(foundErrors) > 0) and \
             (not foundFatalError) and \
@@ -396,7 +398,7 @@ def main():
     if (foundFatalError or (len(foundErrors) > 0 and not (options.generate or options.generate_in_place))):
         sys.exit(1)
     if (len(foundErrors)>0 and options.generate_in_place):
-        print "WARNING: classes_def.xml files have been updated: rebuild dictionaries."
+        print("WARNING: classes_def.xml files have been updated: rebuild dictionaries.")
         sys.exit(2)
     if (options.timestamp is not None):
         os.system("touch \"%s\"" % (options.timestamp))

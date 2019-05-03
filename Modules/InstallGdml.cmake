@@ -1,7 +1,8 @@
 ########################################################################
 #
 # install_gdml()
-#   Install gdml scripts in a top level gdml subdirectory
+#   Install gdml scripts in a top level gdml subdirectory ${gdml_dir}.
+#
 #   Default extensions:
 #     .gdml
 #
@@ -24,6 +25,8 @@
 #                [EXCLUDES exclusions] )
 # install_gdml( LIST file_list )
 #
+# N.B. gdml_dir must be set prior to calling install_gdml(), otherwise
+# install_gdml() will generate a FATAL_ERROR.
 ########################################################################
 include (CetCopy)
 include (CetExclude)
@@ -41,16 +44,16 @@ function(install_gdml)
     if (IGDML_SUBDIRS)
       message(FATAL_ERROR "ERROR: LIST and SUBDIRS are mutually exclusive in install_gdml()")
     endif()
-    cet_copy(${IGDML_LIST} DESTINATION  ${gdml_install_dir})
+    cet_copy(${IGDML_LIST} DESTINATION  ${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_gdml_dir})
     install(FILES ${IGDML_LIST} DESTINATION ${gdml_install_dir})
   else()
     if (IGDML_EXTRAS)
-      cet_copy(${IGDML_EXTRAS} DESTINATION ${gdml_install_dir})
+      cet_copy(${IGDML_EXTRAS} DESTINATION  ${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_gdml_dir})
       install(FILES ${IGDML_EXTRAS} DESTINATION ${gdml_install_dir})
     endif()
     file(GLOB gdml [^.]*.gdml)
     if (gdml)
-      cet_copy(${gdml} DESTINATION ${gdml_install_dir})
+      cet_copy(${gdml} DESTINATION  ${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_gdml_dir})
       install(FILES ${gdml} DESTINATION ${gdml_install_dir})
       if (IGDML_SUBDIRS)
         foreach(sub ${IGDML_SUBDIRS})
@@ -59,10 +62,11 @@ function(install_gdml)
             _cet_exlude_from_list(subdir_gdml EXCLUDES ${IGDML_EXCLUDES} LIST ${subdir_gdml})
           endif()
           if (subdir_gdml)
-            cet_copy(${subdir_gdml} DESTINATION ${gdml_install_dir})
+            cet_copy(${subdir_gdml} DESTINATION  ${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_gdml_dir})
             install(FILES ${subdir_gdml} DESTINATION ${gdml_install_dir})
           endif()
         endforeach()
       endif()
+    endif()
   endif()
 endfunction()
