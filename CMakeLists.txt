@@ -3,10 +3,10 @@
 # ======================================================================
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.11...3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12...3.14 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 1.01.03 LANGUAGES NONE)
+project(cetmodules VERSION 1.02.00 LANGUAGES NONE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
 
