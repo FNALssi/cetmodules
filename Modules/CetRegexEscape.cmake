@@ -22,7 +22,7 @@
 ########################################################################
 
 function(cet_regex_escape val var)
-  string(REGEX REPLACE "(\\.|\\||\\^|\\$|\\*|\\(|\\)|\\[|\\]|\\+)" "\\\\\\1" val "${val}")
+  string(REGEX REPLACE "(\\.|\\||\\^|\\$|\\*|\\(|\\)|\\[|\\]|\\?|\\+)" "\\\\\\1" val "${val}")
   string(REGEX REPLACE "/+" "/" val "${val}")
   if (ARGN)
     list(GET ARGN 0 count)
