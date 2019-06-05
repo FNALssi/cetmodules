@@ -1,6 +1,6 @@
 # cet_cmake_utils
 #
-# cet_find_library( )
+# cet_find_library()
 #   Call cet_find_library instead of find_library
 #   This macro will pass the arguments on to find_library
 #   Using this macro ensures that there will be an appropriate
@@ -42,8 +42,10 @@ function(cet_find_library)
     set(cet_find_library_list ${lib_label} ${cet_find_library_list}
       CACHE INTERNAL "list of calls to cet_find_library")
     # add to library list for package configure file
-    list(APPEND CONFIG_FIND_LIBRARY_COMMAND_LIST
-    "find_library( ${find_library_commands} )" )
+    set(CONFIG_FIND_LIBRARY_COMMAND_LIST ${CONFIG_FIND_LIBRARY_COMMAND_LIST}
+      "find_library( ${find_library_commands} )"
+      CACHE INTERNAL "find_library directives for config"
+      )
   endif()
 
   # call find_library
