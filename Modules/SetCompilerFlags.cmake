@@ -219,10 +219,17 @@ macro(cet_set_compiler_flags)
       add_compile_options(-Wall -Werror=return-type) # C & C++
       if (diag_idx GREATER 1) # At least VIGILANT
         add_compile_options(-Wextra -Wno-long-long -Winit-self)
-        if ((CMAKE_C_COMPILER_ID STREQUAL GNU AND
-	     CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 4.7.0) OR
-	     CMAKE_C_COMPILER_ID STREQUAL AppleClang OR
-	     CMAKE_C_COMPILER_ID STREQUAL Clang)
+        if (CMAKE_C_COMPILER_ID)
+          set(compiler_id ${CMAKE_C_COMPILER_ID})
+          set(compiler_version ${CMAKE_C_COMPILER_VERSION})
+        else()
+          set(compiler_id ${CMAKE_CXX_COMPILER_ID})
+          set(compiler_version ${CMAKE_CXX_COMPILER_VERSION})
+        endif()
+        if ((compiler_id STREQUAL GNU AND
+              compiler_version VERSION_GREATER_EQUAL 4.7.0) OR
+	          compiler_id STREQUAL AppleClang OR
+	          compiler_id STREQUAL Clang)
           add_compile_options(-Wno-unused-local-typedefs)
           add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wdelete-non-virtual-dtor>) # C++ only
         endif()
