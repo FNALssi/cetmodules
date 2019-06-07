@@ -96,9 +96,8 @@ function(cet_find_simple_package NAME)
     set(CFSP_HEADERS ${NAME}.h ${NAME}.hh ${NAME}.H ${NAME}.hxx ${NAME}.hpp)
   endif()
   if (NOT CFSP_INCPATH_VAR)
+    set(CFSP_INCPATH_VAR ${CFSP_LIB_VAR}_INC)
     set(WANT_INCLUDE_DIRECTORIES ON)
-  else()
-    set(${CFSP_INCPATH_VAR} ${CFSP_LIB_VAR}_INC)
   endif()
   find_path(${CFSP_INCPATH_VAR}
     NAMES ${CFSP_HEADERS}
