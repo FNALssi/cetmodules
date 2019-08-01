@@ -10,15 +10,18 @@
 #
 # =========================================================================
 
+# Private utilities.
+libexec=$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)
+
+# Arguments.
 output=$1
 exec=$2
 user=${3:-""}
 
-filter="$(which filter-program_options 2>/dev/null)"
-filter="${filter:-$(dirname ${BASH_SOURCE[0]})/filter-program-options}"
+filter="${libexec}/filter-program-options"
 
 [[ -x "${filter}" ]] || \
-  { echo "Unable to find required companion program filter-program-options" 1>&2
+  { echo "Unable to find required companion program filter-program-options at $filter" 1>&2
   exit 1; }
 
 options=$("${exec}" -h 2>&1 | "${filter}")

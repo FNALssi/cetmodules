@@ -65,16 +65,12 @@
 #   * <non-numeric-version> is SAME as <non-numeric-version>.
 #
 ########################################################################
-include(CMakeParseArguments)
-
-cmake_policy(PUSH)
-cmake_policy(VERSION 3.3.2)
 
 #internal macro
 macro(_get_dotver myversion )
    # replace all underscores with dots
-   STRING( REGEX REPLACE "_" "." dotver1 "${myversion}" )
-   STRING( REGEX REPLACE "v(.*)" "\\1" dotver "${dotver1}" )
+   STRING( REGEX "_" "." dotver1 "${myversion}" )
+   STRING( REGEX REPLACE [[v(.*)]] "\\1" dotver "${dotver1}" )
 endmacro(_get_dotver myversion )
 
 #internal macro
@@ -84,28 +80,22 @@ function(_parse_version version )
    # special cases
    # convert va_b_c_d to a.b.c.d
    # convert vx_y to x.y
-
-   string(REGEX MATCH "^v([0-9]*)(_([0-9]*)(_([0-9]*)(.*))?)?" smatch ${version})
-#   message(STATUS "CMAKE_MATCH_COUNT = ${CMAKE_MATCH_COUNT}")
-   if (NOT CMAKE_MATCH_COUNT)
-     string(REGEX MATCH "^([0-9]*)(\\.([0-9]*)(\\.([0-9]*)(.*))?)?" smatch ${version})
-   endif()
-   if (CMAKE_MATCH_COUNT GREATER 4)
-     set(basicdotver ${CMAKE_MATCH_1} ${CMAKE_MATCH_3} ${CMAKE_MATCH_5})
-     set(extra ${CMAKE_MATCH_6})
-   elseif(CMAKE_MATCH_COUNT GREATER 2)
-     set(basicdotver ${CMAKE_MATCH_1} ${CMAKE_MATCH_3} 0)
-   elseif(CMAKE_MATCH_COUNT EQUAL 1)
-     set(basicdotver ${CMAKE_MATCH_1} 0 0)
+   if (version MATCHES [[^v([0-9]*)(_([0-9]*)(_([0-9]*)(.*))?)?]] OR
+       version MATCHES [[^([0-9]*)(\.([0-9]*)(\.([0-9]*)(.*))?)?]])
+     if (CMAKE_MATCH_COUNT GREATER 4)
+       set(basicdotver ${CMAKE_MATCH_1} ${CMAKE_MATCH_3} ${CMAKE_MATCH_5})
+       set(extra ${CMAKE_MATCH_6})
+     elseif(CMAKE_MATCH_COUNT GREATER 2)
+       set(basicdotver ${CMAKE_MATCH_1} ${CMAKE_MATCH_3} 0)
+     else ()
+       set(basicdotver ${CMAKE_MATCH_1} 0 0)
+     endif()
    else()
      set(basicdotver 0 0 0)
    endif()
    string(REPLACE ";" "."  basicdotver "${basicdotver}")
 #   message(STATUS "version: ${version}; basicdotver: ${basicdotver}; extra: ${extra}")
-   if (extra)
-     string(TOUPPER "${extra}" EXTRA)
-     string(REGEX MATCH "^[._]?([A-Z]+)?([0-9]+)?" smatch "${EXTRA}")
-     if (CMAKE_MATCH_COUNT)
+   if (extra MATCHES [[^[._]?([A-Za-z]+)?([0-9]+)?]])
        set(patchchars ${CMAKE_MATCH_1})
        set(micro ${CMAKE_MATCH_2})
      endif()
@@ -131,26 +121,24 @@ function(_parse_version version )
    endif()
 #   message(STATUS "version: ${version}; basicdotver: ${basicdotver}; extra: ${extra}; patchtype: ${patchtype}; patchchars: ${patchchars}; micro: ${micro}")
    # Expose variables to parent scope.
-   foreach(var basicdotver patchtype patchchars micro)
+   foreach(var IN ITEMS basicdotver patchtype patchchars micro)
      string(TOUPPER ${var} var_uc)
      set(${var_uc} ${${var}} PARENT_SCOPE)
    endforeach()
 endfunction(_parse_version)
 
-macro( _check_version product version  )
-  cmake_parse_arguments( CVP "" "" "" ${ARGN} )
-  if( CVP_UNPARSED_ARGUMENTS )
-    list( GET CVP_UNPARSED_ARGUMENTS 0 minimum )
-    _check_if_version_greater( ${product} ${version} ${minimum} )
-    if( product_version_less )
-      message( FATAL_ERROR "Bad Version: ${product} ${THISVER} is less than minimum required version ${MINVER}")
+function(_check_version product version)
+  list(POP_FRONT minimum)
+  if (minimum)
+    _check_if_version_greater(${product} ${version} ${minimum})
+    if (product_version_less)
+      message(FATAL_ERROR "Bad Version: ${product} ${THISVER} is less than minimum required version ${MINVER}")
     endif()
   endif()
-  #message( STATUS "${product} ${THISVER} meets minimum required version ${MINVER}")
-endmacro( _check_version product version minimum )
+endfunction()
 
 function( check_prod_version product version minimum )
-  cmake_parse_arguments(CV "" "PRODUCT_OLDER_VAR;PRODUCT_MATCHES_VAR" "" ${ARGN})
+  cmake_parse_arguments(PARSE_ARGV 3 CV "" "PRODUCT_OLDER_VAR;PRODUCT_MATCHES_VAR" "")
   if ((NOT CV_PRODUCT_OLDER_VAR) AND (NOT CV_PRODUCT_MATCHES_VAR))
     message(FATAL_ERROR "check_prod_version requires at least one of PRODUCT_OLDER_VAR or PRODUCT_MATCHES_VAR")
   endif()
@@ -208,5 +196,3 @@ macro(_check_if_version_greater product version minimum)
   check_prod_version(${product} ${version} ${minimum}
     PRODUCT_OLDER_VAR product_version_less)
 endmacro(_check_if_version_greater product version minimum)
-
-cmake_policy(POP)

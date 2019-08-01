@@ -1,25 +1,69 @@
-# ======================================================================
-#  cetmodules
-# ======================================================================
+########################################################################
+# cetmodules
+#
+#   Scripts and CMake modules to aid in the building and use of
+#   interdependent scientific software.
+#
+# FEATURES:
+#
+# * Compatibility with cetbuildtools and UPS environments with only
+#   minor changes.
+#
+# * Facilities for ROOT dictionary / C++ module generation.
+#
+# * Facilities for generation of art suite modules, module skeleton
+#   generators, services, and tools.
+#
+# * Assisted production of libraries, executables and other targets
+#   using modern CMake idioms
+#
+# * Assisted production of full-featured CMake config files with target
+#   import / export and dependency management.
+#
+# * Easy installation and management of different types of data file
+#   with relevance to HEP and beyond, including FHiCL, GDML, and source.
+#
+# * Awareness of multi-project builds.
+#
+########################################################################
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.12...3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 1.04.00 LANGUAGES NONE)
+project(cetmodules VERSION 2.00.00 LANGUAGES NONE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
+# Find our own modules.
+list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
+  ${PROJECT_SOURCE_DIR}/Modules/compat)
 
+# No tests of cetmodules.
+set(BUILD_TESTING OFF)
+
+# Basic build environment.
 include(CetCMakeEnv)
-cet_cmake_env(NO_FLAVOR PAD_MINOR ON)
+cet_cmake_env()
 
+####################################
+# Build components.
 add_subdirectory(config)
+
 add_subdirectory(Modules)
+add_subdirectory(libexec)
 add_subdirectory(bin)
 add_subdirectory(src)
+add_subdirectory(ups-templates)
+####################################
 
-include(CetCMakeConfig)
-cet_cmake_config(NO_FLAVOR)
-if (WANT_UPS)
-  add_subdirectory(ups)
-endif()
+# We need these to be absolute for internal use.
+foreach (var IN ITEMS CONFIG_DIR LIBEXEC_DIR)
+  get_filename_component (cetmodules_${var} "${cetmodules_${var}}"
+    REALPATH BASE_DIR "${PROJECT_SOURCE_DIR}")
+endforeach()
+
+####################################
+# Generate CMake (and UPS, if appropriate) configuration files and
+# packaging.
+cet_cmake_config(ARCH_INDEPENDENT COMPATIBILITY SameMajorVersion
+  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in
+  CONFIG_POST_VARS config/${PROJECT_NAME}-config-module-path.cmake.in)

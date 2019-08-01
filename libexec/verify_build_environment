@@ -1,0 +1,46 @@
+#!/bin/bash
+
+info_sh="${1:-${CETPKG_BUILD:-.}}/cetpkg_info.sh"
+
+# Source the environment to verify.
+. "${info_sh}" || \
+  { echo "unable to build environment from $info_sh" 1>&2; exit 1; }
+
+printf "To inspect build variable settings, execute ${info_sh}\n\n";
+
+failed=()
+check=(NAME VERSION)
+[ -z "$CETPKG_NOARCH" ] && check+=(QUAL TYPE)
+check_env=(BUILD SOURCE)
+
+for cet_var in "${check[@]}"; do
+  eval "[ -n \"\${CETPKG_$cet_var+x}\" ]" || failed+=("$cet_var")
+done
+
+# Complain for undefined variables.
+(( ${#failed[@]} > 0 )) && cat 1>&2 <<EOF && exit 1
+ERROR: unexpected undefined shell variable(s):
+         ${failed[*]}
+EOF
+
+for cet_env in "${check_env[@]}"; do
+  printenv CETPKG_$cet_env >/dev/null 2>&1 || failed+=("$cet_env")
+done
+
+# Complain for undefined environment variables.
+(( ${#failed[@]} > 0 )) && cat 1>&2 <<EOF && exit 1
+ERROR: unexpected undefined environment variable(s):
+         ${failed[*]}
+EOF
+
+[ -n "${CETPKG_INSTALL}" ] || install_args=(-I "<ups-topdir>")
+
+cat <<EOF
+Please use "buildtool" to configure and build $CETPKG_NAME, e.g.:
+
+  buildtool ${install_args[*]} -vTl [-jN]
+
+See "buildtool --usage" (short usage help) or "buildtool -h|--help"
+(full help) for more details.
+
+EOF

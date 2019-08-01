@@ -1,0 +1,27 @@
+parent cetmodules
+
+noarch
+no_fq_dir
+fcldir -
+incdir	-
+libdir	-
+
+product         version		qual	<table_format=2>
+cmake		v3_18_2
+cetpkgsupport	-c
+end_product_list
+ 
+qualifier	cmake	cetpkgsupport
+-nq-		-nq-	-nq-
+end_qualifier_list
+
+table_fragment_begin
+table_fragment_end
+
+# Preserve tabs and formatting in emacs and vi / vim:
+
+### Local Variables:
+### tab-width: 8
+### End:
+
+# vi:set ts=8 noexpandtab:

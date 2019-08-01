@@ -2,7 +2,6 @@
 # cet_rootcint( <output_name> [NO_INSTALL] ) 
 # runs rootcint against files in CMAKE_CURRENT_SOURCE_DIR and puts the result in CMAKE_CURRENT_BINARY_DIR
 
-include(CMakeParseArguments)
 include(CetPackagePath)
 
 find_package(ROOT QUIET REQUIRED COMPONENTS Core)
@@ -45,7 +44,7 @@ endif()
 
 function(cet_rootcint rc_output_name)
   set(cet_rootcint_usage "USAGE: cet_rootcint( <package name> [NO_INSTALL] )")
-  cmake_parse_arguments(RC "NO_INSTALL" "" "" ${ARGN})
+  cmake_parse_arguments(PARSE_ARGV 1 RC "NO_INSTALL" "" "")
 
   # there are no default arguments
   if( RC_UNPARSED_ARGUMENTS )
@@ -58,12 +57,12 @@ function(cet_rootcint rc_output_name)
   # generate the list of headers to be parsed by cint
   cet_package_path(curdir)
   FILE(GLOB CINT_CXX *.cxx )
-  foreach( file ${CINT_CXX} )
-    STRING( REGEX REPLACE ".cxx" ".h" header ${file} )
+  foreach (file IN LISTS CINT_CXX)
+    STRING( REGEX REPLACE [[\.cxx$]] [[.h]] header ${file} )
     get_filename_component( cint_file ${file} NAME_WE )
     set( CINT_HEADER_LIST ${curdir}/${cint_file}.h ${CINT_HEADER_LIST} )
     set( CINT_DEPENDS ${header} ${CINT_DEPENDS} )
-  endforeach( file )
+  endforeach()
   ##message(STATUS "cint header list is now ${CINT_HEADER_LIST}" )
 
   ##message(STATUS "cet_rootcint: running ${ROOTCINT} and using headers in ${ROOTSYS}/include")
@@ -102,9 +101,9 @@ function(cet_rootcint rc_output_name)
         COMMAND rm -f "${RC_RMF}.bak")
     endif()
   endif()
-  foreach( dir ${inc_dirs} )
+  foreach (dir IN LISTS inc_dirs)
     set( CINT_INCS -I${dir} ${CINT_INCS} )
-  endforeach( dir )
+  endforeach()
   ##message(STATUS "cet_rootcint: include_directories ${CINT_INCS}")
   add_custom_command(
     # Extra outputs commented out until custom_command OUTPUT supports
@@ -112,7 +111,7 @@ function(cet_rootcint rc_output_name)
     OUTPUT ${RC_GENERATED_CODE} # ${RC_PCM} ${RC_RMF}
     COMMAND ${RC_PROG} -f ${CMAKE_CURRENT_BINARY_DIR}/${rc_output_name}Cint.cc
     ${RC_FLAGS}
-		-I${CMAKE_SOURCE_DIR} ${CINT_INCS}
+		-I${PROJECT_SOURCE_DIR} ${CINT_INCS}
     -I${ROOTSYS}/include
 		-DUSE_ROOT
 		${CINT_HEADER_LIST} LinkDef.h
@@ -128,10 +127,10 @@ function(cet_rootcint rc_output_name)
   if( NOT RC_NO_INSTALL )
     set(cet_generated_code ${RC_GENERATED_CODE} PARENT_SCOPE)
     if (RC_PCM)
-      install(FILES ${RC_PCM} DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir})
+      install(FILES ${RC_PCM} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
     endif()
     if (RC_RMF)
-      install(FILES ${RC_RMF} DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir})
+      install(FILES ${RC_RMF} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
     endif()
   endif( NOT RC_NO_INSTALL )
   #message( STATUS "cet_rootcint debug: generated code list ${cet_generated_code}")

@@ -1,12 +1,2 @@
-foreach (CATCH_INCLUDE_SUBDIR catch catch2)
-  configure_file(cet_catch_main.cpp.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cet_${CATCH_INCLUDE_SUBDIR}_main.cpp
-    @ONLY
-    )
-endforeach()
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/cet_catch_main.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/cet_catch2_main.cpp
-  DESTINATION
-  src
-  )
+project_variable(CATCH2_MAIN CONFIG src/cet_catch2_main.cpp)
+install(FILES cet_catch2_main.cpp DESTINATION src)

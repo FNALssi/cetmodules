@@ -1,150 +1,212 @@
 ########################################################################
 # CetCMakeEnv
 #
-# Set up a characteristic cetmodules build environment for the current
-# package.
+#   Set up a characteristic cetmodules build environment for the current
+#   project.
 #
-# Options:
+####################################
+# FUNCTIONS / MACROS
+##################
 #
-#   WANT_UPS
+#   cet_cmake_env([NO_INSTALL_PKGMETA])
+#
+#     Set up the cetmodules build environment.
+#
+####################################
+# CONFIGURATION
+##################
+#
+##################
+# Top-level configuration options (-D<opt>:BOOL=<ON|OFF>).
+##################
+#
+#   BUILD_SHARED_LIBS (ON)
+#   BUILD_STATIC_LIBS (OFF)
+#
+#     Specify which types of library should be built - see
+#     https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html.
+#
+#   CMAKE_INSTALL_RPATH_USE_LINK_PATH (ON)
+#
+#     Specify CMake's behavior with respect to RPATH - see
+#     https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_RPATH_USE_LINK_PATH.html.
+#
+#   WANT_UPS (OFF)
+#
 #     Activate the generation of UPS table and version files and Unified
-#     UPS-compliant installation tarballs. If you don't know what this is,
-#     you don't need it.
+#     UPS-compliant installation tarballs. If you don't know what this
+#     means you don't need it. For details of command-line CMake
+#     variables (-D...) and optional arguments to cet_cmake_env() to
+#     modify behavior of the UPS handling system, please see the
+#     documentation in Ups.cmake.
 #
-# Functions:
+##################
+# "Project" variables - see ProjectVariable.cmake.
+##################
 #
-#   cet_cmake_env()
-#     Set up the cetmodules build environment. Options:
+#  * Set for the current project on the command line with:
 #
-#     ARCH_INCLUDEDIR (WANT_UPS=ON)
-#       The include directory will be architecture-specific to avoid
-#       issues with multiple builds of the same product being installed
-#       with the same prefix. As with all following options also
-#       annotated with (WANT_UPS=ON), this currently only affects
-#       UPS-aware installations.
+#      -D<cmake-project-name>_<var>_INIT=<val>
 #
-#     BUILDTYPE <buildtype> (WANT_UPS=ON)
-#     NO_BUILDTYPE (WANT_UPS=ON)
-#       Specify the build type (usually debug, prof or opt) to be used
-#       when generating the UPS table file, installation directories and
-#       tarball names. If not specified, it will be inferred from the
-#       CMAKE_BUILD_TYPE.
+#    or in CMakeLists.txt with:
 #
-#     NO_FLAVOR (WANT_UPS=ON)
-#       Used to determine whether the platform is taken into account
-#       when generating the UPS table file, installation directories and
-#       tarball names or whether NULL or noarch should be used as
-#       appropriate. See also the NO_FLAVOR option to cet_cmake_config()
-#       in CetCMakeConfig.cmake.
+#      set(<cmake-project-name>_<var> <val>).
 #
-#     PAD_{MAJOR,MINOR,PATCH,TWEAK} <ON|OFF|[0-9]+> (WANT_UPS=ON)
-#       Used to determine the padding level for version components when
-#       converting CMAKE_PROJECT_VERSION into UPS_PRODUCT_VERSION. If ON
-#       is specified, the padding is set to 2 (e.g. 7 -> 07). If padding
-#       is set >1 for one level, the default padding level for all lower
-#       levels is set to 2.
+#  * Set for the current and all nested projects with:
 #
-#     UPS_PRODUCT_NAME <product_name> (WANT_UPS=ON)
-#       Specific the UPS product name. The default is CMAKE_PROJECT_NAME
-#       converted to lower case and with hyphens converted to
-#       underscores.
+#      set(<var> <val>).
 #
-#     UPS_QUALS <qual>... (WANT_UPS=ON)
-#       Specify the list of applicable UPS qualifiers for this build of
-#       the product.
+##################
+# cet_cmake_env([NO_INSTALL_PKGMETA])
+##################
 #
-#     WANT_COMPILER_QUAL (WANT_UPS=ON)
-#       If specified, calculate and use the UPS qualifier used to
-#       signify the compiler (e.g. e15 for GCC 6.4.0 or c2 for Clang
-#       5.0.1).
+# Set up the cetmodules build environment.
+#
+##################
+#
+#
+#   NO_INSTALL_PKGMETA
+#
+#     Under normal circumstances, cet_cmake_env() will automatically
+#     find LICENSE and README files and install them. Specify
+#     NO_INSTALL_PKGMETA if you wish to call install_pkgmeta()
+#     yourself (or not at all).
+#
 ########################################################################
 
-# Options
-option(WANT_UPS "Activate the generation of UPS table and version files and Unified UPS-compliant installation tarballs." OFF)
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
 
-include(CetProjectVars)
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-set(_ARCH_DEP_DIRS BINDIR SBINDIR LIBDIR LIBEXECDIR SYSCONFDIR)
+include(CetRegexEscape)
 
+##################
+# OPTIONS
+##################
+
+# Are we making / using UPS?
+option(WANT_UPS
+  "Activate the generation of UPS table and version files and Unified \
+UPS-compliant installation tarballs." OFF)
+mark_as_advanced(WANT_UPS)
+
+# What kind of libraries do we build?
 option(BUILD_SHARED_LIBS "Build shared libraries for this project." ON)
+option(BUILD_STATIC_LIBS "Build static libraries for this project." OFF)
+
+# RPATH management.
+option(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+mark_as_advanced(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+##################
+
+##################
+# Configure installation subdirectories.
+##################
+
+# Default subdirectory for libraries.
+if (NOT CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR lib) # Don't use lib64 for installation dir.
+endif()
+
+# See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html.
+include(GNUInstallDirs)
+##################
 
 macro(cet_cmake_env)
-  # project() must have been called before us.
+  # project() must have been called first.
   if(NOT CMAKE_PROJECT_NAME)
     message (FATAL_ERROR
       "CMake project() command must have been invoked prior to cet_cmake_env()."
       "\nIt must be invoked at the top level, not in an included .cmake file.")
   endif()
-  cmake_parse_arguments(CCE "ARCH_INCLUDEDIR" "" "" ${ARGN})
 
-  if (CCE_ARCH_INCLUDEDIR)
-    list(APPEND _ARCH_DEP_DIRS INCLUDE)
-  endif()
+  cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
-  string(TOLOWER ${CMAKE_PROJECT_NAME} ${CMAKE_PROJECT_NAME}_LC)
-  if (CCE_UPS_PRODUCT_NAME)
-    set(product ${CCE_UPS_PRODUCT_NAME})
-  else()
-    set(product ${${CMAKE_PROJECT_NAME}_LC})
-  endif()
+  # Remove unwanted information from any previous run.
+  _clean_internal_cache_entries()
 
-  string(TOUPPER ${CMAKE_PROJECT_NAME} ${CMAKE_PROJECT_NAME}_UC)
-  ##message(STATUS "CMAKE_PROJECT_NAME: ${CMAKE_PROJECT_NAME}")
-  ##message(STATUS "CMAKE_PROJECT_NAME: ${CMAKE_PROJECT_NAME}")
-  ##message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
-  ##message(STATUS "PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
-  
-  # Acknowledge new RPATH behavior on OS X.
-  cmake_policy(SET CMP0042 NEW)
-  # Ensure link path is used in install RPATH.
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+  # Disable package registry use as confusing and not best practice.
+  set(CMAKE_EXPORT_PACKAGE_REGISTRY FALSE)
+  set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY TRUE)
+  set(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
+  set(CMAKE_FIND_PACKAGE_NO_SYSTEM_PACKAGE_REGISTRY TRUE)
 
-  set_install_root()
-  enable_testing()
+  ##################
+  # Project variables - see ProjectVariable.cmake. See especially the
+  # explanation of initialization and default semantics.
+  ##################
+  include(ProjectVariable)
+
+  # Defined first, as PATH_FRAGMENT and FILEPATH_FRAGMENT project
+  # variables take this into account.
+  project_variable(EXEC_PREFIX TYPE STRING)
+
+  # Other generally-useful project variables. More may be defined where
+  # they are relevant.
+  project_variable(OLD_STYLE_CONFIG_VARS FALSE TYPE BOOL
+    DOCSTRING "Tell cetmodules config files for dependencies to define \
+old-style variables for library targets\
+")
+  project_variable(NAMESPACE "${PROJECT_NAME}"
+    TYPE STRING CONFIG OMIT_IF_NULL
+    DOCSTRING "Top-level prefix for targets and aliases when imported")
+  project_variable(INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CONFIG
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install headers")
+  project_variable(LIBRARY_DIR "${CMAKE_INSTALL_LIBDIR}" CONFIG
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install libraries")
+  project_variable(BIN_DIR "${CMAKE_INSTALL_BINDIR}" CONFIG
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install executables")
+  project_variable(SCRIPTS_DIR ${${PROJECT_NAME}_BIN_DIR}
+    NO_WARN_REDUNDANT
+    BACKUP_DEFAULT scripts
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install scripts")
+  project_variable(TEST_DIR "test"
+    NO_WARN_REDUNDANT
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install tests")
+  project_variable(DATA_ROOT_DIR ${CMAKE_INSTALL_DATAROOTDIR}
+    NO_WARN_REDUNDANT
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Architecture-independent data directory")
 
   # If we're dealing with UPS.
   if (WANT_UPS)
+    # Incorporate configuration information from product_deps.
     include(Ups)
-    set_ups_variables(${CCE_UNPARSED_ARGUMENTS})
-    if (CMAKE_INSTALL_PREFIX)
-      string(APPEND CMAKE_INSTALL_PREFIX "/${UPS_PRODUCT_SUBDIR}")
-      _ups_init_cpack()
+    _ups_init()
+    # Make sure we have the old CMAKE_INSTALL_PREFIX value stored.
+    if (NOT DEFINED CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG})
+      set(CETMODULES_CMAKE_INSTALL_PREFIX_ORIG "${CMAKE_INSTALL_PREFIX}"
+        CACHE INTERNAL "Original value of CMAKE_INSTALL_PREFIX")
     endif()
+    # Tweak installation directory per UPS convention.
+    if (CETMODULES_CMAKE_INSTALL_PREFIX_ORIG)
+      set(CMAKE_INSTALL_PREFIX "$CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG}/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}")
+    endif()
+  elseif (NOT WANT_UPS)
+    # Define a fallback macro in case of layer 8 issues.
+    macro(process_ups_files)
+      message(FATAL_ERROR
+        "Set the CMake variable WANT_UPS prior to including CetCMakeEnv.cmake to activate UPS table file and tarball generation.")
+    endmacro()
   endif()
-
-  set(CMAKE_INSTALL_LIBDIR lib) # Don't use lib64.
-
-  # Set up installation directories (must follow UPS clause above)
-  include(GNUInstallDirs)
-
-  if (WANT_UPS AND UPS_PRODUCT_FQ)
-    foreach(dirtype ${_ARCH_DEP_DIRS})
-      string(PREPEND CMAKE_INSTALL_${dirtype} "${UPS_PRODUCT_FQ}/")
-    endforeach()
-    include(GNUInstallDirs) # Reinitialize.
-  endif()
-
-  # Project variables.
-  cet_project_var(inc_dir ${CMAKE_INSTALL_INCLUDEDIR}
-    MISSING_OK
-    DOCSTRING "Directory below prefix to install headers")
-  cet_project_var(lib_dir ${CMAKE_INSTALL_LIBDIR}
-    MISSING_OK
-    DOCSTRING "Directory below prefix to install libraries")
-  cet_project_var(bin_dir ${CMAKE_INSTALL_BINDIR}
-    MISSING_OK
-    DOCSTRING "Directory below prefix to install executables")
-  cet_project_var(modules_dir Modules
-    MISSING_OK
-    DOCSTRING "Directory below prefix to install CMake modules")
-  cet_project_var(test_dir test
-    MISSING_OK
-    DOCSTRING "Directory below prefix to install test scripts")
 
   # Useful includes.
+  include(CTest)
   include(CetCMakeConfig)
   include(CetCMakeUtils)
+  include(CetMakeLibrary)
   include(CetMake)
+  include(Compatibility)
+  include(FindUpsBoost)
+  include(FindUpsGeant4)
+  include(FindUpsRoot)
   include(InstallFW)
   include(InstallFhicl)
   include(InstallGdml)
@@ -156,36 +218,53 @@ macro(cet_cmake_env)
   include(InstallWP)
   include(SetCompilerFlags)
 
-  # initialize cmake config file fragments
-  _cet_init_config_var()
+  ##################
+  # Default locations for libraries and executables.
+  ##################
 
-  # add to the include path
-  include_directories("${PROJECT_BINARY_DIR}")
-  include_directories("${PROJECT_SOURCE_DIR}")
-  # make sure all libraries are in one directory
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_lib_dir})
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_lib_dir})
-  # make sure all executables are in one directory
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_bin_dir})
+  # Override on a per-target, per config or per-scope basis if necessary
+  # (should be rare).
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_BIN_DIR})
 
-  # install license and readme if found
-  install_license()
+  ##################
+  # Automatic installation of LICENSE, README, etc. unless disabled by
+  # NO_INSTALL_PKGMETA.
+  if (NOT _CCE_NO_INSTALL_PKGMETA)
+    install_pkgmeta()
+  endif()
+
+  ##################
+  # Avoid warnings about some variables that are likely to have been set
+  # on the command line but that may not be used.
+  _use_maybe_unused()
 endmacro(cet_cmake_env)
 
-macro(_cet_debug_message)
-  string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-  if( ${BTYPE_UC} MATCHES "DEBUG" )
-    message( STATUS "${ARGN}")
-  endif()
-endmacro(_cet_debug_message)
+function(_clean_internal_cache_entries)
+  get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
+  cet_regex_escape("${PROJECT_NAME}" e_proj)
+  list(FILTER cache_vars INCLUDE
+    REGEX "^_?CETMODULES(_[^_]+)*_PROJECT_${e_proj}$")
+  foreach (entry IN LISTS cache_vars)
+    get_property(type CACHE "${entry}" PROPERTY TYPE)
+    if (type STREQUAL INTERNAL)
+      unset("${entry}" CACHE)
+    endif()
+  endforeach()
+endfunction()
 
-macro( set_install_root )
-  set( PACKAGE_TOP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  #message( STATUS "set_install_root: PACKAGE_TOP_DIRECTORY is ${PACKAGE_TOP_DIRECTORY}")
-endmacro( set_install_root )
+function(_use_maybe_unused)
+  get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
+  cet_regex_escape("${PROJECT_NAME}" e_proj)
+  list(FILTER cache_vars INCLUDE REGEX "^${e_proj}.*_INIT")
+  foreach (var IN LISTS cache_vars ITEMS CMAKE_WARN_DEPRECATED)
+    if (${var})
+    endif()
+  endforeach()
+endfunction()
 
-if (NOT WANT_UPS)
-  macro(process_ups_files)
-    message(FATAL_ERROR "Set the CMake variable WANT_UPS prior to including CetCMakeEnv.cmake to activate UPS table file and tarball generation.")
-  endmacro()
-endif()
+cmake_policy(POP)

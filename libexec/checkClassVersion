@@ -17,7 +17,6 @@ from __future__ import print_function
 from optparse import OptionParser
 import ROOT
 import os
-import string
 import sys
 import xml.parsers.expat
 
@@ -260,6 +259,8 @@ def main():
         else:
             raise RuntimeError("Failed to load ROOT's Cintex library")
 
+    print("INFO: Current value of ROOT_INCLUDE_PATH: " + os.environ['ROOT_INCLUDE_PATH'], file=sys.stderr)
+
     # All ROOT versions.
     if (options.library is not None) and (ROOT.gSystem.Load(options.library) < 0):
         raise RuntimeError("failed to load library '" + options.library + "'")
@@ -350,7 +351,7 @@ def main():
             raise IOError("Cannot obtain temporary filename for write")
         filename = mktemp_pipe.readline()
         mktemp_pipe.close()
-        filename = string.strip(filename)
+        filename = filename.strip()
         if filename == '':
             raise IOError("Cannot obtain temporary filename for write")
         outFile = open(filename, 'w')
@@ -407,5 +408,5 @@ if __name__ == '__main__':
     main()
 
 ### Local Variables:
-### mode: CPython
+### mode: Python
 ### End:

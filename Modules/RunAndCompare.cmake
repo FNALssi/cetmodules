@@ -27,15 +27,15 @@
 # OUTPUT_FILTER_ARGS
 #   Filter program arguments.
 # OUTPUT_FILTERS
-#   List describing a of filters with arguments, quoted as appropriate
+#   A list of filters with arguments, quoted as appropriate
 #   (mutually-exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
 #   DEFAULT to specify the default filter(s) somewhere in the chain.
 ########################################################################
 # Defaults
-set(DEFAULT_FILTERS filter-output)
+set(DEFAULT_FILTERS "${cetmodules_LIBEXEC_DIR}/filter-output")
 
 if (DEFINED ART_COMPAT)
-  list(INSERT DEFAULT_FILTERS 0 "filter-output-art-compat")
+  list(PREPEND DEFAULT_FILTERS "${art_LIBEXEC_DIR}/filter-output-art-compat")
 endif()
 
 # Utility function.
@@ -44,13 +44,12 @@ function(filter_and_compare FILE REF)
   execute_process(${COMMANDS}
     INPUT_FILE "${FILE}"
     OUTPUT_FILE "${filtered_file}"
-    OUTPUT_VARIABLE OUTPUT
     ERROR_VARIABLE OUTPUT
     RESULT_VARIABLE FILTER_FAILED
     )
 
   if (FILTER_FAILED)
-    message(FATAL_ERROR "Production of filtered output from ${FILE} failed with result ${FILTER_FAILED}")
+    message(FATAL_ERROR "Production of filtered output from ${FILE} via ${COMMANDS} failed with result ${FILTER_FAILED}\n${OUTPUT}")
   endif()
 
   execute_process(COMMAND diff -u "${REF}" "${filtered_file}"
@@ -110,9 +109,11 @@ if (OUTPUT_FILTERS)
       list(INSERT OUTPUT_FILTERS ${found_default} ${DEFAULT_FILTERS})
     endif()
   endif()
-  foreach (filter ${OUTPUT_FILTERS})
+  foreach (filter IN LISTS OUTPUT_FILTERS)
     separate_arguments(args UNIX_COMMAND "${filter}")
-    list(APPEND COMMANDS COMMAND ${args})
+    list(POP_FRONT args cmd)
+    find_program(cmd "${cmd}" HINTS "${cetmodules_LIBEXEC_DIR}" REQUIRED)
+    list(APPEND COMMANDS COMMAND ${cmd} ${args})
   endforeach()
 endif()
 

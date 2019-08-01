@@ -35,7 +35,6 @@
 # a customization for each program option.
 ##########################################################################
 
-include(CMakeParseArguments)
 
 function(cet_make_completions exec)
   set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
@@ -46,12 +45,12 @@ function(cet_make_completions exec)
   endif()
   add_custom_command(
     OUTPUT ${output_file}
-    COMMAND ${cetmodules_bin_dir}/make_bash_completions
+    COMMAND ${cetmodules_BIN_DIR}/make_bash_completions
     ${output_file} ${exec} ${user_provided_completions}
     COMMENT ${completion_comment})
   add_custom_target(MakeCompletions_${exec} ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
   add_dependencies(MakeCompletions_${exec} ${exec})
 
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${PROJECT_NAME}_BIN_DIR})
 endfunction(cet_make_completions)

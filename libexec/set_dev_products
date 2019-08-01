@@ -1,0 +1,272 @@
+#!/usr/bin/perl
+########################################################################
+# set_dev_products
+#
+#   Set up dependencies to build a UPS product and---optionally---the
+#   build environment.
+#
+# * Invoked from setup_for_development or setup_deps.
+#
+# * Requires a product_deps file.
+#
+########################################################################
+use strict;
+use warnings FATAL =>
+  qw(io regexp severe syntax uninitialized void);
+use Cwd qw(chdir :DEFAULT);
+use File::Basename;
+use FileHandle;
+use Getopt::Long;
+
+use lib dirname($0);
+use parse_deps qw(:DEFAULT $btype_table print_dep_setup table_dep_setup);
+use warnings FATAL => 'parse_deps';
+
+sub check_for_old_product_deps {
+  my $pfile = shift;
+  open(PIN, "<$pfile") or die "Couldn't open $pfile";
+  my $retval = 1;
+  while (<PIN>) {
+    if (m&^\s*end_(?:product|qualifier)_list\b&) {
+      $retval = 0;
+      last;
+    }
+  }
+  close(PIN);
+  return $retval;
+}
+
+sub write_table_deps {
+  my ($parent, $deps) = @_;
+  open(my $fh, ">table_deps_$parent") or return;
+  foreach my $dep (sort keys %{$deps}) {
+    my $dep_info = $deps->{$dep};
+    table_dep_setup($dep, $dep_info, $fh)
+      unless $dep_info->{only_for_build};
+  }
+  close($fh);
+  1;
+}
+
+sub write_table_frag {
+  my ($parent, $pfile) = @_;
+  my $fraglines = get_table_fragment($pfile);
+  return 1 unless $fraglines and scalar @$fraglines;
+  open(my $fh, ">table_frag_$parent") or return;
+  print $fh join("\n", @$fraglines), "\n";
+  close($fh);
+  1;
+}
+
+1;
+
+# Configure argument handling.
+Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
+
+my $prog = basename($0);
+my $options = {};
+
+my $USAGE = <<EOF;
+USAGE: $prog [--nobuild] [<-d|-o|-p>] [<qualifiers>]
+       $prog -h|--help
+
+  Generate a file source-able in the context of setup_for_development to
+set up UPS dependencies.
+
+Requires \$CETPKG_SOURCE to point to the top level source area for the
+package, and \$CETPKG_BUILD to point to the build area unless --nobuild
+is specified.
+
+EOF
+
+my @btypes = sort keys %$btype_table;
+my $btype_lookup = { map { (substr($_, 0, 1) => $_) } @btypes };
+my ($build_type, $btype_arg);
+
+sub handle_build_type_arg {
+  my $opt = shift;
+  if (my $tmp_build_type = $btype_lookup->{$opt}) {
+    die("attempt to specify multiple build types with ($btype_arg, -$opt)\n")
+      if $btype_arg;
+    ($build_type, $btype_arg) = ($tmp_build_type, "-$opt");
+  }
+}
+
+GetOptions("help|h" => sub { print "$USAGE"; exit 1; },
+           (map { ($_ => \&handle_build_type_arg) } keys %$btype_lookup)
+          ) or die($USAGE);
+
+my $sourcedir = $ENV{CETPKG_SOURCE} || die "vacuous \$CETPKG_SOURCE";
+
+my $builddir = ($options->{nobuild} ? "." : $ENV{CETPKG_BUILD} || \
+                die "vacuous \$CETPKG_BUILD");
+
+# use this file for debugging
+my $errlog = "$builddir/cetpkg_setup.err";
+open(STDERR, ">", $errlog) or die "Couldn't open $errlog for STDERR output";
+
+my $pfile = "$sourcedir/ups/product_deps";
+if ( check_for_old_product_deps( $pfile ) ) {
+  warning("you appear to be using a very old product_deps format with cetmodules",
+          "please issue the following command",
+          "migrate-package '$ENV{CETPKG_SOURCE}'");
+}
+
+my @input_quals = ();
+my $have_non_opt_args = (scalar @ARGV > 0);
+
+# Get qualifiers and/or build type from any remaining arguments.
+foreach my $q (@ARGV) {
+  my @quals = split(':', $q);
+    $have_non_opt_args = 1;
+    (my @tmp_build_types) = grep { my $qual = $_;
+                                grep { $qual eq $_; } @btypes } @quals;
+  if (scalar @tmp_build_types) {
+    error_exit(sprintf("attempt to specify multiple build types (%s) with (%s)",
+                       join(", ", $build_type || (), @tmp_build_types),
+                       join(", ", $btype_arg || (), $q)))
+      if ($build_type or $#tmp_build_types > 0);
+    ($build_type, $btype_arg) = (shift @tmp_build_types, $q);
+  } else {
+    push @input_quals, @quals;
+  }
+}
+
+# Read parent info from product_deps.
+my $pi = get_parent_info($pfile, @input_quals, $build_type || ());
+
+#print DIAG "$prog debug info: qual $qual\n";
+
+my $tmpfl = "$builddir/setup_$pi->{name}";
+open(my $tset_fh, "> $tmpfl") or die "Couldn't open $tmpfl";
+
+my ($phash) = get_product_list( $pfile );
+my ($ndeps, $qhash, $qqhash) = get_qualifier_matrix( $pfile, $tset_fh );
+
+my @available_quals = keys %$qqhash;
+my $nqlines = scalar @available_quals;
+
+unless ($have_non_opt_args) {
+  my @default_quals = $pi->{default_qual} ?
+    split(':', $pi->{default_qual}) : ();
+  my ($default_btype) =
+    grep { my $q = $_; not grep { $q = $_ } @btypes } @default_quals;
+  if ($default_btype) {
+    if ($btype_arg) {
+      warning("specified build type $pi->{type} from option $btype_arg",
+              "overrides default build type $default_btype from defaultqual",
+              "in $pfile");
+    } else {
+      $pi->{type} = $default_btype;
+    }
+    @default_quals = grep { $_ ne $default_btype } @default_quals;
+  }
+  $pi->{qual} = sort_qual(@default_quals, $pi->{type} || ());
+  $pi->{qual} or $nqlines == 0 or grep { not $_ } @available_quals or
+    error_exit("no qualifiers specified",
+               "add a defaultqual line to $pfile",
+               "or specify the qualifier(s) on the command line",
+               $USAGE);
+}
+
+error_exit("qualifiers specified ($pi->{qual}) but empty qualifier table in $pfile")
+  unless (not $pi->{qual} or $nqlines);
+
+my $supported_btypes =
+  { map { my $q = $_; (grep { $q eq $_ } @btypes) ? ($q => 1) : () }
+    map { split ':' } @available_quals };
+
+my $no_btype_ok =
+  (! $nqlines or not scalar keys %{$supported_btypes} or
+   grep { my @qs = split ':';
+          not grep { my $q = $_;
+                     grep { $q eq $_ } @btypes } @qs } @available_quals);
+
+if ($pi->{type}) {
+  scalar keys %{$supported_btypes} or
+    error_exit("build type $pi->{type} specified, but $pi->{name} does not support build types");
+  grep { $pi->{type} eq $_ } keys %{$supported_btypes} or
+    error_exit("specified build type $pi->{type} not supported - $pi->{name} supports:",
+               join(" ", keys %{$supported_btypes}));
+} elsif (not $no_btype_ok) {
+  error_exit("build type required - $pi->{name} supports:",
+             join(" ", keys %{$supported_btypes}));
+}
+
+# Check for compiler.
+my $compiler = $pi->{noarch} ? undef :
+  compiler_for_quals($qhash->{compiler}, $pi->{qual});
+
+##print DIAG "$prog debug info: compiler $compiler\n";
+
+# now look up products in the hash
+my ($setup_cmds, $only_for_build_cmds);
+
+# Temporary variable connected as a filehandle.
+open(my $setup_cmds_fh, ">", \$setup_cmds) or
+  die "could not open memory stream to variable \$setup_cmds";
+
+# Second temporary variable connected as a filehandle.
+open(my $only_cmds_fh, ">", \$only_for_build_cmds) or
+  die "could not open memory stream to variable \$only_for_build_cmds";
+
+my $onlyForBuild="";
+my $deps = deps_for_quals($phash, $qhash, $pi->{qual});
+
+write_table_deps($pi->{name}, $deps) or
+ die "unable to write dependencies for $pi->{name}'s UPS table file";
+
+write_table_frag($pi->{name}, $pfile) or
+  die "unable to write UPS table fragment file for $pi->{name}";
+
+foreach my $dep (keys %$deps) {
+  my $dep_info = $deps->{$dep};
+  my $fh;
+  if ($dep_info->{only_for_build}) {
+    next if $dep eq "cetmodules"; # Dealt with elsewhere.
+    $fh = $only_cmds_fh;
+  } else {
+    $fh = $setup_cmds_fh;
+  }
+  print_dep_setup($pi, $dep, $dep_info, $fh);
+}
+close($setup_cmds_fh);
+close($only_cmds_fh);
+
+print $tset_fh <<'EOF';
+# Add '-B' to UPS_OVERRIDE for safety.
+tnotnull UPS_OVERRIDE || setenv UPS_OVERRIDE ''
+expr "x $UPS_OVERRIDE" : '.* -[^- 	]*B' >/dev/null || setenv UPS_OVERRIDE "$UPS_OVERRIDE -B"
+EOF
+
+# Build-time dependencies first.
+print $tset_fh <<'EOF', $only_for_build_cmds if $only_for_build_cmds;
+
+####################################
+# Build-time dependencies.
+####################################
+EOF
+
+# Now use-time dependencies.
+if ( $setup_cmds ) {
+  print $tset_fh <<'EOF', $setup_cmds if $setup_cmds;
+
+####################################
+# Use-time dependencies.
+####################################
+EOF
+}
+
+# Finish off with environment variables required for development.
+unless ($options->{nobuild}) {
+  cetpkg_info_file(%{$pi},
+                   source => $sourcedir,
+                   build => $builddir,
+                   cmake_args => ups_to_cmake($pfile, $pi));
+  print_dev_setup($pfile, $pi, $tset_fh);
+}
+
+close($tset_fh);
+print "$tmpfl\n";
+close(STDERR);
+exit 0;
