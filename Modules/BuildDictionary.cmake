@@ -3,6 +3,8 @@
 # USAGE:
 # build_dictionary( [<dictionary_name>]
 #                   [COMPILE_FLAGS <flags>]
+#                   [CLASSES_DEF_XML <filepath>]
+#                   [CLASSES_H <filepath>]
 #                   [DICT_NAME_VAR <var>]
 #                   [DICTIONARY_LIBRARIES <library list>]
 #                   [USE_PRODUCT_NAME]
@@ -25,6 +27,10 @@
 # * The default behavior is to generate a dictionary for data only. Use
 # the DICT_FUNCTIONS option to reactivate the generation of dictionary
 # entries for functions.
+#
+# * CLASSES_DEF_XML and CLASSES_H are optional and if not specified, we
+# use classes_def.xml and classes.h respectively from the current source
+# directory.
 #
 # * If DICT_NAME_VAR is specified, <var> will be set to contain the
 # dictionary name.
@@ -87,7 +93,7 @@ macro( _set_dictionary_name )
    STRING( REGEX REPLACE "/" "_" dictname "${CURRENT_SUBDIR}" )
 endmacro( _set_dictionary_name )
 
-function( _generate_dictionary dictname )
+function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   cmake_parse_arguments(GD "DICT_FUNCTIONS" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "" ${ARGN})
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
   #message(STATUS "calling generate_dictionary with ${ARGC} arguments: ${ARGV}")
@@ -151,16 +157,16 @@ ${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>")
     # generator flags. See
     # https://gitlab.kitware.com/cmake/cmake/issues/12877.
     ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
-    COMMAND ${ROOT_genreflex_CMD} ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
-    -s ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
+    COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
+    -s ${CLASSES_DEF_XML}
 		-I${CMAKE_SOURCE_DIR}
 		${GENREFLEX_INCLUDES}
     ${CXX_STD_FLAG}
     ${GENREFLEX_FLAGS}
     -o ${dictname}_dict.cpp
     ${CLEANUP_COMMAND}
-    IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/classes.h
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
+    IMPLICIT_DEPENDS CXX ${CLASSES_H}
+    DEPENDS ${CLASSES_DEF_XML}
     COMMENT "Generating dictionary files for target ${dictname}"
     )
   # set variable for install_source
@@ -176,7 +182,7 @@ function ( build_dictionary )
   set(build_dictionary_usage "USAGE: build_dictionary( [dictionary_name] [DICTIONARY_LIBRARIES <library list>] [COMPILE_FLAGS <flags>] [DICT_NAME_VAR <var>] [NO_INSTALL] )")
   cmake_parse_arguments( BD
     "NOINSTALL;NO_INSTALL;DICT_FUNCTIONS;USE_PRODUCT_NAME;NO_CHECK_CLASS_VERSION;NO_DEFAULT_LIBRARIES;UPDATE_IN_PLACE;RECURSIVE;NO_RECURSIVE"
-    "DICT_NAME_VAR"
+    "DICT_NAME_VAR;CLASSES_DEF_XML;CLASSES_H"
     "DICTIONARY_LIBRARIES;COMPILE_FLAGS;REQUIRED_DICTIONARIES" ${ARGN})
   #message(STATUS "BUILD_DICTIONARY: unparsed arguments: ${BD_UNPARSED_ARGUMENTS}")
   #message(STATUS "BUILD_DICTIONARY: install flag is  ${BD_NO_INSTALL} ")
@@ -190,7 +196,7 @@ function ( build_dictionary )
 	    message(FATAL_ERROR  "build_dictionary: too many arguments. ${ARGV} \n ${build_dictionary_usage}")
     endif()
     list(GET BD_UNPARSED_ARGUMENTS 0 dictname)
-    #message(STATUS "BUILD_DICTIONARY: have ${dlen} default arguments")
+    #message(STATUS "BUILD_DICTIONARY: have ${dlen}default arguments")
     #message(STATUS "BUILD_DICTIONARY: default arguments dictionary name: ${dictname}")
   else()
     #message(STATUS "BUILD_DICTIONARY: no default arguments, call _set_dictionary_name")
@@ -202,6 +208,12 @@ function ( build_dictionary )
   endif()
   if (BD_DICT_NAME_VAR)
     set(${BD_DICT_NAME_VAR} ${dictname} PARENT_SCOPE)
+  endif()
+  if (NOT BD_CLASSES_DEF_XML)
+    set(BD_CLASSES_DEF_XML ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml)
+  endif()
+  if (NOT BD_CLASSES_H)
+    set(BD_CLASSES_H ${CMAKE_CURRENT_SOURCE_DIR}/classes.h)
   endif()
   if(BD_DICTIONARY_LIBRARIES)
     # check library names and translate where necessary
@@ -229,9 +241,12 @@ function ( build_dictionary )
   if (BD_WANT_ROOTMAP)
     set(ROOTMAP_OUTPUT
       $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict.rootmap)
-    _generate_dictionary( ${dictname} ROOTMAP_OUTPUT ${ROOTMAP_OUTPUT} PCM_OUTPUT_VAR PCM_OUTPUT)
+    _generate_dictionary(${dictname} ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
+      ROOTMAP_OUTPUT ${ROOTMAP_OUTPUT}
+      PCM_OUTPUT_VAR PCM_OUTPUT)
   else()
-    _generate_dictionary( ${dictname} PCM_OUTPUT_VAR PCM_OUTPUT)
+    _generate_dictionary(${dictname} ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
+      PCM_OUTPUT_VAR PCM_OUTPUT)
   endif()
   if (BD_WANT_ROOTMAP AND NOT ROOT6_HAS_NOINCLUDEPATHS)
     # Header line and OS X lib name fixing only necessary for older ROOT6.
@@ -290,6 +305,9 @@ function ( build_dictionary )
     endif()
     if (BD_REQUIRED_DICTIONARIES)
       set(BD_CCV_ARGS ${BD_CCV_ARGS} REQUIRED_DICTIONARIES ${BD_REQUIRED_DICTIONARIES})
+    endif()
+    if (BD_CLASSES_DEF_XML)
+      set(BD_CCV_ARGS ${BD_CCV_ARGS} CLASSES_DEF_XML ${BD_CLASSES_DEF_XML})
     endif()
     if (BD_RECURSIVE)
       set(BD_CCV_ARGS ${BD_CCV_ARGS} RECURSIVE)
