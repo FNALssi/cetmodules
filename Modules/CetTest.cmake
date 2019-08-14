@@ -141,6 +141,11 @@
 #
 #     OUTPUT_FILTERS filterA DEFAULT filterB
 #
+# REMOVE_ON_FAILURE <file>+
+#
+#   Upon TEST_EXEC failure, these files and/or directories shall be
+#   removed if they exist.
+#
 # REQUIRED_FILES <file>+
 #
 #   These files are required to be present before the test will be
@@ -370,6 +375,7 @@ function(_cet_add_test_detail TNAME TEST_WORKDIR)
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
     COMMAND
     ${CET_CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
     --datafiles "${CET_DATAFILES}"
     --skip-return-code ${skip_return_code}
@@ -409,6 +415,7 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
     COMMAND ${CET_CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
     --datafiles "${CET_DATAFILES}"
     --skip-return-code ${skip_return_code}
@@ -476,7 +483,7 @@ function(cet_test CET_TARGET)
   cmake_parse_arguments(CET
     "HANDBUILT;PREBUILT;USE_CATCH_MAIN;NO_AUTO;USE_BOOST_UNIT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_OPTIONAL_GROUPS;SCOPED"
     "OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
-    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES;REF"
+    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REMOVE_ON_FAILURE;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES;REF"
     ${ARGN}
     )
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
