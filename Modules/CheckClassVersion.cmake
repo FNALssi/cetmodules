@@ -23,7 +23,7 @@ ENDIF()
 function(check_class_version)
   cmake_parse_arguments(CCV
     "UPDATE_IN_PLACE;RECURSIVE;NO_RECURSIVE"
-    ""
+    "CLASSES_DEF_XML"
     "LIBRARIES;REQUIRED_DICTIONARIES"
     ${ARGN}
     )
@@ -49,6 +49,9 @@ function(check_class_version)
   IF(NOT dictname)
     MESSAGE(FATAL_ERROR "CHECK_CLASS_VERSION must be called after BUILD_DICTIONARY.")
   ENDIF()
+  if (NOT CCV_CLASSES_DEF_XML)
+    set(CCV_CLASSES_DEF_XML ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml)
+  endif()
   IF(CCV_ENABLED)
     set(ASAN_OPTIONS "detect_leaks=0:new_delete_type_mismatch=0")
     if ("$ENV{ASAN_OPTIONS}")
@@ -68,7 +71,7 @@ function(check_class_version)
       COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV}
       checkClassVersion ${CCV_EXTRA_ARGS}
       -l $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict
-      -x ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml
+      -x ${CCV_CLASSES_DEF_XML}
       -t ${dictname}_dict_checked
       COMMENT "Checking class versions for ROOT dictionary ${dictname}"
       DEPENDS $<TARGET_PROPERTY:${dictname}_dict,LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${dictname}_dict${CMAKE_SHARED_LIBRARY_SUFFIX}
