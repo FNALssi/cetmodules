@@ -57,7 +57,7 @@ function(cet_project_var VAR_NAME)
       CACHE ${CPV_TYPE} ${CPV_DOCSTRING})
   endif()
   if (NOT (${CMAKE_PROJECT_NAME}_${VAR_NAME} OR ${CPV_EMPTY_OK}))
-    message(FATAL_ERROR "cet_project_var: attempt to set project variable ${CMAKE_PROJECT_NAME}_${VAR_NAME} to empty or invalid value \"${{CMAKE_PROJECT_NAME}_{${VAR_NAME}}\"")
+    message(FATAL_ERROR "cet_project_var: attempt to set project variable ${CMAKE_PROJECT_NAME}_${VAR_NAME} to empty or invalid value \"${${CMAKE_PROJECT_NAME}_${VAR_NAME}}\"")
   endif()
   if (CPV_TYPE STREQUAL "PATH" OR
       CPV_TYPE STREQUAL "FILEPATH")
