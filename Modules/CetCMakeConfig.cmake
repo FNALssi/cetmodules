@@ -42,6 +42,9 @@ function(_config_package_config_file)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake.in"
     "@PACKAGE_INIT@\n\n${PROJECT_VARIABLE_DEFINITIONS}\n\n"
     )
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake.in"
+    "# prevent repeated inclusion\ninclude_guard(GLOBAL)\n"
+    )
   # Middle.
   file(READ "${cetmodules_config_dir}/product-config.cmake.in.middle" FILE_IN)
   file(APPEND
