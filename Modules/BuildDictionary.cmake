@@ -45,17 +45,17 @@
 # only.
 #
 ########################################################################
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
 
-macro(_cet_setup_rootcint)
-  find_package(ROOT 6.00.00 QUIET REQUIRED COMPONENTS Core)
-  set(GENREFLEX_FLAGS --fail_on_warnings)
-  if (ROOT_VERSION VERSION_LESS 6.10.04)
-    list(APPEND GENREFLEX_FLAGS --noIncludePaths)
-  endif()
-endmacro()
+set(GENREFLEX_FLAGS --fail_on_warnings
+  $<$<VERSION_GREATER_EQUAL:${ROOT_VERSION},6.10.04>:--noIncludePaths>)
 
 function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
@@ -139,6 +139,7 @@ function(build_dictionary)
   if (BD_UNPARSED_ARGUMENTS)
 	  message(FATAL_ERROR  "build_dictionary: too many arguments. ${ARGV} \n ${build_dictionary_usage}")
   endif()
+  find_package(ROOT 6.00.00 QUIET REQUIRED COMPONENTS Core)
   if (NOT dictname)
     cet_package_path(current_subdir)
     string(REPLACE "/" "_" dictname "${current_subdir}")
@@ -168,7 +169,8 @@ function(build_dictionary)
     ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
     ROOTMAP_OUTPUT "${ROOTMAP_OUTPUT}"
     PCM_OUTPUT_VAR PCM_OUTPUT)
-  if (NOT "--noIncludePaths" IN_LIST GENREFLEX_FLAGS)
+  if (NOT ROOT_VERSION GREATER_EQUAL 6.10.04 AND
+      CMAKE_SYSTEM_NAME MATCHES "Darwin")
     # Header line and OS X lib name fixing only necessary for older ROOT6.
     add_custom_command(TARGET ${dictname}_dict POST_BUILD
       COMMAND perl -wapi.bak -e s&\\.dylib\\.so&.dylib&g ${ROOTMAP_OUTPUT}
@@ -213,3 +215,5 @@ function(build_dictionary)
     check_class_version(${BD_LIBRARIES} UPDATE_IN_PLACE ${BD_CCV_ARGS})
   endif()
 endfunction()
+
+CMAKE_POLICY(POP)
