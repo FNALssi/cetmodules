@@ -939,11 +939,18 @@ sub fq_path_for {
 
 sub print_dev_setup_var {
   my ($var, $val, $no_errclause) = @_;
+  my @vals;
+  if (ref $val eq 'ARRAY') {
+    @vals=@$val;
+  } else {
+    @vals=($val);
+  }
   my $result;
   open(my $efl, ">", \$result) or
     die "could not open memory stream to variable \$efl";
   print $efl "# $var\n",
-    "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe \\"', "$val", '\\"`"';
+    "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
+  print $efl join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
   if ($no_errclause) {
     print $efl "\n";
   } else {
@@ -982,6 +989,10 @@ EOF
         "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
           join("\n", @output), "\n";
   }
+  # ROOT_INCLUDE_PATH.
+  print $efl
+    print_dev_setup_var("ROOT_INCLUDE_PATH",
+                        [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]);
   # CMAKE_PREFIX_PATH.
   print $efl
     print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1);
