@@ -29,6 +29,10 @@ if (_cet_catch_pkg_prefix)
   set(CMAKE_FIND_PACKAGE_NAME ${_cet_catch_pkg_prefix})
 endif()
 
+if (catch_FOUND AND ${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
+  set(CATCH Catch2::Catch2)
+endif()
+
 unset(_cet_catch_component)
 unset(_cet_catch_pkg_prefix)
 unset(_cet_catch_var)

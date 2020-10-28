@@ -18,7 +18,7 @@ find_library(SQLite3_LIBRARY NAMES sqlite3_ups sqlite3 sqlite)
 find_package(SQLite3)
 
 # Set a variable for backward compatibility.
-if (SQLite3_FOUND)
+if (SQLite3_FOUND AND ${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
   if (TARGET SQLite::SQLite3)
     set(SQLITE3 SQLite::SQLite3 CACHE FILEPATH
       "Location of the SQLite3 library (old-style CET compatibility)")
