@@ -50,6 +50,7 @@ add_subdirectory(config)
 
 add_subdirectory(Modules)
 add_subdirectory(libexec)
+add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
