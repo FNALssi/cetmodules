@@ -20,7 +20,7 @@ use List::Util qw(min max); # Numeric min / max functions.
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK);
 
-use vars qw($btype_table $pathspec_info);
+use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
 
 use File::Basename qw(basename dirname);
 
@@ -68,9 +68,9 @@ $btype_table = { debug => 'Debug',
              error_exit
              get_parent_info
              get_product_list
-             get_qualifier_list
              get_qualifier_matrix
              get_table_fragment
+             info
              parse_version_string
              print_dev_setup
              sort_qual
@@ -79,9 +79,12 @@ $btype_table = { debug => 'Debug',
              to_string
              to_ups_version
              ups_to_cmake
+             var_stem_for_dirkey
+             verbose
              warning);
 
-@EXPORT_OK = qw($btype_table $pathspec_info print_dep_setup table_dep_setup);
+@EXPORT_OK = qw($btype_table $pathspec_info
+                get_pathspec print_dep_setup table_dep_setup);
 
 sub error_exit {
   my (@msg) = @_;
@@ -94,6 +97,20 @@ sub warning {
   my (@msg) = @_;
   chomp @msg;
   print STDERR map { "WARNING: $_\n"; } ("", (map { split("\n") } @msg), "");
+}
+
+sub info {
+  return if $parse_deps::QUIET;
+  my (@msg) = @_;
+  chomp @msg;
+  print map { "INFO: $_\n"; } map { split("\n") } @msg;
+}
+
+sub verbose {
+  return unless $parse_deps::VERBOSE;
+  my (@msg) = @_;
+  chomp @msg;
+  print map { "VERBOSE: $_\n"; } map { split("\n") } @msg;
 }
 
 sub get_parent_info {
@@ -243,7 +260,8 @@ sub get_pathspec {
     close(PD);
     $pathspec_cache->{$dirkey} =
       { key => (scalar @$pathkeys > 1) ? $pathkeys : $pathkeys->[0],
-        (defined $dirnames) ? (path => $dirnames->[0]) : () }
+        (defined $dirnames) ?
+        (path => (scalar @$dirnames > 1) ? $dirnames : $dirnames->[0]) : () }
         if $seen_dirkey;
   }
   return $pathspec_cache->{$dirkey};
@@ -383,6 +401,7 @@ sub get_qualifier_list {
   my $get_quals;
   my $qlen = 0;
   my @qlist = ();
+  my @notes;
   open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
@@ -395,6 +414,7 @@ sub get_qualifier_list {
     } elsif ($keyword eq "qualifier") {
       $get_quals = 1;
       for (; $qlen < $#words and $words[$qlen+1] ne "notes"; ++$qlen) { }
+      $notes[$irow] = $words[$qlen+1] || '';
       $qlist[$irow++] = [@words[0..$qlen]];
     } elsif ($get_quals) {
       unwanted_keyword($keyword) and
@@ -413,17 +433,19 @@ sub get_qualifier_list {
   }
   close($fh);
   #print $efl "get_qualifier_list: found $irow qualifier rows\n";
-  return ($qlen, @qlist);
+  return ($qlen, \@qlist, \@notes);
 }
 
 sub get_qualifier_matrix {
   my ($pfile, $efl) = @_;
-  my ($qlen, @qlist) = get_qualifier_list($pfile, $efl);
-  my ($qhash, $qqhash); # (by-column, by-row)
-  my @prods = @{shift @qlist}; # Drop header row from @qlist.
-  $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @qlist } ); } 1..$qlen };
-  $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @qlist };
-  return ($qlen, $qhash, $qqhash);
+  my ($qlen, $qlist, $notes) = get_qualifier_list($pfile, $efl);
+  my ($qhash, $qqhash, $nhash); # (by-column, by-row, notes)
+  my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
+  $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
+  $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @$qlist };
+  my @headers = (@prods, shift @$notes || ());
+  $nhash = { map { ( $_->[0] => (shift @$notes or '')); } @$qlist };
+  return ($qlen, $qhash, $qqhash, $nhash, \@headers);
 }
 
 sub match_qual {
@@ -629,9 +651,12 @@ sub offset_annotated_items {
 sub parse_version_extra {
   my $vInfo = shift;
   # Swallow optional _ or - separator to 4th field.
-  $vInfo->{micro}=~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o;
-  $vInfo->{micro} = "${1}";
-  my ($extra, $etext, $enum) = (${2} || "", ${3} || "", ${2} ? ${4} || -1 : "");
+  if (($vInfo->{micro} || '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
+    $vInfo->{micro} = "$1";
+  } else {
+    $vInfo->{micro} = '';
+  }
+  my ($extra, $etext, $enum) = (${2} || "", ${3} || "", ${2} ? ${4} || -1 : -1);
   if (not $etext) {
     $vInfo->{extra_type} = 0;
   } elsif ($etext eq "patch" or ($enum >= 0 and $etext eq "p")) {
@@ -666,18 +691,26 @@ sub parse_version_string {
   return $result;
 }
 
-sub to_dot_version {
+sub _format_version {
   my $v = shift;
-  $v = parse_version_string $v unless ref $v;
-  return sprintf("%s.%s.%s%s", $v->{major}, $v->{minor}, $v->{patch},
-                 $v->{extra});
+  $v = parse_version_string($v) unless ref $v;
+  my $separator = shift || '.';
+  my $preamble = shift || '';
+  return sprintf("${preamble}%s%s",
+                 join($separator,
+                      defined $v->{major} ? $v->{major} : (),
+                      defined $v->{minor} ? $v->{minor} : (),
+                      defined $v->{micro} ? $v->{micro} : ()),
+                 $v->{extra} || '');
 }
 
+sub to_dot_version {
+  return _format_version(shift);
+}
+
+
 sub to_ups_version {
-  my $v = shift;
-  $v = parse_version_string $v unless ref $v;
-  return sprintf("v%s_%s_%s%s", $v->{major} || 0, $v->{minor} || 0,
-                 $v->{micro} || 0, $v->{extra} || "");
+  return _format_version(shift, '_', 'v');
 }
 
 sub to_product_name {
@@ -687,7 +720,6 @@ sub to_product_name {
 }
 
 sub by_version {
-  # Requires dot versions.
   my $vInfoA = parse_version_string($a || shift);
   my $vInfoB = parse_version_string($b || shift);
   return
@@ -730,10 +762,7 @@ sub cmake_project_var_for_pathspec {
   my ($pfile, $pi, $dirkey) = @_;
   my $pathspec = get_pathspec($pfile, $pi, $dirkey);
   return () unless ($pathspec and $pathspec->{key});
-  my $var_stem = $pathspec->{var_stem} ||
-    uc($pathspec_info->{$dirkey}->{project_var} ||
-       (($dirkey =~ m&^(.*?)_*dir$&) ? "${1}_dir" :
-        "${dirkey}_dir"));
+  my $var_stem = $pathspec->{var_stem} || var_stem_for_dirkey($dirkey);
   $pathspec->{var_stem} = $var_stem;
   return ("-D$pi->{cmake_project}_${var_stem}_INIT=")
     unless exists $pathspec->{path};
@@ -1026,3 +1055,12 @@ sub table_dep_setup {
           $dep_info->{version},
             join(":+", split(':', $dep_info->{qualspec} || ''));
 }
+
+sub var_stem_for_dirkey {
+  my $dirkey = shift;
+  return uc($pathspec_info->{$dirkey}->{project_var} ||
+            (($dirkey =~ m&^(.*?)_*dir$&) ? "${1}_dir" :
+             "${dirkey}_dir"));
+}
+
+1;

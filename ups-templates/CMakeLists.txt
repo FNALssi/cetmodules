@@ -3,6 +3,8 @@
 # package's ups/ directory.
 ########################################################################
 
+cet_timestamp(GEN_TIME)
+
 # product_deps template.
 configure_file(product_deps.template.in product_deps.template @ONLY)
 
