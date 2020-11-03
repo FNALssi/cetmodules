@@ -289,6 +289,17 @@ function(cet_find_simple_package NAME)
   endif()
 endfunction()
 
+function(cet_internalize_pv)
+  foreach (var IN LISTS ARGV)
+    if (NOT ${var} IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+      message(SEND_ERROR "attempt to internalize a non-project variable (${var})")
+    endif()
+    get_filename_component(tmp "${${PROJECT_VAR}_${var}}"
+      REALPATH BASE_DIR "${PROJECT_SOURCE_DIR}")
+    set(${PROJECT_NAME}_${var} "${${PROJECT_NAME}_${var}}" PARENT_SCOPE)
+  endforeach()
+endfunction()
+
 if (CMAKE_SCRIPT_MODE_FILE) # Smoke test.
   cet_passthrough(KEYWORD RHYME MARY_LAMB "Mary had a little lamb\\; Its fleece was white as snow")
   list(LENGTH MARY_LAMB len)

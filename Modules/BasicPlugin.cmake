@@ -64,6 +64,13 @@
 #    exclusive with BASENAME_ONLY.
 #
 ########################################################################
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetPackagePath)
 include(CetProcessLiblist)
 
@@ -115,3 +122,5 @@ function(basic_plugin NAME TYPE)
   endif()
   cet_make_library(LIBRARY_NAME ${plugin_name} ${cml_args})
 endfunction()
+
+cmake_policy(POP)

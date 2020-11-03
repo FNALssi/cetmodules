@@ -66,6 +66,12 @@
 #
 ########################################################################
 
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 #internal macro
 macro(_get_dotver myversion )
    # replace all underscores with dots
@@ -196,3 +202,5 @@ macro(_check_if_version_greater product version minimum)
   check_prod_version(${product} ${version} ${minimum}
     PRODUCT_OLDER_VAR product_version_less)
 endmacro(_check_if_version_greater product version minimum)
+
+cmake_policy(POP)

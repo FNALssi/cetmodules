@@ -1,5 +1,8 @@
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 function(generate_from_fragments OUTFILE)
   # Assemble the OUTFILE from its components, configuring each as many
   # times as necessary to resolve all @VAR@ references, including those
@@ -110,3 +113,5 @@ function(_read_and_expand FRAG FRAG_NAME RESULT_VAR)
     set(${RESULT_VAR} "${result}\n\n" PARENT_SCOPE)
   endif()
 endfunction()
+
+cmake_policy(POP)

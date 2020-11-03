@@ -29,6 +29,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 function(install_pkgmeta)
   if (NOT "PKG_META_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
     project_variable(PKG_META_DIR .
@@ -86,3 +89,5 @@ function(install_license)
   message(WARNING "install_license() is deprecated in favor of install_pkgmeta()")
   install_pkgmeta(${ARGN})
 endfunction()
+
+cmake_policy(POP)

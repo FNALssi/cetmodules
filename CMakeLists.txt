@@ -47,7 +47,6 @@ cet_cmake_env()
 ####################################
 # Build components.
 add_subdirectory(config)
-
 add_subdirectory(Modules)
 add_subdirectory(libexec)
 add_subdirectory(tools)
@@ -57,10 +56,7 @@ add_subdirectory(ups-templates)
 ####################################
 
 # We need these to be absolute for internal use.
-foreach (var IN ITEMS CONFIG_DIR LIBEXEC_DIR)
-  get_filename_component (cetmodules_${var} "${cetmodules_${var}}"
-    REALPATH BASE_DIR "${PROJECT_SOURCE_DIR}")
-endforeach()
+cet_internalize_pv(CONFIG_DIR LIBEXEC_DIR)
 
 ####################################
 # Generate CMake (and UPS, if appropriate) configuration files and

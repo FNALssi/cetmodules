@@ -1,3 +1,10 @@
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetFindPackage)
 include(Compatibility)
 include(ParseVersionString)
@@ -182,3 +189,5 @@ function(_transfer_package_vars FROM TO)
     endif()
   endforeach()
 endfunction()
+
+cmake_policy(POP)

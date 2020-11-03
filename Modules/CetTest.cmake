@@ -264,7 +264,13 @@
 #   cet_test() or add_test() -- require at least one.
 #
 ########################################################################
-# Need argument parser.
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 # Copy function.
 include(CetCopy)
 # Need cet_script for PREBUILT scripts
@@ -755,3 +761,5 @@ function(_cet_add_test_properties TEST_NAME TEST_EXEC)
   set_property(TEST ${TEST_NAME} APPEND PROPERTY KEYWORDS CET
     $<TARGET_PROPERTY:${TEST_EXEC}>)
 endfunction()
+
+cmake_policy(POP)

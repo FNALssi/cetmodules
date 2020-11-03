@@ -22,6 +22,9 @@
 ########################################################################
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetFindPackage)
 include(Compatibility)
 include(ParseVersionString)
@@ -62,3 +65,5 @@ macro(find_ups_boost)
     set(_FUP_INCLUDED_${_FUP_PROJECT} TRUE)
   endif()
 endmacro()
+
+cmake_policy(POP)

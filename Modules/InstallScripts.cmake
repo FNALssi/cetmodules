@@ -19,6 +19,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetExclude)
 include(ProjectVariable)
 
@@ -35,3 +38,5 @@ function(install_scripts)
   _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
     PROGRAMS _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS ${GLOBS})
 endfunction()
+
+cmake_policy(POP)

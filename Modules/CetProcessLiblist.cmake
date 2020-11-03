@@ -1,3 +1,10 @@
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 function(cet_process_liblist RESULT_VAR)
   set(RESULT)
   foreach (arg IN LISTS ARGN)
@@ -18,3 +25,5 @@ function(cet_process_liblist RESULT_VAR)
   endforeach()
   set(${RESULT_VAR} PUBLIC "${RESULT}" PARENT_SCOPE)
 endfunction()
+
+cmake_policy(POP)

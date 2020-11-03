@@ -11,6 +11,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetInstall)
 include(ProjectVariable)
 
@@ -23,3 +26,5 @@ function(install_fw)
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   _cet_install(fw ${PROJECT_NAME}_FW_DIR ${ARGN} _LIST_ONLY)
 endfunction()
+
+cmake_policy(POP)

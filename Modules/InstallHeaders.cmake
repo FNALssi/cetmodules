@@ -30,6 +30,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetInstall)
 include(CetPackagePath)
 
@@ -49,3 +52,5 @@ function(install_headers)
     _EXTRA_BASENAME_EXCLUDES classes.h Linkdef.h
     _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc")
 endfunction()
+
+cmake_policy(POP)

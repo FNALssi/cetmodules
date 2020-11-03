@@ -1,3 +1,5 @@
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 set(CCV_DEFAULT_RECURSIVE FALSE
   CACHE BOOL "Default setting for recursive checks by checkClassVersion (may be time-consuming)."
@@ -87,3 +89,5 @@ function(check_class_version)
     endif()
   ENDIF()
 endfunction()
+
+cmake_policy(POP)

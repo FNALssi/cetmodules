@@ -7,6 +7,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(ParseVersionString)
 
 function(warn_deprecated OLD)
@@ -195,3 +198,5 @@ function(_parse_fup_arguments _FUP_PRODUCT)
     set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" PARENT_SCOPE)
   endif()
 endfunction()
+
+cmake_policy(POP)

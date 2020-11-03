@@ -38,6 +38,12 @@
 #   cetmodules/config/package-config.cmake.in.top).
 ########################################################################
 
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CMakePackageConfigHelpers)
 include(CetPackagePath)
 include(GenerateFromFragments)
@@ -488,3 +494,5 @@ function(_targets_for RESULTS_VAR)
     unset(${RESULTS_VAR} PARENT_SCOPE)
   endif()
 endfunction()
+
+cmake_policy(POP)

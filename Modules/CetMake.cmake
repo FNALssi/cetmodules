@@ -78,6 +78,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetCopy)
 include(CetPackagePath)
 include(CetProcessLiblist)
@@ -359,3 +362,5 @@ function(_cet_maybe_make_library)
       SOURCE ${CM_LIB_SOURCE})
   endif()
 endfunction()
+
+cmake_policy(POP)

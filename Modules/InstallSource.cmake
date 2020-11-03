@@ -25,6 +25,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetInstall)
 include(CetPackagePath)
 include(ProjectVariable)
@@ -49,3 +52,5 @@ function(install_source)
     "?*.sh" "?*.py" "?*.pl" "?*.rb" "?*.xml" "?*.dox"
     "INSTALL*" "*README*" "LICENSE" "LICENSE.*" "COPYING" "COPYING.*")
 endfunction()
+
+cmake_policy(POP)

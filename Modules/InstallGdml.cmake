@@ -11,11 +11,15 @@
 #
 # Recognized filename extensions: .gdml
 ########################################################################
-include (CetInstall)
-include (ProjectVariable)
 
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
+include (CetInstall)
+include (ProjectVariable)
 
 function(install_gdml)
   if (NOT "GDML_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
@@ -27,3 +31,5 @@ function(install_gdml)
   _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}"
     _SQUASH_SUBDIRS _GLOBS "?*.gdml")
 endfunction()
+
+cmake_policy(POP)

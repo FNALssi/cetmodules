@@ -22,6 +22,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetInstall)
 include(CetPackagePath)
 include(ProjectVariable)
@@ -84,3 +87,4 @@ function(_cet_perllib_config_setup)
   endforeach()
 endfunction( _cet_perllib_config_setup )
 
+cmake_policy(POP)

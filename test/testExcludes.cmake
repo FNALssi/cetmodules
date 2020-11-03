@@ -1,3 +1,6 @@
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetExclude)
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB testfiles LIST_DIRECTORIES FALSE "*")
@@ -8,3 +11,5 @@ _cet_exclude_from_list(test_glob_exclude BASENAME_EXCLUDES "[L-Z]*" "*.txt" LIST
 message(STATUS "test_glob_exclude=${test_glob_exclude}")
 #_cet_exclude_from_list(test_glob_exclude BASENAME_EXCLUDES "x/y.txt" LIST ${testfiles})
 _cet_exclude_from_list(test_full_exclude EXCLUDES "../cetmodules/CMakeLists.txt" "nonsuch" LIST ${testfiles})
+
+cmake_policy(POP)

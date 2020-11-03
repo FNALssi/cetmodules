@@ -1,3 +1,10 @@
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 set(_cet_make_library_usage "")
 
 function(cet_make_library)
@@ -184,3 +191,5 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     install(${install_args})
   endif()
 endfunction()
+
+cmake_policy(POP)

@@ -139,6 +139,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 function(install_python)
   set(setup_arg_indent "        ")
   cmake_parse_arguments(PARSE_ARGV 0 IP
@@ -313,3 +316,5 @@ function (_to_python_list OUTPUT_VAR)
     set(${OUTPUT_VAR} "${tmp}" PARENT_SCOPE)
   endif()
 endfunction()
+
+cmake_policy(POP)

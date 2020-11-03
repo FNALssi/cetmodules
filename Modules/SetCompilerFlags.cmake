@@ -116,6 +116,13 @@
 #   * If no languages are specified, we default to C CXX.
 #
 ########################################################################
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetPackagePath)
 include(CetRegexEscape)
 
@@ -390,3 +397,5 @@ function(cet_query_system)
   endforeach()
   message(STATUS "cet_query_system: end system report")
 endfunction()
+
+cmake_policy(POP)

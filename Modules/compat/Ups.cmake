@@ -59,6 +59,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetRegexEscape)
 include(Compatibility)
 include(GenerateFromFragments)
@@ -527,3 +530,5 @@ macro(_ups_init)
   # line by buildtool.
   _ups_use_maybe_unused()
 endmacro()
+
+cmake_policy(POP)

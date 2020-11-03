@@ -29,6 +29,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include (CetCopy)
 include (CetExclude)
 include (ProjectVariable)
@@ -213,3 +216,4 @@ function(_cet_install_list CATEGORY DEST_VAR)
     DESTINATION "${DEST_DIR}")
 endfunction()
 
+cmake_policy(POP)

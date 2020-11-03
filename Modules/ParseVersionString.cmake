@@ -28,9 +28,10 @@
 #
 #######################################################################
 
-# Require 3.15 for list(POP_FRONT...)
-
 include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function (parse_version_string VERSION)
   cmake_parse_arguments(PARSE_ARGV 1 PVS "" "SEP" "")
@@ -80,3 +81,5 @@ function(to_dot_version VERSION VAR)
   parse_version_string("${VERSION}" SEP . tmp)
   set(${VAR} "${tmp}" PARENT_SCOPE)
 endfunction()
+
+cmake_policy(POP)

@@ -41,6 +41,13 @@
 # program changes if one lists the script in the DEPENDS list of the
 # custom command.
 ########################################################################
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetPackagePath)
 
 function (cet_copy)
@@ -89,3 +96,5 @@ function (cet_copy)
     add_custom_target(${target} ALL DEPENDS "${dest_path}")
   endforeach()
 endfunction()
+
+cmake_policy(POP)

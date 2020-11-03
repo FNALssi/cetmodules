@@ -3,6 +3,12 @@
 # find_ups_geant4(  [minimum] )
 #  minimum - optional minimum version 
 
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(FindUpsPackage)
 
 set(_fug_liblist G4FR G4GMocren G4OpenGL G4RayTracer G4Tree G4VRML
@@ -31,3 +37,5 @@ macro(find_ups_geant4)
     endforeach()
   endif()
 endmacro()
+
+cmake_policy(POP)

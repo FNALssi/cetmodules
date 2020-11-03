@@ -35,6 +35,11 @@
 # a customization for each program option.
 ##########################################################################
 
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_make_completions exec)
   set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
@@ -54,3 +59,5 @@ function(cet_make_completions exec)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${PROJECT_NAME}_BIN_DIR})
 endfunction(cet_make_completions)
+
+cmake_policy(POP)

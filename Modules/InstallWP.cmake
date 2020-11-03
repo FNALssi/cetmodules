@@ -11,6 +11,9 @@
 # Avoid unwanted repeat inclusion.
 include_guard(DIRECTORY)
 
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 include(CetInstall)
 include(ProjectVariable)
 
@@ -24,3 +27,5 @@ function(install_wp)
   _cet_install(wp ${PROJECT_NAME}_WP_DIR ${ARGN}
     _LIST_ONLY)
 endfunction()
+
+cmake_policy(POP)

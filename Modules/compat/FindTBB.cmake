@@ -34,9 +34,6 @@ The following cache variables may also be set:
   UPS-compatible library variable.
 #]================================================================]
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
-
 set(_cet_tbb_var_names
   FIND_COMPONENTS FOUND VERSION INCLUDE_DIR INCLUDE_DIRS LIBRARIES LIBRARY)
 
@@ -136,5 +133,3 @@ unset(_cet_tbb_pkg_prefix)
 unset(_cet_tbb_req_vars)
 unset(_cet_tbb_var_name)
 unset(_cet_tbb_var_names)
-
-cmake_policy(POP)

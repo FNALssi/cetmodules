@@ -20,6 +20,12 @@
 # does not exist in the filesystem, VAR will be set to NOTFOUND.
 ########################################################################
 
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 # Internal function to be called from cet_package_path ONLY.
 function(_cpp_package_path VAR PROJECT_BASE)
   cmake_parse_arguments(PARSE_ARGV 2 _cpp "" "PATH_BASE" "")
@@ -71,3 +77,5 @@ function(cet_package_path RESULT_VAR)
     set(${CPP_FOUND_VAR} ${found} PARENT_SCOPE)
   endif()
 endfunction()
+
+cmake_policy(POP)
