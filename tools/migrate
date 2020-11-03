@@ -48,13 +48,11 @@ if (not $src) {
 }
 
 my $sfd = "$src/ups/setup_for_development";
-my $sd = "$src/ups/setup_deps";
 my $pinfo = "$src/ups/product_deps";
 
 -d "$src/ups" or error_exit("no $src/ups dir: nothing to do");
 -w "$src/ups" or error_exit("$src/ups dir not writable: nothing we can do");
 -r "$sfd" or warning("$sfd missing or not readable: will refresh");
--r "$sd" or undef $sd; # Not a problem.
 -r $pinfo or error_exit("no $pinfo to migrate");
 
 info("attempting to read $pinfo (warnings OK)...");
@@ -294,7 +292,7 @@ sub upgrade_ups_dir {
   info("removing obsolete files from $upsdir...");
   system(qw(rm -fv --), @to_remove) == 0 or
     error_exist("failure removing obsolete files from $upsdir");
-  my @src_files = (qw(setup_for_development setup_deps));
+  my @src_files = (qw(setup_for_development));
   my $gentime = gentime();
   foreach my $file (@src_files) {
     my $nobuild = ($file eq "setup_deps") ? 'nobuild' : '';
