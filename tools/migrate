@@ -342,7 +342,8 @@ sub write_top_CML {
 
 sub process_cml {
   my ($fh, $buffer) = @_;
-  CORE::state (@shunt, $cmr_done, $project_done, $pass);
+  CORE::state (@shunt, $cmr_done, $project_done, $pass,
+               $seen_cet_cmake_config);
   while (scalar @$buffer) {
     my $line = shift @$buffer;
     if ($line =~ m&^(\s*#.*)?$&) {
@@ -493,6 +494,7 @@ EOF
     }
     $line =~ m&^\s*(?i:find_(package|ups_product))\s*\(\s*(cet(?:buildtools|modules))& and
       next; # We provide one in the right place.
+    $line =~ m&^\s*cet_cmake_config\s*\(\s*& and $seen_cet_cmake_config = 1;
     $line =~ s&^(\s*)report_compiler_flags\s*\(\s*\)&${1}report_compiler_flags(REPORT_THRESHOLD VERBOSE)&;
     $line =~ m&^\s*(?i:add_subdirectory)\s*\(\s*ups\b& and
       next; # No longer needed.
@@ -513,7 +515,8 @@ EOF
   if (scalar @shunt) {
     @$buffer = @shunt;
   } else {
-    $fh->print("cet_cmake_config(COMPATIBILITY SameMajorVersion)\n");
+    $fh->print("cet_cmake_config(COMPATIBILITY SameMajorVersion)\n")
+      unless $seen_cet_cmake_config;
   }
   return ++$pass;
 }
