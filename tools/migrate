@@ -563,9 +563,11 @@ sub fix_cmake_one {
     $line =~ s&(\$\{version\})&\${PROJECT_VERSION}&g and
       verbose("$1 -> \"\${PROJECT_VERSION}\"");
     while ($line =~ m&\G.*?\b(?P<clause>find_package\b\s*\(\s*(?P<pkg>[^\s)"]+))&g) {
+      my $safe_pos = pos($line);
       $+{pkg} ne 'cetmodules' and
-        s&\b(\Q$+{clause}\E)\G&cet_$1& and
-          verbose("$1 -> \"cet_$1\"");
+        $line =~ s&\b(\Q$+{clause}\E)&cet_$1& and
+          pos($line) = $safe_pos + length('cet_') and
+            verbose("$1... -> cet_$1...");
     }
     flag_recommended($line, ": use target_link_directories() with target semantics")
       if $line =~ m&\binclude_directories\b&;
