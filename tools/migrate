@@ -474,7 +474,7 @@ EOF
               sprintf("\%s\%s", join(" ", $1, "VERSION", $piversion), $2 // '');
           }
         }
-        $fh->print("find_package(cetmodules $myversion)\n");
+        $fh->print("find_package(cetmodules $myversion REQUIRED)\n");
         $fh->print($proj_info->{pre},
                    join("  ", map({ my $l = join(" ", @$_);
                          my $r = shift @{$proj_info->{comments}};
