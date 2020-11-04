@@ -26,21 +26,6 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-# Internal function to be called from cet_package_path ONLY.
-function(_cpp_package_path VAR PROJECT_BASE)
-  cmake_parse_arguments(PARSE_ARGV 2 _cpp "" "PATH_BASE" "")
-  get_filename_component(PUT "${CPP_PATH}" ABSOLUTE BASE_DIR ${_cpp_PATH_BASE})
-  file(RELATIVE_PATH RESULT "${PROJECT_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
-  if (NOT RESULT) # Exact match.
-    set(RESULT .)
-  elseif (RESULT MATCHES [[^\.\./]]) # Not under expected base.
-    set(RESULT)
-  elseif (CPP_MUST_EXIST AND NOT EXISTS "${PUT}")
-    set(RESULT NOTFOUND)
-  endif()
-  set(${VAR} "${RESULT}" PARENT_SCOPE)
-endfunction()
-
 function(cet_package_path RESULT_VAR)
   cmake_parse_arguments(PARSE_ARGV 1 CPP "BINARY;HUMAN_READABLE;MUST_EXIST;SOURCE"
     "BASE_SUBDIR;FOUND_VAR;PATH" "")
@@ -77,5 +62,21 @@ function(cet_package_path RESULT_VAR)
     set(${CPP_FOUND_VAR} ${found} PARENT_SCOPE)
   endif()
 endfunction()
+
+# Internal function to be called from cet_package_path ONLY.
+function(_cpp_package_path VAR PROJECT_BASE)
+  cmake_parse_arguments(PARSE_ARGV 2 _cpp "" "PATH_BASE" "")
+  get_filename_component(PUT "${CPP_PATH}" ABSOLUTE BASE_DIR ${_cpp_PATH_BASE})
+  file(RELATIVE_PATH RESULT "${PROJECT_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
+  if (NOT RESULT) # Exact match.
+    set(RESULT .)
+  elseif (RESULT MATCHES [[^\.\./]]) # Not under expected base.
+    set(RESULT)
+  elseif (CPP_MUST_EXIST AND NOT EXISTS "${PUT}")
+    set(RESULT NOTFOUND)
+  endif()
+  set(${VAR} "${RESULT}" PARENT_SCOPE)
+endfunction()
+
 
 cmake_policy(POP)
