@@ -135,6 +135,19 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       "LOCAL_INCLUDE_DIRS" IN_LIST CML_KEYWORDS_MISSING_VALUES))
     set(CML_LOCAL_INCLUDE_DIRS
       "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}")
+  else()
+    set(local_include_dirs)
+    foreach (dir IN LISTS CML_LOCAL_INCLUDE_DIRS)
+      if (IS_ABSOLUTE "${dir}")
+        list(APPEND local_include_dirs "${dir}")
+      else()
+        foreach (base IN LISTS PROJECT_BINARY_DIR PROJECT_SOURCE_DIR)
+          get_filename_component(tmp "${dir}" ABSOLUTE BASE_DIR "${base}")
+          list(APPEND local_include_dirs "${tmp}")
+        endforeach()
+      endif()
+    endforeach()
+    set(CML_LOCAL_INCLUDE_DIRS "${local_include_dirs}")
   endif()
   cet_process_liblist(liblist ${CML_LIBRARIES})
   # Library links.
@@ -152,10 +165,13 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     # INSTALL_PREFIX. Note the double quotes around the whole generator
     # expression to ensure the correct interpretation of the list inside
     # it.
-    if (NOT CML_INTERFACE)
-      target_include_directories(${target}
-        PUBLIC "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>")
+    if (CML_INTERFACE)
+      set(scope INTERFACE)
+    else()
+      set(scope PUBLIC)
     endif()
+    target_include_directories(${target}
+      ${scope} "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>")
     target_include_directories(${target}
       INTERFACE "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}>")
     target_link_libraries(${target} ${liblist})
