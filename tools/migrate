@@ -495,7 +495,7 @@ EOF
     $line =~ m&^\s*(?i:find_(package|ups_product))\s*\(\s*(cet(?:buildtools|modules))& and
       next; # We provide one in the right place.
     $line =~ m&^\s*cet_cmake_config\s*\(\s*& and $seen_cet_cmake_config = 1;
-    $line =~ s&^(\s*)report_compiler_flags\s*\(\s*\)&${1}report_compiler_flags(REPORT_THRESHOLD VERBOSE)&;
+    $line =~ s&^(\s*)cet_report_compiler_flags\s*\(\s*\)&${1}cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)&;
     $line =~ m&^\s*(?i:add_subdirectory)\s*\(\s*ups\b& and
       next; # No longer needed.
     if ($line =~ m&^\s*(?i:subdirs)\s*\($&) {
