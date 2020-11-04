@@ -550,7 +550,7 @@ sub fix_cmake_one {
       $out->print($line);
       next;
     }
-    while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&) {
+    while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&g) {
       my $dirkey_ish = $1;
       my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
       my ($var_stem) =
