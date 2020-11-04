@@ -11,16 +11,14 @@ function(cet_make_library)
   # Two-phase parsing to avoid confusion with e.g. INTERFACE in
   # LIBRARIES list.
   cmake_parse_arguments(PARSE_ARGV 0 CML
-    "BASENAME_ONLY;INSTALL_LIBS_ONLY;MODULE;NO_INSTALL;NO_SOURCE;NOP;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
+    "BASENAME_ONLY;MODULE;NO_INSTALL;NO_SOURCE;NOP;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
     "EXPORT;LIBRARY_NAME;SOVERSION"
     "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
   cmake_parse_arguments(CML
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   ##################
   # Argument verification.
-  if (CML_INSTALL_LIBS_ONLY AND CML_NO_INSTALL)
-    message(FATAL_ERROR "CML_NO_INSTALL and CML_INSTALL_LIBS_ONLY are mutually exclusive")
-  elseif (CML_NO_INSTALL AND CML_EXPORT)
+  if (CML_NO_INSTALL AND CML_EXPORT)
     message(FATAL_ERROR "CML_NO_INSTALL and CML_EXPORT are mutually exclusive")
   endif()
   if (NOT (CML_NO_SOURCE OR CML_SOURCE OR
@@ -172,12 +170,6 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
 	    RUNTIME DESTINATION "${${PROJECT_NAME}_BIN_DIR}"
 	    LIBRARY DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}"
 	    ARCHIVE DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}")
-    if (NOT CML_INSTALL_ONLY_LIBS)
-      # Install associated public and private headers.
-      list(APPEND install_args 
-        PUBLIC_HEADER DESTINATION "${${PROJECT_NAME}_INCLUDE_DIR}/${PROJECT_NAME}")
-      # FIXME Find out what this means and how to do it right. Also PRIVATE_HEADER
-    endif()
   endif()
   if (TARGET ${CML_LIBRARY_NAME})
     # Deal with aliases to primary target.
