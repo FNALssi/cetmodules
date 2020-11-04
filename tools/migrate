@@ -346,7 +346,7 @@ sub process_cml {
                $seen_cet_cmake_config);
   while (scalar @$buffer) {
     my $line = shift @$buffer;
-    if ($line =~ m&^(\s*#.*)?$&) {
+    if ($line =~ m&^\s*#&) {
       $fh->print($line);
       next;
     }
