@@ -10,17 +10,6 @@
 ####################################
 # OPTIONS
 #
-# ARCH_INDEPENDENT|NOARCH|NO_FLAVOR
-#
-#   The ${PROJECT_NAME}Config.cmake and
-#   ${PROJECT_NAME}ConfigVersion.cmake files are installed under
-#   ${${PROJECT_NAME}_LIBRARY_DIR} unless NOARCH is specified, in which
-#   case the files are installed under
-#   ${${PROJECT_NAME}_DATA_ROOT_DIR}. NO_FLAVOR is accepted as a
-#   deprecated alias for NOARCH. ARCH_INDEPENDENT is accepted as an
-#   alias for consistency with write_basic_package_version_file(), which
-#   receives the ARCH_INDEPENDENT flag if this property is set.
-#
 # COMPATIBILITY
 #
 #   Passed through to write_basic_package_version_file(). See
@@ -36,6 +25,19 @@
 #   If recursive expansion is required, use @AT@ to delay expansion for
 #   as many levels as necessary (e.g. see
 #   cetmodules/config/package-config.cmake.in.top).
+#
+####################################
+# NOTES
+#
+#   The ${PROJECT_NAME}Config.cmake and
+#   ${PROJECT_NAME}ConfigVersion.cmake files are installed under
+#   ${${PROJECT_NAME}_LIBRARY_DIR} unless the project-specific variable
+#   ${PROJECT_NAME}_NOARCH is TRUE, in which case the files are
+#   installed under ${${PROJECT_NAME}_DATA_ROOT_DIR}. If
+#   ${PROJECT_NAME}_NOARCH is explicitly set FALSE, then we fail if
+#   ${PROJECT_NAME}_LIBRARY_DIR is (explicitly) unset. If
+#   ${PROJECT_NAME}_NOARCH is merely unset, we generate a warning only.
+#
 ########################################################################
 
 # Avoid unnecessary repeat inclusion.
@@ -53,20 +55,35 @@ function(cet_cmake_config)
   if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     message(FATAL_ERROR "cet_cmake_config(): must be invoked once per project from that project's top-level directory.")
   endif()
+  project_variable(NOARCH TYPE BOOL
+    DOCSTRING "If TRUE, ${PROJECT_NAME} is (at least nominally) architecture-independent.")
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
-    "ARCH_INDEPENDENT;NO_FLAVOR;NOARCH"
+    ""
     "COMPATIBILITY;WORKDIR"
     "CONFIG_PRE_INIT;CONFIG_POST_INIT;CONFIG_POST_VARS;CONFIG_POST_DEPS;CONFIG_POST_TARGETS;PATH_VARS")
   if (CCC_NO_FLAVOR)
     message(WARNING "cet_cmake_config: NO_FLAVOR is deprecated: use ARCH_INDEPENDENT (a.k.a. NOARCH) instead")
   endif()
-  if (CCC_NOARCH OR CCC_NO_FLAVOR OR CCC_ARCH_INDEPENDENT)
-    set(distdir "${${PROJECT_NAME}_DATA_ROOT_DIR}")
+  set(distdir "${${PROJECT_NAME}_DATA_ROOT_DIR}")
+  if (${PROJECT_NAME}_NOARCH)
     set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
-  else()
+  elseif (${PROJECT_NAME}_LIBRARY_DIR)
     set(distdir "${${PROJECT_NAME}_LIBRARY_DIR}")
+  elseif (NOT ${PROJECT_NAME}_NOARCH STREQUAL "")
+    message(SEND_ERROR "refusing to install architecture-dependent \
+CMake Config files in ${distdir}: set ${PROJECT_NAME}_NOARCH to TRUE or \
+set ${PROJECT_NAME}_LIBRARY_DIR.\
+")
+  else()
+    message(WARNING "${PROJECT_NAME}_LIBRARY_DIR is explicitly cleared \
+but ${PROJECT_NAME}_NOARCH is undefined: installing possibly \
+architecture-dependent CMake Config files under ${distdir}.
+
+To suppress this warning, set ${PROJECT_NAME}_NOARCH to TRUE or \
+set ${PROJECT_NAME}_LIBRARY_DIR.
+")
   endif()
   if (NOT CCC_COMPATIBILITY)
     set(CCC_COMPATIBILITY AnyNewerVersion)

@@ -879,6 +879,8 @@ sub ups_to_cmake {
   push @cmake_vars, sprintf('-D%s_EXEC_PREFIX_INIT:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{fq_dir}) if $pi->{fq_dir};
+  push @cmake_vars, sprintf('-D%s_NOARCH:BOOL=ON',
+                            $pi->{cmake_project}) if $pi->{noarch};
   push @cmake_vars,
     sprintf("-D$pi->{cmake_project}_DEFINE_PYTHONPATH_INIT:BOOL=ON")
       if $pi->{define_pythonpath};

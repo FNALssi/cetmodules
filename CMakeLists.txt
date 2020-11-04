@@ -61,6 +61,6 @@ cet_internalize_pv(CONFIG_DIR LIBEXEC_DIR)
 ####################################
 # Generate CMake (and UPS, if appropriate) configuration files and
 # packaging.
-cet_cmake_config(ARCH_INDEPENDENT COMPATIBILITY SameMajorVersion
+cet_cmake_config(COMPATIBILITY SameMajorVersion
   CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in
   CONFIG_POST_VARS config/${PROJECT_NAME}-config-module-path.cmake.in)
