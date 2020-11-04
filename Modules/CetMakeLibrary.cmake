@@ -5,6 +5,8 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
+include(CetInstalledPath)
+
 set(_cet_make_library_usage "")
 
 function(cet_make_library)
@@ -93,14 +95,13 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       foreach (source IN LISTS CML_SOURCE)
         if (NOT source MATCHES "(^(INTERFACE|PRIVATE|PUBLIC)|\\$<)")
           get_filename_component(source_path "${source}" ABSOLUTE)
-          cet_package_path(installed_path PATH "${source}")
-          if (installed_path)
-            list(APPEND lib_sources "$<BUILD_INTERFACE:${source_path}>"
-              "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}/${installed_path}>")
-            continue()
-          endif()
+          cet_installed_path(installed_path RELATIVE_VAR INCLUDE_DIR
+            "${source}")
+          list(APPEND lib_sources "$<BUILD_INTERFACE:${source_path}>"
+            "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}/${installed_path}>")
+          continue() # Add this rather than the original.
         endif()
-        # Assume the caller knows what they're doing.
+        # Add verbatim.
         list(APPEND lib_sources "${source}")
       endforeach()
     else()
