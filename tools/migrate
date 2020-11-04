@@ -492,6 +492,10 @@ EOF
         error_exit("unable to find a suitable project() call to update");
       }
     }
+    if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
+      $fh->print($line);
+      next;
+    }
     $line =~ m&^\s*(?i:find_(package|ups_product))\s*\(\s*(cet(?:buildtools|modules))& and
       next; # We provide one in the right place.
     $line =~ m&^\s*cet_cmake_config\s*\(\s*& and $seen_cet_cmake_config = 1;
@@ -542,6 +546,10 @@ sub fix_cmake_one {
   open(my $in, "<", "$filepath") or
     error_exit("unable to open $filepath for read");
   while (my $line = <$in>) {
+    if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
+      $out->print($line);
+      next;
+    }
     while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&) {
       my $dirkey_ish = $1;
       my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
