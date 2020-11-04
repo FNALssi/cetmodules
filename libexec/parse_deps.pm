@@ -459,11 +459,10 @@ sub match_qual {
 
 sub sort_qual {
   my ($cqual, $btype);
-  # If we have multiple arguments and the first want is ARRAY, then that
-  # is an output array reference for the result.
+  # If the first argument is a reference to ARRAY, then it is an output
+  # array reference for the result.
   my $sorted =
-    ( $_[0] and scalar @_ > 1 and (ref $_[0] || '') eq 'ARRAY') ?
-      shift : [];
+    ( $_[0] and (ref $_[0] || '') eq 'ARRAY') ? shift : [];
   my @extquals=();
   foreach my $q (map { s&^\+&&o; $_; } split(':', join(':', @_))) {
     if ($q =~ m&^[ce]\d+$&o) {
