@@ -229,7 +229,7 @@
 #
 # * Under older versions of the product table format ("<table_format=1>"
 #   or unspecified), -nq- had the same meaning as `-' above. When
-#   updating a product_deps file these entries should be reviews when
+#   updating a product_deps file these entries should be reviewed when
 #   <table_format=2> is selected.
 #
 # * "<format>" is a valid alias for "<table_format>".
@@ -240,7 +240,7 @@
 # * It is an error for more than one non-(<qual-trigger> == "-default-")
 #   entry to match for a given product.
 #
-product		version		qual	<table_format=2>
+product		version		qual	flags		<table_format=2>
 #> art		v2_08_02
 #> someprod	vx_yy_zz
 #> anotherprod	va_bb_cc	
