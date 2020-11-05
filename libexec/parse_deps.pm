@@ -15,7 +15,6 @@ use warnings;
 use warnings::register;
 
 use File::Spec; # For catfile;
-use List::Util qw(min max); # Numeric min / max functions.
 
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK);
@@ -80,15 +79,9 @@ $btype_table = { debug => 'Debug',
              get_qualifier_matrix
              get_table_fragment
              info
-             parse_version_string
              print_dev_setup
              sort_qual
-             to_dot_version
-             to_product_name
-             to_string
-             to_ups_version
              ups_to_cmake
-             var_stem_for_dirkey
              verbose
              warning);
 
@@ -531,7 +524,7 @@ sub cetpkg_info_file {
     }
   }
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
-  my $cetpkgfile = sprintf("%s/cetpkg_info.sh", $info{build} || ".");
+  my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
   open(my $fh, "> $cetpkgfile") or
     error_exit("couldn't open $cetpkgfile for write");
   print $fh <<'EOD';
@@ -794,7 +787,7 @@ sub cmake_project_var_for_pathspec {
                $pi->{fq_dir} and
                not $path =~ m&^/&) {
         # Prepend EXEC_PREFIX here to avoid confusion with defaults in CMake.
-        $path = "$pi->{fq_dir}/$path";
+        $path = File::Spec->catfile($pi->{fq_dir}, $path);
       } elsif ($path =~ m&^/&o) {
         warning("redundant pathkey $pskey ignored for absolute path $path",
                 "specified for directory key $dirkey: use '-' as a placeholder.");
@@ -813,7 +806,7 @@ sub cmake_project_var_for_pathspec {
 
 sub get_cmake_project_info {
   my ($pfile) = @_;
-  my $cmakelists = sprintf("%s/CMakeLists.txt", dirname(dirname($pfile)));
+  my $cmakelists = File::Spec->catfile(dirname(dirname($pfile)), "CMakeLists.txt");
   open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from \${CETPKG_SOURCE}");
   my $filedata = join('',<CML>);
   my ($prod, $ver) =

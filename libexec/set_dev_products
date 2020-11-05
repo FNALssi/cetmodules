@@ -13,7 +13,7 @@
 use strict;
 use warnings FATAL =>
   qw(io regexp severe syntax uninitialized void);
-use Cwd qw(chdir :DEFAULT);
+
 use File::Basename;
 use FileHandle;
 use Getopt::Long;
