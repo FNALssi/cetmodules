@@ -343,7 +343,7 @@ sub write_top_CML {
 sub process_cml {
   my ($fh, $buffer) = @_;
   CORE::state (@shunt, $cmr_done, $project_done, $pass,
-               $seen_cet_cmake_config);
+               $seen_cet_cmake_config, $updated_find_package);
   while (scalar @$buffer) {
     my $line = shift @$buffer;
     if ($line =~ m&^\s*#&) {
@@ -474,7 +474,8 @@ EOF
               sprintf("\%s\%s", join(" ", $1, "VERSION", $piversion), $2 // '');
           }
         }
-        $fh->print("find_package(cetmodules $myversion REQUIRED)\n");
+        $fh->print("find_package(cetmodules $myversion REQUIRED)\n") unless
+          $updated_find_package;
         $fh->print($proj_info->{pre},
                    join("  ", map({ my $l = join(" ", @$_);
                          my $r = shift @{$proj_info->{comments}};
@@ -496,8 +497,15 @@ EOF
       $fh->print($line);
       next;
     }
-    $line =~ m&^\s*(?i:find_(package|ups_product))\s*\(\s*(cet(?:buildtools|modules))& and
-      next; # We provide one in the right place.
+    if ($line =~ m&^\s*(?i:find_(?P<find>package|ups_product))\s*\(\s*(?P<pkg>cet(?:buildtools|modules))\s+(?P<minv>(?P<minvMajor>\d+)[^\s)]+)?&) {
+      if ($+{find} eq 'package' and $+{pkg} eq "cetmodules" and
+          ($+{minvMajor} || 0) == (($myversion =~ m&^(\d+)&) ? ${1} : -1)) {
+        $line =~ s&^(\s*find_package\s*\(\s*cetmodules\s+)[^\s)]++(.*)$&${1}${myversion}${2}&;
+        $updated_find_package = 1;
+      } else {
+        next; # We will provide one in the right place.
+      }
+    }
     $line =~ m&^\s*cet_cmake_config\s*\(\s*& and $seen_cet_cmake_config = 1;
     $line =~ s&^(\s*)cet_report_compiler_flags\s*\(\s*\)&${1}cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)&;
     $line =~ m&^\s*(?i:add_subdirectory)\s*\(\s*ups\b& and
