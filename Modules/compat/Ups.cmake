@@ -101,31 +101,44 @@ function(process_ups_files)
   set(table_file
     "${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_NAME}.table")
 
-  ##################
   # Generate the UPS table file.
   _build_ups_table_file()
 
-  cet_timestamp(UPS_DECLARE_DATE)
-
-  ##################
-  # Generate the UPS version file.
-  foreach (v IN ITEMS UPS_PRODUCT_NAME UPS_PRODUCT_VERSION UPS_PRODUCT_SUBDIR
-      UPS_QUALIFIER_STRING UPS_PRODUCT_UPS_DIR)
-    set(${v} ${${PROJECT_NAME}_${v}})
-  endforeach()
-  set(UPS_PRODUCT_FLAVOR ${${PROJECT_NAME}_UPS_PRODUCT_FLAVOR})
-  configure_file("${cetmodules_CONFIG_DIR}/ups/product-version-file.in"
-    "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
-    @ONLY)
-
-  ##################
-  # Install generated files.
+  # Install it.
   install(FILES
     "${PROJECT_BINARY_DIR}/${table_file}"
     DESTINATION ${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR})
+
+  ##################
+  # Generate the UPS version and chain files.
+
+  # Required temporary variables for substitution.
+  foreach (v IN ITEMS UPS_PRODUCT_FLAVOR UPS_PRODUCT_NAME UPS_PRODUCT_VERSION UPS_PRODUCT_SUBDIR
+      UPS_QUALIFIER_STRING UPS_PRODUCT_UPS_DIR)
+    set(${v} ${${PROJECT_NAME}_${v}})
+  endforeach()
+  cet_timestamp(UPS_DECLARE_DATE)
+  # Generate the version file.
+  configure_file("${cetmodules_CONFIG_DIR}/ups/product-version-file.in"
+    "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+    @ONLY)
+  # Install it.
   install(FILES
     "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
     DESTINATION ../${${PROJECT_NAME}_UPS_PRODUCT_VERSION}.version)
+  # Generate and install any requested chain files.
+  foreach (UPS_PRODUCT_CHAIN IN LISTS ${PROJECT_NAME}_UPS_PRODUCT_CHAINS)
+    # Generate with chain name prepended to avoid conflicts or the need
+    # for a deeper hierarchy in the build area.
+    configure_file("${cetmodules_CONFIG_DIR}/ups/product-chain-file.in"
+      "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${UPS_PRODUCT_CHAIN}.${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+      @ONLY)
+    # Install.
+    install(FILES
+      "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${UPS_PRODUCT_CHAIN}.${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+      DESTINATION "../${UPS_PRODUCT_CHAIN}.chain"
+      RENAME "${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}")
+  endforeach()
 endfunction()
 
 ##################
@@ -516,7 +529,13 @@ macro(_ups_config_cpack)
   ##################
   # Archive internal structure per UPS conventions.
   set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
-  set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR}" "${PROJECT_NAME}" "ALL" "/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}")
+  # This enables us to install .version and .chain directories without
+  # having to deal with an unwieldy install prefix for everything else.
+  set(CPACK_INSTALL_CMAKE_PROJECTS
+    "${PROJECT_BINARY_DIR}"
+    "${PROJECT_NAME}"
+    "ALL"
+    "/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}")
 endmacro()
 
 macro(_ups_init)

@@ -57,6 +57,15 @@ my @known_keywords =
    );
 push @known_keywords, sort keys %$pathspec_info;
 
+my $chain_option_table =
+  {
+   -c => 'current',
+   -d => 'development',
+   -n => 'new',
+   -o => 'old',
+   -t => 'test'
+  };
+
 $btype_table = { debug => 'Debug',
                  prof => 'RelWithDebInfo',
                  opt => 'Release' };
@@ -145,7 +154,12 @@ sub get_parent_info {
     }
   }
   close($fh);
-  $result->{chains} = [ sort keys %$chains ] if scalar keys %$chains;
+  # Make the chain list, translating -c... ups declare options to their
+  # corresponding chain names.
+  $result->{chains} = [ sort map { exists $chain_option_table->{$_} ?
+                                     $chain_option_table->{$_} : $_; }
+                        keys %$chains ]
+    if scalar keys %$chains;
 
   ##################
   # Derivative and external information.
@@ -862,6 +876,11 @@ sub ups_to_cmake {
                             $pi->{cmake_project},
                             join(';', (sort keys %{$pi->{deps}})))
     if $pi->{deps};
+
+  push @cmake_vars, sprintf('-D%s_UPS_PRODUCT_CHAINS=%s',
+                            $pi->{cmake_project},
+                            join(';', (sort @{$pi->{chains}})))
+    if $pi->{chains};
 
   ##################
   # General CMake configuration.
