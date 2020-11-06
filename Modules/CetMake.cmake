@@ -219,9 +219,9 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
       get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
       list(POP_FRONT catch2_include_dir catch2_include_subdir)
       if (EXISTS "${catch2_include_subdir}/catch2")
-        string(APPEND catch2_include_subdir "/catch2")
+        set(catch2_include_subdir "catch2")
       else()
-        string(APPEND catch2_include_subdir "/catch")
+        set(catch2_include_subdir "catch")
       endif()
       cet_make_library(LIBRARY_NAME Catch2_main STATIC EXCLUDE_FROM_ALL NO_INSTALL
         SOURCE ${cetmodules_CATCH2_MAIN}
