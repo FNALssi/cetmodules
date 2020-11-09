@@ -577,7 +577,7 @@ function(cet_test CET_TARGET)
     endif()
     cet_passthrough(FLAG IN_PLACE CET_USE_BOOST_UNIT)
     cet_passthrough(FLAG IN_PLACE CET_USE_CATCH2_MAIN)
-    cet_make_exec(${CET_TARGET} ${exec_install_args}
+    cet_make_exec(NAME ${CET_TARGET} ${exec_install_args}
       ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
       SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES})
   endif()
