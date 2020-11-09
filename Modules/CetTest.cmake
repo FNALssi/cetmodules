@@ -416,6 +416,7 @@ endfunction()
 function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   _cet_test_pargs(tmp_args ${ARGN})
   separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
+  cet_localize_pv(cetmodules LIBEXEC_DIR)
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
     COMMAND ${CET_EXEC_TEST} --wd ${TEST_WORKDIR}

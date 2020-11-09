@@ -441,6 +441,7 @@ function(_install_package_config_files)
 	  COMPATIBILITY "${CCC_COMPATIBILITY}"
     ${ARCH_INDEPENDENT})
 
+  cet_localize_pv(cetmodules CONFIG_DIR)
   set(frag_list "${cetmodules_CONFIG_DIR}/package-config.cmake.preamble.in"
     ${CCC_CONFIG_PRE_INIT}
     "${cetmodules_CONFIG_DIR}/package-config.cmake.init.in"

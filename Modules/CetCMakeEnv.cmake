@@ -139,6 +139,12 @@ macro(cet_cmake_env)
   ##################
   include(ProjectVariable)
 
+  # Enable our config file to detect whether we're being built and
+  # imported in the same run. Note that this variable is *not* exported
+  # to external dependents.
+  project_variable(IN_TREE TRUE TYPE BOOL DOCSTRING
+    "Signifies whether ${PROJECT_NAME} is currently being built")
+
   # Defined first, as PATH_FRAGMENT and FILEPATH_FRAGMENT project
   # variables take this into account.
   project_variable(EXEC_PREFIX TYPE STRING)

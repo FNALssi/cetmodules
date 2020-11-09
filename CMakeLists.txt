@@ -58,9 +58,6 @@ add_subdirectory(src)
 add_subdirectory(ups-templates)
 ####################################
 
-# We need these to be absolute for internal use.
-cet_internalize_pv(CONFIG_DIR LIBEXEC_DIR)
-
 ####################################
 # Generate CMake (and UPS, if appropriate) configuration files and
 # packaging.

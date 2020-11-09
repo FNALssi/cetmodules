@@ -55,15 +55,16 @@ function(install_perllib)
   _cet_perllib_config_setup(${_INSTALLED_FILES})
 endfunction( install_perllib )
 
-macro(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
+function(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
   cet_find_package(cetlib PRIVATE REQUIRED)
+  cet_localize_pv(cetlib PLUGINVERSIONINFO_PM_IN)
   set(tmp
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/PluginVersionInfo.pm)
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/PluginVersionInfo.pm")
   configure_file("${cetlib_PLUGINVERSIONINFO_PM_IN}"
     "${tmp}"
     @ONLY)
   set(${PLUGINVERSIONINFO_VAR} "${tmp}" PARENT_SCOPE)
-endmacro( _cet_perl_plugin_version )
+endfunction()
 
 function(_cet_perllib_config_setup)
   cmake_parse_arguments(PARSE_ARGV 0 _CPCS "PLUGINS" "" "")

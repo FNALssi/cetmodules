@@ -119,6 +119,8 @@ function(process_ups_files)
   endforeach()
   cet_timestamp(UPS_DECLARE_DATE)
   # Generate the version file.
+
+  cet_localize_pv(cetmodules CONFIG_DIR)
   configure_file("${cetmodules_CONFIG_DIR}/ups/product-version-file.in"
     "${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
     @ONLY)
@@ -280,6 +282,7 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
     endif()
 
     # Generate the UPS table file from its fragments.
+    cet_localize_pv(cetmodules CONFIG_DIR)
     generate_from_fragments("${PROJECT_BINARY_DIR}/${table_file}"
       NO_FRAGMENT_DELIMITERS
       FRAGMENTS
