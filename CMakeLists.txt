@@ -33,7 +33,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 # Project information.
 project(cetmodules VERSION 2.02.01 LANGUAGES NONE)
 
-# Find our own modules.
+# Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
@@ -43,6 +43,9 @@ set(BUILD_TESTING OFF)
 # Basic build environment.
 include(CetCMakeEnv)
 cet_cmake_env()
+
+# Make sure downstream packages can find our modules.
+cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
 
 ####################################
 # Build components.
@@ -62,5 +65,4 @@ cet_internalize_pv(CONFIG_DIR LIBEXEC_DIR)
 # Generate CMake (and UPS, if appropriate) configuration files and
 # packaging.
 cet_cmake_config(COMPATIBILITY SameMajorVersion
-  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in
-  CONFIG_POST_VARS config/${PROJECT_NAME}-config-module-path.cmake.in)
+  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in)

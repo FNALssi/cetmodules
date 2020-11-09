@@ -300,6 +300,27 @@ function(cet_internalize_pv)
   endforeach()
 endfunction()
 
+function(cet_cmake_module_directories)
+  cmake_parse_arguments(PARSE_ARGV 0 CMD "NO_LOCAL;NO_CONFIG" "" "")
+  if (NOT CMD_NO_LOCAL)
+    list(TRANSFORM CMD_UNPARSED_ARGUMENTS PREPEND "${PROJECT_SOURCE_DIR}/"
+      REGEX "^[^/]+" OUTPUT_VARIABLE tmp)
+    list(PREPEND CMAKE_MODULE_PATH "${tmp}")
+    list(PREPEND CMAKE_MODULE_PATH "${CMD_UNPARSED_ARGUMENTS}")
+    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
+  endif()
+  if (NOT CMD_NO_CONFIG)
+    if (NOT DEFINED CACHE{CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PROJECT_NAME}})
+      set(CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PROJECT_NAME} ${CMD_UNPARSED_ARGUMENTS}
+        CACHE INTERNAL "CMAKE_MODULE_PATH additions for ${PROJECT_NAME}Config.cmake")
+    else()
+      set_property(CACHE
+        CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PROJECT_NAME}
+        PREPEND PROPERTY VALUE ${CMD_UNPARSED_ARGUMENTS})
+    endif()
+  endif()
+endfunction()
+
 if (CMAKE_SCRIPT_MODE_FILE) # Smoke test.
   cet_passthrough(KEYWORD RHYME MARY_LAMB "Mary had a little lamb\\; Its fleece was white as snow")
   list(LENGTH MARY_LAMB len)

@@ -126,10 +126,11 @@ endfunction()
 # Generate config file body for substitution into
 # cetmodules/config/package-config.cmake.in.top.
 function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
+  set(_GCP_${PATH_VARS_VAR})
   ####################################
   # Stage: vars
   ####################################
-  _generate_config_vars(${FRAG_LIST} ${PATH_VARS_VAR})
+  _generate_config_vars(${FRAG_LIST} _GCP_${PATH_VARS_VAR})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_VARS})
   ####################################
   # Stage: deps
@@ -146,10 +147,10 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   ####################################
   _generate_target_vars(${FRAG_LIST})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_TARGET_VARS})
-
   # Propogate variables required upstream.
+  list(APPEND ${PATH_VARS_VAR} "${_GCP_${PATH_VARS_VAR}}")
   set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
-  foreach (pvar IN LISTS path_vars)
+  foreach (pvar IN LISTS _GCP_${PATH_VARS_VAR})
     set(${pvar} "${${pvar}}" PARENT_SCOPE)
   endforeach()
   set(${FRAG_LIST} "${${FRAG_LIST}}" PARENT_SCOPE)
@@ -157,10 +158,11 @@ endfunction()
 
 function(_generate_config_vars FRAG_LIST PATH_VARS_VAR)
   set(var_defs)
+  set(_GCV_${PATH_VARS_VAR})
   # Package variable definitions.
-  _generate_pvar_defs(var_defs path_vars)
+  _generate_pvar_defs(var_defs _GCV_${PATH_VARS_VAR})
   # Include directories.
-  if ("INCLUDE_DIR" IN_LIST path_vars)
+  if ("INCLUDE_DIR" IN_LIST _GCV_${PATH_VARS_VAR})
     _add_sep(var_defs)
     string(APPEND var_defs "\
 ####################################
@@ -173,7 +175,7 @@ endif()\
 ")
   endif()
   # Library directories.
-  if ("LIBRARY_DIR" IN_LIST path_vars)
+  if ("LIBRARY_DIR" IN_LIST _GCV_${PATH_VARS_VAR})
     _add_sep(var_defs)
     string(APPEND var_defs "\
 ####################################
@@ -185,9 +187,11 @@ if (IS_DIRECTORY \"@PACKAGE_LIBRARY_DIR@\")
 endif()\
 ")
   endif()
+  _prepend_cmake_module_path(var_defs _GCV_${PATH_VARS_VAR})
   # Propogate variables required upstream.
-  set(${PATH_VARS_VAR} "${path_vars}" PARENT_SCOPE)
-  foreach(pvar IN LISTS path_vars)
+  list(APPEND ${PATH_VARS_VAR} "${_GCV_${PATH_VARS_VAR}}")
+  set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
+  foreach(pvar IN LISTS _GCV_${PATH_VARS_VAR})
     set(${pvar} "${${pvar}}" PARENT_SCOPE)
   endforeach()
   # Finish.
@@ -198,7 +202,7 @@ endfunction()
 # Generate package variable definitions
 function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
   set(defs_list)
-  set(path_vars)
+  set(_GPD_${PATH_VARS_VAR})
   foreach (VAR_NAME IN LISTS CETMODULES_VARS_PROJECT_${PROJECT_NAME})
     get_property(VAL_DEFINED CACHE ${PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE SET)
     get_property(VAR_VAL CACHE ${PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE)
@@ -229,7 +233,7 @@ function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
     # Logic for handling paths and path fragments.
     get_project_variable_property(${VAR_NAME} PROPERTY IS_PATH)
     if (IS_PATH)
-      list(APPEND path_vars ${VAR_NAME})
+      list(APPEND _GPD_${PATH_VARS_VAR} ${VAR_NAME})
       if (VAL_DEFINED)
         set(${VAR_NAME} "${VAR_VAL}" PARENT_SCOPE)
       else()
@@ -264,7 +268,8 @@ function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
     set(${RESULTS_VAR} "${${RESULTS_VAR}}${tmp}" PARENT_SCOPE)
   endif()
   # Send back list of path variables.
-  set(${PATH_VARS_VAR} ${path_vars} PARENT_SCOPE)
+  list(APPEND ${PATH_VARS_VAR} "${_GPD_${PATH_VARS_VAR}}")
+  set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
 endfunction()
 
 function(_generate_target_imports FRAG_LIST)
@@ -394,6 +399,33 @@ endif()\
   endif()
   _write_stage(deps ${FRAG_LIST} "${transitive_deps}")
   set(${FRAG_LIST} "${${FRAG_LIST}}" PARENT_SCOPE)
+endfunction()
+
+function(_prepend_cmake_module_path RESULTS_VAR PATH_VARS_VAR)
+  if (CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PROJECT_NAME})
+    set(_PCMP_${PATH_VARS_VAR})
+    set(_PCMP_COUNT 0)
+    foreach (dir IN LISTS
+        CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PROJECT_NAME})
+      set(_PCMP_PACKAGE_VAR PCMP_PACKAGE_VAR_${_PCMP_COUNT})
+      math(EXPR _PCMP_COUNT "${_PCMP_COUNT} + 1")
+      set(${_PCMP_PACKAGE_VAR} "${dir}" PARENT_SCOPE)
+      list(APPEND _PCMP_${PATH_VARS_VAR} "${_PCMP_PACKAGE_VAR}")
+    endforeach()
+    list(TRANSFORM _PCMP_${PATH_VARS_VAR} REPLACE "^(.+)$" "\"@PACKAGE_\\1@\""
+      OUTPUT_VARIABLE _PCMP_PACKAGE_VARS)
+    _add_sep(${RESULTS_VAR})
+    list(JOIN _PCMP_PACKAGE_VARS " " tmp)
+    string(APPEND ${RESULTS_VAR} "
+####################################
+# Add to CMAKE_MODULE_PATH.
+####################################
+list(PREPEND CMAKE_MODULE_PATH ${tmp})\
+")
+    set(${RESULTS_VAR} "${${RESULTS_VAR}}" PARENT_SCOPE)
+    list(APPEND ${PATH_VARS_VAR} "${_PCMP_${PATH_VARS_VAR}}")
+    set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
+  endif()
 endfunction()
 
 # Generate the package config file from its component parts.
