@@ -27,20 +27,21 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_package_path RESULT_VAR)
-  cmake_parse_arguments(PARSE_ARGV 1 CPP "BINARY;HUMAN_READABLE;MUST_EXIST;SOURCE"
+  cmake_parse_arguments(PARSE_ARGV 1 CPP "BINARY;HUMAN_READABLE;MUST_EXIST;SOURCE;TOP_PROJECT"
     "BASE_SUBDIR;FOUND_VAR;PATH" "")
+  cet_passthrough(FLAG IN_PLACE KEYWORD CMAKE_ CPP_TOP_PROJECT)
   if (NOT (CPP_SOURCE OR CPP_BINARY))
     set(CPP_SOURCE TRUE)
     set(CPP_BINARY TRUE)
   endif()
   if (CPP_SOURCE)
-    _cpp_package_path(RESULT "${PROJECT_SOURCE_DIR}")
+    _cpp_package_path(RESULT "${${CPP_TOP_PROJECT}PROJECT_SOURCE_DIR}")
     if (RESULT)
       set(found SOURCE)
     endif()
   endif()
   if (CPP_BINARY AND NOT RESULT)
-    _cpp_package_path(RESULT "${PROJECT_BINARY_DIR}"
+    _cpp_package_path(RESULT "${${CPP_TOP_PROJECT}PROJECT_BINARY_DIR}"
       PATH_BASE "${CMAKE_CURRENT_BINARY_DIR}")
     if (RESULT)
       set(found BINARY)
@@ -77,6 +78,5 @@ function(_cpp_package_path VAR PROJECT_BASE)
   endif()
   set(${VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
-
 
 cmake_policy(POP)
