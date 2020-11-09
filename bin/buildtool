@@ -525,20 +525,14 @@ calculate_ops_dir() {
     ops_dir="$subdir"
     ops_dir_reason=" per --subdir"
   else
-    if [ -z "$user_subdir" ] || \
-      { [ "$user_subdir" != "$user_cwd" ] &&
-        [ "${user_subdir:0:1}" = "/" ]; }; then
-      # User CWD is under CETPKG_BUILD.
+    if [ -z "$user_subdir" ] || [ "$user_subdir" = "$user_cwd" ]; then
+      ops_dir=""
+    else # User CWD is under CETPKG_BUILD.
       ops_dir="$user_subdir"
-    else
-      # User CWD is outside the build tree.
-      ops_dir=
     fi
     ops_dir_reason=" per user CWD"
   fi
   if [ -n "$ops_dir" ]; then
-    # Trim.
-    while [ "${ops_dir:0:1}" = "/" ]; do ops_dir="${ops_dir:1}"; done
     # Get absolute.
     real_ops_dir=$(real_dir "$CETPKG_BUILD/$ops_dir")
     if (( $? )); then
@@ -739,7 +733,7 @@ ${tred:+| tred} > \"$gfile\""
       # Trap and tee *only* stderr from ctest. Yes, this is fiddly.
       exec 5>&1
       { { set +x; } 2>/dev/null # Don't need to see this.
-        cmd -d "execute tests" ${real_ops_dir:+-w "$real_ops_dir"} \
+        cmd -d "execute tests" -w "$CETPKG_BUILD"${ops_dir:+"/$ops_dir"} \
           ctest "${tsargs[@]}" 2>&1 >&5 5>&-
         echo $? > "$TMP/status.dat"
       } | tee "$TMP/ctest.err" 5>&-;
@@ -767,18 +761,30 @@ ${tred:+| tred} > \"$gfile\""
     fi
     warning "test label specifications $test_specs ignored since tests are not enabled"
   fi
-  if (( do_install )) || (( do_package )); then
-    stage="install / package"
+  (( do_install )) && stage_ip install
+  (( do_package )) && stage_ip package
+}
+
+stage_ip() {
+  stage="$1"
+  local cmd_args=(
+    cmake --build "$CETPKG_BUILD"
+    ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"}
+    ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"}
+  )
+  local cmd_postargs=(
+    "--"
+    ${extra_generator_args[@]:+"${extra_generator_args[@]}"}
+    ${generator_user_args[@]:+"${generator_user_args[@]}"}
+  )
+  if { "${cmd_args[@]}" -t help "${cmd_postargs[@]}" | \
+    grep -Ee '^\.\.\.[[:space:]]+'"$stage"; } >/dev/null 2>&1; then
     announce_stage
-    cmd -d "install / package" -w "$CETPKG_BUILD" \
-      cmake --build "$CETPKG_BUILD" \
-      ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"} \
-      ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"} \
-      ${do_install:+-t install} ${do_package:+-t package} \
-      "--" \
-      ${extra_generator_args[@]:+"${extra_generator_args[@]}"} \
-      ${generator_user_args[@]:+"${generator_user_args[@]}"}
+    cmd -d "$stage"  \
+      "${cmd_args[@]}" -t "$stage" "${cmd_postargs[@]}"
     check_status
+  else
+    announce_stage " SKIPPED - target $stage not configured"
   fi
 }
 
@@ -890,7 +896,7 @@ while true; do
         log="${1:-${log:-$log_default}}";;
     -p|--package) (( no_build = 1 )); (( do_package = 1 ));;
     -q|--quiet) (( quiet = 1 ));;
-    -s|--subdir) subdir="$(real_dir "$2")"; shift;;
+    -s|--subdir) subdir="$2"; shift;;
     --short-circuit|--sc) (( short_circuit = 1 ));;
     -t|--test) require_tests;;
     --tee) log="${log:-$log_default}"; (( tee = 1 ));;
@@ -910,8 +916,6 @@ done
 # Basic safety checks.
 cetpkg_build="$(real_dir "$CETPKG_BUILD")"
 cetpkg_source="$(real_dir "$CETPKG_SOURCE")"
-user_cwd="$(real_dir .)"
-user_subdir="${user_cwd#$cetpkg_build}"
 
 if [ -z "$CETPKG_BUILD" ]; then
   fatal_error "expected CETPKG_BUILD and friends to be set: source setup_for_development?"
@@ -950,8 +954,6 @@ elif [ "$cetpkg_build" = "$(real_dir "$HOME")" ] || \
 fi
 ##################
 
-calculate_ops_dir
-
 [ -r "$CETPKG_BUILD/cetpkg_info.sh" ] || \
   fatal_error "unable to read $CETPKG_BUILD/cetpkg_info.sh - source setup_for_development?"
 
@@ -966,6 +968,22 @@ source "$CETPKG_BUILD/cetpkg_info.sh" || \
 (( ${#test_labels[@]} )) && \
   { [ -n "$l_regex" ] || [ -n "$le_regex" ]; } && \
   fatal_error "--LE and --L are mutually-exclusive with -T, -R, and --test-labels and synonyms"
+##################
+
+##################
+# Subdirectory arithmetic.
+user_cwd="$(real_dir .)/"
+user_subdir="${user_cwd#$cetpkg_build/}"
+if [ -n "$subdir" ]; then
+  real_subdir="$(cd "$CETPKG_BUILD"; real_dir "$subdir")/"
+  real_subdir="${real_subdir#$cetpkg_build/}"
+  if [ "${real_subdir:0:1}" == "/" ]; then
+    fatal_error "specified subdir \"$subdir\" is not a subdirectory of $CETPKG_BUILD"
+  else
+    subdir="${real_subdir}"
+  fi
+fi
+calculate_ops_dir
 ##################
 
 ##################
@@ -1004,8 +1022,8 @@ fi
 
 # Possibly clean up.
 if (( clean )); then
-  [ "$user_cwd" != "$user_subdir" ] || \
-    fatal_error "clean operation would remove the current directory!"
+  [ -z "$user_subdir" ] || [ "$user_cwd" = "$user_subdir" ] || \
+    fatal_error "clean operation would remove the current directory: $user_cwd"
   (( $(ls -1 "$CETPKG_BUILD" | wc -l) )) && \
     ! [ -f "$CETPKG_BUILD/cetpkg_info.sh" ] && \
     fatal_error "refusing to clean suspect non-empty build directory
@@ -1017,6 +1035,10 @@ if (( clean )); then
   printf -- "\n";
   pushd /tmp >/dev/null
   info "cleaning \"$CETPKG_BUILD\""
+  setup_files_backup="$TMP/setup_files-backup.tar"
+  ( cd "$CETPKG_BUILD" && \
+    tar -f "$setup_files_backup" -c */table_* || \
+    rm -f "$setup_files_backup" ) > /dev/null 2>&1
   if ! { find "$CETPKG_BUILD" -mindepth 1 -maxdepth 1 \
     \( -type d -o -name 'ninja.build' -o \
     -name '*.cmake' -o -name '*.cmake.in' -o \
@@ -1024,6 +1046,12 @@ if (( clean )); then
     -name 'Makefile' \) -print | \
     xargs rm -rf; }; then
     fatal_error "unable to clean directory \"$CETPKG_BUILD\""
+  fi
+  if [ -r "$setup_files_backup" ]; then
+    tar -C "$CETPKG_BUILD" -f "$setup_files_backup" -x >/dev/null 2>&1 || \
+      { unset TMP
+      error_exit "unable to restore setup files from $setup_files_backup after clean"
+    }
   fi
   popd >/dev/null || cd "$CETPKG_BUILD" # 2>&1
   trap 2
