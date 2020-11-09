@@ -471,7 +471,7 @@ get_project_variable_property bad arguments ${ARGV}
 USAGE: get_project_variable_property([<output-variable>] [PROJECT <project-name>] <var-name> PROPERTY <property>)
        If <output-variable> and <project-variable> are both specified, the PROJECT keyword is optional]=])
   endif()
-  if (NOT PVAR IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+  if (NOT PVAR IN_LIST CETMODULES_VARS_PROJECT_${PROJ})
     # Don't know this project variable.
     message(FATAL_ERROR "get_project_variable_property(): project variable ${PROJ}_${PVAR} has not been defined")
   endif()
