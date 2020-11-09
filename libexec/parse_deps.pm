@@ -69,24 +69,38 @@ $btype_table = { debug => 'Debug',
                  prof => 'RelWithDebInfo',
                  opt => 'Release' };
 
-@EXPORT = qw(by_version
-             cetpkg_info_file
-             compiler_for_quals
-             deps_for_quals
-             error_exit
-             get_parent_info
-             get_product_list
-             get_qualifier_matrix
-             get_table_fragment
-             info
-             print_dev_setup
-             sort_qual
-             ups_to_cmake
-             verbose
-             warning);
+@EXPORT =
+  qw(
+      by_version
+      cetpkg_info_file
+      classify_deps
+      compiler_for_quals
+      deps_for_quals
+      error_exit
+      get_cmake_project_info
+      get_derived_parent_data
+      get_parent_info
+      get_pathspec
+      get_product_list
+      get_qualifier_matrix
+      get_table_fragment
+      info
+      print_dep_setup
+      print_dep_setup_one
+      print_dev_setup
+      sort_qual
+      table_dep_setup
+      to_dot_version
+      to_string
+      to_ups_version
+      ups_to_cmake
+      verbose
+      warning
+      write_table_deps
+      write_table_frag
+   );
 
-@EXPORT_OK = qw($btype_table $pathspec_info
-                get_pathspec print_dep_setup table_dep_setup);
+@EXPORT_OK = qw($btype_table $pathspec_info);
 
 sub error_exit {
   my (@msg) = @_;
@@ -116,7 +130,7 @@ sub verbose {
 }
 
 sub get_parent_info {
-  my ($pfile, @qualstrings) = @_;
+  my ($pfile) = @_;
   open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
   my $result;
   my $chains;
@@ -153,31 +167,36 @@ sub get_parent_info {
                                      $chain_option_table->{$_} : $_; }
                         keys %$chains ]
     if scalar keys %$chains;
+  return $result;
+}
 
-  ##################
-  # Derivative and external information.
+sub get_derived_parent_data {
+  my ($pi, $sourcedir, @qualstrings) = @_;
 
   # CMake info.
-  my ($cmake_project, $cmake_project_version) = get_cmake_project_info($pfile);
-  if (defined $cmake_project) {
-    $result->{cmake_project} = $cmake_project;
-    $result->{name} = to_product_name($cmake_project)
-      unless exists $result->{name};
+  my ($cmake_project, $cmake_project_version) =
+    get_cmake_project_info($sourcedir);
+
+  if ($cmake_project) {
+    $pi->{cmake_project} = $cmake_project;
+    $pi->{name} = to_product_name($cmake_project)
+      unless exists $pi->{name};
   }
-  if (defined $cmake_project_version) {
-    $result->{cmake_project_version} = $cmake_project_version;
-    $result->{version} = to_ups_version($cmake_project_version)
-      unless exists $result->{version};
+  if ($cmake_project_version) {
+    $pi->{cmake_project_version} = $cmake_project_version;
+    $pi->{version} = to_ups_version($cmake_project_version)
+      unless exists $pi->{version};
   }
 
   my @sorted;
-  $result->{qual} = sort_qual(\@sorted, @qualstrings);
-  @{$result}{qw(cqual extqual type)} = @sorted;
-  $result->{cmake_build_type} = $btype_table->{$result->{type}} if $result->{type};
+  $pi->{qualspec} = sort_qual(\@sorted, @qualstrings);
+  @{$pi}{qw(cqual extqual build_type)} = @sorted;
+  $pi->{cmake_build_type} = $btype_table->{$pi->{build_type}}
+    if $pi->{build_type};
 
   # Derivatives of the product's UPS flavor.
-  if ($result->{no_fq_dir}) {
-    $result->{flavor} = "NULL";
+  if ($pi->{no_fq_dir}) {
+    $pi->{flavor} = "NULL";
   } else {
     my $fq_dir;
     my $flavor = `ups flavor -4`;
@@ -185,16 +204,15 @@ sub get_parent_info {
     chomp $flavor;
     # We only care about OS major version no. for Darwin.
     $flavor =~ s&^(Darwin.*?\+\d+).*$&${1}&;
-    $result->{flavor} = $flavor;
-    if ($result->{noarch}) {
+    $pi->{flavor} = $flavor;
+    if ($pi->{noarch}) {
       $fq_dir = 'noarch';
     } else {
       $fq_dir = $ENV{CET_SUBDIR} or
         error_exit("CET_SUBDIR not set: missing cetpkgsupport?");
     }
-    $result->{fq_dir} = join('.', $fq_dir, split(':', $result->{qual}));
+    $pi->{fq_dir} = join('.', $fq_dir, split(':', $pi->{qualspec}));
   }
-  return $result;
 }
 
 sub get_table_fragment {
@@ -403,12 +421,11 @@ sub unwanted_keyword {
 }
 
 sub get_qualifier_list {
-  my ($pfile, $efl) = @_;
-  my $irow=0;
+  my ($pfile) = @_;
   my $get_quals;
   my $qlen = 0;
   my @qlist = ();
-  my @notes;
+  my @notes = ();
   open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
@@ -420,32 +437,27 @@ sub get_qualifier_list {
       last; # Done.
     } elsif ($keyword eq "qualifier") {
       $get_quals = 1;
-      for (; $qlen < $#words and $words[$qlen+1] ne "notes"; ++$qlen) { }
-      $notes[$irow] = $words[$qlen+1] || '';
-      $qlist[$irow++] = [@words[0..$qlen]];
+      for (; $qlen < $#words and $words[$qlen + 1] ne "notes"; ++$qlen) { }
+      push @notes, $words[$qlen + 1] || '';
+      push @qlist, [@words[0..$qlen]];
     } elsif ($get_quals) {
       unwanted_keyword($keyword) and
         error_exit(sprintf("unexpected keyword $keyword at $pfile:%d - missing end_qualifier_list?",
                            $fh->input_line_number));
-      if (scalar @words < $qlen) {
-        print $efl "echo ERROR: only $#words qualifiers for $keyword - need $qlen\n";
-        print $efl "return 4\n";
-        exit 4;
-      }
-      $qlist[$irow++] =
-        [map { (not $_ or $_ eq "-nq-") ? "" : sort_qual($_); }
-         @words[0..$qlen]];
+      scalar @words < $qlen and
+        error_exit("require $qlen qualifier_list entries for $keyword: found only $#words");
+      push @notes, $words[$qlen + 1] || '';
+      push @qlist, [ map { (not $_ or $_ eq "-nq-") ? "" : sort_qual($_); }
+                     @words[0..$qlen] ];
     } else {
     }
   }
   close($fh);
-  #print $efl "get_qualifier_list: found $irow qualifier rows\n";
   return ($qlen, \@qlist, \@notes);
 }
 
 sub get_qualifier_matrix {
-  my ($pfile, $efl) = @_;
-  my ($qlen, $qlist, $notes) = get_qualifier_list($pfile, $efl);
+  my ($qlen, $qlist, $notes) = get_qualifier_list(shift);
   my ($qhash, $qqhash, $nhash); # (by-column, by-row, notes)
   my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
   $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
@@ -505,7 +517,7 @@ sub output_info {
     } elsif (ref $val eq "ARRAY") {
       printf $fh "(%s)\n", join(" ", map { "\Q$_\E" } @$val);
     } else {
-      error_exit(sprintf("could not output info $key of type %s", ref $val));
+      verbose(sprintf("ignoring unexpected info $key of type %s", ref $val));
     }
     push @defined_vars, $var;
   }
@@ -516,13 +528,8 @@ sub output_info {
 sub cetpkg_info_file {
   my (%info) = @_;
   my @expected_keys =
-    qw(source build name version chains qual cqual type extqual deps
+    qw(source build name version chains qualspec cqual build_type extqual use_time_deps
        build_only_deps cmake_project cmake_project_version cmake_args);
-  foreach my $key (qw(deps build_only_deps)) {
-    if (exists $info{$key}) { # Known hash - want keys only.
-      $info{$key} = [ sort keys %{$info{$key}} ];
-    }
-  }
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
   open(my $fh, "> $cetpkgfile") or
@@ -586,6 +593,17 @@ EOD
   return $cetpkgfile;
 }
 
+sub classify_deps {
+  my ($pi, $dep_info) = @_;
+  foreach my $dep (sort keys $dep_info) {
+    $pi->{($dep_info->{$dep}->{only_for_build}) ?
+          'build_only_deps' : 'use_time_deps'}->{$dep} = 1;
+  }
+  foreach my $key (qw(build_only_deps use_time_deps)) {
+    $pi->{$key} = [ sort keys %{$pi->{$key}} ];
+  }
+}
+
 sub compiler_for_quals {
   my ($compilers, $qualspec) = @_;
   my $compiler;
@@ -608,9 +626,31 @@ sub compiler_for_quals {
 sub offset_annotated_items;
 
 sub to_string {
+  my $incremental_indent = 2;
+  my $hash_indent = length('{ ');
+  my $max_incremental_indent = 10;
   my $item = shift;
   $item = (defined $item) ? $item : "<undef>";
-  my $indent = shift || 0;
+  my $indent;
+  my $options = shift;
+  if (not defined $options) {
+    $options = {};
+  } elsif (not (ref $options eq 'HASH')) {
+    $indent = $options;
+    $options = {};
+  } else {
+    $indent = (delete $options->{indent}) || 0;
+  }
+  if (exists $options->{preamble}) {
+    my ($hanging_preamble) =
+      ($options->{preamble} =~ m&^(?:.*?\n)*(.*?)[ 	]*$&);
+    my $hplen = length($hanging_preamble);
+    if ($hplen > $max_incremental_indent) {
+      $indent += $incremental_indent;
+    } else {
+      $indent += $hplen + 1;
+    }
+  }
   my $type = ref $item;
   my $result;
   if (not $type) {
@@ -618,24 +658,24 @@ sub to_string {
   } elsif ($type eq "SCALAR") {
     $result = "$$item";
   } elsif ($type eq "ARRAY") {
-    $result = sprintf("\%s ]", offset_annotated_items($indent, '[ ', @$item));
+    $result =
+      sprintf("\%s ]", offset_annotated_items($indent, '[ ', @$item));
   } elsif ($type eq "HASH") {
-    $indent += 2;
+    $indent += $hash_indent;
     $result =
       sprintf("{ \%s }",
               join(sprintf(",\n\%s", ' ' x $indent),
                    map {
-                     my $key = $_;
-                     sprintf("$key => \%s",
-                             to_string($item->{$key},
-                                       $indent + length("$key => ")));
+                     to_string($item->{$_},
+                               { preamble => "$_ => ",
+                                 indent => $indent });
                    } keys %$item));
-    $indent -= 2;
+    $indent -= $hash_indent;
   } else {
     print STDERR "ERROR: cannot print item of type $type.\n";
     exit(1);
   }
-  return $result;
+  return sprintf('%s%s', $options->{preamble} || '', $result);
 }
 
 sub offset_annotated_items {
@@ -713,7 +753,6 @@ sub _format_version {
 sub to_dot_version {
   return _format_version(shift);
 }
-
 
 sub to_ups_version {
   return _format_version(shift, '_', 'v');
@@ -805,13 +844,13 @@ sub cmake_project_var_for_pathspec {
 }
 
 sub get_cmake_project_info {
-  my ($pfile) = @_;
-  my $cmakelists = File::Spec->catfile(dirname(dirname($pfile)), "CMakeLists.txt");
-  open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from \${CETPKG_SOURCE}");
+  my ($pkgtop) = @_;
+  my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
+  open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
   my $filedata = join('',<CML>);
   my ($prod, $ver) =
     $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*(\S+)(?:.*\s+VERSION\s+"?(\S+)"?)?&ms;
-  error_exit("unable to find CMake project() declaration in $cmakelists")
+  error_exit("unable to find suitable CMake project() declaration in $cmakelists")
     unless $prod;
   warning("unable to extract version information from project call for $prod")
     unless $ver;
@@ -834,13 +873,13 @@ sub ups_to_cmake {
      @{$cqual_table->{$pi->{cqual}}} or
      error_exit("unrecognized compiler qualifier $pi->{cqual}"));
 
-  my @cmake_vars=();
+  my @cmake_args=();
 
   ##################
   # UPS-specific CMake configuration.
 
-  push @cmake_vars, '-DWANT_UPS:BOOL=ON';
-  push @cmake_vars,
+  push @cmake_args, '-DWANT_UPS:BOOL=ON';
+  push @cmake_args,
     "-DUPS_C_COMPILER_ID:STRING=$compiler_id",
       "-DUPS_C_COMPILER_VERSION:STRING=$compiler_version",
         "-DUPS_CXX_COMPILER_ID:STRING=$compiler_id",
@@ -848,38 +887,38 @@ sub ups_to_cmake {
             "-DUPS_Fortran_COMPILER_ID:STRING=$fc_id",
               "-DUPS_Fortran_COMPILER_VERSION:STRING=$fc_version"
                 if $compiler_id;
-  push @cmake_vars, sprintf('-D%s_UPS_PRODUCT_NAME:STRING=%s',
+  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_NAME:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{name}) if $pi->{name};
-  push @cmake_vars, sprintf('-D%s_UPS_QUALIFIER_STRING:STRING=%s',
+  push @cmake_args, sprintf('-D%s_UPS_QUALIFIER_STRING:STRING=%s',
                             $pi->{cmake_project},
-                            $pi->{qual}) if $pi->{qual};
-  push @cmake_vars, sprintf('-DUPS_%s_CMAKE_PROJECT_NAME:STRING=%s',
+                            $pi->{qualspec}) if $pi->{qualspec};
+  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_NAME:STRING=%s',
                             $pi->{name}, $pi->{cmake_project});
-  push @cmake_vars, sprintf('-DUPS_%s_CMAKE_PROJECT_VERSION:STRING=%s',
+  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_VERSION:STRING=%s',
                             $pi->{name}, $pi->{cmake_project_version});
-  push @cmake_vars, sprintf('-D%s_UPS_PRODUCT_FLAVOR:STRING=%s',
+  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_FLAVOR:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{flavor});
-  push @cmake_vars, sprintf('-D%s_UPS_BUILD_ONLY_DEPENDENCIES=%s',
+  push @cmake_args, sprintf('-D%s_UPS_BUILD_ONLY_DEPENDENCIES=%s',
                             $pi->{cmake_project},
-                            join(';', (sort keys %{$pi->{build_only_deps}})))
+                            join(';', @{$pi->{build_only_deps}}))
     if $pi->{build_only_deps};
-  push @cmake_vars, sprintf('-D%s_UPS_USE_TIME_DEPENDENCIES=%s',
+  push @cmake_args, sprintf('-D%s_UPS_USE_TIME_DEPENDENCIES=%s',
                             $pi->{cmake_project},
-                            join(';', (sort keys %{$pi->{deps}})))
-    if $pi->{deps};
+                            join(';', @{$pi->{use_time_deps}}))
+    if $pi->{use_time_deps};
 
-  push @cmake_vars, sprintf('-D%s_UPS_PRODUCT_CHAINS=%s',
+  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_CHAINS=%s',
                             $pi->{cmake_project},
                             join(';', (sort @{$pi->{chains}})))
     if $pi->{chains};
 
   ##################
   # General CMake configuration.
-  push @cmake_vars, "-DCMAKE_BUILD_TYPE:STRING=$pi->{cmake_build_type}"
+  push @cmake_args, "-DCMAKE_BUILD_TYPE:STRING=$pi->{cmake_build_type}"
     if $pi->{cmake_build_type};
-  push @cmake_vars,
+  push @cmake_args,
     "-DCMAKE_C_COMPILER:STRING=$cc",
       "-DCMAKE_CXX_COMPILER:STRING=$cxx",
         "-DCMAKE_Fortran_COMPILER:STRING=$fc",
@@ -887,19 +926,19 @@ sub ups_to_cmake {
             "-DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON",
               "-DCMAKE_CXX_EXTENSIONS:BOOL=OFF"
                 if $compiler_id;
-  push @cmake_vars, sprintf('-D%s_EXEC_PREFIX_INIT:STRING=%s',
+  push @cmake_args, sprintf('-D%s_EXEC_PREFIX_INIT:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{fq_dir}) if $pi->{fq_dir};
-  push @cmake_vars, sprintf('-D%s_NOARCH:BOOL=ON',
+  push @cmake_args, sprintf('-D%s_NOARCH:BOOL=ON',
                             $pi->{cmake_project}) if $pi->{noarch};
-  push @cmake_vars,
+  push @cmake_args,
     sprintf("-D$pi->{cmake_project}_DEFINE_PYTHONPATH_INIT:BOOL=ON")
       if $pi->{define_pythonpath};
 
   ##################
   # Pathspec-related CMake configuration.
 
-  push @cmake_vars,
+  push @cmake_args,
     (map { cmake_project_var_for_pathspec($pfile, $pi, $_) || ();
          } keys %{$pathspec_info});
 
@@ -914,53 +953,103 @@ sub ups_to_cmake {
                  $pathspec->{var_stem};
     }
   }
-  push @cmake_vars,
+  push @cmake_args,
     sprintf('-D%s_ADD_ARCH_DIRS:STRING=%s',
             $pi->{cmake_project}, join(';', @arch_pathspecs))
       if scalar @arch_pathspecs;
-  push @cmake_vars,
+  push @cmake_args,
     sprintf('-D%s_ADD_NOARCH_DIRS:STRING=%s',
             $pi->{cmake_project}, join(';', @noarch_pathspecs))
       if scalar @noarch_pathspecs;
 
   ##################
   # Done.
-  return \@cmake_vars;
+  return \@cmake_args;
 }
 
 sub print_dep_setup {
-  my ($pi, $dep, $dep_info, $efl, @fail_msg) = @_;
-  # Log build_only vs use-time deps.
-  $pi->{$dep_info->{only_for_build} ?
-        "build_only_deps" : "deps"}->{$dep} = 1;
+  my ($deps, $out) = @_;
+
+  my ($setup_cmds, $only_for_build_cmds);
+
+  # Temporary variable connected as a filehandle.
+  open(my $setup_cmds_fh, ">", \$setup_cmds) or
+    die "could not open memory stream to variable \$setup_cmds";
+
+  # Second temporary variable connected as a filehandle.
+  open(my $only_cmds_fh, ">", \$only_for_build_cmds) or
+    die "could not open memory stream to variable \$only_for_build_cmds";
+
+  my $onlyForBuild="";
+  foreach my $dep (keys %$deps) {
+    my $dep_info = $deps->{$dep};
+    my $fh;
+    if ($dep_info->{only_for_build}) {
+      next if $dep eq "cetmodules"; # Dealt with elsewhere.
+      $fh = $only_cmds_fh;
+    } else {
+      $fh = $setup_cmds_fh;
+    }
+    print_dep_setup_one($dep, $dep_info, $fh);
+  }
+  close($setup_cmds_fh);
+  close($only_cmds_fh);
+
+  print $out <<'EOF';
+# Add '-B' to UPS_OVERRIDE for safety.
+tnotnull UPS_OVERRIDE || setenv UPS_OVERRIDE ''
+expr "x $UPS_OVERRIDE" : '.* -[^- 	]*B' >/dev/null || setenv UPS_OVERRIDE "$UPS_OVERRIDE -B"
+EOF
+
+  # Build-time dependencies first.
+  print $out <<'EOF', $only_for_build_cmds if $only_for_build_cmds;
+
+####################################
+# Build-time dependencies.
+####################################
+EOF
+
+  # Now use-time dependencies.
+  if ( $setup_cmds ) {
+    print $out <<'EOF', $setup_cmds if $setup_cmds;
+
+####################################
+# Use-time dependencies.
+####################################
+EOF
+  }
+}
+
+sub print_dep_setup_one {
+  my ($dep, $dep_info, $out) = @_;
   my $ql =
     sprintf(" -q +\%s",
             join(":+", split(':', $dep_info-> {qualspec} || '')));
   my $thisver =
     (not $dep_info->{version} or $dep_info->{version} eq "-") ? "" :
       $dep_info->{version};
-  print $efl "# > $dep <\n";
+  print $out "# > $dep <\n";
   if ($dep_info->{optional}) {
-    print $efl <<"EOF";
+    print $out <<"EOF";
 # Setup of $dep is optional.
 ups exist $dep $thisver$ql
 test "\$?" != 0 && \\
   echo \QINFO: skipping missing optional product $dep $thisver$ql\E || \\
 EOF
-    print $efl "  ";
+    print $out "  ";
   }
-  print $efl "setup -B $dep $thisver$ql; ";
-  setup_err($efl, "setup -B $dep $thisver$ql failed", @fail_msg);
+  print $out "setup -B $dep $thisver$ql; ";
+  setup_err($out, "setup -B $dep $thisver$ql failed")
 }
 
 sub setup_err {
-  my $efl = shift;
-  print $efl 'test "$?" != 0 && \\', "\n";
+  my $out = shift;
+  print $out 'test "$?" != 0 && \\', "\n";
   foreach my $msg_line (@_) {
     chomp $msg_line;
-    print $efl "  echo \QERROR: $msg_line\E && \\\n";
+    print $out "  echo \QERROR: $msg_line\E && \\\n";
   }
-  print $efl "  return 1 || true\n";
+  print $out "  return 1 || true\n";
 }
 
 sub fq_path_for {
@@ -988,25 +1077,25 @@ sub print_dev_setup_var {
     @vals=($val);
   }
   my $result;
-  open(my $efl, ">", \$result) or
-    die "could not open memory stream to variable \$efl";
-  print $efl "# $var\n",
+  open(my $out, ">", \$result) or
+    die "could not open memory stream to variable \$out";
+  print $out "# $var\n",
     "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
-  print $efl join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
+  print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
   if ($no_errclause) {
-    print $efl "\n";
+    print $out "\n";
   } else {
-    print $efl "; ";
-    setup_err($efl, "failure to prepend to $var");
+    print $out "; ";
+    setup_err($out, "failure to prepend to $var");
   }
-  close($efl);
+  close($out);
   return $result;
 }
 
 sub print_dev_setup {
-  my ($pfile, $pi, $efl, @fail_msg) = @_;
+  my ($pfile, $pi, $out) = @_;
   my $fqdir;
-  print $efl <<"EOF";
+  print $out <<"EOF";
 
 ####################################
 # Development environment.
@@ -1015,7 +1104,7 @@ EOF
   my $libdir = fq_path_for($pfile, $pi, 'libdir', 'lib');
   if ($libdir) {
     # (DY)LD_LIBRARY_PATH.
-    print $efl
+    print $out
       print_dev_setup_var(sprintf("%sLD_LIBRARY_PATH",
                                   ($pi->{flavor} =~ m&\bDarwin\b&) ? "DY" : ""),
                           File::Spec->catfile('${CETPKG_BUILD}', $libdir));
@@ -1026,26 +1115,26 @@ EOF
             print_dev_setup_var("CET_PLUGIN_PATH",
                                 File::Spec->catfile('${CETPKG_BUILD}',
                                                     $libdir)));
-    print $efl "$head\n",
+    print $out "$head\n",
       ($pi->{name} ne 'cetlib') ?
         "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
           join("\n", @output), "\n";
   }
   # ROOT_INCLUDE_PATH.
-  print $efl
+  print $out
     print_dev_setup_var("ROOT_INCLUDE_PATH",
                         [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]);
   # CMAKE_PREFIX_PATH.
-  print $efl
+  print $out
     print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1);
   # FHICL_FILE_PATH.
   $fqdir = fq_path_for($pfile, $pi, 'fcldir') and
-    print $efl
+    print $out
       print_dev_setup_var("FHICL_FILE_PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
   # PYTHONPATH.
   if ($pi->{define_pythonpath}) {
-    print $efl
+    print $out
       print_dev_setup_var("PYTHONPATH",
                           File::Spec->catfile('${CETPKG_BUILD}',
                                               $libdir ||
@@ -1054,7 +1143,7 @@ EOF
   }
   # PATH.
   $fqdir = fq_path_for($pfile, $pi, 'bindir', 'bin') and
-    print $efl
+    print $out
       print_dev_setup_var("PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
 }
@@ -1074,6 +1163,28 @@ sub var_stem_for_dirkey {
   return uc($pathspec_info->{$dirkey}->{project_var} ||
             (($dirkey =~ m&^(.*?)_*dir$&) ? "${1}_dir" :
              "${dirkey}_dir"));
+}
+
+sub write_table_deps {
+  my ($parent, $deps) = @_;
+  open(my $fh, ">table_deps_$parent") or return;
+  foreach my $dep (sort keys %{$deps}) {
+    my $dep_info = $deps->{$dep};
+    table_dep_setup($dep, $dep_info, $fh)
+      unless $dep_info->{only_for_build};
+  }
+  close($fh);
+  1;
+}
+
+sub write_table_frag {
+  my ($parent, $pfile) = @_;
+  my $fraglines = get_table_fragment($pfile);
+  return 1 unless $fraglines and scalar @$fraglines;
+  open(my $fh, ">table_frag_$parent") or return;
+  print $fh join("\n", @$fraglines), "\n";
+  close($fh);
+  1;
 }
 
 1;

@@ -10,7 +10,7 @@ printf "To inspect build variable settings, execute ${info_sh}\n\n";
 
 failed=()
 check=(NAME VERSION)
-[ -z "$CETPKG_NOARCH" ] && check+=(QUAL TYPE)
+[ -z "$CETPKG_NOARCH" ] && check+=(QUALSPEC BUILD_TYPE)
 check_env=(BUILD SOURCE)
 
 for cet_var in "${check[@]}"; do

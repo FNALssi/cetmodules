@@ -68,7 +68,7 @@ non-repeatable option is specified multiple times, last invocation wins.
 The -G and --generator options are mutually-exclusive, and may be specified at most once.
 
 Required environment: CETPKG_BUILD CETPKG_SOURCE
-Optional environment: CETPKG_INSTALL CETPKG_J CETPKG_QUAL
+Optional environment: CETPKG_INSTALL CETPKG_J
 
 EOF
   (( long )) && cat <<EOF
@@ -935,7 +935,7 @@ elif ! [ -r "${CETPKG_SOURCE}/CMakeLists.txt" ]; then
 elif ! grep -qEie '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" 2>/dev/null; then
   fatal_error "no project() call in top level CMakeLists.txt
              (${CETPKG_SOURCE}/CMakeLists.txt)"
-elif ! { grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
+elif ! { [ "$CETPKG_SOURCE" = "$MRB_SOURCE" ] || grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
   -e '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" | head -n 1 | \
   grep -qEie '^[[:space:]]*(project|find_package)[[:space:]]*\([[:space:]]*cetmodules\b'; } 2>/dev/null; then
   fatal_error "find_package(cetmodules) must *precede* project() call in
@@ -960,9 +960,6 @@ source "$CETPKG_BUILD/cetpkg_info.sh" || \
 
 ##################
 # Argument consistency checks.
-(( clean )) && [ -n "$MRB_BUILDDIR" ] && \
-  fatal_error "MRB environment detected. Use mrb z; mrb setenv instead of buildtool (or mrb b) --clean"
-
 (( force_top )) && [ -n "$subdir" ] && \
   fatal_error "specifying --force-top and --subdir together is not meaningful"
 
@@ -1049,8 +1046,8 @@ else # Check consistency.
     fatal_error "FQ_DIR has changed from $check_fq_dir to $CETPKG_FQ_DIR: need clean build"
   check_qual="$(cmake_var ${CETPKG_CMAKE_PROJECT}_UPS_QUALIFIER_STRING)"
   (( $? == 0 )) && \
-    [ "$check_qual" != "$CETPKG_QUAL" ] && \
-    fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUAL\": need clean build"
+    [ "$check_qual" != "$CETPKG_QUALSPEC" ] && \
+    fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUALSPEC\": need clean build"
 fi
 
 if (( clean_logs )); then
