@@ -571,6 +571,10 @@ sub fix_cmake_one {
       if ($line =~ m&^\s*(?i:subdirs)\s*\($&);
     flag_required($line, ": remove")
       if $line =~ m&(\b(?:(?i:cetbuildtools)|CMAKE_MODULE_PATH\b).*)$&;
+    flag_recommended($line, ": declare exportable CMake module directories with cet_cmake_module_directories()")
+      if $line =~ m&\bCMAKE_MODULE_PATH\b.*SOURCE_DIR$&;
+    flag_recommended($line, ": use find_package() to handle external modules directories")
+      if $line =~ m&\bCMAKE_MODULE_PATH\b.*\$ENV$&;
     $line =~ s&(\$\{product\}/\${version\}/)&&g and verbose("\${product}/\${version}/ -> \"\"");
     $line =~ s&(\$\{flavorqual(?:_dir)?\})&\${\${PROJECT_NAME}_EXEC_PREFIX}&g and
       verbose("$1 -> \"\${\${PROJECT_NAME}_EXEC_PREFIX}\"");
