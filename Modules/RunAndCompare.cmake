@@ -37,10 +37,6 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 # Defaults
 set(DEFAULT_FILTERS "${cetmodules_LIBEXEC_DIR}/filter-output")
 
-if (DEFINED ART_COMPAT)
-  list(PREPEND DEFAULT_FILTERS "${art_LIBEXEC_DIR}/filter-output-art-compat")
-endif()
-
 # Utility function.
 function(filter_and_compare FILE REF)
   set(filtered_file "${FILE}-filtered")
@@ -101,7 +97,6 @@ if (NOT OUTPUT_FILTERS)
   set(OUTPUT_FILTERS "${OUTPUT_FILTER} ${OUTPUT_FILTER_ARGS}")
 endif()
 if (OUTPUT_FILTERS)
-  string(REPLACE "::" ";" OUTPUT_FILTERS "${OUTPUT_FILTERS}")
   list(FIND OUTPUT_FILTERS "DEFAULT" found_default)
   if (found_default GREATER -1)
     list(REMOVE_AT OUTPUT_FILTERS ${found_default})

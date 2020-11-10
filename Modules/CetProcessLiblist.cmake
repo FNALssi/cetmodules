@@ -6,24 +6,39 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_process_liblist RESULT_VAR)
-  set(RESULT)
+  set(RESULTS)
   foreach (arg IN LISTS ARGN)
-    if (TARGET ${arg} OR
-        arg MATCHES "(/|::|^((-|\\$<)|(INTERFACE|PRIVATE|PUBLIC|debug|general|optimized)$))")
-      # Pass through as-is.
-      list(APPEND RESULT ${arg})
-    else()
-      # Can we convert it to an uppercase variable we can substitute?
-      string(TOUPPER "${arg}" ${arg}_UC)
-      if (DEFINED ${${arg}_UC})
-        message(DEBUG "cet_process_liblist(): substituting value of \${${${arg}_UC}} of ${arg}")
-	      list(APPEND RESULT "${${${arg}_UC}}")
-      else()
-	      list(APPEND RESULT "${arg}")
-      endif()
+    if (NOT (TARGET "${arg}" OR arg MATCHES
+          "(/|::|^((-|\\$<)|(INTERFACE|PRIVATE|PUBLIC|debug|general|optimized)$))"))
+      _cet_convert_target_arg("${arg}" arg)
     endif()
+    list(APPEND RESULTS "${arg}")
   endforeach()
-  set(${RESULT_VAR} PUBLIC "${RESULT}" PARENT_SCOPE)
+  set(${RESULT_VAR} PUBLIC "${RESULTS}" PARENT_SCOPE)
+endfunction()
+
+function(cet_convert_target_args RESULT_VAR)
+  set(RESULTS)
+  foreach (arg IN LISTS ARGN)
+    if (NOT (TARGET "${arg}" OR
+        arg MATCHES "(/|::|^(-|\\$<))"))
+      _cet_convert_target_arg("${arg}" arg)
+    endif()
+    # Pass through as-is.
+    list(APPEND RESULTS "${arg}")
+  endforeach()
+  set(${RESULT_VAR} "${RESULTS}" PARENT_SCOPE)
+endfunction()
+
+function(_cet_convert_target_arg ARG RESULT_VAR)
+  # Can we convert it to an uppercase variable we can substitute?
+  string(TOUPPER "${ARG}" ${ARG}_UC)
+  if (DEFINED ${${ARG}_UC})
+	  list(APPEND RESULT "${${${ARG}_UC}}")
+  else()
+	  list(APPEND RESULT "${ARG}")
+  endif()
+  set(${RESULT_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
 
 cmake_policy(POP)
