@@ -108,7 +108,6 @@ ${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
     ${CXX_STD_FLAG}
     ${GENREFLEX_FLAGS}
     -o ${dictname}_dict.cpp
-    ${CLEANUP_COMMAND}
     IMPLICIT_DEPENDS CXX ${CLASSES_H}
     DEPENDS ${CLASSES_DEF_XML}
     COMMENT "Generating dictionary files for target ${dictname}")
@@ -137,7 +136,7 @@ function(build_dictionary)
     "${_cet_build_dictionary_list_options}")
   list(POP_FRONT dictname)
   if (BD_UNPARSED_ARGUMENTS)
-	  message(FATAL_ERROR  "build_dictionary: too many arguments. ${ARGV} \n ${build_dictionary_usage}")
+	  message(FATAL_ERROR  "build_dictionary: too many arguments: \"${BD_UNPARSED_ARGUMENTS}\" from \"${ARGV}\" \n ${build_dictionary_usage}")
   endif()
   find_package(ROOT 6.00.00 QUIET REQUIRED COMPONENTS Core)
   if (NOT dictname)
