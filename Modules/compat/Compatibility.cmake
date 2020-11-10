@@ -146,7 +146,8 @@ function(_parse_fup_arguments _FUP_PRODUCT)
 
   unset(_FUP_PREFIX)
   unset(_FUP_DISABLED)
-  if (WANT_UPS AND NOT DEFINED ENV{SETUP_${_FUP_PRODUCT_UC}})
+  if (WANT_UPS AND NOT (DEFINED ENV{SETUP_${_FUP_PRODUCT_UC}} OR
+        DEFINED ENV{${_FUP_PRODUCT_UC}_DIR}))
     if (_FUP_OPTIONAL)
       # If WANT_UPS is set, we don't want to accidentally pick up a
       # non-UPS version, but we will want to call cet_find_package

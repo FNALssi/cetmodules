@@ -95,17 +95,17 @@ endif()
 ##################
 # UPS config file provided two functions—we should at least stub
 # them out:
-set(_cet_tbb_tbb_err_msg " is obsolete: use \
+set(_cet_tbb_err_msg " is obsolete: use \
 check_cxx_compiler_flag() (include(CheckCXXCompilerFlag)), \
 target_compile_options(), and target_link_libraries() to achieve the \
 same effect")
-# Need to leave _cet_tbb_tbb_err_msg lying around to be available for these
+# Need to leave _cet_tbb_err_msg lying around to be available for these
 # macros.
 macro(tbb_offload)
-  message(SEND_ERROR "tbb_offload()${_cet_tbb_tbb_err_msg}")
+  message(SEND_ERROR "tbb_offload()${_cet_tbb_err_msg}")
 endmacro()
 macro(find_tbb_offloads)
-  message(SEND_ERROR "find_tbb_offloads()${_cet_tbb_tbb_err_msg}")
+  message(SEND_ERROR "find_tbb_offloads()${_cet_tbb_err_msg}")
 endmacro()
 ##################
 

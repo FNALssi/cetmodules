@@ -18,7 +18,7 @@ transitive dependencies.\
   if (NOT _FUP_PROJECT)
     product_to_project(${_FUP_PRODUCT} _FUP_PROJECT ${_FUP_PREFIX})
   endif()
-  if (_FUP_PROJECT) # Yay!
+  if (_FUP_PROJECT)
     if (_FUP_PRODUCT IN_LIST
         ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND NOT "PRIVATE"
         IN_LIST _FUP_UNPARSED_ARGUMENTS)
@@ -68,10 +68,6 @@ transitive dependencies.\
           set(${_FUP_PRODUCT_UC} "${${_FUP_PRODUCT}_LIBRARIES}")
         endif()
       endif()
-      if (${_FUP_PRODUCT_UC} AND NOT CACHED{${_FUP_PRODUCT_UC}})
-        set(${_FUP_PRODUCT_UC} "${${_FUP_PRODUCT_UC}}"
-          CACHE FILEPATH "Primary library for UPS product ${_FUP_PRODUCT}")
-      endif()
     else()
       set(${_FUP_PRODUCT}_FOUND FALSE)
       set(${_FUP_PRODUCT_UC}_FOUND FALSE)
@@ -106,8 +102,9 @@ transitive dependencies.\
     endforeach()
   endif()
   # Set include directories for backward compatibility, if we can.
-  set(_fup_include_candidates)
-  if (NOT (_FUP_INTERFACE OR _FUP_INCLUDED_${_FUP_PROJECT}))
+  if (NOT (_FUP_INTERFACE OR _FUP_INCLUDED_${_FUP_PROJECT} OR
+        ${_FUP_PROJECT}_IN_TREE))
+    set(_fup_include_candidates)
     if (TARGET ${${_FUP_PRODUCT_UC}}) # Maybe the target can tell us.
       get_property(_fup_include_candidates TARGET ${${_FUP_PRODUCT_UC}}
         PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
@@ -126,6 +123,7 @@ transitive dependencies.\
       set(_FUP_INCLUDED_${_FUP_PROJECT} TRUE)
     endif()
   endif()
+  unset(_fup_include_candidates)
 endmacro()
 
 # Attempt to ascertain the correct project name for a product.
