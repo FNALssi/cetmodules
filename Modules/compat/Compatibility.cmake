@@ -97,6 +97,31 @@ function(cet_add_to_library_list)
   install(TARGETS ${target} EXPORT ${export_set})
 endfunction()
 
+function(cet_checkpoint_cmp)
+  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_VALUE "${CMAKE_MODULE_PATH}"
+    CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
+  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT "${PROJECT_NAME}"
+    CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
+endfunction()
+
+function(cet_process_cmp)
+  get_property(CURRENT_PROJECT CACHE
+    CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT PROPERTY VALUE)
+  if (CACHE{CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CURRENT_PROJECT}})
+    # Already done: don't need to duplicate.
+    return()
+  endif()
+  get_property(extra_dirs
+    CACHE CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_VALUE PROPERTY VALUE)
+  list(REMOVE_ITEM extra_dirs ${CMAKE_MODULE_PATH})
+  cet_regex_escape("${${CURRENT_PROJECT}_SOURCE_DIR}" e_srcdir)
+  list(FILTER extra_dirs INCLUDE REGEX "^${e_srcdir}")
+  if (extra_dirs)
+    cet_cmake_module_directories("${extra_dirs}" PROJECT ${CURRENT_PROJECT})
+  endif()
+  cet_checkpoint_cmp()
+endfunction()
+
 function(check_ups_version PRODUCT VERSION MINIMUM)
   warn_deprecated("check_ups_version()" NEW "if (X VERSION_cmp Y)...")
   cmake_parse_arguments(PARSE_ARGV 3 CUV "" "PRODUCT_OLDER_VAR;PRODUCT_MATCHES_VAR" "")
