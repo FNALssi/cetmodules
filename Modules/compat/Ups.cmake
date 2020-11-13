@@ -532,13 +532,6 @@ macro(_ups_config_cpack)
   ##################
   # Archive internal structure per UPS conventions.
   set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
-  # This enables us to install .version and .chain directories without
-  # having to deal with an unwieldy install prefix for everything else.
-  set(CPACK_INSTALL_CMAKE_PROJECTS
-    "${PROJECT_BINARY_DIR}"
-    "${PROJECT_NAME}"
-    "ALL"
-    "/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}")
 endmacro()
 
 macro(_ups_init)

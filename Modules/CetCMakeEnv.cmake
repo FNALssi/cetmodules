@@ -186,15 +186,20 @@ old-style variables for library targets\
     # Incorporate configuration information from product_deps.
     include(Ups)
     _ups_init()
-    # Make sure we have the old CMAKE_INSTALL_PREFIX value stored.
-    if (NOT DEFINED CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG})
+    if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR
+        NOT DEFINED CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG})
       set(CETMODULES_CMAKE_INSTALL_PREFIX_ORIG "${CMAKE_INSTALL_PREFIX}"
         CACHE INTERNAL "Original value of CMAKE_INSTALL_PREFIX")
+    else()
+      set(CMAKE_INSTALL_PREFIX "${CETMODULES_CMAKE_INSTALL_PREFIX_ORIG}")
     endif()
-    # Tweak installation directory per UPS convention.
-    if (CETMODULES_CMAKE_INSTALL_PREFIX_ORIG)
-      set(CMAKE_INSTALL_PREFIX "$CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG}/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}")
-    endif()
+    # Tweak the value of CMAKE_INSTALL_PREFIX used by the project's
+    # cmake_install.cmake files per UPS conventions.
+    install(CODE "\
+# Tweak the value of CMAKE_INSTALL_PREFIX used by the project's
+  # cmake_install.cmake files per UPS conventions.
+  string(APPEND CMAKE_INSTALL_PREFIX \"/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}\")\
+")
   elseif (NOT WANT_UPS)
     # Define a fallback macro in case of layer 8 issues.
     macro(process_ups_files)
