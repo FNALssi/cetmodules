@@ -54,22 +54,20 @@ include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
 
-set(GENREFLEX_FLAGS --fail_on_warnings
-  $<$<VERSION_GREATER_EQUAL:${ROOT_VERSION},6.10.04>:--noIncludePaths>)
-
 function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
-  get_directory_property( genpath INCLUDE_DIRECTORIES )
-  foreach(inc IN LISTS genpath)
-    set(GENREFLEX_INCLUDES ${GENREFLEX_INCLUDES} -I${inc})
-  endforeach()
-  # add any local compile definitions
-  get_directory_property(compile_defs COMPILE_DEFINITIONS)
-  foreach(def IN LISTS compile_defs)
-    set(GENREFLEX_FLAGS ${GENREFLEX_FLAGS} -D${def})
-  endforeach()
-  list(APPEND GENREFLEX_FLAGS -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
+  set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
+  # Add any target-specific include directories, accounting safely for
+  # generator expressions.
+  list(APPEND GENREFLEX_INCLUDES
+    "$<$<BOOL:${tmp_includes}>:-I$<JOIN:${tmp_includes},$<SEMICOLON>-I>>")
+  # Add any target-specific compile definitions, accounting safely for
+  # generator expressions.
+  set(tmp_defs "$<TARGET_PROPERTY:${dictname}_dict,COMPILE_DEFINITIONS>")
+  list(APPEND GENREFLEX_FLAGS
+    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>"
+    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
   if (GD_ROOTMAP_OUTPUT)
     list(APPEND GENREFLEX_FLAGS
       --rootmap-lib="$<TARGET_FILE_NAME:${dictname}_dict>"
@@ -110,6 +108,7 @@ ${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
     -o ${dictname}_dict.cpp
     IMPLICIT_DEPENDS CXX ${CLASSES_H}
     DEPENDS ${CLASSES_DEF_XML}
+    COMMAND_EXPAND_LISTS
     COMMENT "Generating dictionary files for target ${dictname}")
   # set variable for install_source
   set(cet_generated_code
