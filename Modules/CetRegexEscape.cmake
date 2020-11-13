@@ -32,10 +32,11 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_regex_escape)
+  cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
   # Handle options.
   _handle_regex_options([=[
 USAGE: cet_regex_escape(<val> <var> <num>)
-       cet_regex_escape(<val>... VAR <var> [NUM <num>])]=] ${ARGV})
+       cet_regex_escape(<val>... VAR <var> [NUM <num>])]=])
   # Escape special characters to prevent them being interpreted by the
   # regex engine.
   set(RESULT)
@@ -53,10 +54,10 @@ endfunction()
 
 function(cet_armor_string)
   # Handle options.
+  cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
   _handle_regex_options("\
 USAGE: cet_armor_string(<val> <var> [<num>])
-       cet_armor_string(<val>... VAR <var> [NUM <num>])"
-    ${ARGV})
+       cet_armor_string(<val>... VAR <var> [NUM <num>])")
   if (DEFINED CRE_UNPARSED_ARGUMENTS)
     if (NOT DEFINED CRE_NUM)
       set(CRE_NUM 1) # Default.
@@ -75,7 +76,6 @@ USAGE: cet_armor_string(<val> <var> [<num>])
 endfunction()
 
 function(_handle_regex_options MSG)
-  cmake_parse_arguments(PARSE_ARGV 1 CRE "" "VAR;NUM" "")
   if (NOT (DEFINED CRE_VAR OR DEFINED CRE_NUM)) # No keywords.
     list(LENGTH CRE_UNPARSED_ARGUMENTS len)
     if (len GREATER 3)
