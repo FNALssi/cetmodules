@@ -40,6 +40,12 @@ list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
 # No tests of cetmodules.
 set(BUILD_TESTING OFF)
 
+# Other configuration.
+set(${PROJECT_NAME}_NOARCH TRUE)
+set(${PROJECT_NAME}_FHICL_DIR "")
+set(${PROJECT_NAME}_INCLUDE_DIR "")
+set(${PROJECT_NAME}_LIBRARY_DIR "")
+
 # Basic build environment.
 include(CetCMakeEnv)
 cet_cmake_env()
