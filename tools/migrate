@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
 # FIXME: Restore function!
-# FIXME: Caveats, better fatal error handling, mitigation hints.
 # FIXME: Documentation!
 
 ##################
@@ -562,7 +561,7 @@ sub fix_cmake_one {
     }
     # Don't need to worry about anything below here for our
     # infrastructure packages.
-    next if grep { $pi->{name} eq $_; } qw(cetmodules mrb));
+    next if grep { $pi->{name} eq $_; } qw(cetmodules mrb);
     while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&g) {
       my $dirkey_ish = $1;
       my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
@@ -574,6 +573,8 @@ sub fix_cmake_one {
     }
     flag_recommended($line, ": use add_subdirectory()")
       if ($line =~ m&^\s*(?i:subdirs)\s*\($&);
+    flag_required($line, ": avoid using or changing CMAKE_INSTALL_PREFIX")
+      if $line =~ m&\bCMAKE_INSTALL_PREFIX\b&;
     flag_required($line, ": remove")
       if $line =~ m&(\b(?:(?i:cetbuildtools)|CMAKE_MODULE_PATH\b).*)$&;
     flag_recommended($line, ": declare exportable CMake module directories with cet_cmake_module_directories()")
