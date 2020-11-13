@@ -22,6 +22,12 @@ function(install_wp)
     project_variable(WP_DIR CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install WP files")
+    if (product AND ${product}_perllib MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_wp PROPERTY VALUE \
+\"${${PROJECT_NAME}_wp}\"\
+")
+    endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   _cet_install(wp ${PROJECT_NAME}_WP_DIR ${ARGN}

@@ -26,6 +26,12 @@ function(install_gdml)
     project_variable(GDML_DIR CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install GDML geometry description files")
+    if (product AND ${product}_gdmldir MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_gdmldir PROPERTY VALUE \
+\"${${PROJECT_NAME}_gdmldir}\"\
+")
+    endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}"

@@ -34,6 +34,12 @@ function(install_perllib)
     project_variable(PERLLIB_DIR perllib CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install perl files")
+    if (product AND ${product}_perllib MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_perllib PROPERTY VALUE \
+\"${${PROJECT_NAME}_perllib}\"\
+")
+    endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   cmake_parse_arguments(PARSE_ARGV 0 IPRL "" "DROP_PREFIX;SUBDIRNAME" "")
@@ -57,7 +63,12 @@ endfunction( install_perllib )
 
 function(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
   cet_find_package(cetlib PRIVATE REQUIRED)
-  cet_localize_pv(cetlib PLUGINVERSIONINFO_PM_IN)
+  if (cetlib_PLUGINVERSIONINFO_PM_IN)
+    cet_localize_pv(cetlib PLUGINVERSIONINFO_PM_IN)
+  else() # Old.
+    set(cetlib_PLUGINVERSIONINFO_PM_IN
+      ${cetlib_SOURCE_DIR}/perllib/PluginVersionInfo.pm.in)
+  endif()
   set(tmp
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/PluginVersionInfo.pm")
   configure_file("${cetlib_PLUGINVERSIONINFO_PM_IN}"

@@ -358,8 +358,8 @@ zeros in project versions.\
   ##################
   # UPS product version (project-specific).
   to_ups_version("${PROJECT_VERSION}" UPS_PRODUCT_VERSION)
-  set(${PROJECT_NAME}_UPS_PRODUCT_VERSION ${UPS_PRODUCT_VERSION}
-    PARENT_SCOPE)
+  set(${PROJECT_NAME}_UPS_PRODUCT_VERSION ${UPS_PRODUCT_VERSION} CACHE STRING
+    "Project's UPS version")
 
   ##################
   # Qualifiers (project-specific, cached).
@@ -370,6 +370,11 @@ zeros in project versions.\
   # UPS flavor (project-specific, cached)
   set(${PROJECT_NAME}_UPS_PRODUCT_FLAVOR CACHE STRING
     "The appropriate UPS flavor for CMake project ${PROJECT_NAME}")
+
+  mark_as_advanced(${PROJECT_NAME}_UPS_PRODUCT_NAME
+    ${PROJECT_NAME}_UPS_PRODUCT_VERSION
+    ${PROJECT_NAME}_UPS_QUALIFIER_STRING
+    ${PROJECT_NAME}_UPS_PRODUCT_FLAVOR)
 
   ##################
   # UPS product installation directory (project-specific).

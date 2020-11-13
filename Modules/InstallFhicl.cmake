@@ -23,6 +23,12 @@ function(install_fhicl)
     project_variable(FHICL_DIR CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install FHiCL files")
+    if (product AND ${product}_fcldir MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_fcldir PROPERTY VALUE \
+\"${${PROJECT_NAME}_fcldir}\"\
+")
+    endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   _cet_install(fhicl ${PROJECT_NAME}_FHICL_DIR ${ARGN}

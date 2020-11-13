@@ -122,6 +122,14 @@ macro(cet_cmake_env)
       "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file.")
   endif()
 
+  # If this project is expecting to use cetbuildtools.
+  _cetbuildtools_compatibility_early()
+
+  # We need to know this, one way or the other.
+  if (NOT PROJECT_VERSION)
+    message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ to project() call")
+  endif()
+
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
   # Remove unwanted information from any previous run.
@@ -229,6 +237,8 @@ old-style variables for library targets\
   include(InstallWP)
   include(SetCompilerFlags)
 
+  _cetbuildtools_compatibility_late()
+
   ##################
   # Default locations for libraries and executables.
   ##################
@@ -265,6 +275,44 @@ function(_clean_internal_cache_entries)
     if (type STREQUAL INTERNAL)
       unset("${entry}" CACHE)
     endif()
+  endforeach()
+endfunction()
+
+macro(_cetbuildtools_compatibility_early)
+  if ("cetbuildtools"
+      IN_LIST ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND
+      NOT PROJECT_VERSION)
+    set(PROJECT_VERSION ${UPS_${PROJECT_NAME}_CMAKE_PROJECT_VERSION})
+  endif()
+  set(product "${${PROJECT_NAME}_UPS_PRODUCT_NAME}")
+  set(version "${${PROJECT_NAME}_UPS_PRODUCT_VERSION}")
+  set(UPSFLAVOR "${${PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
+  set(flavorqual "${PROJECT_NAME}_EXEC_PREFIX")
+  set(full_qualifier "${PROJECT_NAME}_UPS_QUALIFIER_STRING")
+  string(REPLACE ":" ";" qualifier "${full_qualifier}")
+  list(REMOVE_ITEM qualifier debug opt prof)
+  string(REPLACE ";" ":" qualifier "${qualifier}")
+  set(${product}_full_qualifier "${full_qualifier}")
+  set(flavorqual_dir "${product}/${version}/${flavorqual}")
+endmacro()
+
+function(_cetbuildtools_compatibility_late)
+  if (NOT "cetbuildtools" IN_LIST ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
+    return()
+  endif()
+  get_property(cetb_translate_vars DIRECTORY PROPERTY CACHE_VARIABLES)
+  list(FILTER cetb_translate_vars INCLUDE REGEX "^CETB_COMPAT_")
+  list(TRANSFORM cetb_translate_vars REPLACE "^CETB_COMPAT_(.*)$" "\\1"
+    OUTPUT_VARIABLE cetb_var_stems)
+  foreach (var_stem translate_var IN ZIP_LISTS
+      cetb_var_stems cetb_translate_vars)
+    if (${translate_var} IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+      set(val "${${PROJECT_NAME}_${${translate_var}}}")
+    else() # Too early: need placeholder.
+      set(val "\${${PROJECT_NAME}_${${translate_var}}}")
+    endif()
+    set(${product}_${var_stem} "${val}" CACHE INTERNAL
+      "Compatibility variable for packages expecting cetbuildtools")
   endforeach()
 endfunction()
 
