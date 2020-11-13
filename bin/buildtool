@@ -637,7 +637,7 @@ do_work() {
   generator_user_args=("$@")
   maybe_redirect
   stage=cmake
-  if (( short_circuit )) && (( not cmake_only )); then
+  if (( short_circuit )) && ! (( cmake_only )); then
     announce_stage " SKIPPED per --short-circuit"
     (( ${#cmake_options[@]} )) || (( ${#cmake_defs[@]} )) ||
     warning "CMake options and definitions ignored since CMake not invoked:" \
