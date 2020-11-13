@@ -777,8 +777,13 @@ stage_ip() {
     ${extra_generator_args[@]:+"${extra_generator_args[@]}"}
     ${generator_user_args[@]:+"${generator_user_args[@]}"}
   )
+  if (( using_ninja )); then
+    stage_regex="^$stage:"
+  else
+    stage_regex='^\.\.\.[[:space:]]+'"$stage"'$'
+  fi
   if { "${cmd_args[@]}" -t help "${cmd_postargs[@]}" | \
-    grep -Ee '^\.\.\.[[:space:]]+'"$stage"; } >/dev/null 2>&1; then
+    grep -Ee "${stage_regex}"; } >/dev/null 2>&1; then
     announce_stage
     cmd -d "$stage"  \
       "${cmd_args[@]}" -t "$stage" "${cmd_postargs[@]}"
