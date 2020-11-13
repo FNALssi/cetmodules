@@ -48,15 +48,15 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetPackagePath)
+include(Compatibility)
 include(GenerateFromFragments)
 
 # Generate config and version files for the current project.
 function(cet_cmake_config)
-  if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    message(FATAL_ERROR "cet_cmake_config(): must be invoked once per project from that project's top-level directory.")
-  endif()
   project_variable(NOARCH TYPE BOOL
     DOCSTRING "If TRUE, ${PROJECT_NAME} is (at least nominally) architecture-independent.")
+  # Save CMAKE_MODULE_PATH for later.
+  cet_checkpoint_cmp()
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
@@ -356,7 +356,8 @@ function(_generate_target_vars FRAG_LIST)
 ####################################
 # Old cetbuildtools-style target variables.
 ####################################
-if (\${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS) # Per-dependent setting.
+if (\${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR # Per-dependent setting.
+ cetbuildtools IN_LIST \${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES) # Backward-compatibility.
 ${tmp}
 endif()\
 ")

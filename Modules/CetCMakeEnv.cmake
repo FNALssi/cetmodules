@@ -116,10 +116,10 @@ include(GNUInstallDirs)
 
 macro(cet_cmake_env)
   # project() must have been called first.
-  if(NOT CMAKE_PROJECT_NAME)
-    message (FATAL_ERROR
+  if (NOT CMAKE_PROJECT_NAME)
+    message(FATAL_ERROR
       "CMake project() command must have been invoked prior to cet_cmake_env()."
-      "\nIt must be invoked at the top level, not in an included .cmake file.")
+      "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file.")
   endif()
 
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")

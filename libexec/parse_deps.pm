@@ -94,6 +94,7 @@ $btype_table = { debug => 'Debug',
       to_string
       to_ups_version
       ups_to_cmake
+      var_stem_for_dirkey
       verbose
       warning
       write_table_deps
@@ -181,11 +182,16 @@ sub get_derived_parent_data {
     $pi->{cmake_project} = $cmake_project;
     $pi->{name} = to_product_name($cmake_project)
       unless exists $pi->{name};
+  } else {
+    $pi->{cmake_project} = $pi->{name};
   }
+
   if ($cmake_project_version) {
     $pi->{cmake_project_version} = $cmake_project_version;
     $pi->{version} = to_ups_version($cmake_project_version)
       unless exists $pi->{version};
+  } else {
+    $pi->{cmake_project_version} = to_dot_version($pi->{version});
   }
 
   my @sorted;
@@ -890,6 +896,9 @@ sub ups_to_cmake {
   push @cmake_args, sprintf('-D%s_UPS_PRODUCT_NAME:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{name}) if $pi->{name};
+  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_VERSION:STRING=%s',
+                            $pi->{cmake_project},
+                            $pi->{version}) if $pi->{version};
   push @cmake_args, sprintf('-D%s_UPS_QUALIFIER_STRING:STRING=%s',
                             $pi->{cmake_project},
                             $pi->{qualspec}) if $pi->{qualspec};
