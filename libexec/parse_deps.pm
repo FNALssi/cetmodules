@@ -731,7 +731,7 @@ sub parse_version_string {
     @{$result}{qw(major minor micro)} = split /[_.]/, $dv, 3;
     parse_version_extra($result);
   } else {
-    @{$result}{qw(major minor micro extra extra_type extra_text extra_num)} =
+    @{$result}{qw(major minor micro extra_type extra extra_text extra_num)} =
       (-1, -1, -1, 0, "", "", -1);
   }
   return $result;
