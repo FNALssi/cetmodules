@@ -114,6 +114,10 @@ endif()
 include(GNUInstallDirs)
 ##################
 
+define_property(TARGET PROPERTY CET_EXEC_LOCATION
+  BRIEF_DOCS "Saved location of the executable represented by a target"
+  FULL_DOCS "Saved location of the executable represented by a target")
+
 macro(cet_cmake_env)
   # project() must have been called first.
   if (NOT CMAKE_PROJECT_NAME)

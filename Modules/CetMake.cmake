@@ -257,29 +257,67 @@ endfunction()
 function(cet_script)
   cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_INSTALL;REMOVE_EXTENSIONS"
     "DESTINATION;EXPORT" "DEPENDENCIES")
-  if (CS_NO_INSTALL AND CS_EXPORT)
-    message(FATAL_ERROR "cet_script(): NO_INSTALL and EXPORT are mutually exclusive")
+  if (CS_NO_INSTALL)
+    if (CS_EXPORT)
+      message(FATAL_ERROR "cet_script(): NO_INSTALL and EXPORT are mutually exclusive")
+    else()
+      warn_deprecated("cet_script(NO_INSTALL)"
+        " - use from original location if possible to avoid unnecessary copy operations")
+    endif()
+  endif()
+  if (CS_GENERATED)
+    warn_deprecated("cet_script(GENERATED)"
+      " - CMake source property GENERATED is set automatically by add_custom_command, etc. or can be set manually otherwise")
   endif()
   if (NOT CS_DESTINATION)
     set(CS_DESTINATION "${${PROJECT_NAME}_SCRIPTS_DIR}")
   endif()
   foreach(script IN LISTS CS_UNPARSED_ARGUMENTS)
-    if (CS_GENERATED)
+    unset(need_copy)
+    get_property(generated SOURCE "${script}" PROPERTY GENERATED)
+    get_filename_component(script_name "${script}" NAME)
+    if (generated OR CS_GENERATED)
       get_filename_component(script_source "${script}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     else()
+      # Should exist: make sure we can find it and that it is
+      # executable.
       get_filename_component(script_source "${script}" ABSOLUTE)
+      if (NOT EXISTS "${script_source}")
+        message(FATAL_ERROR "${script} is not accessible: correct location or set GENERATED source property")
+      endif()
+      execute_process(COMMAND test -x "${script_source}"
+        OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE need_copy)
     endif()
-    if (REMOVE_EXTENSIONS)
-      get_filename_component(target "${script}" NAME_WE)
+    if (CS_REMOVE_EXTENSIONS)
+      get_filename_component(target "${script_source}" NAME_WE)
       cet_passthrough(KEYWORD RENAME target rename_arg)
     else()
-      get_filename_component(target "${script}" NAME)
+      set(target "${script_name}")
     endif()
     _calc_namespace(ns ${CS_EXPORT})
-    add_executable(${target} IMPORTED GLOBAL)
-    set_target_properties(${target} PROPERTIES
-      IMPORTED_LOCATION "${script_source}")
-    add_executable(${ns}::${target} ALIAS ${target})
+    if (need_copy)
+      message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
+      cet_copy("${script_source}" PROGRAMS
+        NAME ${target} NAME_AS_TARGET
+        DEPENDENCIES ${CS_DEPENDENCIES}
+        DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      # cet_copy() will create the primary (non-qualified) target as a
+      # custom target. We create the namespaced target as IMPORTED
+      # rather than ALIAS because one can only create ALIASes to
+      # libraries, executables or IMPORTED targets.
+      add_executable(${ns}::${target} IMPORTED GLOBAL)
+      set_target_properties(${ns}::${target} PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}")
+    else()
+      # "Normal" - non-qualified target is an IMPORTED reference to the
+      # source file, and the namespaced target is an ALIAS for
+      # transparency between standalone and multi-project (e.g. MRB)
+      # builds.
+      add_executable(${target} IMPORTED GLOBAL)
+      set_target_properties(${target} PROPERTIES
+        IMPORTED_LOCATION "${script_source}")
+      add_executable(${ns}::${target} ALIAS ${target})
+    endif()
     if (NOT CS_NO_INSTALL)
       install(PROGRAMS "${script_source}"
         DESTINATION "${CS_DESTINATION}"

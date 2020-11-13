@@ -79,21 +79,19 @@ function (cet_copy)
       endif()
     endif()
     string(REGEX REPLACE "[: ]" "+" target "${target}")
+    if (CETC_PROGRAMS)
+      set(chmod_cmd COMMAND chmod +x "${dest_path}")
+    endif()
     add_custom_command(OUTPUT "${dest_path}"
       WORKING_DIRECTORY "${CETC_WORKING_DIRECTORY}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${real_dest}"
       COMMAND ${CMAKE_COMMAND} -E copy "${source}" "${dest_path}"
+      ${chmod_cmd}
       COMMENT "Copying ${source} to ${dest_path}"
+      VERBATIM COMMAND_EXPAND_LISTS
       DEPENDS "${source}" ${CETC_DEPENDENCIES})
-    if (CETC_PROGRAMS)
-      add_custom_command(OUTPUT "${dest_path}"
-        COMMAND chmod +x "${dest_path}"
-        APPEND)
-    endif()
-    if (NOT target MATCHES "^\\+.*")
-      set(target "+${target}")
-    endif()
     add_custom_target(${target} ALL DEPENDS "${dest_path}")
+    set_property(TARGET ${target} PROPERTY CET_EXEC_LOCATION "${dest_path}")
   endforeach()
 endfunction()
 

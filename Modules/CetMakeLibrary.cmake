@@ -183,7 +183,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   if (NOT CML_NO_INSTALL)
     cet_register_export_name(CML_EXPORT)
     _add_to_exported_targets(EXPORT ${CML_EXPORT} TARGETS ${lib_targets})
-    set(install_args TARGETS ${lib_targets} EXPORT ${CML_EXPORT}
+    install(TARGETS ${lib_targets} EXPORT ${CML_EXPORT}
 	    RUNTIME DESTINATION "${${PROJECT_NAME}_BIN_DIR}"
 	    LIBRARY DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}"
 	    ARCHIVE DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}")
@@ -197,7 +197,6 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
           "add_library(${alias_namespace}::${alias} ALIAS ${${PROJECT_NAME}_${CML_EXPORT}_NAMESPACE}::${CML_LIBRARY_NAME})")
       endif()
     endforeach()
-    install(${install_args})
   endif()
 endfunction()
 

@@ -287,7 +287,7 @@ include(CetRegexEscape)
 set(CET_RUNANDCOMPARE "${CMAKE_CURRENT_LIST_DIR}/RunAndCompare.cmake")
 
 # Test run wrapper
-set(CET_EXEC_TEST cetmodules::cet_exec_test)
+set(CET_TEST_WRAPPER cetmodules::cet_exec_test)
 
 # Properties
 define_property(TEST PROPERTY KEYWORDS
@@ -372,7 +372,7 @@ function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
     COMMAND
-    ${CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
     --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
@@ -381,14 +381,31 @@ function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
   _cet_add_test_properties(${TNAME} ${TEXEC})
 endfunction()
 
-function(_cet_add_test)
-  if (TARGET "${CET_TEST_EXEC}")
-    set(EXEC_LOCATION "$<TARGET_FILE:${CET_TEST_EXEC}>")
-  else()
-    set(EXEC_LOCATION "${CET_TEST_EXEC}")
+function(_cet_exec_location LOC_VAR)
+  list(POP_FRONT ARGN EXEC)
+  if (TARGET "${EXEC}")
+    get_property(target_type TARGET ${EXEC} PROPERTY TYPE)
+    if (target_type STREQUAL "EXECUTABLE")
+      set(EXEC "$<TARGET_FILE:${EXEC}>")
+    else()
+      get_property(imported TARGET ${EXEC} PROPERTY IMPORTED)
+      if (imported)
+        set(EXEC "$<TARGET_PROPERTY:${EXEC},IMPORTED_LOCATION>")
+      else()
+        get_property(exec_location TARGET ${EXEC} PROPERTY CET_EXEC_LOCATION)
+        if (exec_location)
+          set(EXEC "${exec_location}")
+        endif()
+      endif()
+    endif()
   endif()
+  set(${LOC_VAR} "${EXEC}" PARENT_SCOPE)
+endfunction()
+
+function(_cet_add_test)
+  _cet_exec_location(TEXEC ${CET_TEST_EXEC})
   if (${NTESTS} EQUAL 1)
-    _cet_add_test_detail(${TEST_TARGET_NAME} ${EXEC_LOCATION} ${CET_TEST_WORKDIR} ${ARGN})
+    _cet_add_test_detail(${TEST_TARGET_NAME} ${TEXEC} ${CET_TEST_WORKDIR} ${ARGN})
     list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
     file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
     set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
@@ -403,7 +420,7 @@ function(_cet_add_test)
         )
       set(tname "${TEST_TARGET_NAME}${tnum}")
       string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
-      _cet_add_test_detail(${tname} ${EXEC_LOCATION} ${test_workdir} ${ARGN})
+      _cet_add_test_detail(${tname} ${TEXEC} ${test_workdir} ${ARGN})
       list(APPEND ALL_TEST_TARGETS ${tname})
       file(MAKE_DIRECTORY "${test_workdir}")
       set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
@@ -419,7 +436,7 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   cet_localize_pv(cetmodules LIBEXEC_DIR)
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
-    COMMAND ${CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
     --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
@@ -458,7 +475,9 @@ function(_cet_add_ref_test)
       list(APPEND ALL_TEST_TARGETS ${tname})
       file(MAKE_DIRECTORY "${test_workdir}")
       set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
-      cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      if (CET_DATAFILES)
+        cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      endif()
     endforeach()
   endif()
   set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
@@ -658,11 +677,8 @@ function(cet_test CET_TARGET)
           cet_convert_target_args(args "${filter}")
           set(filter)
           foreach (arg IN LISTS args)
-            if (TARGET ${arg})
-              list(APPEND filter "$<TARGET_PROPERTY:${arg},IMPORTED_LOCATION>")
-            else()
-              list(APPEND filter "${arg}")
-            endif()
+            _cet_exec_location(arg "${arg}")
+            list(APPEND filter "${arg}")
           endforeach()
           list(APPEND DEFINE_OUTPUT_FILTERS "${filter}")
         endforeach()
