@@ -454,24 +454,26 @@ EOF
             }
           }
         }
-        my $piversion = to_dot_version($pi->{version});
-        if ($seen_version) {
-          if ($version_info->{v} ne $piversion) {
-            my $msg = <<EOF;
+        if ($pi->{version}) {
+          my $piversion = to_dot_version($pi->{version});
+          if ($seen_version) {
+            if ($piversion and $version_info->{v} ne $piversion) {
+              my $msg = <<EOF;
 CMake version in project() call ($version_info->{v}) does NOT match
 UPS-style version in product_deps ($pi->{version} -> $piversion):
 updating CMake version to $piversion (CMake version now governs)
 EOF
-            warning($msg);
-            $$seen_version =
-              sprintf("\%s$piversion\%s\%s",
-                      ($version_info->{q} // '') x 2,
-                      $version_info->{nl} // '');
-          }
-        } else {
-          if ($proj_info->{pre} =~ m&^(.*?)([ 	]*+\n?+)$&) {
-            $proj_info->{pre} =
-              sprintf("\%s\%s", join(" ", $1, "VERSION", $piversion), $2 // '');
+              warning($msg);
+              $$seen_version =
+                sprintf("\%s$piversion\%s\%s",
+                        ($version_info->{q} // '') x 2,
+                        $version_info->{nl} // '');
+            }
+          } else {
+            if ($proj_info->{pre} =~ m&^(.*?)([ 	]*+\n?+)$&) {
+              $proj_info->{pre} =
+                sprintf("\%s\%s", join(" ", $1, "VERSION", $piversion), $2 // '');
+            }
           }
         }
         $fh->print("find_package(cetmodules $myversion REQUIRED)\n") unless
