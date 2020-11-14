@@ -133,11 +133,6 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   _generate_config_vars(${FRAG_LIST} _GCP_${PATH_VARS_VAR})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_VARS})
   ####################################
-  # Stage: deps
-  ####################################
-  _generate_transitive_deps(${FRAG_LIST})
-  list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_DEPS})
-  ####################################
   # Stage: targets
   ####################################
   _generate_target_imports(${FRAG_LIST})
@@ -147,6 +142,11 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   ####################################
   _generate_target_vars(${FRAG_LIST})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_TARGET_VARS})
+  ####################################
+  # Stage: deps
+  ####################################
+  _generate_transitive_deps(${FRAG_LIST})
+  list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_DEPS})
   # Propogate variables required upstream.
   list(APPEND ${PATH_VARS_VAR} "${_GCP_${PATH_VARS_VAR}}")
   set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
