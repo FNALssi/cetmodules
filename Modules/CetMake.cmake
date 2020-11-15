@@ -257,13 +257,8 @@ endfunction()
 function(cet_script)
   cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_INSTALL;REMOVE_EXTENSIONS"
     "DESTINATION;EXPORT" "DEPENDENCIES")
-  if (CS_NO_INSTALL)
-    if (CS_EXPORT)
-      message(FATAL_ERROR "cet_script(): NO_INSTALL and EXPORT are mutually exclusive")
-    else()
-      warn_deprecated("cet_script(NO_INSTALL)"
-        " - use from original location if possible to avoid unnecessary copy operations")
-    endif()
+  if (CS_NO_INSTALL AND CS_EXPORT)
+    message(FATAL_ERROR "cet_script(): NO_INSTALL and EXPORT are mutually exclusive")
   endif()
   if (CS_GENERATED)
     warn_deprecated("cet_script(GENERATED)"

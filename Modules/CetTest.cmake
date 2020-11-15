@@ -484,21 +484,14 @@ function(_cet_add_ref_test)
 endfunction()
 
 ####################################
-# Main macro definitions.
+# Main function definitions.
 function(cet_test_env)
-  cmake_parse_arguments(PARSE_ARGV 0 CET_TEST
-    "CLEAR"
-    "OUT_VAR"
-    "")
-  if (NOT CET_TEST_OUT_VAR)
-    message(DEPRECATION "cet_test_env() without specification of OUT_VAR is deprecated and will be removed")
-    set(CET_TEST_OUT_VAR CET_TEST_ENV)
-  endif()
+  cmake_parse_arguments(PARSE_ARGV 0 CET_TEST "CLEAR" "" "")
   if (CET_TEST_CLEAR)
-    set(${CET_TEST_OUT_VAR})
+    set(CET_TEST_ENV)
   endif()
-  set(${CET_TEST_OUT_VAR} "${${CET_TEST_OUT_VAR}};${CET_TEST_UNPARSED_ARGUMENTS}"
-    PARENT_SCOPE)
+  list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
+  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
 endfunction()
 
 function(cet_test CET_TARGET)
