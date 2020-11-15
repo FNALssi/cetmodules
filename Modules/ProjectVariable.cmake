@@ -321,6 +321,7 @@ function(project_variable VAR_NAME)
   ##################
   # Avoid hysteresis.
   unset(${PROJECT_NAME}_${VAR_NAME}_INIT CACHE)
+  unset(${PROJECT_NAME}_${VAR_NAME}_INIT)
   ##################
   # Make the project variable known to the CMake cache.
   message(DEBUG "set(${PROJECT_NAME}_${VAR_NAME} ${DEFAULT_VAL} CACHE ${VAR_TYPE} ${CPV_DOCSTRING} ${FORCE})")
