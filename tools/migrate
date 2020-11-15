@@ -257,7 +257,7 @@ sub write_product_table {
   $fh->print(map { my $row = $_; trimline(map({ pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns)); }
              sort { $max_flags->{$a->{product}} <=> $max_flags->{$b->{product}} or
                       $a->{product} cmp $b->{product} or
-                        by_version($a->{version}, $b->{version}); } @$product_table);
+                        version_cmp($a->{version}, $b->{version}); } @$product_table);
   $fh->print("end_product_list\n");
 }
 
@@ -352,9 +352,10 @@ sub process_cml {
     if (not $cmr_done) {
       if ($line =~ m&^\s*(?i:cmake_minimum_required)\s*\(\s*VERSION\s+(?P<vmin>.*?)(?:\.\.\.(?P<vmax>.*?))?\s*(?P<fatal>FATAL_ERROR)?\s*\)(?P<post>.*)$&) {
         my $cmr_info = { %+ };
-        if (by_version($cmr_info->{vmin},'3.18.2') < 0) {
+        if ($cmr_info->{vmin} and
+            version_cmp($cmr_info->{vmin},'3.18.2') < 0) {
           $cmr_info->{vmin} = '3.18.2';
-          if ($cmr_info->{vmax} and by_version($cmr_info->{vmin}, $cmr_info->{vmax}) != -1) {
+          if ($cmr_info->{vmax} and version_cmp($cmr_info->{vmin}, $cmr_info->{vmax}) != -1) {
             $cmr_info->{policy} = $cmr_info->{vmax};
             undef $cmr_info->{vmax};
           }
@@ -364,7 +365,7 @@ sub process_cml {
                     $cmr_info->{post} // '');
         if ($cmr_info->{policy}) {
           $fh->printf("cmake_policy(VERSION %s)\n", $cmr_info->{policy});
-          if (by_version($cmr_info->{policy}, 3.16) < 0) {
+          if (version_cmp($cmr_info->{policy}, 3.16) < 0) {
             $fh->print(<<EOF);
 # Policy CMP0096 must be set to NEW to preserve leading zeros in the
 # VERSION set by project().

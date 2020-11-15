@@ -71,7 +71,6 @@ $btype_table = { debug => 'Debug',
 
 @EXPORT =
   qw(
-      by_version
       cetpkg_info_file
       classify_deps
       compiler_for_quals
@@ -96,6 +95,7 @@ $btype_table = { debug => 'Debug',
       ups_to_cmake
       var_stem_for_dirkey
       verbose
+      version_cmp
       warning
       write_table_deps
       write_table_frag
@@ -703,12 +703,12 @@ sub offset_annotated_items {
 sub parse_version_extra {
   my $vInfo = shift;
   # Swallow optional _ or - separator to 4th field.
-  if (($vInfo->{micro} || '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
+  if (($vInfo->{micro} // '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
     $vInfo->{micro} = "$1";
   } else {
     $vInfo->{micro} = '';
   }
-  my ($extra, $etext, $enum) = (${2} || "", ${3} || "", ${2} ? ${4} || -1 : -1);
+  my ($extra, $etext, $enum) = (${2} // "", ${3} // "", (defined ${2} and ${4} or -1));
   if (not $etext) {
     $vInfo->{extra_type} = 0;
   } elsif ($etext eq "patch" or ($enum >= 0 and $etext eq "p")) {
@@ -730,7 +730,7 @@ sub parse_version_extra {
 }
 
 sub parse_version_string {
-  my $dv = shift || "";
+  my $dv = shift // "";
   $dv =~ s&^v&&o;
   my $result = {};
   if ($dv) {
@@ -770,9 +770,9 @@ sub to_product_name {
   return $name;
 }
 
-sub by_version {
-  my $vInfoA = parse_version_string($a || shift);
-  my $vInfoB = parse_version_string($b || shift);
+sub version_cmp($$) {
+  # Use slower prototype method due to package scope issues for $a, $b;
+  my ($vInfoA, $vInfoB) = map { parse_version_string($_); } @_;
   return
     $vInfoA->{major} <=> $vInfoB->{major} ||
       $vInfoA->{minor} <=> $vInfoB->{minor} ||
