@@ -249,7 +249,8 @@ function(cet_remove_compiler_flags)
     string(STRIP ${flags_var} "${${flags_var}}")
     set(${flags_var} "${${flags_var}}" PARENT_SCOPE)
   endforeach()
-  message(DEPRECATION "cet_remove_compiler_flags() is deprecated: use add_compiler_flags() with negated flags instead")
+  warn_deprecated("cet_remove_compiler_flags()" NEW
+    "add_compiler_flags() with negated flags")
 endfunction()
 
 macro(cet_set_compiler_flags)
@@ -345,8 +346,8 @@ macro(cet_set_compiler_flags)
   # EXTRA(_C|_CXX)?_FLAGS.
   foreach(lang IN ITEMS C CXX)
     if (CSCF_EXTRA_${lang}_FLAGS)
-      message(DEPRECATION "EXTRA_${lang}_FLAGS is deprecated: use EXTRA_FLAGS"
-        " with generator expressions instead.")
+      warn_deprecated("EXTRA_${lang}_FLAGS" NEW
+        "EXTRA_FLAGS with generator expressions")
       list(APPEND CSCF_EXTRA_FLAGS "$<$<COMPILE_LANGUAGE:${lang}>:${CSCF_EXTRA_${lang}_FLAGS}>")
     endif()
   endforeach()
