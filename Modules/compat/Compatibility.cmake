@@ -14,7 +14,12 @@ include(CetCMakeUtils)
 include(CetRegexEscape)
 include(ParseVersionString)
 
+set(CET_WARN_DEPRECATED TRUE)
+
 function(warn_deprecated OLD)
+  if (NOT CET_WARN_DEPRECATED)
+    return()
+  endif()
   cmake_parse_arguments(PARSE_ARGV 1 WD "" "NEW" "")
   if (WD_NEW)
     set(msg " - use ${WD_NEW} instead")
