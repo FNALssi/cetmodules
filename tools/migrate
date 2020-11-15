@@ -549,7 +549,8 @@ sub fix_cmake_one {
   # CMakeLists.txt or *.cmake file to upgrade to use of cetmodules >=
   # 2.0 where possible to do so programmatically.
   my ($path, $filepath, $filename) = ($File::Find::dir, $File::Find::name, $_);
-  return unless -f $filepath;
+  return if (not -f $filepath or
+             grep { $pi->{name} eq $_; } qw(cetmodules mrb));
   info("upgrading $filepath -> $filepath.new");
   open(my $out, ">", "$filepath.new") or
     error_exit("unable to write $filepath.new");
@@ -560,9 +561,6 @@ sub fix_cmake_one {
       $out->print($line);
       next;
     }
-    # Don't need to worry about anything below here for our
-    # infrastructure packages.
-    next if grep { $pi->{name} eq $_; } qw(cetmodules mrb);
     while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&g) {
       my $dirkey_ish = $1;
       my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
