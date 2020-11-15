@@ -513,7 +513,7 @@ function(cet_test CET_TARGET)
 
   # CET_SOURCES is obsolete.
   if (CET_SOURCES)
-    warn_deprecated("cet_test(): CET_SOURCES" NEW "CET_SOURCE")
+    warn_deprecated("cet_test(): SOURCES" NEW "SOURCE")
     list(APPEND CET_SOURCE ${CET_SOURCES})
     unset(CET_SOURCES)
   endif()
