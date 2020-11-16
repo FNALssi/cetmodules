@@ -761,8 +761,12 @@ ${tred:+| tred} > \"$gfile\""
     fi
     warning "test label specifications $test_specs ignored since tests are not enabled"
   fi
-  (( do_install )) && stage_ip install
-  (( do_package )) && stage_ip package
+  if (( do_install )); then
+    stage_ip install
+  fi
+  if (( do_package )); then
+    stage_ip package
+  fi
 }
 
 stage_ip() {
