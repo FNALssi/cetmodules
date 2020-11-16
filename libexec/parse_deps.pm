@@ -131,7 +131,7 @@ sub verbose {
 }
 
 sub get_parent_info {
-  my ($pfile) = @_;
+  my ($pfile, %options) = @_;
   open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
   my $result;
   my $chains;
@@ -144,7 +144,7 @@ sub get_parent_info {
       warning("multi-argument version of \"parent\" in $pfile",
               "is deprecated: VERSION defined in CMakeLists.txt:project() governs.",
               "Use \"chain[s] [current|test|new|old|<chain>]...\" in $pfile to specify chains.")
-        if $pars[1];
+        if ($pars[1] and not $options{quiet_warnings});
       $result->{name} = shift @pars;
       $result->{version} = shift @pars if $pars[0];
       @$chains{@pars} = (1) x scalar @pars if scalar @pars;
@@ -176,7 +176,10 @@ sub get_derived_parent_data {
 
   # CMake info.
   my ($cmake_project, $cmake_project_version) =
-    get_cmake_project_info($sourcedir);
+    get_cmake_project_info($sourcedir,
+                           ($pi->{version}) ?
+                           (quiet_warnings => 1) : ())
+      unless $pi->{cmake_project} && $pi->{cmake_project_version};
 
   if ($cmake_project) {
     $pi->{cmake_project} = $cmake_project;
@@ -850,7 +853,7 @@ sub cmake_project_var_for_pathspec {
 }
 
 sub get_cmake_project_info {
-  my ($pkgtop) = @_;
+  my ($pkgtop, %options) = @_;
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
   open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
   my $filedata = join('',<CML>);
@@ -859,7 +862,7 @@ sub get_cmake_project_info {
   error_exit("unable to find suitable CMake project() declaration in $cmakelists")
     unless $prod;
   warning("unable to extract version information from project call for $prod")
-    unless $ver;
+    unless $ver and not $options{quiet_warnings};
   return ($prod, ${ver} || undef);
 }
 
