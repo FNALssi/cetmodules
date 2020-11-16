@@ -65,9 +65,11 @@ function(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
   cet_find_package(cetlib PRIVATE REQUIRED)
   if (cetlib_PLUGINVERSIONINFO_PM_IN)
     cet_localize_pv(cetlib PLUGINVERSIONINFO_PM_IN)
-  else() # Old.
+  elseif (cetlib_SOURCE_DIR) # Old cetlib via MRB.
     set(cetlib_PLUGINVERSIONINFO_PM_IN
-      ${cetlib_SOURCE_DIR}/perllib/PluginVersionInfo.pm.in)
+      "${cetlib_SOURCE_DIR}/perllib/PluginVersionInfo.pm.in")
+  else() # Old cetlib installed externally.
+    set(cetlib_PLUGINVERSIONINFO_PM_IN "$ENV{CETLIB_DIR}/perllib/PluginVersionInfo.pm.in")
   endif()
   set(tmp
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/PluginVersionInfo.pm")
