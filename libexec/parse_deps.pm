@@ -706,7 +706,7 @@ sub parse_version_extra {
   if (($vInfo->{micro} // '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
     $vInfo->{micro} = "$1";
   } else {
-    $vInfo->{micro} = '';
+    $vInfo->{micro} = undef;
   }
   my ($extra, $etext, $enum) = (${2} // "", ${3} // "", (defined ${2} and ${4} or -1));
   if (not $etext) {
@@ -737,8 +737,8 @@ sub parse_version_string {
     @{$result}{qw(major minor micro)} = split /[_.]/, $dv, 3;
     parse_version_extra($result);
   } else {
-    @{$result}{qw(major minor micro extra_type extra extra_text extra_num)} =
-      (-1, -1, -1, 0, "", "", -1);
+    my @keys = qw(major minor micro extra_type extra extra_text extra_num);
+    @{$result}{@keys} = (undef) x scalar @keys;
   }
   return $result;
 }
@@ -746,14 +746,14 @@ sub parse_version_string {
 sub _format_version {
   my $v = shift;
   $v = parse_version_string($v) unless ref $v;
-  my $separator = shift || '.';
-  my $preamble = shift || '';
+  my $separator = shift // '.';
+  my $preamble = shift // '';
   return sprintf("${preamble}%s%s",
                  join($separator,
-                      defined $v->{major} ? $v->{major} : (),
-                      defined $v->{minor} ? $v->{minor} : (),
-                      defined $v->{micro} ? $v->{micro} : ()),
-                 $v->{extra} || '');
+                      $v->{major} // (),
+                      $v->{minor} // (),
+                      $v->{micro} // ()),
+                 $v->{extra} // '');
 }
 
 sub to_dot_version {
@@ -774,12 +774,12 @@ sub version_cmp($$) {
   # Use slower prototype method due to package scope issues for $a, $b;
   my ($vInfoA, $vInfoB) = map { parse_version_string($_); } @_;
   return
-    $vInfoA->{major} <=> $vInfoB->{major} ||
-      $vInfoA->{minor} <=> $vInfoB->{minor} ||
-        $vInfoA->{micro} <=> $vInfoB->{micro} ||
-          $vInfoA->{extra_type} <=> $vInfoB->{extra_type} ||
-            $vInfoA->{extra_text} cmp $vInfoB->{extra_text} ||
-              $vInfoA->{extra_num} <=> $vInfoB->{extra_num};
+    ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
+      ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
+        ($vInfoA->{micro} // 0) <=> ($vInfoB->{micro} // 0) ||
+          ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
+            ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
+              ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
 }
 
 my $cqual_table =
