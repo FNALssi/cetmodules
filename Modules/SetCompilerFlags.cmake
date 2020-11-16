@@ -309,7 +309,8 @@ macro(cet_set_compiler_flags)
   add_compile_options(${CSCF_EXTRA_DEFINITIONS})
   
   # Generally-useful options.
-  add_compile_options("SHELL:$<$<COMPILE_LANG_AND_ID:$<COMPILE_LANGUAGE>,Clang,AppleClang,GNU>:-frecord-gcc-switches -grecord-gcc-switches>")
+  add_compile_options("SHELL:$<$<COMPILE_LANG_AND_ID:$<COMPILE_LANGUAGE>,GNU>:-frecord-gcc-switches>")
+  add_compile_options("SHELL:$<$<COMPILE_LANG_AND_ID:$<COMPILE_LANGUAGE>,Clang,AppleClang,GNU>:-grecord-gcc-switches>")
 
   # Add options according to diagnostic mode DIAGS.
   set(diags_vals CAVALIER CAUTIOUS VIGILANT PARANOID)
