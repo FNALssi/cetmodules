@@ -136,12 +136,14 @@ function(cet_make)
     if (EXISTS classes_def.xml)
       cet_passthrough(IN_PLACE KEYWORD LOCAL_INCLUDE_DIRS
         CM_DICT_LOCAL_INCLUDE_DIRS)
+      include(BuildDictionary)
       build_dictionary(${CM_LIBRARY_NAME}
         DICTIONARY_LIBRARIES ${CM_DICT_LIBRARIES} NOP
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
         ${CM_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
     elseif (EXISTS LinkDef.h)
+      include(CetRootCint)
       cet_rootcint(${CM_LIBRARY_NAME}
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
         ${CM_EXPORT} ${CM_NO_INSTALL}
