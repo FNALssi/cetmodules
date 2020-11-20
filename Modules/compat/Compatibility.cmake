@@ -109,6 +109,13 @@ function(cet_checkpoint_cmp)
     CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
 endfunction()
 
+function(cet_checkpoint_cmp)
+  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_VALUE "${CMAKE_MODULE_PATH}"
+    CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
+  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT "${PROJECT_NAME}"
+    CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
+endfunction()
+
 function(cet_process_cmp)
   get_property(CURRENT_PROJECT CACHE
     CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT PROPERTY VALUE)
@@ -125,6 +132,29 @@ function(cet_process_cmp)
     cet_cmake_module_directories("${extra_dirs}" PROJECT ${CURRENT_PROJECT})
   endif()
   cet_checkpoint_cmp()
+endfunction()
+
+function(cet_checkpoint_did)
+  get_property(did DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+  set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_VALUE "${did}"
+    CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
+  set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT "${PROJECT_NAME}"
+    CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
+endfunction()
+
+function(cet_process_did)
+  get_property(CURRENT_PROJECT CACHE
+    CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT PROPERTY VALUE)
+  get_property(extra_dirs
+    CACHE CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_VALUE PROPERTY VALUE)
+  get_property(current_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+  list(REMOVE_ITEM extra_dirs ${current_dirs})
+  cet_regex_escape("${${CURRENT_PROJECT}_SOURCE_DIR}" e_srcdir)
+  list(FILTER extra_dirs INCLUDE REGEX "^${e_srcdir}")
+  if (extra_dirs)
+    include_directories("${extra_dirs}" PROJECT ${CURRENT_PROJECT})
+  endif()
+  cet_checkpoint_did()
 endfunction()
 
 function(check_ups_version PRODUCT VERSION MINIMUM)

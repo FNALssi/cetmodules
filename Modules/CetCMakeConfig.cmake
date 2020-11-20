@@ -57,6 +57,8 @@ function(cet_cmake_config)
     DOCSTRING "If TRUE, ${PROJECT_NAME} is (at least nominally) architecture-independent.")
   # Save CMAKE_MODULE_PATH for later.
   cet_checkpoint_cmp()
+  # Save INCLUDE_DIRECTORIES for later.
+  cet_checkpoint_did()
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
