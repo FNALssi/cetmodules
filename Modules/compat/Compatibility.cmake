@@ -267,33 +267,32 @@ function(_parse_fup_arguments _FUP_PRODUCT)
       # other variables are cleared.
       set(_FUP_DISABLED)
     else()
-      message(SEND_ERROR "find_ups_product(): REQUIRED UPS product ${_FUP_PRODUCT} has not been set up with WANT_UPS == TRUE!")
+      message(WARNING "find_ups_product(): REQUIRED UPS product ${_FUP_PRODUCT} has not been set up with WANT_UPS == TRUE!")
     endif()
-  else()
-    foreach (var IN ITEMS FQ_DIR BASE BASE_DIR ROOT)
-      if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
-          IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
-          IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
-        list(APPEND _FUP_PREFIX "$ENV{${_FUP_PRODUCT_UC}_${var}}")
-      endif()
-    endforeach()
-    foreach (var IN ITEMS LIB LIB_DIR INC INCDIR INC_DIR INCLUDE_DIR)
-      if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
-          IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
-          IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
-        get_filename_component(tmp "$ENV{${_FUP_PRODUCT_UC}_${var}}"
-          DIRECTORY)
-        list(APPEND _FUP_PREFIX "${tmp}")
-      endif()
-    endforeach()
-    foreach (var IN ITEMS UPS_DIR DIR)
-      if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
-          IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
-          IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
-        list(APPEND _FUP_PREFIX "$ENV{${_FUP_PRODUCT_UC}_${var}}")
-      endif()
-    endforeach()
   endif()
+  foreach (var IN ITEMS FQ_DIR BASE BASE_DIR ROOT)
+    if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
+        IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
+        IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
+      list(APPEND _FUP_PREFIX "$ENV{${_FUP_PRODUCT_UC}_${var}}")
+    endif()
+  endforeach()
+  foreach (var IN ITEMS LIB LIB_DIR INC INCDIR INC_DIR INCLUDE_DIR)
+    if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
+        IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
+        IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
+      get_filename_component(tmp "$ENV{${_FUP_PRODUCT_UC}_${var}}"
+        DIRECTORY)
+      list(APPEND _FUP_PREFIX "${tmp}")
+    endif()
+  endforeach()
+  foreach (var IN ITEMS UPS_DIR DIR)
+    if (DEFINED ENV{${_FUP_PRODUCT_UC}_${var}} AND
+        IS_ABSOLUTE "$ENV{${_FUP_PRODUCT_UC}_${var}}" AND
+        IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${var}}")
+      list(APPEND _FUP_PREFIX "$ENV{${_FUP_PRODUCT_UC}_${var}}")
+    endif()
+  endforeach()
   list(REMOVE_DUPLICATES _FUP_PREFIX)
   foreach (var IN LISTS opts _FUP__OPTS sargs _FUP__SARGS largs _FUP__LARGS
       ITEMS DISABLED DOT_VERSION KEWORDS_MISSING_VALUES PREFIX PRODUCT
