@@ -43,14 +43,18 @@ function(install_headers)
   cet_package_path(CURRENT_SUBDIR)
   if (ART_MAKE_PREPEND_PRODUCT_NAME OR # Historical compatibility.
       IHDR_USE_PROJECT_NAME OR IHDR_USE_PRODUCT_NAME)
-    string(APPEND IHDR_SUBDIRNAME "/${PROJECT_NAME}")
+    string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${PROJECT_NAME}")
   endif()
-  string(APPEND IHDR_SUBDIRNAME "/${CURRENT_SUBDIR}")
-  _cet_install(headers ${PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
-    SUBDIRNAME ${IHDR_SUBDIRNAME}
-    _SEARCH_BUILD _INSTALL_ONLY
-    _EXTRA_BASENAME_EXCLUDES classes.h Linkdef.h
-    _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc")
+  string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${CURRENT_SUBDIR}")
+  if ("LIST" IN_LIST IHDR_UNPARSED_ARGUMENTS)
+    _cet_install(headers ${PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
+      SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY)
+  else()
+    _cet_install(headers ${PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
+      SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY
+      _SEARCH_BUILD _EXTRA_BASENAME_EXCLUDES classes.h Linkdef.h
+      _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc")
+  endif()
 endfunction()
 
 cmake_policy(POP)

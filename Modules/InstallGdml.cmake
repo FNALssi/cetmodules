@@ -34,8 +34,12 @@ function(install_gdml)
     endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
-  _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}"
-    _SQUASH_SUBDIRS _GLOBS "?*.gdml")
+  if ("LIST" IN ARGN)
+    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}")
+  else()
+    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}"
+      _SQUASH_SUBDIRS _GLOBS "?*.gdml")
+  endif()
 endfunction()
 
 cmake_policy(POP)

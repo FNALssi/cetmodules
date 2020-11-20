@@ -31,6 +31,10 @@ function(install_fhicl)
     endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
-  _cet_install(fhicl ${PROJECT_NAME}_FHICL_DIR ${ARGN}
-    _SQUASH_SUBDIRS _GLOBS "?*.fcl")
+  if ("LIST" IN_LIST ARGN)
+    _cet_install(fhicl ${PROJECT_NAME}_FHICL_DIR ${ARGN})
+  else()
+    _cet_install(fhicl ${PROJECT_NAME}_FHICL_DIR ${ARGN}
+      _SQUASH_SUBDIRS _GLOBS "?*.fcl")
+  endif()
 endfunction()

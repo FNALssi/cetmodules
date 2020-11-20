@@ -35,8 +35,13 @@ function(install_scripts)
   else()
     set(pvar SCRIPTS)
   endif()
-  _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
-    PROGRAMS _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS ${GLOBS})
+  if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
+    _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+      PROGRAMS _INSTALL_ONLY)
+  else()
+    _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+      PROGRAMS _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS ${GLOBS})
+  endif()
 endfunction()
 
 cmake_policy(POP)

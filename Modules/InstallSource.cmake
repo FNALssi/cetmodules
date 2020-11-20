@@ -42,15 +42,20 @@ function(install_source)
   cmake_parse_arguments(PARSE_ARGV 0 IS "" "SUBDIRNAME" "")
   cet_package_path(CURRENT_SUBDIR)
   string(APPEND IS_SUBDIRNAME "/${CURRENT_SUBDIR}")
-  _cet_install(source ${PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGUMENTS}
-    SUBDIRNAME ${IS_SUBDIRNAME}
-    _SEARCH_BUILD _INSTALL_ONLY
-    _EXTRA_BASENAME_EXCLUDES "?*.bak" "?*.~" "?*.~[0-9]*" "?*.old"
-    "?*.orig" "?*.rej" "#*#" ".DS_Store"
-    _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc"
-    "?*.c" "?*.cc" "?*.C" "?*.cpp" "?*.cxx"
-    "?*.sh" "?*.py" "?*.pl" "?*.rb" "?*.xml" "?*.dox"
-    "INSTALL*" "*README*" "LICENSE" "LICENSE.*" "COPYING" "COPYING.*")
+  if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
+    _cet_install(source ${PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGMUENTS}
+      SUBDIRNAME ${IS_SUBDIRNAME} _INSTALL_ONLY)
+  else()
+    _cet_install(source ${PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGUMENTS}
+      SUBDIRNAME ${IS_SUBDIRNAME}
+      _SEARCH_BUILD _INSTALL_ONLY
+      _EXTRA_BASENAME_EXCLUDES "?*.bak" "?*.~" "?*.~[0-9]*" "?*.old"
+      "?*.orig" "?*.rej" "#*#" ".DS_Store"
+      _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc"
+      "?*.c" "?*.cc" "?*.C" "?*.cpp" "?*.cxx"
+      "?*.sh" "?*.py" "?*.pl" "?*.rb" "?*.xml" "?*.dox"
+      "INSTALL*" "*README*" "LICENSE" "LICENSE.*" "COPYING" "COPYING.*")
+  endif()
 endfunction()
 
 cmake_policy(POP)
