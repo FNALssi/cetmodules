@@ -16,7 +16,7 @@ transitive dependencies.\
 ")
   _parse_fup_arguments(${ARGN})
   if (_FUP_PRODUCT STREQUAL cetbuildtools)
-    warning("accommodating outdated find_ups_product(cetbuildtools) request from project ${PROJECT_NAME}")
+    message(WARNING "accommodating outdated find_ups_product(cetbuildtools) request from project ${PROJECT_NAME}")
     set(CETBUILDTOOLS_DIR $ENV{CETMODULES_DIR})
     set(CETBUILDTOOLS_UPS_VERSION v7_17_01)
   endif()
@@ -110,12 +110,16 @@ transitive dependencies.\
   if (NOT (_FUP_INTERFACE OR _FUP_INCLUDED_${_FUP_PROJECT} OR
         ${_FUP_PROJECT}_IN_TREE))
     set(_fup_include_candidates)
-    if (TARGET ${${_FUP_PRODUCT_UC}}) # Maybe the target can tell us.
+    if (TARGET ${_FUP_PRODUCT_UC}) # Maybe the target can tell us.
       get_property(_fup_include_candidates TARGET ${${_FUP_PRODUCT_UC}}
         PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
     endif()
     list(APPEND _fup_include_candidates ${${_FUP_PRODUCT}_INCLUDE_DIRS}
-      ${${_FUP_PRODUCT}_INCUDE_DIR})
+      ${${_FUP_PRODUCT}_INCLUDE_DIR}
+      ${${_FUP_PROJECT}_INCLUDE_DIRS}
+      ${${_FUP_PROJECT}_INCLUDE_DIR}
+      $ENV{${_FUP_PRODUCT_UC}_INC}
+      $ENV{${_FUP_PRODUCT_UC}_INCLUDE})
     foreach (_fup_incdir
         IN LISTS _fup_include_candidates)
       if (IS_DIRECTORY "${_fup_incdir}")
@@ -133,6 +137,11 @@ endmacro()
 
 # Attempt to ascertain the correct project name for a product.
 function(product_to_project PRODUCT PROJECT_VAR)
+  # See if we can preempt:
+  if (UPS_${PRODUCT}_CMAKE_PROJECT_NAME)
+    set(${PROJECT_VAR} ${UPS_${PRODUCT}_CMAKE_PROJECT_NAME} PARENT_SCOPE)
+    return()
+  endif()
   string(TOLOWER "${PRODUCT}" PRODUCT_LC)
   string(TOUPPER "${PRODUCT}" PRODUCT_UC)
   set(module_bases
