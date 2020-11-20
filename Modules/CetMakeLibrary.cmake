@@ -15,7 +15,7 @@ function(cet_make_library)
   cmake_parse_arguments(PARSE_ARGV 0 CML
     "BASENAME_ONLY;MODULE;NO_INSTALL;NO_SOURCE;NOP;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
     "EXPORT;LIBRARY_NAME;SOVERSION"
-    "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
+    "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
   cmake_parse_arguments(CML
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   ##################
@@ -119,6 +119,11 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     target_sources(${lib_target} ${lib_sources})
     if (lib_type STREQUAL OBJECT)
       set_property(TARGET ${lib_target} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+    elseif (lib_type IN_LIST CML_STRIP_LIBS OR
+        STRIP_LIBS IN_LIST CML_KEYWORDS_MISSING_VALUES)
+      add_custom_command(TARGET ${lib_target} POST_BUILD
+        COMMAND strip -S $<TARGET_FILE:${lib_target}>
+        COMMENT "Stripping symbols from ${lib_type} library $<TARGET_FILE:${lib_target}>")
     endif()
     if (target_suffix)
       set_property(TARGET ${lib_target} PROPERTY OUTPUT_NAME ${CML_LIBRARY_NAME})

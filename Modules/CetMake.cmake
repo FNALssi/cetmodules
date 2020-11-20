@@ -223,14 +223,11 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
       else()
         set(catch2_include_subdir "catch")
       endif()
-      cet_make_library(LIBRARY_NAME Catch2_main STATIC EXCLUDE_FROM_ALL NO_INSTALL
+      cet_make_library(LIBRARY_NAME Catch2_main STATIC STRIP_LIBS
+        EXCLUDE_FROM_ALL NO_INSTALL
         SOURCE ${cetmodules_CATCH2_MAIN}
         LIBRARIES PRIVATE Catch2::Catch2)
       target_compile_definitions(Catch2_main PRIVATE "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
-      # Strip (x10 shrinkage on Linux with GCC 6.3.0)!
-      add_custom_command(TARGET Catch2_main POST_BUILD
-        COMMAND strip -S $<TARGET_FILE:Catch2_main>
-        COMMENT "Stripping symbols from $<TARGET_FILE_NAME:Catch2_main>")
     endif()
     target_link_libraries(${CME_NAME} PRIVATE Catch2_main)
   endif()
