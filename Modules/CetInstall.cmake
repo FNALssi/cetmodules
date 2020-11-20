@@ -97,64 +97,64 @@ function(_cet_install CATEGORY)
     _cet_install_error(${CATEGORY} ${_USAGE_FLAGS}
       "mutually exclusive options detected")
   elseif (_I_UNPARSED_ARGUMENTS)
-    _cet_install_error(${CATEGORY} ${_USAGE_FLAGS}
-      "unwanted extra arguments ${_I_UNPARSED_ARGUMENTS}")
-  elseif (_I_LIST)      
-    # Deal with hidden extras.
-    if (_I__EXTRA_EXTRAS)
-      list(APPEND _I_LIST ${_I__EXTRA_EXTRAS})
+    if (_I_LIST)
+      _cet_install_error(${CATEGORY} ${_USAGE_FLAGS}
+        "unwanted extra arguments ${_I_UNPARSED_ARGUMENTS}")
+    else()
+      warn_deprecated("<file>... as non-option arguments to install_${CATEGORY}()"
+        NEW "install_${CATEGORY}(LIST ...)")
+      set(_I_LIST "${_I_UNPARSED_ARGUMENTS}")
     endif()
-    # Hand off to the function built for purpose.
-    _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
-      ${PROGRAMS} ${_INSTALL_ONLY} _USAGE_FLAGS ${_USAGE_FLAGS}
-      SUBDIRNAME ${_I_SUBDIRNAME}
-      LIST ${_I_LIST})
-    list(APPEND INSTALLED_FILES ${_I_LIST})
-  else()
+  elseif (NOT_I_LIST)
     # Deal with hidden extras.
     if (_I__EXTRA_EXTRAS)
       list(APPEND _I_EXTRAS ${_I__EXTRA_EXTRAS})
     endif()
     # Loop over subdirs.
-    foreach(SUBDIR IN ITEMS "" LISTS _I_SUBDIRS)
-      set(GLOBS ${_I__GLOBS})
-      if (SUBDIR)
-        list(TRANSFORM GLOBS PREPEND "${SUBDIR}/")
-      endif()
-      file(GLOB FILES LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS ${GLOBS})
-      if (_I__SEARCH_BUILD)
-        # Search build area for files.
-        list(TRANSFORM GLOBS PREPEND "${CMAKE_CURRENT_BINARY_DIR}/")
-        file(GLOB TMP LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS ${GLOBS})
-        list(APPEND FILES ${TMP})
-      endif()
-      if (FILES)
-        # Process exclusions.
-        _cet_exclude_from_list(FILES
-          LIST ${FILES}
-          EXCLUDES ${_I_EXCLUDES} ${_I__EXTRA_EXCLUDES}
-          BASENAME_EXCLUDES ${_I_BASENAME_EXCLUDES}
-          ${_I__EXTRA_BASENAME_EXCLUDES})
-        if (_I__SQUASH_SUBDIRS)
-          # We can deal with everything in one operation.
-          list(APPEND _I_EXTRAS ${FILES})
-        else()
-          # One subdirectory at a time.
-          _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
-            ${PROGRAMS} ${_INSTALL_ONLY} _USAGE_FLAGS ${_USAGE_FLAGS}
-            SUBDIRNAME "${_I_SUBDIRNAME}/${SUBDIR}"
-            LIST ${FILES})
-          list(APPEND INSTALLED_FILES ${FILES})
+    if (_I_GLOBS)
+      foreach(SUBDIR IN ITEMS "" LISTS _I_SUBDIRS)
+        set(GLOBS ${_I__GLOBS})
+        if (SUBDIR)
+          list(TRANSFORM GLOBS PREPEND "${SUBDIR}/")
         endif()
-      endif()
-      # Deal with specified extras.
-      _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
-        ${PROGRAMS} ${_INSTALL_ONLY} _USAGE_FLAGS ${_USAGE_FLAGS}
-        SUBDIRNAME ${_I_SUBDIRNAME}
-        LIST ${_I_EXTRAS})
-      list(APPEND INSTALLED_FILES ${_I_EXTRAS})
-    endforeach()
+        file(GLOB FILES LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS ${GLOBS})
+        if (_I__SEARCH_BUILD)
+          # Search build area for files.
+          list(TRANSFORM GLOBS PREPEND "${CMAKE_CURRENT_BINARY_DIR}/")
+          file(GLOB TMP LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS ${GLOBS})
+          list(APPEND FILES ${TMP})
+        endif()
+        if (FILES)
+          # Process exclusions.
+          _cet_exclude_from_list(FILES
+            LIST ${FILES}
+            EXCLUDES ${_I_EXCLUDES} ${_I__EXTRA_EXCLUDES}
+            BASENAME_EXCLUDES ${_I_BASENAME_EXCLUDES}
+            ${_I__EXTRA_BASENAME_EXCLUDES})
+          if (_I__SQUASH_SUBDIRS)
+            # We can deal with everything in one operation.
+            list(APPEND _I_EXTRAS ${FILES})
+          else()
+            if (_I_SUBDIRNAME)
+              string(JOIN "/" tmp_subdir "${_I_SUBDIRNAME}" "${SUBDIR}")
+            endif()
+            # One subdirectory at a time.
+            _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
+              ${PROGRAMS} ${_INSTALL_ONLY} _USAGE_FLAGS ${_USAGE_FLAGS}
+              SUBDIRNAME "${tmp_subdir}"
+              LIST ${FILES})
+            list(APPEND INSTALLED_FILES ${FILES})
+          endif()
+        endif()
+      endforeach()
+    endif()
   endif()
+  # Deal with specified extras.
+  _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
+    ${PROGRAMS} ${_INSTALL_ONLY} _USAGE_FLAGS ${_USAGE_FLAGS}
+    SUBDIRNAME ${_I_SUBDIRNAME}
+    LIST ${_I_LIST} ${_I_EXTRAS} ${_I__EXTRA_EXTRAS})
+  list(APPEND INSTALLED_FILES ${_I_LIST} ${_I_EXTRAS} ${_I__EXTRA_EXTRAS})
   if (_I__INSTALLED_FILES_VAR)
     set(${_I__INSTALLED_FILES_VAR} ${INSTALLED_FILES} PARENT_SCOPE)
   endif()
@@ -203,7 +203,7 @@ function(_cet_install_list CATEGORY DEST_VAR)
   endif()
   set(DEST_DIR "${${DEST_VAR}}")
   if (_IL_SUBDIRNAME)
-    string(APPEND DEST_DIR "${_IL_SUBDIRNAME}/")
+    string(JOIN "/" DEST_DIR "${DEST_DIR}" "${_IL_SUBDIRNAME}")
   endif()
   if (NOT _IL__INSTALL_ONLY)
     cet_copy(${CMODE}
