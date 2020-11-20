@@ -214,7 +214,15 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
     cet_find_package(Boost PRIVATE QUIET REQUIRED COMPONENTS unit_test_framework)
-    target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
+    if (Boost_NO_BOOST_CMAKE OR
+        IS_ABSOLUTE "${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}")
+      # *Someone* didn't use Boost's CMake config file to define targets.
+      target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+      target_compile_definitions(${CME_NAME} PRIVATE
+        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK;BOOST_TEST_NO_OLD_TOOLS")
+    else()
+      target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
+    endif()
   endif()
   # Handle request for Catch2 main.
   if (CME_USE_CATCH2_MAIN)
