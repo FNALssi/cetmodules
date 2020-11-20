@@ -858,11 +858,11 @@ sub get_cmake_project_info {
   open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
   my $filedata = join('',<CML>);
   my ($prod, $ver) =
-    $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*(\S+)(?:.*\s+VERSION\s+"?(\S+)"?)?&ms;
+    $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*([^\s)]+)(?:.*\s+VERSION\s+"?(\S+)"?)?&ms;
   error_exit("unable to find suitable CMake project() declaration in $cmakelists")
     unless $prod;
-  warning("unable to extract version information from project call for $prod")
-    unless $ver and not $options{quiet_warnings};
+  $ver or $options{quiet_warnings} or
+    warning("unable to extract version information from project call for $prod");
   return ($prod, ${ver} || undef);
 }
 
