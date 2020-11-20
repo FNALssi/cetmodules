@@ -216,8 +216,8 @@ endfunction()
 
 macro(cet_add_compiler_flags)
   _parse_flags_options(${ARGN})
-  string(REGEX MATCH [[(^| )-std=]] CSCF_HAVE_STD ${CSCF_ARGS})
-  if (CSCF_HAVE_STD AND "C" IN_LIST CSCF_LANGUAGES OR "CXX" IN_LIST  CSCF_LANGUAGES)
+  if ("${CSCF_ARGS}" MATCHES "(^| )-std=" AND
+      ("C" IN_LIST CSCF_LANGUAGES OR "CXX" IN_LIST CSCF_LANGUAGES))
     message(FATAL_ERROR "cet_add_compiler_flags() called with -std=...for C and/or CXX:"
       "use CMAKE_<LANG>_STANDARD and CMAKE_<LANG>_EXTENSIONS instead")
   endif()
