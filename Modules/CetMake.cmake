@@ -153,7 +153,8 @@ endfunction()
 set(_cet_make_exec_usage "")
 
 function(cet_make_exec)
-  cmake_parse_arguments(PARSE_ARGV 0 CME "NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
+  cmake_parse_arguments(PARSE_ARGV 0 CME
+    "NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
     "EXEC_NAME;EXPORT;NAME" "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
   # Argument verification.
   if (CME_EXEC_NAME)
@@ -230,6 +231,9 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
       target_compile_definitions(Catch2_main PRIVATE "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
     endif()
     target_link_libraries(${CME_NAME} PRIVATE Catch2_main)
+  endif()
+  if (NOT CME_NO_EXPORT_ALL_SYMBOLS)
+    target_link_options(${CME_NAME} PRIVATE -rdynamic)
   endif()
   # Library links.
   cet_process_liblist(liblist ${CME_LIBRARIES})
