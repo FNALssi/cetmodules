@@ -133,7 +133,7 @@ sub verbose {
 sub get_parent_info {
   my ($pfile, %options) = @_;
   open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
-  my $result;
+  my $result = { pfile => $pfile };
   my $chains;
   while (<$fh>) {
     chomp;
@@ -253,14 +253,14 @@ sub pathkey_is_valid {
 }
 
 sub get_pathspec {
-  my ($product_deps, $pi, $dirkey) = @_;
+  my ($pi, $dirkey) = @_;
   error_exit("unrecognized directory key $dirkey")
     if not dirkey_is_valid($dirkey);
   $pi->{pathspec_cache} = {} unless exists $pi->{pathspec_cache};
   my $pathspec_cache = $pi->{pathspec_cache};
   unless ($pathspec_cache->{$dirkey}) {
     my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} || 0;
-    open(PD, "<$product_deps") or error_exit("couldn't open $product_deps");
+    open(PD, "<$pi->{pfile}") or error_exit("couldn't open $pi->{pfile}");
     my ($seen_dirkey, $pathkeys, $dirnames) = (undef, [], []);
     while (<PD>) {
       chomp;
@@ -268,13 +268,13 @@ sub get_pathspec {
       next if m&^\s*#&o or !m&\S&o;
       my ($found_dirkey, $pathkey, $dirname) = (m&^\s*(\Q$dirkey\E)\b(?:\s+(\S+)\s*(\S*?))?(?:\s*#.*)?$&);
       next unless $found_dirkey;
-      error_exit("dangling directory key $dirkey seen in $product_deps at line $.:",
+      error_exit("dangling directory key $dirkey seen in $pi->{pfile} at line $.:",
                  "path key is required") unless $pathkey;
-      error_exit("unrecognized path key $pathkey for directory key $dirkey in $product_deps",
+      error_exit("unrecognized path key $pathkey for directory key $dirkey in $pi->{pfile}",
                  " at line $.") unless pathkey_is_valid($pathkey);
 
       if ($seen_dirkey) {
-        error_exit("illegal duplicate directory key $dirkey seen in $product_deps ",
+        error_exit("illegal duplicate directory key $dirkey seen in $pi->{pfile} ",
                    "at line $. (first seen at line $seen_dirkey)")
           unless $multiple_ok;
         error_exit("elision request (pathkey '-' with no path) at line $.",
@@ -367,7 +367,7 @@ EOF
 }
 
 sub deps_for_quals {
-  my ($phash, $qhash, $qualspec) = @_;
+  my ($pfile, $phash, $qhash, $qualspec) = @_;
   my $results = {};
   foreach my $prod (sort keys %{$phash}) {
     # Find matching version hashes for this product, including default
@@ -402,13 +402,13 @@ sub deps_for_quals {
     } elsif (not $result->{only_for_build}) {
       if (not exists $qhash->{$prod}) {
         error_exit("dependency $prod has no column in the qualifier table.",
-                   "Please check $ENV{CETPKG_SOURCE}/ups/product_deps");
+                   "Please check $pfile");
       } else {
         error_exit(sprintf("dependency %s has no entry in the qualifier table for %s.",
                            $prod,
                            ($qualspec ? "parent qualifier $qualspec" :
                             "unqualified parent")),
-                   "Please check $ENV{CETPKG_SOURCE}/ups/product_deps");
+                   "Please check $pfile");
       }
     } else {
       $result->{qualspec} = $qhash->{$prod}->{$qualspec} || '';
@@ -813,8 +813,8 @@ my $cqual_table =
   };
 
 sub cmake_project_var_for_pathspec {
-  my ($pfile, $pi, $dirkey) = @_;
-  my $pathspec = get_pathspec($pfile, $pi, $dirkey);
+  my ($pi, $dirkey) = @_;
+  my $pathspec = get_pathspec($pi, $dirkey);
   return () unless ($pathspec and $pathspec->{key});
   my $var_stem = $pathspec->{var_stem} || var_stem_for_dirkey($dirkey);
   $pathspec->{var_stem} = $var_stem;
@@ -867,7 +867,7 @@ sub get_cmake_project_info {
 }
 
 sub ups_to_cmake {
-  my ($pfile, $pi) = @_;
+  my ($pi) = @_;
   $pi->{cmake_project} and
     $pi->{name} and
       $pi->{cmake_project} ne
@@ -951,7 +951,7 @@ sub ups_to_cmake {
   # Pathspec-related CMake configuration.
 
   push @cmake_args,
-    (map { cmake_project_var_for_pathspec($pfile, $pi, $_) || ();
+    (map { cmake_project_var_for_pathspec($pi, $_) || ();
          } keys %{$pathspec_info});
 
   my @arch_pathspecs = ();
@@ -1065,8 +1065,8 @@ sub setup_err {
 }
 
 sub fq_path_for {
-  my ($pfile, $pi, $dirkey, $default) = @_;
-  my $pathspec = get_pathspec($pfile, $pi, $dirkey) ||
+  my ($pi, $dirkey, $default) = @_;
+  my $pathspec = get_pathspec($pi, $dirkey) ||
     { key => '-', path => $default };
   my $fq_path = $pathspec->{fq_path} || undef;
   unless ($fq_path or ($pathspec->{key} eq '-' and not $pathspec->{path})) {
@@ -1105,7 +1105,7 @@ sub print_dev_setup_var {
 }
 
 sub print_dev_setup {
-  my ($pfile, $pi, $out) = @_;
+  my ($pi, $out) = @_;
   my $fqdir;
   print $out <<"EOF";
 
@@ -1113,7 +1113,7 @@ sub print_dev_setup {
 # Development environment.
 ####################################
 EOF
-  my $libdir = fq_path_for($pfile, $pi, 'libdir', 'lib');
+  my $libdir = fq_path_for($pi, 'libdir', 'lib');
   if ($libdir) {
     # (DY)LD_LIBRARY_PATH.
     print $out
@@ -1140,7 +1140,7 @@ EOF
   print $out
     print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1);
   # FHICL_FILE_PATH.
-  $fqdir = fq_path_for($pfile, $pi, 'fcldir') and
+  $fqdir = fq_path_for($pi, 'fcldir') and
     print $out
       print_dev_setup_var("FHICL_FILE_PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
@@ -1154,7 +1154,7 @@ EOF
 
   }
   # PATH.
-  $fqdir = fq_path_for($pfile, $pi, 'bindir', 'bin') and
+  $fqdir = fq_path_for($pi, 'bindir', 'bin') and
     print $out
       print_dev_setup_var("PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));

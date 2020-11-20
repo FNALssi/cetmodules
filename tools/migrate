@@ -57,7 +57,7 @@ my $pinfo = "$src/ups/product_deps";
 info("attempting to read $pinfo (warnings OK)...");
 
 my $pi = get_parent_info($pinfo);
-grep { get_pathspec($pinfo, $pi, $_); } keys %$pathspec_info and
+grep { get_pathspec($pi, $_); } keys %$pathspec_info and
   my $pathspecs = $pi->{pathspec_cache};
 my $products = get_product_list($pinfo);
 my ($ndeps, $qualifier_columns, $qualifier_rows, $notes, $headers) =

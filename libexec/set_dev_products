@@ -152,7 +152,7 @@ my $compiler = $pi->{noarch} ? undef :
   compiler_for_quals($qhash->{compiler}, $pi->{qualspec});
 
 # Now look up products in the hash.
-my $deps = deps_for_quals($phash, $qhash, $pi->{qualspec});
+my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
 classify_deps($pi, $deps);
 
 my $tmpfl = "$builddir/setup_$pi->{name}";
@@ -166,8 +166,8 @@ unless ($options->{nobuild}) {
   cetpkg_info_file(%{$pi},
                    source => $sourcedir,
                    build => $builddir,
-                   cmake_args => ups_to_cmake($pfile, $pi));
-  print_dev_setup($pfile, $pi, $tset_fh);
+                   cmake_args => ups_to_cmake($pi));
+  print_dev_setup($pi, $tset_fh);
 }
 
 # Write auxiliary files used in table generation from CMake.
