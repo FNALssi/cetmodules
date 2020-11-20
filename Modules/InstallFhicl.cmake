@@ -20,7 +20,7 @@ include (ProjectVariable)
 
 function(install_fhicl)
   if (NOT "FHICL_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
-    project_variable(FHICL_DIR CONFIG
+    project_variable(FHICL_DIR "fcl" CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install FHiCL files")
     if (product AND ${product}_fcldir MATCHES "^\$") # Placeholder
