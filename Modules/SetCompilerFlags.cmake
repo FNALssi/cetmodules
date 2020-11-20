@@ -356,9 +356,9 @@ macro(cet_set_compiler_flags)
 
   # NO_UNDEFINED.
   if (CSCF_NO_UNDEFINED)
-    add_link_options("SHELL:$<IF:$<PLATFORM_ID:Darwin>,LINKER:-undefined$<COMMA>error,LINKER:--no-undefined>")
+    add_link_options("SHELL:$<IF:$<PLATFORM_ID:Darwin>,LINKER:-undefined$<COMMA>error,LINKER:--unresolved-symbols=report-all>")
   else()
-    add_link_options("SHELL:$<$<PLATFORM_ID:Darwin>:LINKER:-undefined$<COMMA>dynamic_lookup>")
+    add_link_options("SHELL:$<IF:$<PLATFORM_ID:Darwin>,LINKER:-undefined$<COMMA>dynamic_lookup,LINKER:--unresolved-symbols=ignore-all>")
   endif()
 endmacro()
 
