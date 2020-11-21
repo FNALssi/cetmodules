@@ -130,6 +130,9 @@ function(cet_make)
     # We want a library.
     _cet_maybe_make_library()
   endif()
+  if (CM_LIB_ONLY)
+    return()
+  endif()
   # Look for the makings of a dictionary and decide how to make it.
   if (NOT CM_NO_DICTIONARY AND
       EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes.h")
