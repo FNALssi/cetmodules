@@ -151,26 +151,26 @@ function(product_to_project PRODUCT PROJECT_VAR)
   # Split into three by likelihood of success to cut down on unnecessary
   # GLOBbing.
   foreach (base_list IN ITEMS ARGN module_bases CMAKE_PREFIX_PATH)
-    set(candidates)
     _config_candidates(config_candidates ${${base_list}})
     foreach (candidate IN LISTS config_candidates)
       if (candidate MATCHES
-          "(^|/)((lib(64)?|share)/([^/]+)/(cmake/)?)?(([^/]+)Config|Find([^/]+)|[^/]+-config)\.cmake$" OR
-          candidate MATCHES
-          "(^|/)((lib(64)?|share)/(cmake/)?([^/]+)/)?(([^/]+)Config|Find([^/]+)|[^/]+-config)\.cmake$")
-        list(APPEND candidates # In order of preference.
-          ${CMAKE_MATCH_8} ${CMAKE_MATCH_9} ${CMAKE_MATCH_6})
+          "(^|/)((lib|lib64|share)/([^/]+)/(cmake/)?)?(([^/]+)Config|Find([^/]+)|([^/]+)-config)\.cmake$")
+        set(candidates # In order of preference.
+          ${CMAKE_MATCH_7} ${CMAKE_MATCH_8} ${CMAKE_MATCH_9} ${CMAKE_MATCH_4})
+      elseif (candidate MATCHES
+          "(^|/)((lib|lib64|share)/(cmake/)?([^/]+)/)?(([^/]+)Config|Find([^/]+)|([^/]+)-config)\.cmake$")
+        set(candidates
+          ${CMAKE_MATCH_7} ${CMAKE_MATCH_8} ${CMAKE_MATCH_9} ${CMAKE_MATCH_5})
+      endif()
+      list(TRANSFORM candidates TOLOWER OUTPUT_VARIABLE candidates_lc)
+      # Find the first case-insensitive match.
+      list(FIND candidates_lc "${PRODUCT_LC}" idx)
+      if (idx GREATER -1)
+        list(GET candidates ${idx} result)
+        set(${PROJECT_VAR} ${result} PARENT_SCOPE)
+        return()
       endif()
     endforeach()
-    list(REMOVE_DUPLICATES candidates)
-    list(TRANSFORM candidates TOLOWER OUTPUT_VARIABLE candidates_lc)
-    # Find the first case-insensitive match.
-    list(FIND candidates_lc "${PRODUCT_LC}" idx)
-    if (idx GREATER -1)
-      list(GET candidates ${idx} result)
-      set(${PROJECT_VAR} ${result} PARENT_SCOPE)
-      return()
-    endif()
   endforeach()
 endfunction()
 
