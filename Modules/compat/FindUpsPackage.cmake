@@ -120,8 +120,7 @@ transitive dependencies.\
       ${${_FUP_PROJECT}_INCLUDE_DIR}
       $ENV{${_FUP_PRODUCT_UC}_INC}
       $ENV{${_FUP_PRODUCT_UC}_INCLUDE})
-    foreach (_fup_incdir
-        IN LISTS _fup_include_candidates)
+    foreach (_fup_incdir IN LISTS _fup_include_candidates)
       if (IS_DIRECTORY "${_fup_incdir}")
         list(APPEND _fup_include_candidates "${_fup_incdir}")
       endif()
