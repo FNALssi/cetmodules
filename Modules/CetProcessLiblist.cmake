@@ -6,22 +6,15 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_process_liblist RESULT_VAR)
-  set(RESULTS)
-  foreach (arg IN LISTS ARGN)
-    if (NOT (TARGET "${arg}" OR arg MATCHES
-          "(/|::|^((-|\\$<)|(INTERFACE|PRIVATE|PUBLIC|debug|general|optimized)$))"))
-      _cet_convert_target_arg("${arg}" arg)
-    endif()
-    list(APPEND RESULTS "${arg}")
-  endforeach()
-  set(${RESULT_VAR} PUBLIC "${RESULTS}" PARENT_SCOPE)
+  cet_convert_target_args(${ARGV})
+  set(${RESULT_VAR} "PUBLIC;${${RESULT_VAR}}" PARENT_SCOPE)
 endfunction()
 
 function(cet_convert_target_args RESULT_VAR)
   set(RESULTS)
   foreach (arg IN LISTS ARGN)
-    if (NOT (TARGET "${arg}" OR
-        arg MATCHES "(/|::|^(-|\\$<))"))
+    if (NOT (TARGET "${arg}" OR arg MATCHES
+          "(/|::|^((-|\\$<)|(INTERFACE|PRIVATE|PUBLIC|debug|general|optimized)$))"))
       _cet_convert_target_arg("${arg}" arg)
     endif()
     # Pass through as-is.
