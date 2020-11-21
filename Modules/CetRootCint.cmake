@@ -33,13 +33,16 @@ function(cet_rootcint OUTPUT_NAME)
     endif()
   endif()
   if (RC_LIB_TARGET)
-    set(lib_path "$<TARGET_PROPERTY:LIBRARY_OUTPUT_DIRECTORY>")
-    set(CINT_INCS "$<TARGET_PROPERTY:INCLUDE_DIRECTORIES>")
+    set(lib_path "$<TARGET_PROPERTY:${RC_LIB_TARGET},LIBRARY_OUTPUT_DIRECTORY>")
+    set(CINT_INCS "$<TARGET_PROPERTY:${RC_LIB_TARGET},INCLUDE_DIRECTORIES>")
   else()
     set(lib_path "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
     get_property(CINT_INCS DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+    list(REMOVE_DUPLICATES CINT_INCS)
   endif()
-  set(CINT_INCS "$<$<BOOL:${CINT_INCS}>:-I$<JOIN:${CINT_INCS},$<SEMICOLON>-I>>")
+  if (CINT_INCS)
+    set(CINT_INCS "-I$<JOIN:${CINT_INCS},$<SEMICOLON>-I>")
+  endif()
   set(RC_RMF "${lib_path}/${CMAKE_SHARED_LIBRARY_PREFIX}${OUTPUT_NAME}.rootmap")
   set(RC_PCM "${lib_path}/${CMAKE_SHARED_LIBRARY_PREFIX}${OUTPUT_NAME}_rdict.pcm")
   set(RC_OUTPUT_LIBRARY
@@ -72,7 +75,7 @@ function(cet_rootcint OUTPUT_NAME)
     IMPLICIT_DEPENDS ${CINT_DEPENDS} LinkDef.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating ROOTCint dictionary in ${curdir}"
-    VERBATIM
+    COMMAND_EXPAND_LISTS
    )
   # set variable for install_source
   if (NOT RC_NO_INSTALL)
