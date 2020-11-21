@@ -145,15 +145,14 @@ endfunction()
 function(cet_process_did)
   get_property(CURRENT_PROJECT CACHE
     CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT PROPERTY VALUE)
-  get_property(extra_dirs
+  get_property(inc_dirs
     CACHE CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_VALUE PROPERTY VALUE)
-  get_property(current_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-  list(REMOVE_ITEM extra_dirs ${current_dirs})
   cet_regex_escape("${${CURRENT_PROJECT}_SOURCE_DIR}" e_srcdir)
-  list(FILTER extra_dirs INCLUDE REGEX "^${e_srcdir}")
-  if (extra_dirs)
-    include_directories("${extra_dirs}" PROJECT ${CURRENT_PROJECT})
-  endif()
+  list(FILTER inc_dirs INCLUDE REGEX "^${e_srcdir}")
+  get_property(current_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+  list(APPEND inc_dirs ${current_dirs})
+  list(REMOVE_DUPLICATES inc_dirs)
+  set_property(DIRECTORY PROPERTY INCLUDE_DIRECTORIES "${inc_dirs}")
   cet_checkpoint_did()
 endfunction()
 
