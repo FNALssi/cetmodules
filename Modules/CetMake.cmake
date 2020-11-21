@@ -131,9 +131,9 @@ function(cet_make)
     _cet_maybe_make_library()
   endif()
   # Look for the makings of a dictionary and decide how to make it.
-  if (NOT CM_NO_DICTIONARY AND EXISTS classes.h AND
-      (EXISTS classes_def.xml OR EXISTS LinkDef.h))
-    if (EXISTS classes_def.xml)
+  if (NOT CM_NO_DICTIONARY AND
+      EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes.h")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml")
       cet_passthrough(IN_PLACE KEYWORD LOCAL_INCLUDE_DIRS
         CM_DICT_LOCAL_INCLUDE_DIRS)
       include(BuildDictionary)
@@ -142,7 +142,7 @@ function(cet_make)
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
         ${CM_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
-    elseif (EXISTS LinkDef.h)
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h")
       include(CetRootCint)
       cet_rootcint(${CM_LIBRARY_NAME}
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
