@@ -106,10 +106,6 @@ function(_cet_install CATEGORY)
       set(_I_LIST "${_I_UNPARSED_ARGUMENTS}")
     endif()
   elseif (NOT _I_LIST)
-    # Deal with hidden extras.
-    if (_I__EXTRA_EXTRAS)
-      list(APPEND _I_EXTRAS ${_I__EXTRA_EXTRAS})
-    endif()
     # Loop over subdirs.
     if (_I__GLOBS)
       foreach(SUBDIR IN ITEMS "" LISTS _I_SUBDIRS)
