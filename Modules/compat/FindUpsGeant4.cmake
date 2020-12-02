@@ -28,7 +28,6 @@ macro(find_ups_geant4)
       set(_FUP_INCLUDED_${_FUP_PROJECT} TRUE)
     endif()
     # Library variables.
-    find_library($ENV{XERCESCROOT}/lib NO_DEFAULT_PATH REQUIRED)
     set(G4_LIB_LIST ${XERCESC})
     foreach (_fug IN LISTS _fug_liblist)
       string(TOUPPER "${_fug}" _FUG)
