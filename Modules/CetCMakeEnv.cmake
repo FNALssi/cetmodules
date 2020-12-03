@@ -126,6 +126,10 @@ macro(cet_cmake_env)
       "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file.")
   endif()
 
+  # Required to ensure correct installation location with
+  # cetbuildtools-compatible installations.
+  cmake_policy(SET CMP0082 NEW)
+
   # If this project is expecting to use cetbuildtools.
   _cetbuildtools_compatibility_early()
 

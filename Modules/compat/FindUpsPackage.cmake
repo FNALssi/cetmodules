@@ -83,8 +83,9 @@ transitive dependencies.\
     set(${_FUP_PRODUCT_UC} ${FUP_PRODUCT_UC}-NOTFOUND)
   else()
     # We're stretching: try to find a suitably-named library.
+    string(REPLACE "_" "-" dashed "${_FUP_PRODUCT_LC}")
     find_library(${_FUP_PRODUCT_UC}
-      NAMES ${_FUP_PRODUCT} ${_FUP_PRODUCT_UC} ${_FUP_PRODUCT_LC}
+      NAMES ${_FUP_PRODUCT} ${_FUP_PRODUCT_UC} ${_FUP_PRODUCT_LC} ${dashed}
       HINTS ${_FUP_PREFIX})
     if (${_FUP_PRODUCT_UC})
       set(${_FUP_PRODUCT}_FOUND TRUE)
@@ -105,6 +106,9 @@ transitive dependencies.\
         break()
       endif()
     endforeach()
+  endif()
+  if (NOT _FUP_PROJECT)
+    set(_FUP_PROJECT ${_FUP_PRODUCT})
   endif()
   # Set include directories for backward compatibility, if we can.
   if (NOT (_FUP_INTERFACE OR _FUP_INCLUDED_${_FUP_PROJECT} OR
@@ -130,6 +134,17 @@ transitive dependencies.\
       include_directories(${_fup_include_candidates})
       set(_FUP_INCLUDED_${_FUP_PROJECT} TRUE)
     endif()
+  endif()
+  # Set other expected variables (again, if we can).
+  if (NOT ${_FUP_PROJECT}_VERSION)
+    if (DEFINED ENV{${_FUP_PRODUCT_UC}_UPS_VERSION})
+      to_dot_version($ENV{${_FUP_PRODUCT_UC}_UPS_VERSION} ${_FUP_PROJECT}_VERSION)
+    elseif (DEFINED ENV{${_FUP_PRODUCT_UC}_VERSION})
+      to_dot_version($ENV{${_FUP_PRODUCT_UC}_VERSION} ${_FUP_PROJECT}_VERSION)
+    endif()
+  endif()
+  if (${_FUP_PROJECT}_VERSION AND NOT _FUP_PROJECT STREQUAL _FUP_PRODUCT_UC)
+    to_ups_version(${${_FUP_PROJECT}_VERSION} ${_FUP_PRODUCT_UC}_VERSION)
   endif()
   unset(_fup_include_candidates)
 endmacro()

@@ -107,7 +107,9 @@ set ${PROJECT_NAME}_LIBRARY_DIR.
   _install_package_config_files()
   ####################################
   # Packaging.
-  include(UseCPack)
+  if (PROJECT_BINARY_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+    include(UseCPack)
+  endif()
 endfunction()
 
 # Add a separator to STRINGVAR iff it already has content.

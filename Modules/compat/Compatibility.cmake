@@ -213,6 +213,11 @@ from cetmodules (see ${CMAKE_CURRENT_FUNCTION_DIR}{,/compat}/Find*.cmake)\
   find_library(${ARGV})
 endfunction(cet_find_library)
 
+macro(parse_ups_version UPS_VERSION)
+  warn_deprecated("parse_ups_version()" NEW "parse_version_string(${UPS_VERSION} VMAJ VMIN VPRJ VPT)")
+  parse_version_string(${UPS_VERSION} VMAJ VMIN VPRJ VPT)
+endmacro()
+
 function(_parse_fup_arguments _FUP_PRODUCT)
   # Parse for options we expect.
   set(opts BUILD_ONLY INTERFACE PRIVATE OPTIONAL PUBLIC REQUIRED)
