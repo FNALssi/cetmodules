@@ -19,13 +19,16 @@ set(_fug_liblist G4FR G4GMocren G4OpenGL G4RayTracer G4Tree G4VRML
     G4visHepRep G4visXXX G4vis_management G4zlib)
 
 macro(find_ups_geant4)
-  find_ups_product(geant4 ${ARGN})
+  find_ups_product(geant4 PROJECT Geant4 ${ARGN})
   if (Geant4_FOUND AND NOT _FUP_INTERFACE)
     find_ups_product(xerces_c v3_0_0 REQUIRED)
+    set(XERCESC "${XercesC_LIBRARY}") # Backward compatibility.
     # Add include directory to include path if it exists.
-    if (NOT _FUP_INCLUDED_Geant4)
+    if (NOT _FUP_INCLUDED_FUG4)
+      # Non-standard guard variable name to distinguish from
+      # find_ups_product(geant4).
       include_directories($ENV{G4INCLUDE})
-      set(_FUP_INCLUDED_Geant4 TRUE)
+      set(_FUP_INCLUDED_FUG4 TRUE)
     endif()
     # Library variables.
     set(G4_LIB_LIST ${XERCES_C})
