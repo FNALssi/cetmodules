@@ -228,7 +228,7 @@ sub get_table_fragment {
   my $pfile = shift;
   my $reading_frag;
   my @fraglines = ();
-  open(my $fh, "<$pfile") or error_exit("couldn't open $pfile");
+  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
     next if (m&^\s*#& and not $reading_frag);
@@ -260,7 +260,7 @@ sub get_pathspec {
   my $pathspec_cache = $pi->{pathspec_cache};
   unless ($pathspec_cache->{$dirkey}) {
     my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} || 0;
-    open(PD, "<$pi->{pfile}") or error_exit("couldn't open $pi->{pfile}");
+    open(PD, "<", "$pi->{pfile}") or error_exit("couldn't open $pi->{pfile}");
     my ($seen_dirkey, $pathkeys, $dirnames) = (undef, [], []);
     while (<PD>) {
       chomp;
@@ -538,7 +538,7 @@ sub cetpkg_info_file {
        build_only_deps cmake_project cmake_project_version cmake_args);
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
-  open(my $fh, "> $cetpkgfile") or
+  open(my $fh, ">", "$cetpkgfile") or
     error_exit("couldn't open $cetpkgfile for write");
   print $fh <<'EOD';
 #!/bin/bash
@@ -852,7 +852,7 @@ sub cmake_project_var_for_pathspec {
 sub get_cmake_project_info {
   my ($pkgtop, %options) = @_;
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  open(CML, "<$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
+  open(CML, "<", "$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
   my $filedata = join('',<CML>);
   my ($prod, $ver) =
     $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*([^\s)]+)(?:.*\s+VERSION\s+"?(\S+)"?)?&ms;
@@ -1176,7 +1176,7 @@ sub var_stem_for_dirkey {
 
 sub write_table_deps {
   my ($parent, $deps) = @_;
-  open(my $fh, ">table_deps_$parent") or return;
+  open(my $fh, ">", "table_deps_$parent") or return;
   foreach my $dep (sort keys %{$deps}) {
     my $dep_info = $deps->{$dep};
     table_dep_setup($dep, $dep_info, $fh)
@@ -1190,7 +1190,7 @@ sub write_table_frag {
   my ($parent, $pfile) = @_;
   my $fraglines = get_table_fragment($pfile);
   return 1 unless $fraglines and scalar @$fraglines;
-  open(my $fh, ">table_frag_$parent") or return;
+  open(my $fh, ">", "table_frag_$parent") or return;
   print $fh join("\n", @$fraglines), "\n";
   close($fh);
   1;
