@@ -71,10 +71,6 @@ my $sourcedir = $ENV{CETPKG_SOURCE} || die "vacuous \$CETPKG_SOURCE";
 my $builddir = ($options->{nobuild} ? "." : $ENV{CETPKG_BUILD} || \
                 die "vacuous \$CETPKG_BUILD");
 
-# use this file for debugging
-my $errlog = "$builddir/cetpkg_setup.err";
-open(STDERR, ">", $errlog) or die "Couldn't open $errlog for STDERR output";
-
 my $pfile = "$sourcedir/ups/product_deps";
 if (check_for_old_product_deps($pfile)) {
   warning("you appear to be using a very old product_deps format with cetmodules",

@@ -101,7 +101,7 @@ $btype_table = { debug => 'Debug',
       write_table_frag
    );
 
-@EXPORT_OK = qw($btype_table $pathspec_info);
+@EXPORT_OK = qw($btype_table $pathspec_info setup_err);
 
 sub error_exit {
   my (@msg) = @_;
@@ -1048,7 +1048,7 @@ EOF
     print $out "  ";
   }
   print $out "setup -B $dep $thisver$ql; ";
-  setup_err($out, "setup -B $dep $thisver$ql failed")
+  setup_err($out, "setup -B $dep $thisver$ql failed");
 }
 
 sub setup_err {
