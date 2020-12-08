@@ -498,7 +498,7 @@ sub sort_qual {
       error_exit("multiple build type qualifiers encountered: $btype, $q")
         if $btype;
       $btype = $q;
-    } else {
+    } elsif ($q ne '-nq-') {
       push @extquals, $q;
     }
   }
@@ -1154,7 +1154,8 @@ EOF
   $fqdir = fq_path_for($pi, 'bindir', 'bin') and
     print $out
       print_dev_setup_var("PATH",
-                          File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
+                          [ File::Spec->catfile('${CETPKG_BUILD}', $fqdir),
+                            File::Spec->catfile('${CETPKG_SOURCE}', $fqdir) ]);
 }
 
 sub table_dep_setup {
