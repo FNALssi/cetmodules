@@ -55,13 +55,8 @@ macro(find_ups_boost)
   set(BOOST_LIBRARYDIR $ENV{BOOST_LIB})
   set(${_FUP_PROJECT}_USE_MULTITHREADED ON)
   set(${_FUP_PROJECT}_NO_SYSTEM_PATHS ON)
-  if (_FUP_UNPARSED_ARGUMENTS)
-    message(WARNING "\
-Non-option arguments (${_FUP_UNPARSED_ARGUMENTS}) IGNORED per \
-historical behavior of find_ups_boost().
-Use cet_find_package(Boost COMPONENTS ...) to specify individual components.\
-")
-  endif()
+  # Non-option arguments were always ignored in the historical
+  # implementation of find_ups_boost(), so we do this here also.
   cet_find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION}
     COMPONENTS ${_FUP_liblist})
   if (${_FUP_PROJECT}_FOUND AND NOT

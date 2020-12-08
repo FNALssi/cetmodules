@@ -339,14 +339,11 @@ sub get_product_list {
         # Archaic form.
         ($prod, $version, $qualspec, $modifier) =
           ($version, $qualspec, '-', $prod);
-        print STDERR <<EOF;
-WARNING: Deprecated only_for_build entry found in $pfile
-WARNING: Please replace:
-WARNING: $_
-WARNING: with
-WARNING: $prod\t$version\t$qualspec\t$modifier
-WARNING: This accommodation will be removed in future.
-EOF
+        warning("Deprecated only_for_build entry found in $pfile: please replace:\n",
+                "  \"$_\"\n",
+                "with\n",
+                "  \"$prod\t$version\t$qualspec\t$modifier\"\n",
+                "This accommodation will be removed in future.");
       }
 
       if ($qualspec and $qualspec eq "-nq-") {
