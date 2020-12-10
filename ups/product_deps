@@ -7,8 +7,9 @@ incdir	-
 libdir	-
 
 product         version		qual	<table_format=2>
-cmake		v3_18_2
 cetpkgsupport	-c
+cmake		v3_18_2
+sphinx		v3_3_1		-	only_for_build
 end_product_list
  
 qualifier	cmake	cetpkgsupport

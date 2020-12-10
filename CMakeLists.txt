@@ -62,6 +62,7 @@ add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
+add_subdirectory(doc)
 ####################################
 
 ####################################
