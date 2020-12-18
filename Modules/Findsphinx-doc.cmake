@@ -6,7 +6,7 @@ if (SPHINX-BUILD_EXECUTABLE)
     set_target_properties(sphinx-doc::sphinx-build PROPERTIES
       IMPORTED_LOCATION "${SPHINX-BUILD_EXECUTABLE}")
   endif()
-  message(STATUS "SPHINX-BUILD_EXECUTABLE=${SPHINX-BUILD_EXECUTABLE}")
+  message(VERBOSE "SPHINX-BUILD_EXECUTABLE=${SPHINX-BUILD_EXECUTABLE}")
 
   find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
@@ -15,10 +15,9 @@ if (SPHINX-BUILD_EXECUTABLE)
     ERROR_QUIET
     OUTPUT_VARIABLE sphinx-doc_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message(STATUS "sphinx-doc_VERSION=${sphinx-doc_VERSION}")
   string(REGEX REPLACE "^[^ 	]+[ 	]+" ""
     sphinx-doc_VERSION "${sphinx-doc_VERSION}")
-  message(STATUS "sphinx-doc_VERSION=${sphinx-doc_VERSION}")
+  message(VERBOSE "sphinx-doc_VERSION=${sphinx-doc_VERSION}")
 endif()
 
 include(FindPackageHandleStandardArgs)

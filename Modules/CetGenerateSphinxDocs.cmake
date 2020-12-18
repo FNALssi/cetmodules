@@ -4,10 +4,10 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_generate_sphinxdocs)
-  project_variable(DOC_DIR ${CMAKE_INSTALL_DOCDIR} OMIT_IF_NULL
+  project_variable(DOC_DIR ${CMAKE_INSTALL_DOCDIR}
     DOCSTRING "Location of installed documentation for ${PROJECT_NAME}")
   cet_find_package(sphinx-doc 3.0 REQUIRED)
-  cmake_parse_arguments(PARSE_ARGV 0 CGS "NO_ALL;NO_INSTALL;QUIET;VERBOSE"
+  cmake_parse_arguments(PARSE_ARGV 0 CGS "NITPICKY;NO_ALL;NO_INSTALL;QUIET;VERBOSE"
     "CACHE_DIR;CONF_DIR;SOURCE_DIR;TARGET_STEM;TARGETS_VAR"
     "OUTPUT_FORMATS")
   if (NOT CGS_CACHE_DIR)
@@ -25,22 +25,27 @@ function(cet_generate_sphinxdocs)
   if (NOT CGS_NO_ALL)
     set(all_arg ALL)
   endif()
+  cet_passthrough(FLAG KEYWORD -n CGS_NITPICKY sphinx_build_args)
   if (CGS_QUIET AND CGS_VERBOSE)
     message(SEND_ERROR "QUIET and VERBOSE are mutually exclusive")
   elseif (CGS_QUIET)
-    set(quiet_verbose -q)
+    list(APPEND sphinx_build_args -q)
   elseif (CGS_VERBOSE MATCHES "^-v+$")
-    set(quiet_verbose "${CGS_VERBOSE}")
+    list(APPEND sphinx_build_args "${CGS_VERBOSE}")
   elseif (CGS_VERBOSE MATCHES "^[0-9]+$")
-    string(REPEAT "v" ${CGS_VERBOSE} quiet_verbose)
-    if (quiet_verbose)
-      string(PREPEND quiet_verbose "-")
+    string(REPEAT "v" ${CGS_VERBOSE} tmp)
+    if (tmp)
+      list(APPEND sphinx_build_args "-${tmp}")
     endif()
   elseif (CGS_VERBOSE)
-    set(quiet_verbose -v)
+    list(APPEND sphinx_build_args -v)
   endif()
-  cet_passthrough(KEYWORD -c CGS_CONF_DIR CONF_DIR_ARGS)
-  cet_passthrough(IN_PLACE KEYWORD -d CGS_CACHE_DIR)
+  if (CGS_CONF_DIR)
+    list(APPEND sphinx_build_args -c "${CGS_CONF_DIR}")
+  endif()
+  if (CGS_CACHE_DIR)
+    list(APPEND sphinx_build_args -d "${CGS_CACHE_DIR}")
+  endif()
   if (NOT CGS_TARGET_STEM)
     cet_package_path(current_directory SOURCE)
     string(REPLACE "/" "_" CGS_TARGET_STEM "${current_directory}")
@@ -51,9 +56,9 @@ function(cet_generate_sphinxdocs)
     string(JOIN "/" sources ${CGS_CONF_DIR} "conf.py")
     set(target "${CGS_TARGET_STEM}_${format}")
     add_custom_target(${target} ${all_arg}
-      sphinx-doc::sphinx-build
-      ${quiet_verbose} "${CONF_DIR_ARGS}" "${CGS_CACHE_DIR}"
-      "${CGS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/${format}"
+      sphinx-doc::sphinx-build "${sphinx_build_args}"
+      "${CGS_SOURCE_DIR}"
+      "${CMAKE_CURRENT_BINARY_DIR}/${format}"
       COMMENT "Building ${format} documentation with Sphinx"
       SOURCES "${sources}"
       COMMAND_EXPAND_LISTS
@@ -70,9 +75,11 @@ function(cet_generate_sphinxdocs)
     else()
       set(efa_arg)
     endif()
-    install(DIRECTORY ${dirs} DESTINATION ${efa_arg}
-      FILE_PERMISSIONS WORLD_READ OWNER_WRITE
-      DIRECTORY_PERMISSIONS WORLD_READ OWNER_WRITE WORLD_EXECUTE)
+    install(DIRECTORY ${dirs} ${efa_arg}
+      DESTINATION "${${PROJECT_NAME}_DOC_DIR}"
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+      DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+      GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
   endif()
 endfunction()
 

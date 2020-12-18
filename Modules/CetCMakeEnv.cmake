@@ -1,78 +1,11 @@
-########################################################################
-# CetCMakeEnv
-#
-#   Set up a characteristic cetmodules build environment for the current
-#   project.
-#
-####################################
-# FUNCTIONS / MACROS
-##################
-#
-#   cet_cmake_env([NO_INSTALL_PKGMETA])
-#
-#     Set up the cetmodules build environment.
-#
-####################################
-# CONFIGURATION
-##################
-#
-##################
-# Top-level configuration options (-D<opt>:BOOL=<ON|OFF>).
-##################
-#
-#   BUILD_SHARED_LIBS (ON)
-#   BUILD_STATIC_LIBS (OFF)
-#
-#     Specify which types of library should be built - see
-#     https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html.
-#
-#   CMAKE_INSTALL_RPATH_USE_LINK_PATH (ON)
-#
-#     Specify CMake's behavior with respect to RPATH - see
-#     https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_RPATH_USE_LINK_PATH.html.
-#
-#   WANT_UPS (OFF)
-#
-#     Activate the generation of UPS table and version files and Unified
-#     UPS-compliant installation tarballs. If you don't know what this
-#     means you don't need it. For details of command-line CMake
-#     variables (-D...) and optional arguments to cet_cmake_env() to
-#     modify behavior of the UPS handling system, please see the
-#     documentation in Ups.cmake.
-#
-##################
-# "Project" variables - see ProjectVariable.cmake.
-##################
-#
-#  * Set for the current project on the command line with:
-#
-#      -D<cmake-project-name>_<var>_INIT=<val>
-#
-#    or in CMakeLists.txt with:
-#
-#      set(<cmake-project-name>_<var> <val>).
-#
-#  * Set for the current and all nested projects with:
-#
-#      set(<var> <val>).
-#
-##################
-# cet_cmake_env([NO_INSTALL_PKGMETA])
-##################
-#
-# Set up the cetmodules build environment.
-#
-##################
-#
-#
-#   NO_INSTALL_PKGMETA
-#
-#     Under normal circumstances, cet_cmake_env() will automatically
-#     find LICENSE and README files and install them. Specify
-#     NO_INSTALL_PKGMETA if you wish to call install_pkgmeta()
-#     yourself (or not at all).
-#
-########################################################################
+#[================================================================[.rst:
+CetCMakeEnv
+===========
+
+This module defines the principal boostrap function
+:cmake:command:`cet_cmake_env` defining the cetmodules build environment for
+the current project.
+#]================================================================]
 
 # Avoid unnecessary repeat inclusion.
 include_guard(DIRECTORY)
@@ -118,6 +51,40 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
   BRIEF_DOCS "Saved location of the executable represented by a target"
   FULL_DOCS "Saved location of the executable represented by a target")
 
+#[================================================================[.rst:
+.. cmake:command:: cet_cmake_env
+
+  Set up the cetmodules build environment for the current project.
+
+  **Synopsis:**
+    .. code-block:: cmake
+
+       cet_cmake_env([NO_INSTALL_PKGMETA])
+
+  **Options:**
+    .. option:: NO_INSTALL_PKGMETA
+
+       Under normal circumstances, :cmake:command:`!cet_cmake_env` will
+       automatically find ``LICENSE`` and ``README`` files and install
+       them. Specify ``NO_INSTALL_PKGMETA`` if you wish to call
+       :cmake:command:`install_pkgmeta` yourself (or not at all).
+
+    .. note::
+
+       Prior to calling :cmake:command:`cet_cmake_env`:
+
+       * The current project must have been initialized via
+         :cmake:command:`project() <cmake:command:project>`
+
+       * Any initial or override values for
+         :cmake:manual:`cetmodules-project-variables.7` should be set.
+
+  **Variables controlling behavior**
+    * :cmake:variable:`WANT_UPS`
+    * :cmake:variable:`BUILD_SHARED_LIBS <cmake:variable:BUILD_SHARED_LIBS>`
+    * :cmake:variable:`BUILD_STATIC_LIBS`
+    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+#]================================================================]
 macro(cet_cmake_env)
   # project() must have been called first.
   if (NOT CMAKE_PROJECT_NAME)
