@@ -1,69 +1,10 @@
-# macros for building plugin libraries
-#
-# The plugin type is expected to be service, source, or module,
-# but we do not enforce this.
-#
-# USAGE:
-# basic_plugin( <name> <plugin type>
-#                [[NOP] <libraries>]
-#                [USE_BOOST_UNIT]
-#                [ALLOW_UNDERSCORES]
-#                [BASENAME_ONLY]
-#                [USE_PRODUCT_NAME]
-#                [NO_INSTALL]
-#                [SOURCE <sources>]
-#   )
-#
-# The plugin library's name is constructed from the specified name, its
-# specified plugin type (eg service, module, source), and (unless
-# BASENAME_ONLY is specified) the package subdirectory path (replacing
-# "/" with "_").
-#
-# Options:
-#
-# ALLOW_UNDERSCORES
-#
-#    Allow underscores in subdirectory names. Discouraged, as it creates
-#    a possible ambiguity in the encoded plugin library name
-#    (art_test/XX is indistinguishable from art/test/XX).
-#
-# BASENAME_ONLY
-#
-#    Omit the subdirectory path from the library name. Discouraged, as
-#    it creates an ambiguity between modules with the same source
-#    filename in different packages or different subdirectories within
-#    the same package. The latter case is not possible however, because
-#    CMake will throw an error because the two CMake targets will have
-#    the same name and that is not permitted. Mutually exclusive with
-#    USE_PRODUCT_NAME.
-#
-# NO_INSTALL
-#
-#    If specified, the plugin library will not be part of the installed
-#    product (use for test modules, etc.).
-#
-# NOP
-#
-#    Dummy option for the purpose of separating (say) multi-option
-#    arguments from non-option arguments.
-#
-# SOURCE
-#
-#    If specified, the provided sources will be used to create the
-#    library. Otherwise, the generated name <name>_<plugin_type>.cc will
-#    be used and this will be expected to be found in
-#    ${CMAKE_CURRENT_SOURCE_DIR}.
-#
-# USE_BOOST_UNIT
-#
-#    Allow the use of Boost Unit Test facilities.
-#
-# USE_PRODUCT_NAME
-#
-#    Prepend the product name to the plugin library name. Mutually
-#    exclusive with BASENAME_ONLY.
-#
-########################################################################
+#[================================================================[.rst:
+BasicPlugin
+===========
+
+Module defining the function :cmake:command:`basic_plugin` to generate a generic
+plugin module.
+#]================================================================]
 
 # Avoid unnecessary repeat inclusion.
 include_guard(DIRECTORY)
@@ -78,7 +19,85 @@ set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_INSTALL USE_BOOST_UNIT U
 set(cet_bp_one_arg_opts EXPORT LIB_TYPE SOVERSION)
 set(cet_bp_list_options ALIASES LIBRARIES LOCAL_INCLUDE_DIRS SOURCE)
 
-# Basic plugin libraries.
+#[================================================================[.rst:
+.. cmake:command:: basic_plugin
+
+   Create a plugin module.
+
+   **Synopsis:**
+     .. code-block:: cmake
+
+        basic_plugin(<name> <type> [<options>])
+
+   **Options:**
+     ``ALIASES <alias>...``
+       Create the specified CMake alias targets to the plugin.
+
+     ``ALLOW_UNDERSCORES``
+       Normally, neither ``<name>`` nor ``<type>`` may contain
+       underscores in order to avoid possible ambiguities. Allow them
+       with this option at your own risk.
+
+     ``BASENAME_ONLY``
+       Do not add the relative path (directories delimited by ``_``) to
+       the front of the plugin library name.
+
+     ``EXPORT <export-name>``
+       Add the library to the ``<export-name>`` export set.
+
+     ``LIB_TYPE SHARED|STATIC|MODULE``
+       Set the library type. Defaults to ``SHARED``.
+
+     ``LIBRARIES <library-dependency>...``
+       Dependencies against which to link.
+
+     ``LOCAL_INCLUDE_DIRS <dir>...``
+       Headers may be found in ``<dir>``... at build time.
+
+     ``NOP``
+       Option / argument disambiguator; no other function.
+
+     ``NO_INSTALL``
+       Do not install the generated plugin.
+
+     ``SOURCE <source>...``
+       Specify sources to compile into the plugin.
+
+     ``SOVERSION <version>``
+       The library's compatibility version (*cf*
+       :cmake:prop_tgt:`SOVERSION`).
+
+     ``USE_BOOST_UNIT``
+       The plugin uses Boost unit test functions and should be compiled
+       and linked accordingly.
+
+     ``USE_PRODUCT_NAME``
+
+       .. deprecated:: 2.0
+          use ``USE_PACKAGE_NAME`` instead.
+
+     ``USE_PACKAGE_NAME``
+       The package name will be prepended to the pluign library name,
+       separated by ``_``
+
+     ``VERSION``
+       The library's build version will be set to
+       :cmake:variable:`PROJECT_NAME` (*cf* :cmake:prop_tgt:`VERSION`).
+
+   **Non-option arguments:**
+
+     ``<name>``
+
+     The name stem for the library to be generated.
+
+     ``<type>``
+
+     The type of plugin to be generated.
+
+   .. note:: The plugin generated will be named ``<prefix><name>_<type><suffix>``.
+
+   .. seealso:: :cmake:command:`cet_cmake_library`
+#]================================================================]
 function(basic_plugin NAME TYPE)
   cmake_parse_arguments(PARSE_ARGV 2 BP
     "${cet_bp_flags}" "${cet_bp_one_arg_opts}" "${cet_bp_list_options}")

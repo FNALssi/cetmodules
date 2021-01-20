@@ -1,3 +1,25 @@
+#[================================================================[.rst:
+FindCatch2
+----------
+
+Find module for Catch2 handling older versions where a CMake config file
+is not present.
+
+Imported Targets
+^^^^^^^^^^^^^^^^
+
+This module ensures the existence of the ``IMPORTED`` target
+``Catch2::Catch2`` if the package is found.
+
+Result Variables
+^^^^^^^^^^^^^^^^
+
+.. hlist::
+   :columns: 1
+
+   * ``Catch2_FOUND``
+
+#]================================================================]
 if (NOT Catch2_FOUND)
   if (Catch2_FIND_REQUIRED)
     set(_cet_Catch2_FIND_REQUIRED ${Catch2_FIND_REQUIRED})

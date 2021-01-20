@@ -1,50 +1,18 @@
-# macro for building ROOT dictionaries
-#
-# USAGE:
-# build_dictionary( [<dictionary_name>]
-#                   [COMPILE_FLAGS <flags>]
-#                   [CLASSES_DEF_XML <filepath>]
-#                   [CLASSES_H <filepath>]
-#                   [DICT_NAME_VAR <var>]
-#                   [DICTIONARY_LIBRARIES <library list>]
-#                   [USE_PRODUCT_NAME]
-#                   [NO_INSTALL]
-#                   [DICT_FUNCTIONS]
-#                   [NO_CHECK_CLASS_VERSION]
-#                   [CCV_ENVIRONMENT <env_list>]
-#                   [REQUIRED_DICTIONARIES <dictionary_list>]
-#                   [RECURSIVE|NO_RECURSIVE]
-#                   [UPDATE_IN_PLACE]
-#                 )
-#
-# * <dictionary_name> defaults to a name based on the current source
-# code subdirectory.
-#
-# * ${REFLEX} is always appended to the library list (even if it is
-# empty).
-#
-# * Specify NO_INSTALL when building a dictionary for tests.
-#
-# * The default behavior is to generate a dictionary for data only. Use
-# the DICT_FUNCTIONS option to reactivate the generation of dictionary
-# entries for functions.
-#
-# * CLASSES_DEF_XML and CLASSES_H are optional and if not specified, we
-# use classes_def.xml and classes.h respectively from the current source
-# directory.
-#
-# * If DICT_NAME_VAR is specified, <var> will be set to contain the
-# dictionary name.
-#
-# * check_class_version() is run by default. Use NO_CHECK_CLASS_VERSION
-# to disable this behavior. CCV_ENVIRONMENT (as ENVIRONMENT),
-# REQUIRED_DICTIONARIES, UPDATE_IN_PLACE, and {NO_,}RECURSIVE are passed
-# through to check_class_version.
-#
-# * Any other macros or functions in this file are for internal use
-# only.
-#
-########################################################################
+#[================================================================[.rst:
+BuildDictionary
+===============
+
+Module defining the function :cmake:command:`build_dictionary` to
+generate a ROOT dictionary from a selection XML
+(:file:`classes_def.xml`).
+
+.. seealso::
+
+   `ROOT Home Page <https://root.cern.ch>`_
+
+   :cmake:module:`CetRootCint`
+     Building a ROOT dictionary from a :file:`Linkdef.h` file.
+#]================================================================]
 include_guard(DIRECTORY)
 
 cmake_policy(PUSH)
@@ -54,79 +22,86 @@ include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
 
-function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
-  cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
-  set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
-  set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
-  # Add any target-specific include directories, accounting safely for
-  # generator expressions.
-  list(APPEND GENREFLEX_INCLUDES
-    "$<$<BOOL:${tmp_includes}>:-I$<JOIN:${tmp_includes},$<SEMICOLON>-I>>")
-  # Add any target-specific compile definitions, accounting safely for
-  # generator expressions.
-  set(tmp_defs "$<TARGET_PROPERTY:${dictname}_dict,COMPILE_DEFINITIONS>")
-  list(APPEND GENREFLEX_FLAGS
-    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>"
-    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
-  if (GD_ROOTMAP_OUTPUT)
-    list(APPEND GENREFLEX_FLAGS
-      --rootmap-lib="$<TARGET_FILE_NAME:${dictname}_dict>"
-      --rootmap=${GD_ROOTMAP_OUTPUT}
-      )
-  endif()
-  set(PCM_OUTPUT
-    "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>_rdict.pcm")
-  if (GD_PCM_OUTPUT_VAR)
-    set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
-  endif()
-  # FIXME Should be able to leverage CMake to do something more
-  # straightforward than this!
-  set(CXX_STD_FLAG "$<IF:$<BOOL:$<TARGET_PROPERTY:${dictname}_dict,CXX_EXTENSIONS>>,\
-$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_EXTENSION_COMPILE_OPTION},\
-${CMAKE_CXX98_EXTENSION_COMPILE_OPTION}>>>>,\
-$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_STANDARD_COMPILE_OPTION},\
-${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
-")
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
-    # Extra outputs commented out until custom_command OUTPUT supports
-    # generator flags. See
-    # https://gitlab.kitware.com/cmake/cmake/issues/12877.
-    ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
-    COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
-    -s ${CLASSES_DEF_XML}
-		-I${PROJECT_SOURCE_DIR}
-		${GENREFLEX_INCLUDES}
-    ${CXX_STD_FLAG}
-    ${GENREFLEX_FLAGS}
-    -o ${dictname}_dict.cpp
-    IMPLICIT_DEPENDS CXX ${CLASSES_H}
-    DEPENDS ${CLASSES_DEF_XML}
-    COMMAND_EXPAND_LISTS
-    COMMENT "Generating dictionary files for target ${dictname}")
-  # set variable for install_source
-  set(cet_generated_code
-    ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
-    ${SOURCE_OUTPUT}
-    PARENT_SCOPE)
-endfunction()
+set(_cet_build_dictionary_flags NO_CHECK_CLASS_VERSION NO_INSTALL
+  NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME USE_PROJECT_NAME)
 
-set(_cet_build_dictionary_flags
-  NO_CHECK_CLASS_VERSION NO_INSTALL NO_RECURSIVE NOP
-  RECURSIVE USE_PRODUCT_NAME USE_PROJECT_NAME)
+set(_cet_build_dictionary_one_arg_options CLASSES_H CLASSES_DEF_XML
+  DICT_NAME_VAR EXPORT)
 
-set(_cet_build_dictionary_one_arg_options
-  CLASSES_H CLASSES_DEF_XML DICT_NAME_VAR EXPORT)
+set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
+    DICTIONARY_LIBRARIES REQUIRED_DICTIONARIES)
 
-set(_cet_build_dictionary_list_options
-    CCV_ENVIRONMENT COMPILE_FLAGS DICTIONARY_LIBRARIES REQUIRED_DICTIONARIES)
+#[================================================================[.rst:
+.. cmake:command:: build_dictionary
 
+   Generate and build a ROOT dictionary module from a selection XML file
+   (:file:`classes_def.xml`), optionally checking versions and checksums for
+   selected classes.
+
+   **Synopsis:**
+     .. code-block:: cmake
+
+        build_dictionary([<name>] [<options>])
+
+   **Options:**
+
+     ``CCV_ENVIRONMENT <var>=<val>...``
+       List of environment settings to pass to
+       :cmake:manual:`checkClassVersion(1)`.
+
+     ``CLASSES_DEF_XML <filepath>`` The name and location of the
+       selection XML file to be used (default:
+       :cmake:variable:`${CMAKE_CURRENT_SOURCE_DIR}
+       <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
+
+     ``CLASSES_H <filepath>`` The name and location of the top-level C++
+       header file to be read (default:
+       :cmake:variable:`${CMAKE_CURRENT_SOURCE_DIR}
+       <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
+
+     ``COMPILE_FLAGS <flag>...``
+       Extra compilation options.
+
+     ``DICTIONARY_LIBRARIES <library-dependency>...``
+       Libraries to which to link the dictionary plugin.
+
+     ``DICT_NAME_VAR <var>``
+       Variable in which to store the plugin name (useful when
+       generated).
+
+     ``EXPORT <export-name>``
+       Add the library to the ``<export-name>`` export set.
+
+     ``NOP``
+       Option / argument disambiguator; no other function.
+
+     ``NO_CHECK_CLASS_VERSION``
+       Do not run :cmake:manual:`checkClassVersion(1)` to verify class
+       checksums and version numbers.
+
+     ``NO_INSTALL``
+       Do not install the generated plugin.
+
+     ``[NO_]RECURSIVE`` Specify whether
+       :cmake:manual:`checkClassVersion(1)` should check for the
+       presence and validity of class dictionaries recursively (default
+       determined by :cmake:command:`check_class_version`).
+
+     ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
+       Specify dictionary dependencies required to be available for
+       successful validation.
+
+     ``USE_PRODUCT_NAME``
+
+       .. deprecated:: 2.0
+          use ``USE_PACKAGE_NAME`` instead.
+
+     ``USE_PACKAGE_NAME``
+       The package name will be prepended to the pluign library name,
+       separated by ``_``
+
+   .. seealso:: :cmake:command:`cet_cmake_library`, :cmake:command:`check_class_version`
+#]================================================================]
 function(build_dictionary)
   set(build_dictionary_usage "USAGE: build_dictionary( [dictionary_name] [DICTIONARY_LIBRARIES <library list>] [COMPILE_FLAGS <flags>] [DICT_NAME_VAR <var>] [NO_INSTALL] )")
   cmake_parse_arguments(PARSE_ARGV 0 BD
@@ -213,5 +188,69 @@ function(build_dictionary)
     check_class_version(${BD_LIBRARIES} UPDATE_IN_PLACE ${BD_CCV_ARGS})
   endif()
 endfunction()
+
+function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
+  cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
+  set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
+  set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
+  # Add any target-specific include directories, accounting safely for
+  # generator expressions.
+  list(APPEND GENREFLEX_INCLUDES
+    "$<$<BOOL:${tmp_includes}>:-I$<JOIN:${tmp_includes},$<SEMICOLON>-I>>")
+  # Add any target-specific compile definitions, accounting safely for
+  # generator expressions.
+  set(tmp_defs "$<TARGET_PROPERTY:${dictname}_dict,COMPILE_DEFINITIONS>")
+  list(APPEND GENREFLEX_FLAGS
+    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>"
+    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
+  if (GD_ROOTMAP_OUTPUT)
+    list(APPEND GENREFLEX_FLAGS
+      --rootmap-lib="$<TARGET_FILE_NAME:${dictname}_dict>"
+      --rootmap=${GD_ROOTMAP_OUTPUT}
+      )
+  endif()
+  set(PCM_OUTPUT
+    "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>_rdict.pcm")
+  if (GD_PCM_OUTPUT_VAR)
+    set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
+  endif()
+  # FIXME Should be able to leverage CMake to do something more
+  # straightforward than this!
+  set(CXX_STD_FLAG "$<IF:$<BOOL:$<TARGET_PROPERTY:${dictname}_dict,CXX_EXTENSIONS>>,\
+$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_EXTENSION_COMPILE_OPTION},\
+$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_EXTENSION_COMPILE_OPTION},\
+${CMAKE_CXX98_EXTENSION_COMPILE_OPTION}>>>>,\
+$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_STANDARD_COMPILE_OPTION},\
+$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_STANDARD_COMPILE_OPTION},\
+${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
+")
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
+    # Extra outputs commented out until custom_command OUTPUT supports
+    # generator flags. See
+    # https://gitlab.kitware.com/cmake/cmake/issues/12877.
+    ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
+    COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
+    -s ${CLASSES_DEF_XML}
+		-I${PROJECT_SOURCE_DIR}
+		${GENREFLEX_INCLUDES}
+    ${CXX_STD_FLAG}
+    ${GENREFLEX_FLAGS}
+    -o ${dictname}_dict.cpp
+    IMPLICIT_DEPENDS CXX ${CLASSES_H}
+    DEPENDS ${CLASSES_DEF_XML}
+    COMMAND_EXPAND_LISTS
+    COMMENT "Generating dictionary files for target ${dictname}")
+  # set variable for install_source
+  set(cet_generated_code
+    ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
+    ${SOURCE_OUTPUT}
+    PARENT_SCOPE)
+endfunction()
+
 
 CMAKE_POLICY(POP)

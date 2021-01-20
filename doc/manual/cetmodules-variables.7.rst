@@ -1,4 +1,4 @@
-.. cmake-manual-description: cetmodules Variables Reference
+.. cmake-manual-description: Cetmodules Variables Reference
 
 cetmodules-variables(7)
 ***********************

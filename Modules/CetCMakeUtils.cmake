@@ -292,8 +292,8 @@ endfunction()
      ``<fmt>``
 
        The desired format of the timestamp, using ``%`` placeholders
-       according to :ref:`string(TIMESTAMP)
-       <cmake-ref-current:TIMESTAMP>`. In addition, timezone
+       according to :any:`string(TIMESTAMP)
+       <cmake-ref-current:timestamp>`. In addition, timezone
        placeholders ``%Z`` and ``%z`` are interpreted according to your
        system's :command:`date` command.
 
@@ -313,11 +313,21 @@ endfunction()
        ``-- 1970-01-01 23:59:59 -0600``
 
    .. versionchanged:: 2.07.00
-
-      Prior to version 2.07.00, "%Y" was missing from the default
+      prior to version 2.07.00, ``%Y`` was missing from the default
       format.
 
-   .. seealso:: :cmake:command:`string(TIMESTAMP) <cmake:command:string(TIMESTAMP)>`, :command:`date`
+   .. seealso::
+
+      :any:`string(TIMESTAMP) <cmake-ref-current:timestamp>`
+
+      :cmake:variable:`BUILD_SHARED_LIBS
+      <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
+
+      :cmake:command:`configure_package_config_file()
+      <cmake-ref-current:command:configure_package_config_file>`
+
+      :manpage:`date(1)`
+
 #]================================================================]
 function(cet_timestamp VAR)
   list(POP_FRONT ARGN fmt)
@@ -348,6 +358,11 @@ endfunction()
    :cmake:command:`find_package() <cmake:command:find_package>` for
    packages without generated CMake config files or a ``Find<name>.cmake``
    module.
+
+   .. deprecated:: 2.0
+      if no ``FindXXX.cmake`` module or CMake config file is available
+      for ``<name>``, write your own find module or request one from the
+      SciSoft team.
 
    **Synopsis:**
      .. code-block:: cmake
@@ -399,12 +414,6 @@ endfunction()
    **Variables controlling behavior:**
 
      :cmake:variable:`WANT_INCLUDE_DIRECTORIES`
-
-   .. :deprecated:: 2.0
-
-      If no ``FindXXX.cmake`` module or CMake config file is available
-      for ``<name>``, write your own find module or request one from the
-      SciSoft team.
 #]================================================================]
 function(cet_find_simple_package NAME)
   cmake_parse_arguments(PARSE_ARGV 1 CFSP
@@ -443,19 +452,25 @@ endfunction()
 #[================================================================[.rst:
 .. cmake:command:: cet_localize_pv
 
-   Ensure that all fragment-type :cmake:manual:`project variables
+   Ensure that specified path-type :cmake:manual:`project variables
    <cetmodules-project-variables.7>` are absolute in the current
    directory scope for in-tree project ``<project>``.
 
    **Synopsis:**
      .. code-block:: cmake
 
-        cet_localize_pv(<project>)
+        cet_localize_pv(<project> [<project-var-name>])
+
+        cet_localize_pv(<project> ALL)
 
    **Non-option arguments:**
      ``<project>``
 
        The name of a CMake project in the current source tree.
+
+     ``<project-var-name>``
+
+       The name of a project variable (without a ``<project>_`` prefix).
 #]================================================================]
 function(cet_localize_pv PROJECT)
   if (NOT ${PROJECT}_IN_TREE)

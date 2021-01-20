@@ -1,3 +1,35 @@
+#[================================================================[.rst:
+Findcatch
+---------
+
+Find module shim for Catch2 using its UPS product name (``catch``).
+
+Incorporates the behavior of :cmake:module:`FindCatch2`.
+
+Result Variables
+^^^^^^^^^^^^^^^^
+
+The following variables may be defined:
+
+.. hlist::
+   :columns: 1
+
+   * ``catch_FOUND``
+   * ``catch_VERSION``
+   * ``CATCH`` - see :cmake:variable:`<PROJECT-NAME>_OLD_STYLE_CONFIG_VARS`
+
+Variables controlling behavior
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. hlist::
+   :columns: 1
+
+   * :cmake:variable:`<PROJECT-NAME>_OLD_STYLE_CONFIG_VARS`
+
+.. seealso:: :cmake:module:`FindCatch2`.
+
+#]================================================================]
+
 set(_cet_catch_var_names
   FIND_COMPONENTS FOUND VERSION INCLUDE_DIR INCLUDE_DIRS LIBRARIES LIBRARY)
 

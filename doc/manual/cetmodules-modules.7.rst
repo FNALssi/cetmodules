@@ -1,11 +1,7 @@
-.. cmake-manual-description: cetmodules Modules Reference
+.. cmake-manual-description: Cetmodules Modules Reference
 
 cetmodules-modules(7)
 *********************
-
-.. only:: html
-
-   .. contents::
 
 Utility Modules
 ===============
@@ -98,4 +94,3 @@ Compatibility Find Modules
    ../../module/compat/Findcppunit
    ../../module/compat/Findsmc_compiler
    ../../module/compat/Findsqlite
-   ../../module/compat/Findtbb

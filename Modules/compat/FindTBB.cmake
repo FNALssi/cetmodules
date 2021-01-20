@@ -1,6 +1,6 @@
 #[================================================================[.rst:
-FindTBB
--------
+FindTBB / Findtbb
+-----------------
 
 Find module bridging UPS SciSoft and TBB-native config files.
 
@@ -9,29 +9,37 @@ Imported Targets
 
 This module ensures import of at least the following targets, if applicable:
 
-``TBB::tbb``
-``TBB::tbbmalloc``
-``TBB::tbbmalloc_proxy``
+.. hlist::
+   :columns: 1
+
+   * ``TBB::tbb``
+   * ``TBB::tbbmalloc``
+   * ``TBB::tbbmalloc_proxy``
 
 Result Variables
 ^^^^^^^^^^^^^^^^
 
 The following variables will be defined:
 
-``TBB_Found``
-``TBB_VERSION``
-``TBB_INCLUDE_DIRS``
-``TBB_LIBRARIES``
+.. hlist::
+   :columns: 1
+
+   * ``TBB_FOUND``
+   * ``TBB_VERSION``
+   * ``TBB_INCLUDE_DIRS``
+   * ``TBB_LIBRARIES``
 
 Cache Variables
 ^^^^^^^^^^^^^^^
 
 The following cache variables may also be set:
 
-``TBB_INCLUDE_DIR``
-``TBB_LIBRARY``
-``TBB``
-  UPS-compatible library variable.
+.. hlist::
+   :columns: 1
+
+   * ``TBB_INCLUDE_DIR``
+   * ``TBB_LIBRARY``
+   * ``TBB``
 #]================================================================]
 
 set(_cet_tbb_var_names

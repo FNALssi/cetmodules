@@ -47,6 +47,8 @@ endif()
 include(GNUInstallDirs)
 ##################
 
+#[================================================================[.rst:
+#]================================================================]
 define_property(TARGET PROPERTY CET_EXEC_LOCATION
   BRIEF_DOCS "Saved location of the executable represented by a target"
   FULL_DOCS "Saved location of the executable represented by a target")
@@ -62,22 +64,23 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
        cet_cmake_env([NO_INSTALL_PKGMETA])
 
   **Options:**
-    .. option:: NO_INSTALL_PKGMETA
+    ``NO_INSTALL_PKGMETA``
 
        Under normal circumstances, :cmake:command:`!cet_cmake_env` will
-       automatically find ``LICENSE`` and ``README`` files and install
-       them. Specify ``NO_INSTALL_PKGMETA`` if you wish to call
+       call :cmake:command:`install_pkgmeta` to automatically find
+       ``LICENSE`` and ``README`` files and install them. Specify
+       ``NO_INSTALL_PKGMETA`` if you wish to call
        :cmake:command:`install_pkgmeta` yourself (or not at all).
 
-    .. note::
+  .. note::
 
-       Prior to calling :cmake:command:`cet_cmake_env`:
+     Prior to calling :cmake:command:`cet_cmake_env`:
 
-       * The current project must have been initialized via
-         :cmake:command:`project() <cmake:command:project>`
+     * The current project must have been initialized via
+       :cmake:command:`project() <cmake:command:project>`
 
-       * Any initial or override values for
-         :cmake:manual:`cetmodules-project-variables.7` should be set.
+     * Any initial or override values for
+       :cmake:manual:`cetmodules-project-variables.7` should be set.
 
   **Variables controlling behavior**
     * :cmake:variable:`WANT_UPS`

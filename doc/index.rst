@@ -47,6 +47,7 @@ Reference Manuals
 .. toctree::
    :maxdepth: 1
 
+   manual/cetmodules-commands.7
    manual/cetmodules-modules.7
    manual/cetmodules-project-variables.7
    manual/cetmodules-variables.7
