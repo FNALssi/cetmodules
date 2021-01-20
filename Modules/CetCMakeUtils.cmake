@@ -458,31 +458,53 @@ endfunction()
        The name of a CMake project in the current source tree.
 #]================================================================]
 function(cet_localize_pv PROJECT)
-  foreach (var IN LISTS ARGN)
-    if (IS_ABSOLUTE "${${PROJECT}_${var}}")
+  if (NOT ${PROJECT}_IN_TREE)
+    message(SEND_ERROR "cannot localize project variables: project ${PROJECT} is not local or missing find_package()")
+  endif()
+  if (ARGN STREQUAL "ALL")
+    set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
+    set(check_pv_validity)
+  else()
+    set(var_list ARGN)
+    set(check_pv_validity TRUE)
+  endif()
+  foreach (var IN LISTS ${var_list})
+    if (check_pv_validity AND NOT
+        var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
+      message(SEND_ERROR "cannot localize unknown project variable ${var} for project ${PROJECT}")
+    elseif (NOT ${PROJECT}_${var} OR IS_ABSOLUTE "${${PROJECT}_${var}}")
       continue() # Nothing to do.
-    elseif (NOT ${PROJECT}_IN_TREE)
-      # Nothing we can do!
-      message(SEND_ERROR "insufficient information to localize project variable ${var} for project ${PROJECT} - missing find_package()?")
-    elseif (${var} IN_LIST CETMODULES_VARS_PROJECT_${PROJECT})
-      set(result)
-      set(generated)
-      get_project_variable_property(type PROJECT ${PROJECT} ${var} PROPERTY TYPE)
-      if (type MATCHES ^FILEPATH)
-        get_filename_component(result "${${PROJECT}_${var}}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
-        get_property(generated SOURCE "${result}" PROPERTY GENERATED)
-      endif()
-      if (type MATCHES ^PATH OR (result AND NOT (generated OR EXISTS "${result}")))
-        get_filename_component(result "${${PROJECT}_${var}}" ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
-      endif()
-      if (NOT result) # Nonsense request.
-        message(SEND_ERROR "cannot localize non-path project variable ${var} for project ${PROJECT}")
-      endif()
-    else()
-      message(SEND_ERROR "attempt to localize ${var}, which is not a project variable for project ${PROJECT}")
     endif()
-    set(${PROJECT}_${var} "${result}" PARENT_SCOPE)
+    set(result)
+    set(generated)
+    get_project_variable_property(type PROJECT ${PROJECT} ${var} PROPERTY TYPE)
+    if (type MATCHES ^FILEPATH)
+      get_filename_component(result "${${PROJECT}_${var}}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
+      get_property(generated SOURCE "${result}" PROPERTY GENERATED)
+    endif()
+    if (type MATCHES ^PATH OR (result AND NOT (generated OR EXISTS "${result}")))
+      get_filename_component(result "${${PROJECT}_${var}}" ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
+    endif()
+    if (result)
+      set(${PROJECT}_${var} "${result}" PARENT_SCOPE)
+    elseif (check_pv_validity)
+      message(SEND_ERROR "cannot localize non-path project variable ${var} for project ${PROJECT}")
+    endif()
   endforeach()
+endfunction()
+
+#[================================================================[.rst:
+.. cmake:command:: cet_localize_pv_all
+
+   **Synopsis:**
+     .. code-block:: cmake
+
+        cet_localize_pv_all(<project>)
+
+     Equivalent to :cmake:command:`cet_localize_pv(<project> ALL)`.
+#]================================================================]
+function(cet_localize_pv_all PROJECT)
+  cet_localize_pv(PROJECT ALL)
 endfunction()
 
 #[================================================================[.rst:
