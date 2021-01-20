@@ -293,7 +293,7 @@ endfunction()
 
        The desired format of the timestamp, using ``%`` placeholders
        according to :ref:`string(TIMESTAMP)
-       <cmake.org:TIMESTAMP>`. In addition, timezone
+       <cmake-ref-current:TIMESTAMP>`. In addition, timezone
        placeholders ``%Z`` and ``%z`` are interpreted according to your
        system's :command:`date` command.
 

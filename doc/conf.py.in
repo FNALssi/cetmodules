@@ -80,6 +80,7 @@ html_static_path = ['_static']
 
 # External cross-references.
 intersphinx_mapping \
-    = { 'cmake.org': ('https://cmake.org/cmake/help/v{0}/'.format(cmake_version),
-                      None),
+    = { 'cmake-ref-current': ('https://cmake.org/cmake/help/v{0}/'.format(cmake_version),
+                          None),
+        'cmake-ref-latest': ('https://cmake.org/cmake/help/latest/', None)
     }
