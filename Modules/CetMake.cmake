@@ -231,6 +231,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   if (CME_USE_CATCH2_MAIN)
     cet_find_package(Catch2 PRIVATE QUIET REQUIRED)
     if (NOT TARGET Catch2_main)
+      cet_localize_pv(cetmodules CATCH2_MAIN)
       get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
       list(POP_FRONT catch2_include_dir catch2_include_subdir)
       if (EXISTS "${catch2_include_subdir}/catch2")

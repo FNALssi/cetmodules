@@ -42,6 +42,7 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_make_completions exec)
+  cet_localize_pv(cetmodules BIN_DIR)
   set(output_file ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
   set(completion_comment "Generating bash completions for ${exec}")
   if(ARGV1)
