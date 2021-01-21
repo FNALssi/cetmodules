@@ -3,8 +3,6 @@
 increment-version(1)
 *******************
 
-.. parsed-literal::
-
 NAME
     increment-version: Increment the current version of a cetmodules-using
     package.

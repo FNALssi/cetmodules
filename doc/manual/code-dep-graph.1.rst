@@ -1,13 +1,15 @@
 .. code-dep-graph-manual-description: Code-dep-graph Command-Line Reference
 
-code-dep-graph()
+code-dep-graph(1)
 ****************
 
-.. parsed-literal::
+Usage 
+=====
 
-usage: code-dep-graph [<options>] [-d <topdir>] [-o <outfile>]"
+     code-dep-graph [<options>] [-d <topdir>] [-o <outfile>]"
 
-Options:
+Options
+-------
 
   -D
      Show external dependencies also. Specify twice to include external
@@ -19,7 +21,8 @@ Options:
   -v
      Verbose output.
 
-Post-processing:
+Post-processing
+---------------
 
 Output is in the graphviz, "dot" format. Examples of post-processing:
 
