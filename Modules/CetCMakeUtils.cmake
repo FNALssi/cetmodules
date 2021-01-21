@@ -468,7 +468,7 @@ endfunction()
 #]================================================================]
 function(cet_localize_pv PROJECT)
   if (NOT ${PROJECT}_IN_TREE)
-    message(SEND_ERROR "cannot localize project variables: project ${PROJECT} is not local or missing find_package()")
+    return() # Nothing to do.
   endif()
   if (ARGN STREQUAL "ALL")
     set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
