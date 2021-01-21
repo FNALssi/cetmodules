@@ -341,7 +341,7 @@ MISC. OPTIONS.
   as previously. If this option is activated but tests are not to be
   run, a warning shall be issued. If no labels are selected, then
   DEFAULT is selected. A value of ALL is substituted with all known test
-  labels. A leading `-' for a label will lead to its explicit
+  labels. A leading \`-' for a label will lead to its explicit
   exclusion. See also -T, -R options. Mutually-exclusive with --L and
   --LE options.
 
