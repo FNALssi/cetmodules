@@ -3,10 +3,14 @@
 format-code(1)
 **************
 
-.. parsed-literal::
+Usage
+=====
 
-Usage: format-code -d <directory> [-c|-n] [-v] [--use-available]
-Options:
+  format-code -d <directory> [-c|-n] [-v] [--use-available]
+
+Options
+-------
+
   -d [--directory] arg   Top-level directory to apply formatting script.
   -c [--commit]          Commit changes after code-formatting has been applied.
                          To use the 'commit' option, you must have a clean working

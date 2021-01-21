@@ -1,15 +1,15 @@
 .. increment-version-manual-description: Increment-version Command-Line Reference
 
 increment-version(1)
-*******************
-
-.. parsed-literal::
+********************
 
 NAME
+
     increment-version: Increment the current version of a cetmodules-using
     package.
 
 SYNOPSIS
+========
 
     increment-version mode [options] [--] [package-loc+]
 
@@ -29,15 +29,18 @@ SYNOPSIS
     references thereto.
 
 DESCRIPTION
+===========
     increment-version will increment the current version of a cetmodules-using
     package. Optionally find all other packages where said package is listed
     as a dependency and update the required version.
 
-  ARGUMENTS
+ARGUMENTS
+=========
     package-loc
         Path to top directory of package whose version should be bumped.
 
-  Modes
+Modes
+------
     Precisely one mode type should be specified (although -U may be specified
     multiple times).
 
@@ -66,7 +69,8 @@ DESCRIPTION
         update any references to the named package(s) to use the specified
         version(s) thereof.
 
-  OPTIONS
+OPTIONS
+---------
     --client-dir package-client-search-path
     -c package-client-search-path
         Specify a directory to search for product_deps files in which to
