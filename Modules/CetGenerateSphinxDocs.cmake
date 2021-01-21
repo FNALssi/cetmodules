@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 function(cet_generate_sphinxdocs)
   project_variable(DOC_DIR ${CMAKE_INSTALL_DOCDIR}
     DOCSTRING "Location of installed documentation for ${PROJECT_NAME}")
-  cet_find_package(sphinx-doc 3.0 REQUIRED)
+  cet_find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
   cmake_parse_arguments(PARSE_ARGV 0 CGS "NITPICKY;NO_ALL;NO_INSTALL;QUIET;VERBOSE"
     "CACHE_DIR;CONF_DIR;SOURCE_DIR;TARGET_STEM;TARGETS_VAR"
     "OUTPUT_FORMATS")
