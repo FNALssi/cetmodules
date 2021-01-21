@@ -293,9 +293,8 @@ endfunction()
 
        The desired format of the timestamp, using ``%`` placeholders
        according to :any:`string(TIMESTAMP)
-       <cmake-ref-current:timestamp>`. In addition, timezone
-       placeholders ``%Z`` and ``%z`` are interpreted according to your
-       system's :command:`date` command.
+       <cmake-ref-current:timestamp>` or the system :command:`date`
+       command.
 
    **Examples:**
      * .. code-block:: cmake
@@ -320,35 +319,30 @@ endfunction()
 
       :any:`string(TIMESTAMP) <cmake-ref-current:timestamp>`
 
-      :cmake:variable:`BUILD_SHARED_LIBS
-      <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
-
-      :cmake:command:`configure_package_config_file()
-      <cmake-ref-current:command:configure_package_config_file>`
-
       :manpage:`date(1)`
-
 #]================================================================]
 function(cet_timestamp VAR)
   list(POP_FRONT ARGN fmt)
   if (NOT fmt)
     set(fmt "%a %b %d %H:%M:%S %Z %Y")
   endif()
-
-  # Get local timezone.
-  if (NOT CET_TZ)
-    _cet_init_tz()
-    set(CET_TZ ${CET_TZ} PARENT_SCOPE)
-    set(CET_tz ${CET_tz} PARENT_SCOPE)
+  if (fmt MATCHES "(^|[^%])%[^%dHIjmbBMsSUwaAyY]")
+    # There's a format code not recognized by string(TIMESTAMP): use the
+    # system date command instead.
+    set(date_cmd date "+${fmt}")
+    execute_process(COMMAND ${date_cmd}
+      OUTPUT_VARIABLE result
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_VARIABLE error
+      RESULT_VARIABLE status)
+    if (error OR NOT (status EQUAL 0 AND result))
+      message(WARNING "attempt to obtain local timezone code with \"${date_cmd}\" \
+returned status code ${status} and error output \"${error}\" in addition to output \"${TZ_OUTPUT}\"\
+")
+    endif()
+  else()
+    string(TIMESTAMP result "${fmt}")
   endif()
-
-  # Use standard U**X date formats for timezone info.
-  string(REPLACE "%Z" "${CET_TZ}" fmt "${fmt}")
-  string(REPLACE "%z" "${CET_tz}" fmt "${fmt}")
-
-  # Timestamp.
-  string(TIMESTAMP result "${fmt}")
-  string(STRIP "${result}" result)
   set(${VAR} ${result} PARENT_SCOPE)
 endfunction()
 
@@ -590,22 +584,6 @@ if (CMAKE_SCRIPT_MODE_FILE) # Smoke test.
     message(FATAL_ERROR "MARY_LAMB has ${len} elements - expected 2")
   endif()
 endif()
-
-function(_cet_init_tz)
-  # We have to get timezone externally because CMake won't tell us what
-  # it is.
-  set(tz_cmd date +%Z)
-  execute_process(COMMAND ${tz_cmd}
-    OUTPUT_VARIABLE TZ
-    ERROR_VARIABLE tz_error
-    RESULT_VARIABLE tz_status)
-  if (tz_error OR NOT (${tz_status} EQUAL 0 AND TZ))
-    message(WARNING "attempt to obtain local timezone code with \"${tz_cmd}\" \
-returned status code ${tz_status} and error output \"${tz_error}\" in addition to output \"${TZ}\"\
-")
-  endif()
-  set(CET_TZ ${TZ} PARENT_SCOPE)
-endfunction()
 
 function(_cet_export_import_cmd)
   cmake_parse_arguments(PARSE_ARGV 0 _cc "" "" "COMMANDS;TARGETS")
