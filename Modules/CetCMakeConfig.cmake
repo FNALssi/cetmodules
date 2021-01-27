@@ -361,7 +361,8 @@ function(_generate_target_vars FRAG_LIST)
 # Old cetbuildtools-style target variables.
 ####################################
 if (\${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR # Per-dependent setting.
- cetbuildtools IN_LIST \${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES) # Backward-compatibility.
+ cetbuildtools_UPS_VERSION OR # Backward-compatibility.
+ cetbuildtools IN_LIST \${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
 ${tmp}
 endif()\
 ")
