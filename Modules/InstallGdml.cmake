@@ -23,7 +23,7 @@ include (ProjectVariable)
 
 function(install_gdml)
   if (NOT "GDML_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
-    project_variable(GDML_DIR CONFIG
+    project_variable(GDML_DIR "gdml" CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install GDML geometry description files")
     if (product AND ${product}_gdmldir MATCHES "^\$") # Placeholder
