@@ -394,6 +394,9 @@ endif()\
 ")
   endforeach()
   if (transitive_deps)
+    # Remove duplicates.
+    list(REMOVE_DUPLICATES transitive_deps)
+
     # Add to result.
     list(PREPEND transitive_deps "\
 ####################################
