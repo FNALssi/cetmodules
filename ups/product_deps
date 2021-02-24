@@ -9,11 +9,12 @@ libdir	-
 product         version		qual	<table_format=2>
 cetpkgsupport	-c
 cmake		v3_18_2
+ninja		-c		-	optional
 sphinx		v3_4_3a		-	only_for_build
 end_product_list
  
-qualifier	cmake	cetpkgsupport
--nq-		-nq-	-nq-
+qualifier	cmake	ninja	cetpkgsupport
+-nq-		-nq-	-nq-	-nq-
 end_qualifier_list
 
 table_fragment_begin
