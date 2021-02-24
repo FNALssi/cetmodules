@@ -43,12 +43,12 @@ USAGE: cet_regex_escape(<val> <var> <num>)
   foreach (val IN LISTS CRE_UNPARSED_ARGUMENTS)
     string(REGEX REPLACE [=[([].|^()?+$*\\[])]=] "\\\\\\1" val "${val}")
     string(REGEX REPLACE "/+" "/" val "${val}")
+    # Armor against macro interpolation if requested via NUM.
+    if (CRE_NUM GREATER 0)
+      cet_armor_string("${val}" VAR val NUM ${CRE_NUM})
+    endif()
     list(APPEND RESULT "${val}")
   endforeach()
-  # Armor against macro interpolation if requested via NUM.
-  if (CRE_NUM GREATER 0)
-    cet_armor_string("${RESULT}" VAR RESULT NUM ${CRE_NUM})
-  endif()
   set(${CRE_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
 
