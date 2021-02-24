@@ -331,18 +331,18 @@ sub get_product_list {
       # Also covers archaic "only_for_build" lines: do *not* put a
       # special case above.
       ++$piter;
-      my ($prod, $version, $qualspec, $modifier) = @words;
+      my ($prod, $version, $qualspec, @modifiers) = @words;
       $qualspec = '-' unless $qualspec;
-      $modifier = '' unless $modifier;
+      @modifiers = () unless scalar @modifiers;
 
       if ($prod eq "only_for_build") {
         # Archaic form.
-        ($prod, $version, $qualspec, $modifier) =
+        ($prod, $version, $qualspec, @modifiers) =
           ($version, $qualspec, '-', $prod);
         warning("Deprecated only_for_build entry found in $pfile: please replace:\n",
                 "  \"$_\"\n",
                 "with\n",
-                "  \"$prod\t$version\t$qualspec\t$modifier\"\n",
+                "  \"$prod\t$version\t$qualspec\t$modifiers[0]\"\n",
                 "This accommodation will be removed in future.");
       }
 
@@ -355,7 +355,7 @@ sub get_product_list {
 
       $phash->{$prod}->{$qualspec} =
         {version => (($version eq "-") ? "-c" : $version),
-         ($modifier ? ($modifier => 1) : ()) };
+         map { ($_ => 1) } @modifiers };
     } else {
     }
   }
