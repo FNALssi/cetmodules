@@ -14,7 +14,7 @@ function(cet_make_library)
   # LIBRARIES list.
   cmake_parse_arguments(PARSE_ARGV 0 CML
     "BASENAME_ONLY;MODULE;NO_INSTALL;NO_SOURCE;NOP;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
-    "EXPORT;LIBRARY_NAME;SOVERSION"
+    "EXPORT;INSTALLED_PATH_BASE;LIBRARY_NAME;SOVERSION"
     "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
   cmake_parse_arguments(CML
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
@@ -96,6 +96,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
         if (NOT source MATCHES "(^(INTERFACE|PRIVATE|PUBLIC)|\\$<)")
           get_filename_component(source_path "${source}" ABSOLUTE)
           cet_installed_path(installed_path RELATIVE_VAR INCLUDE_DIR
+            BASE_SUBDIR ${CML_INSTALLED_PATH_BASE} NOP
             "${source}")
           list(APPEND lib_sources "$<BUILD_INTERFACE:${source_path}>"
             "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}/${installed_path}>")
