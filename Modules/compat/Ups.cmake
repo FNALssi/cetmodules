@@ -105,12 +105,17 @@ function(process_ups_files)
   set(table_file
     "${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${PROJECT_NAME}_UPS_PRODUCT_NAME}.table")
 
-  # Generate the UPS table file.
-  _build_ups_table_file()
+  if (EXISTS "${PROJECT_SOURCE_DIR}/${table_file}")
+    message(VERBOSE "Installing package-provided UPS table file ${table_file}")
+    set(tf_src_dir "${PROJECT_SOURCE_DIR}")
+  else()
+    set(tf_src_dir "${PROJECT_BINARY_DIR}")
+    # Generate the UPS table file.
+    _build_ups_table_file()
+  endif()
 
   # Install it.
-  install(FILES
-    "${PROJECT_BINARY_DIR}/${table_file}"
+  install(FILES "${tf_src_dir}/${table_file}"
     DESTINATION ${${PROJECT_NAME}_UPS_PRODUCT_UPS_DIR})
 
   ##################
