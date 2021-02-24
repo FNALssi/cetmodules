@@ -852,7 +852,7 @@ if (( $? != 4 )); then
   exit 1
 fi
 
-TEMP=`getopt -n "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTbcfg:hij:lpqs:tv -- "$@"`
+TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTbcfg:hij:lpqs:tv -- "$@"`
 
 (( $? )) && usage 2
 
