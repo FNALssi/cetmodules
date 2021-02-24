@@ -5,10 +5,6 @@
 # variable WANT_UPS should be set and the cet_cmake_env() function
 # called in order to activate UPS functionality.
 #
-# The only function intended to be called from a user's CMakeLists.txt
-# is process_ups_files(), to trigger the generation of UPS table and
-# version files.
-#
 # Behavior configured via setup_for_development should be incorporated
 # into the build configuration via command-line -D (definition) options
 # to CMake. It is *strongly* recommended that this task be delegated to
@@ -358,7 +354,7 @@ project(${PROJECT_NAME} VERSION ${CETPKG_CMAKE_PROJECT_VERSION}...) \
 and PROJECT_VERSION as-set (${PROJECT_VERSION}). Verify \
 cmake_minimum_required(VERSION X) or \
 cmake_minimum_required(VERSION X...Y) with X >=3.16 and CMake policy \
-CMP-0096 is NEW *PRIOR* to project() call to preserve leading \
+CMP0096 NEW *PRIOR* to project() call to preserve leading \
 zeros in project versions.\
 ")
   endif()

@@ -4,9 +4,9 @@
 # BOOST_TARGETS
 #   If this option is specified, the modern idiom of specifying Boost
 #   libraries by target e.g. Boost::unit_test_framework should be
-#   followed. Note that this idiom will work regardless for
-#   now. Otherwise, a backward compatibilty option will be activated to
-#   create Boost_XXXX_LIBRARY variables for use when linking.
+#   followed. Otherwise, a backward compatibilty option will be
+#   activated to create Boost_XXXX_LIBRARY variables for use when
+#   linking.
 #
 #  <min-ver> - optional minimum version
 #

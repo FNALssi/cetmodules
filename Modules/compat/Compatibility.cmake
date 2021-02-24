@@ -193,8 +193,7 @@ endfunction()
 function(cet_lib_alias LIB_TARGET)
   warn_deprecated(cet_lib_alias NEW "namespaced target nomenclature for linking to ${LIB_TARGET}")
   foreach(alias IN LISTS ARGN)
-    add_custom_command(TARGET ${LIB_TARGET}
-      POST_BUILD
+    add_custom_command(TARGET ${LIB_TARGET} POST_BUILD
       COMMAND ln -sf $<TARGET_LINKER_FILE_NAME:${LIB_TARGET}>
       $<TARGET_PROPERTY:${LIB_TARGET},LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${alias}${CMAKE_SHARED_LIBRARY_SUFFIX}
       COMMENT "Generate / refresh courtesy link ${CMAKE_SHARED_LIBRARY_PREFIX}${alias}${CMAKE_SHARED_LIBRARY_SUFFIX} -> $<TARGET_LINKER_FILE_NAME:${LIB_TARGET}>"
