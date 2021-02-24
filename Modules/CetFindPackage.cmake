@@ -6,7 +6,7 @@
 #
 ####################################
 # cet_find_package(<find_package-args>...
-#                  [[PUBLIC] [PRIVATE]|INTERFACE]
+#                  [PUBLIC|PRIVATE]
 #                  [REQUIRED_BY <components>...])
 #
 #   External dependencies specified using cet_find_package() will be
@@ -17,19 +17,13 @@
 # OPTIONS
 #
 #   BUILD_ONLY
-#
-#     Synonym for PRIVATE (see below).
-#
-#   INTERFACE
-#   PUBLIC
 #   PRIVATE
+#   PUBLIC
 #
-#     These options match the eponymous options to CMake's
-#     target_link_libraries() and other functions. If INTERFACE or
-#     PUBLIC is specified, an appropriate find_dependency() call will be
-#     added to this package's Config.cmake file to ensure that the
+#     If PUBLIC is specified, an appropriate find_dependency() call will
+#     be added to this package's Config.cmake file to ensure that the
 #     required package will be found when necessary for dependent
-#     packages. Default to PUBLIC if none are specified.
+#     packages; BUILD_ONLY or PRIVATE will not.
 #
 #   REQUIRED_BY <components>
 #
@@ -44,9 +38,9 @@
 # * Minimize unwanted dependencies downstream by using PUBLIC, INTERFACE
 #   and PRIVATE as necessary to match their use in cet_make(),
 #   cet_make_library(), cet_make_exec() and their CMake equivalents,
-#   add_library() and add_executable().
+#   add_library(), and add_executable().
 #
-# * cet_find_package() will NOT execute CMake directives with global
+# * cet_find_package() will NOT invoke CMake directives with global
 #   effect such as include_directories(). Use target_link_libraries()
 #   instead with target (package::lib_name) rather than variable
 #   (PACKAGE_...) to ensure that all PUBLIC headers associated with a
@@ -58,10 +52,15 @@
 #   target_include_directories() - minimizing unwanted transitive
 #   dependencies downstream.
 #
-# * Multiple find_package() directives (perhaps with different
+# * Multiple distinct find_package() directives (perhaps with different
 #   requirement levels or component settings) will be propagated for
 #   execution in the order they were encountered. find_package() will
 #   minimize duplication of effort internally.
+#
+# * From the point of view of cet_find_package(), INTERFACE AND PUBLIC
+#   are identical: a find_package() call will be executed either way in
+#   order to ensure that targets, etc., are known to CMake at the
+#   appropriate time.
 ########################################################################
 
 include_guard(DIRECTORY)
@@ -72,7 +71,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 macro(cet_find_package)
   cmake_parse_arguments(_CFP "BUILD_ONLY;INTERFACE;PRIVATE;PUBLIC"
     "" "REQUIRED_BY" "${ARGN}")
-  if (NOT _CFP_INTERFACE AND NOT _CFP_PRIVATE AND NOT _CFP_BUILD_ONLY AND NOT _CFP_PUBLIC)
+  if (NOT (_CFP_INTERFACE OR _CFP_PRIVATE OR _CFP_BUILD_ONLY))
     set(_CFP_PUBLIC TRUE)
   endif()
   if (CET_FIND_QUIET OR
@@ -82,11 +81,12 @@ macro(cet_find_package)
   else()
     set(add_quiet)
   endif()
-  if (_CFP_PUBLIC OR _CFP_PRIVATE OR _CFP_BUILD_ONLY)
-    cmake_policy(PUSH)
-    find_package(${_CFP_UNPARSED_ARGUMENTS} ${add_quiet})
-    cmake_policy(POP)
-  endif()
+  # Unconditionally call find_package().
+  cmake_policy(PUSH)
+  find_package(${_CFP_UNPARSED_ARGUMENTS} ${add_quiet})
+  cmake_policy(POP)
+  # Add an appropriate find_dependency() command to this package's CMake
+  # Config file.
   if (_CFP_INTERFACE OR _CFP_PUBLIC)
     # Register all arguments used for each component requiring this
     # dependency:
@@ -101,7 +101,7 @@ macro(cet_find_package)
   endif()
 endmacro()
 
-# Add an find_dependency() call to the appropriate tracking variable.
+# Add a find_dependency() call to the appropriate tracking variable.
 function(_add_transitive_dependency FIRST_ARG)
   # Deal with optional leading COMPONENT <component> ourselves, as with
   # cmake_parse_arguments() we'd have to worry about what we might have
