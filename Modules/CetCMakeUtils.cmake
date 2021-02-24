@@ -18,8 +18,10 @@ include(CetRegexEscape)
    **Synopsis:**
      .. code-block:: cmake
 
-       cet_passthrough([FLAG|ARMOR] [KEYWORD <keyword>] <in_var> IN_PLACE|<out-var>)
-       cet_passthrough([FLAG|ARMOR] VALUES [<val>...] KEYWORD <keyword> <out-var>)
+       cet_passthrough([FLAG|ARMOR] [KEYWORD <keyword>] [EMPTY_KEYWORD <empty-keyword>]
+                        <in_var> IN_PLACE|<out-var>)
+       cet_passthrough([FLAG|ARMOR] VALUES [<val>...] KEYWORD <keyword> <out-var>
+                       [EMPTY_KEYWORD <empty-keyword>] <out-var>)
 
      Turn a flag or option value into something that can be passed on to
      another function or macro.
@@ -32,11 +34,16 @@ include(CetRegexEscape)
        to preserve empty-list semantics. See
        :cmake:command:`cet_armor_string` for details.
 
+     ``EMPTY_KEYWORD <empty-keyword>``
+
+       If ``<in-var>`` or ``VALUES`` evaluates to the empty string, the
+       result is ``<empty-keyword>``
+
      ``FLAG``
 
        If ``<in-var>`` or ``VALUES`` evaluates to ``TRUE``, the result
        is ``<keyword>`` (or see ``KEYWORD``, below). Otherwise the
-       result will be ``NULL``.
+       result will be the empty string (or see ``EMPTY_KEWORD``, above).
 
      ``IN_PLACE``
 
@@ -110,7 +117,7 @@ include(CetRegexEscape)
 
      .. code-block:: cmake
 
-        cet_passthrough(IN_PLACE VALUES
+        cet_passthrough(VALUES
           "Mary had a little lamb\\\\; Its fleece was white as snow"
           KEYWORD RHYME MARY_LAMB)
 
@@ -124,11 +131,12 @@ include(CetRegexEscape)
 #]================================================================]
 function(cet_passthrough)
   cmake_parse_arguments(PARSE_ARGV 0 CP
-    "APPEND;FLAG;IN_PLACE" "KEYWORD" "VALUES")
-  if (NOT (CP_VALUES OR "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
+    "APPEND;FLAG;IN_PLACE" "EMPTY_KEYWORD;KEYWORD" "VALUES")
+  if (NOT (CP_VALUES OR
+        "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
     list(POP_FRONT CP_UNPARSED_ARGUMENTS CP_IN_VAR)
     if (CP_IN_VAR MATCHES
-        "^CP_(IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES)$")
+        "^CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES)$")
       message(FATAL_ERROR "value of IN_VAR non-option argument (\"${CP_IN_VAR}\") is \
 not permitted - specify values with VALUES instead\
 ")
@@ -160,22 +168,35 @@ not permitted - specify values with VALUES instead\
   if (CP_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "unexpected non-option arguments ${CP_UNPARSED_ARGUMENTS}")
   endif()
-  if (CP_FLAG AND ${CP_IN_VAR})
+  if (CP_FLAG)
     if (CP_APPEND)
-      list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD})
+      if (${CP_IN_VAR})
+        list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD})
+      elseif (CP_EMPTY_KEYWORD)
+        list(APPEND ${CP_OUT_VAR} ${CP_EMPTY_KEYWORD})
+      endif()
       set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
     else()
-      set(${CP_OUT_VAR} ${CP_KEYWORD} PARENT_SCOPE)
+      if (${CP_IN_VAR})
+        set(${CP_OUT_VAR} ${CP_KEYWORD} PARENT_SCOPE)
+      elseif (CP_EMPTY_KEYWORD)
+        set(${CP_OUT_VAR} ${CP_EMPTY_KEYWORD} PARENT_SCOPE)
+      else()
+        unset(${CP_OUT_VAR} PARENT_SCOPE)
+      endif()
     endif()
-  elseif (${CP_IN_VAR})
+  elseif (NOT DEFINED ${CP_IN_VAR} OR "${${CP_IN_VAR}}" STREQUAL "")
     if (CP_APPEND)
-      list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD} ${${CP_IN_VAR}})
+      list(APPEND ${CP_OUT_VAR} ${CP_EMPTY_KEYWORD})
       set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
-    else()
-      set(${CP_OUT_VAR} ${CP_KEYWORD} "${${CP_IN_VAR}}" PARENT_SCOPE)
+    elseif (CP_EMPTY_KEYWORD)
+      set(${CP_OUT_VAR} ${CP_EMPTY_KEYWORD} PARENT_SCOPE)
     endif()
-  elseif (CP_FLAG AND NOT CP_APPEND)
-    unset(${CP_OUT_VAR} PARENT_SCOPE)
+  elseif (CP_APPEND)
+    list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD} ${${CP_IN_VAR}})
+    set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
+  else()
+    set(${CP_OUT_VAR} ${CP_KEYWORD} ${${CP_IN_VAR}} PARENT_SCOPE)
   endif()
 endfunction()
 
