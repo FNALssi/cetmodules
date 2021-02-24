@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_process_liblist RESULT_VAR)
   cet_convert_target_args(${ARGV})
-  set(${RESULT_VAR} "PUBLIC;${${RESULT_VAR}}" PARENT_SCOPE)
+  set(${RESULT_VAR} "${${RESULT_VAR}}" PARENT_SCOPE)
 endfunction()
 
 function(cet_convert_target_args RESULT_VAR)

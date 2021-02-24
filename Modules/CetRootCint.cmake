@@ -14,7 +14,7 @@ set(_RC_FLAGS "$<$<VERSION_GREATER_EQUAL:${ROOT_VERSION},6.10.04>:-noIncludePath
 
 function(cet_rootcint OUTPUT_NAME)
   set(cet_rootcint_usage "USAGE: cet_rootcint(<package name> [NO_INSTALL])")
-  cmake_parse_arguments(PARSE_ARGV 1 RC "NO_INSTALL;VERSION" "EXPORT;LIB_TARGET" "")
+  cmake_parse_arguments(PARSE_ARGV 1 RC "NO_INSTALL;VERSION" "EXPORT_SET;LIB_TARGET" "")
   if (RC_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR  "cet_rootcint: Incorrect arguments. ${ARGV} \n ${cet_rootcint_usage}")
   endif()

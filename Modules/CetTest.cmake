@@ -505,7 +505,7 @@ function(cet_test CET_TARGET)
   endif()
   cmake_parse_arguments(PARSE_ARGV 1 CET
     "DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
-    "EXPORT;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
+    "EXPORT_SET;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
     "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
     message(FATAL_ERROR "OUTPUT_FILTERS is incompatible with FILTER_ARGS:\nEither use the singular OUTPUT_FILTER or use double-quoted strings in OUTPUT_FILTERS\nE.g. OUTPUT_FILTERS \"filter1 -x -y\" \"filter2 -y -z\"")
@@ -526,13 +526,11 @@ function(cet_test CET_TARGET)
   endif()
 
   # For passthrough to cet_script, cet_make_exec, etc.
+  cet_passthrough(CET_EXPORT_SET exec_install_args)
   if (NOT CET_INSTALL_BIN)
-    set(exec_install_args NO_INSTALL)
-  elseif (CET_NO_EXPORT)
-    set(exec_install_args NO_EXPORT)
-  else()
-    cet_passthrough(CET_EXPORT exec_install_args)
+    list(APPEND exec_install_args NO_INSTALL)
   endif()
+  cet_passthrough(FLAG APPEND CET_NO_EXPORT exec_install_args)
 
   # Find any arguments related to permuted test arguments.
   foreach (OPT IN LISTS CET_UNPARSED_ARGUMENTS)
@@ -762,7 +760,7 @@ CONFIGURATIONS DATAFILES DIRTY_WORKDIR NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT
 endfunction(cet_test)
 
 function(cet_test_assertion CONDITION FIRST_TARGET)
-  if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+  if (CMAKE_SYSTEM_NAME MATCHES "Darwin" )
     set_tests_properties(${FIRST_TARGET} ${ARGN} PROPERTIES
       PASS_REGULAR_EXPRESSION
       "Assertion failed: \\(${CONDITION}\\), "

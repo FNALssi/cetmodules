@@ -32,6 +32,12 @@ option(BUILD_STATIC_LIBS "Build static libraries for this project." OFF)
 # RPATH management.
 option(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 mark_as_advanced(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+
+# Module libraries for plugins:
+if (NOT (DEFINED CACHE{CETMODULES_MODULE_PLUGINS} OR
+      CMAKE_SYSTEM_NAME MATCHES "Darwin"))
+    set(CETMODULES_MODULE_PLUGINS TRUE)
+endif()
 ##################
 
 ##################

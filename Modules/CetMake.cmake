@@ -84,7 +84,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 include(CetCopy)
 include(CetPackagePath)
 include(CetProcessLiblist)
-include(CetRegisterExportName)
+include(CetRegisterExportSet)
 
 set(_cet_make_usage "\
 USAGE: cet_make([USE_(PROJECT|PRODUCT)_NAME|LIBRARY_NAME <library-name>]
@@ -96,17 +96,17 @@ USAGE: cet_make([USE_(PROJECT|PRODUCT)_NAME|LIBRARY_NAME <library-name>]
                 [EXCLUDE ([REGEX] <exclude>...)...]
                 [LIB_ALIASES <alias>...]
                 [VERSION] [SOVERSION <API-version>]
-                [EXPORT <export-name>]
+                [EXPORT_SET <export-name>]
                 [NO_INSTALL|INSTALL_LIBS_ONLY]
                 [NO_DICTIONARY] [USE_PRODUCT_NAME] [WITH_STATIC_LIBRARY])\
 ")
 
-set(_cet_make_flags BASENAME_ONLY INSTALL_LIBS_ONLY LIB_INTERFACE
-  LIB_MODULE LIB_OBJECT LIB_ONLY LIB_SHARED LIB_STATIC NO_DICTIONARY
-  NO_LIB NO_LIB_SOURCE NOP USE_PRODUCT_NAME USE_PROJECT_NAME VERSION
-  WITH_STATIC_LIBRARY)
+set(_cet_make_flags BASENAME_ONLY EXCLUDE_FROM_ALL INSTALL_LIBS_ONLY
+  LIB_INTERFACE LIB_MODULE LIB_OBJECT LIB_ONLY LIB_SHARED LIB_STATIC
+  NO_DICTIONARY NO_EXPORT NO_INSTALL NO_LIB NO_LIB_SOURCE NOP
+  USE_PRODUCT_NAME USE_PROJECT_NAME VERSION WITH_STATIC_LIBRARY)
 
-set(_cet_make_one_arg_options EXPORT LIBRARY_NAME LIBRARY_NAME_VAR
+set(_cet_make_one_arg_options EXPORT_SET LIBRARY_NAME LIBRARY_NAME_VAR
   SOVERSION)
 
 set(_cet_make_list_options DICT_LIBRARIES DICT_LOCAL_INCLUDE_DIRS
@@ -122,9 +122,10 @@ function(cet_make)
   _cet_verify_cet_make_args()
   ##################
   # Prepare common passthroughs.
-  cet_passthrough(IN_PLACE CM_EXPORT)
-  cet_passthrough(FLAG IN_PLACE CM_NO_INSTALL)
-  cet_passthrough(FLAG IN_PLACE CM_VERSION)
+  cet_passthrough(IN_PLACE CM_EXPORT_SET)
+  foreach (flag EXCLUDE_FROM_ALL NO_EXPORT NO_INSTALL VERSION)
+    cet_passthrough(FLAG IN_PLACE CM_${flag})
+  endforeach()
   ##################
   if (NOT (CM_NO_LIB OR "LIB_SOURCE" IN_LIST CM_KEYWORDS_MISSING_VALUES))
     # We want a library.
@@ -143,13 +144,13 @@ function(cet_make)
       build_dictionary(${CM_LIBRARY_NAME}
         DICTIONARY_LIBRARIES ${CM_DICT_LIBRARIES} NOP
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
-        ${CM_EXPORT} ${CM_NO_INSTALL}
+        ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
     elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h")
       include(CetRootCint)
       cet_rootcint(${CM_LIBRARY_NAME}
         ${CM_DICT_LOCAL_INCLUDE_DIRS}
-        ${CM_EXPORT} ${CM_NO_INSTALL}
+        ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
     endif()
   endif()
@@ -159,8 +160,8 @@ set(_cet_make_exec_usage "")
 
 function(cet_make_exec)
   cmake_parse_arguments(PARSE_ARGV 0 CME
-    "NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
-    "EXEC_NAME;EXPORT;NAME" "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
+    "EXCLUDE_FROM_ALL;NO_EXPORT;NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
+    "EXEC_NAME;EXPORT_SET;NAME" "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
   # Argument verification.
   if (CME_EXEC_NAME)
     warn_deprecated("EXEC_NAME" NEW "NAME")
@@ -172,11 +173,9 @@ function(cet_make_exec)
     list(POP_FRONT CME_UNPARSED_ARGUMENTS CME_NAME)
   endif()
   if (NOT CME_NAME)
-    message(FATAL_ERROR "")
+    message(FATAL_ERROR "NAME <name> *must* be provided")
   elseif (CME_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "")
-  elseif (CME_NO_INSTALL AND CME_EXPORT)
-    message(FATAL_ERROR "")
+    message(FATAL_ERROR "non-option arguments prohibited")
   endif()
   if (CME_USE_CATCH_MAIN)
     warn_deprecated("cet_make_exec(): USE_CATCH_MAIN" NEW "USE_CATCH2_MAIN")
@@ -201,11 +200,9 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
         "\n${found_sources}\nUse SOURCE <sources> to remove ambiguity")
     endif()
   endif()
+  cet_passthrough(FLAG IN_PLACE CME_EXCLUDE_FROM_ALL)
   # Define the main executable target.
-  add_executable(${CME_NAME} ${CME_SOURCE})
-  # Target aliases.
-  _calc_namespace(alias_namespace ${CME_EXPORT})
-  add_executable(${alias_namespace}::${CME_NAME} ALIAS ${CME_NAME})
+  add_executable(${CME_NAME} ${CME_SOURCE} ${CME_EXCLUDE_FROM_ALL})
   # Local include directories.
   if (NOT (DEFINED CME_LOCAL_INCLUDE_DIRS OR
         "LOCAL_INCLUDE_DIRS" IN_LIST CME_KEYWORDS_MISSING_VALUES))
@@ -216,15 +213,16 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     PRIVATE ${CME_LOCAL_INCLUDE_DIRS})
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
-    cet_find_package(Boost PRIVATE QUIET REQUIRED COMPONENTS unit_test_framework)
-    if (Boost_NO_BOOST_CMAKE OR
-        IS_ABSOLUTE "${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}")
+    cet_find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
+    if (TARGET Boost::unit_test_framework)
+      target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
+      # Belt and braces (cf historical bug in fhiclcpp tests).
+      target_compile_definitions(${CME_NAME} PRIVATE BOOT_TEST_NO_OLD_TOOLS)
+    else()
       # *Someone* didn't use Boost's CMake config file to define targets.
       target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
       target_compile_definitions(${CME_NAME} PRIVATE
         "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK;BOOST_TEST_NO_OLD_TOOLS")
-    else()
-      target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
     endif()
   endif()
   # Handle request for Catch2 main.
@@ -243,39 +241,41 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
         EXCLUDE_FROM_ALL NO_INSTALL
         SOURCE ${cetmodules_CATCH2_MAIN}
         LIBRARIES PRIVATE Catch2::Catch2)
-      target_compile_definitions(Catch2_main PRIVATE "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
+      target_compile_definitions(Catch2_main PRIVATE
+        "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
     endif()
-    target_link_libraries(${CME_NAME} PRIVATE Catch2_main)
+    target_link_libraries(${CME_NAME} PRIVATE Catch2_main Catch2::Catch2)
   endif()
   if (NOT CME_NO_EXPORT_ALL_SYMBOLS)
     target_link_options(${CME_NAME} PRIVATE -rdynamic)
   endif()
   # Library links.
   cet_process_liblist(liblist ${CME_LIBRARIES})
-  target_link_libraries(${CME_NAME} ${liblist})
+  target_link_libraries(${CME_NAME} PRIVATE ${liblist})
+  # For target aliases.
+  cet_register_export_set(SET_NAME ${CME_EXPORT_SET} SET_VAR CME_EXPORT_SET NAMESPACE_VAR namespace)
   ##################
   # Installation.
   if (NOT CME_NO_INSTALL)
-    cet_register_export_name(CME_EXPORT)
-    _add_to_exported_targets(EXPORT ${CME_EXPORT} TARGETS ${CME_NAME})
-    install(TARGETS ${CME_NAME} EXPORT ${CME_EXPORT}
+    install(TARGETS ${CME_NAME} EXPORT ${CME_EXPORT_SET}
       RUNTIME DESTINATION ${${PROJECT_NAME}_BIN_DIR})
+    if (NOT CME_NO_EXPORT)
+      _add_to_exported_targets(EXPORT_SET ${CME_EXPORT_SET} TARGETS ${CME_NAME})
+    endif()
   endif()
+  add_executable(${namespace}::${CME_NAME} ALIAS ${CME_NAME})
   foreach (alias IN LISTS CME_ALIASES)
-    add_executable(${alias_namespace}::${alias} ALIAS ${alias})
-    if (NOT CME_NO_INSTALL)
-      _cet_export_import_cmd(TARGETS ${alias_namespace}::${alias} COMMANDS
-"add_executable(${alias_namespace}::${alias} ALIAS ${${PROJECT_NAME}_${CME_EXPORT}_NAMESPACE}::${CME_NAME})")
+    add_executable(${namespace}::${alias} ALIAS ${CME_NAME})
+    if (NOT (CME_NO_INSTALL OR CME_NO_EXPORT))
+      _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
+"add_executable(${namespace}::${alias} ALIAS ${namespace}::${CME_NAME})")
     endif()
   endforeach()
 endfunction()
 
 function(cet_script)
-  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_INSTALL;REMOVE_EXTENSIONS"
-    "DESTINATION;EXPORT" "DEPENDENCIES")
-  if (CS_NO_INSTALL AND CS_EXPORT)
-    message(FATAL_ERROR "cet_script(): NO_INSTALL and EXPORT are mutually exclusive")
-  endif()
+  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_EXPORT;NO_INSTALL;REMOVE_EXTENSIONS"
+    "DESTINATION;EXPORT_SET" "DEPENDENCIES")
   if (CS_GENERATED)
     warn_deprecated("cet_script(GENERATED)"
       " - CMake source property GENERATED is set automatically by add_custom_command, etc. or can be set manually otherwise")
@@ -305,7 +305,7 @@ function(cet_script)
     else()
       set(target "${script_name}")
     endif()
-    _calc_namespace(ns ${CS_EXPORT})
+    cet_register_export_set(SET_NAME ${CS_EXPORT_SET} SET_VAR CS_EXPORT_SET NAMESPACE_VAR ns)
     if (need_copy)
       message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
       cet_copy("${script_source}" PROGRAMS
@@ -333,11 +333,13 @@ function(cet_script)
       install(PROGRAMS "${script_source}"
         DESTINATION "${CS_DESTINATION}"
         ${rename_arg})
-      _cet_export_import_cmd(TARGETS ${ns}::${target} COMMANDS "\
+      if (NOT CS_NO_EXPORT)
+        _cet_export_import_cmd(TARGETS ${ns}::${target} COMMANDS "\
 add_executable(${ns}::${target} IMPORTED)
 set_target_properties(${ns}::${target}
   PROPERTIES IMPORTED_LOCATION \"\${PACKAGE_PREFIX_DIR}/${CS_DESTINATION}/${target}\")\
 ")
+      endif()
     endif()
   endforeach()
 endfunction()
@@ -351,8 +353,8 @@ ${cet_make_usage}\
     message(FATAL_ERROR "cet_make(): USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive")
   elseif (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
     message(FATAL_ERROR "cet_make(): NO_INSTALL and INSTALL_LIBS_ONLY are mutually exclusive")
-  elseif (CM_NO_INSTALL AND CM_EXPORT)
-    message(FATAL_ERROR "cet_make(): NO_INSTALL AND EXPORT are mutually exclusive")
+  elseif (CM_NO_INSTALL AND CM_EXPORT_SET)
+    message(FATAL_ERROR "cet_make(): NO_INSTALL AND EXPORT_SET are mutually exclusive")
   endif()
   if (CM_USE_PROJECT_NAME AND CM_USE_PRODUCT_NAME)
     message(WARNING "cet_make(): USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
@@ -405,8 +407,8 @@ function(_cet_maybe_make_library)
     endforeach() 
     cet_passthrough(APPEND KEYWORD ALIASES CM_LIB_ALIASES cml_args)
     # Generate the library.
-    cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT} ${CM_NO_INSTALL}
-      ${CM_VERSION} ${cml_args}
+    cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT_SET} ${CM_EXCLUDE_FROM_ALL}
+      ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${cml_args}
       LIBRARIES ${CM_LIBRARIES} ${CM_LIB_LIBRARIES} NOP
       SOURCE ${CM_LIB_SOURCE})
   endif()

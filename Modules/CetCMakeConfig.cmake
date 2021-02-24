@@ -64,12 +64,13 @@ function(cet_cmake_config)
   cmake_parse_arguments(PARSE_ARGV 0 CCC
     "NO_CMAKE_CONFIG"
     "COMPATIBILITY;WORKDIR"
-    "CONFIG_PRE_INIT;CONFIG_POST_INIT;CONFIG_POST_VARS;CONFIG_POST_DEPS;CONFIG_POST_TARGET_VARS;CONFIG_POST_TARGETS;PATH_VARS")
+    "CONFIG_PRE_INIT;CONFIG_POST_INIT;CONFIG_POST_VARS;CONFIG_POST_DEPS;CONFIG_POST_TARGET_VARS;CONFIG_POST_TARGETS;EXTRA_TARGET_VARS;PATH_VARS")
   if (CCC_NO_CMAKE_CONFIG AND
       (CCC_COMPATIBILITY OR CCC_WORKDIR OR CCC_CONFIG_PRE_INIT OR
         CCC_CONFIG_POST_INIT OR CCC_CONFIG_POST_VARS OR
         CCC_CONFIG_POST_DEPS OR CCC_CONFIG_POST_TARGET_VARS OR
-        CCC_CONFIG_POST_TARGETS OR CCC_PATH_VARS))
+        CCC_CONFIG_POST_TARGETS OR CCC_EXTRA_TARGET_VARS OR
+        CCC_PATH_VARS))
     message(AUTHOR_WARNING "all other options are ignored when NO_CMAKE_CONFIG is set")
   endif()
   if (CCC_NO_FLAVOR)
@@ -289,26 +290,97 @@ function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
   set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
 endfunction()
 
+function(_verify_cross_dependent_exports EXPORT_SET)
+  if (NOT ARGN) # Nothing to do.
+    return()
+  endif()
+  list(FIND CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME}
+    "${EXPORT_SET}" idx)
+  if (idx EQUAL -1)
+    message(FATAL_ERROR "cetmodules internal consistency error: report to developers")
+  endif()
+  math(EXPR idx "${idx} + 1")
+  list(LENGTH CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME} num_sets)
+  if (idx EQUAL num_sets)
+    return()
+  endif()
+  list(SUBLIST CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME}
+    ${idx} -1 other_exports)
+  set(other_targets)
+  foreach (other_export IN LISTS other_exports)
+    if (CETMODULES_NAMESPACE_EXPORT_SET_${other_export}_PROJECT_${PROJECT_NAME})
+      list(TRANSFORM CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${other_export}_PROJECT_${PROJECT_NAME}
+        PREPEND "${CETMODULES_NAMESPACE_EXPORT_SET_${other_export}_PROJECT_${PROJECT_NAME}}::"
+        OUTPUT_VARIABLE tmp)
+    endif()
+    list(APPEND other_targets "${tmp}")
+  endforeach()
+  if (other_targets)
+    cet_regex_escape(NUM 1 VAR escaped_targets ${other_targets})
+    list(JOIN escaped_targets "|" escaped_targets)
+    install(CODE "\
+# Check for badly-ordered export sets.
+  set(_targetFiles \"${ARGN}\")
+  foreach (_targetFile IN LISTS _targetFiles)
+    file(READ \"\${_targetFile}\" _targetFileData)
+    string(REGEX MATCHALL \"\\\"(${escaped_targets})\\\"\" _targetMatches \"\${_targetFileData}\")
+    if (_targetMatches)
+      string(REPLACE \";\" \" \" \"\${_targetMatches}\" _targetMatches)
+      message(FATAL_ERROR \"export set \\\"${EXPORT_SET}\\\" refers to targets from export sets read later by dependent packages. Verify dependencies, split export sets, and / or register sets explicitly (cet_register_export_set()) in the desired order.
+Problematic dependencies: \${_targetMatches}\\
+\")
+    endif()
+  endforeach()\
+")
+  endif()
+endfunction()
+
 function(_generate_target_imports FRAG_LIST)
   set(exports)
-  if (CETMODULES_EXPORT_NAMES_PROJECT_${PROJECT_NAME} OR
+  if (CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME} OR
       CETMODULES_IMPORT_COMMANDS_PROJECT_${PROJECT_NAME})
     set(exports "\
 ####################################
 # Exported targets, and package components.
 ####################################\
 ")
-    foreach (export_name IN LISTS CETMODULES_EXPORT_NAMES_PROJECT_${PROJECT_NAME})
-      list(APPEND exports "\
+    foreach (export_set IN LISTS CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME})
+      if (CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${export_set}_PROJECT_${PROJECT_NAME})
+        # Generate and install target definition files (included by
+        # top-level configs as appropriate).
+        cet_passthrough(KEYWORD NAMESPACE
+          CETMODULES_NAMESPACE_EXPORT_SET_${export_set}_PROJECT_${PROJECT_NAME}
+          namespace)
+        if (NOT export_set MATCHES "Targets\$")
+          set(export_file "${export_set}Targets")
+        else()
+          set(export_file "${export_set}")
+        endif()
+        # Export targets for import from the build tree.
+        export(EXPORT ${export_set}
+          FILE "${PROJECT_BINARY_DIR}/${export_file}.cmake"
+          ${namespace}::)
+        # Export targets for import from the installed package.
+        install(EXPORT ${export_set}
+          DESTINATION "${distdir}"
+          FILE "${export_file}.cmake"
+          ${namespace}::
+          EXPORT_LINK_INTERFACE_LIBRARIES)
+        _verify_cross_dependent_exports(${export_set}
+          "${PROJECT_BINARY_DIR}/${export_file}.cmake"
+          "\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
+          )
+        list(APPEND exports "\
 
 ##################
-# Automatically-generated runtime targets: ${export_name}
+# Automatically-generated runtime targets: ${export_set}
 ##################
-include(\"\${CMAKE_CURRENT_LIST_DIR}/${export_name}.cmake\")
+include(\"\${CMAKE_CURRENT_LIST_DIR}/${export_file}.cmake\")
 foreach (component IN LISTS ${PROJECT_NAME}_FIND_COMPONENTS)
-  include(\"\${CMAKE_CURRENT_LIST_DIR}/${export_name}_\${component}.cmake\")
+  include(\"\${CMAKE_CURRENT_LIST_DIR}/${export_file}_\${component}.cmake\")
 endforeach()\
 ")
+      endif()
     endforeach()
     if (CETMODULES_IMPORT_COMMANDS_PROJECT_${PROJECT_NAME})
       list(TRANSFORM CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${PROJECT_NAME}
@@ -358,14 +430,58 @@ endfunction()
 function(_generate_target_vars FRAG_LIST)
   set(var_settings)
   cet_regex_escape("${PROJECT_NAME}" e_proj)
-  list(TRANSFORM CETMODULES_EXPORT_NAMES_PROJECT_${PROJECT_NAME} REPLACE
-    "^(.+)$" "CETMODULES_EXPORTED_TARGETS_EXPORT_\\1_PROJECT_${PROJECT_NAME}"
+  string(TOUPPER "${${PROJECT_NAME}_UPS_PRODUCT_NAME}" product_name_uc)
+  cet_regex_escape("${product_name_uc}" e_pname_uc)
+  list(TRANSFORM CETMODULES_EXPORT_SETS_PROJECT_${PROJECT_NAME} REPLACE
+    "^(.+)$" "CETMODULES_EXPORTED_TARGETS_EXPORT_SET_\\1_PROJECT_${PROJECT_NAME}"
     OUTPUT_VARIABLE target_lists)
-  foreach (target IN LISTS ${target_lists}
+  set(handled_targets)
+  foreach (target_list IN ITEMS ${target_lists}
       CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${PROJECT_NAME})
-    string(REGEX REPLACE "^.*::" "" var "${target}")
-    string(TOUPPER "${var}" var)
-    list(APPEND var_settings "  set(${var} ${target})")
+    if (target_list MATCHES "_EXPORT_SET_(.*)_PROJECT_${e_proj}\$")
+      set(namespace ${CETMODULES_NAMESPACE_EXPORT_SET_${CMAKE_MATCH_1}_PROJECT_${PROJECT_NAME}})
+    else()
+      set(namespace "${${PROJECT_NAME}_NAMESPACE}")
+    endif()
+    foreach (target IN LISTS "${target_list}")
+      get_property(var_target TARGET ${target}
+        PROPERTY ALIASED_TARGET)
+      set(var)
+      if (NOT (var_target AND var_target IN_LIST handled_targets))
+        get_property(target_type TARGET ${target} PROPERTY TYPE)
+        if (NOT var_target)
+          set(var_target "${target}")
+        endif()
+        if (CCC_EXTRA_TARGET_VARS)
+          string(REGEX REPLACE "^.*::(.*)$" "\\1" var "${var_target}")
+          string(TOUPPER "${var}" var)
+          if (var IN_LIST CCC_EXTRA_TARGET_VARS)
+          elseif ("${product_name_uc}_${var}" IN_LIST CCC_EXTRA_TARGET_VARS)
+            set(var "${product_name_uc}_${var}")
+          else()
+            unset(var)
+          endif()
+        endif()
+        if (NOT var AND
+            target_type MATCHES "^(MODULE|SHARED|STATIC)_LIBRARY\$")
+          string(TOUPPER "${var_target}" var)
+          if (NOT var MATCHES "^${e_pname_uc}(_|\$)")
+            string(PREPEND var "${product_name_uc}_")
+          endif()
+        endif()
+        if (var)
+          get_property(val TARGET ${target} PROPERTY EXPORT_NAME)
+          if (NOT val)
+            set(val ${target})
+          endif()
+          if (NOT val MATCHES "::")
+            string(PREPEND val "${namespace}::")
+          endif()
+          list(APPEND var_settings "  set(${var} ${val})")
+          list(APPEND handled_targets "${var_target}")
+        endif()
+      endif()
+    endforeach()
   endforeach()
   if (var_settings)
     list(JOIN var_settings "\n" tmp)
@@ -426,6 +542,9 @@ unset(_${PROJECT_NAME}_PACKAGE_PREFIX_DIR)\
   endif()
   _write_stage(deps ${FRAG_LIST} "${transitive_deps}")
   set(${FRAG_LIST} "${${FRAG_LIST}}" PARENT_SCOPE)
+  string(REPLACE "\n" ";" transitive_deps "${transitive_deps}")
+  set(CETMODULES_TRANSITIVE_DEPS_PROJECT_${PROJECT_NAME} "${transitive_deps}"
+    CACHE INTERNAL "CMake Config transitive dependencies section for project ${PROJECT_NAME}")
 endfunction()
 
 function(_prepend_cmake_module_path RESULTS_VAR PATH_VARS_VAR)
@@ -496,24 +615,6 @@ function(_install_package_config_files)
     "${CCC_WORKDIR}/${config}"
     "${PROJECT_BINARY_DIR}/${configVersion}"
     DESTINATION "${distdir}")
-
-  # Generate and install target definition files (included by top-level
-  # configs as appropriate).
-  foreach(export_name IN LISTS
-      CETMODULES_EXPORT_NAMES_PROJECT_${PROJECT_NAME})
-    cet_passthrough(KEYWORD NAMESPACE
-      ${PROJECT_NAME}_${export_name}_NAMESPACE
-      export_namespace)
-    # Export targets for import from the build tree.
-    export(EXPORT ${export_name}
-      FILE "${PROJECT_BINARY_DIR}/${export_name}.cmake"
-      ${export_namespace}::)
-    # Export targets for import from the installed package.
-    install(EXPORT ${export_name}
-      DESTINATION "${distdir}"
-      ${export_namespace}::
-      EXPORT_LINK_INTERFACE_LIBRARIES)
-  endforeach()
 
   # Generate a top-level config file for the build tree directly at its
   # final location.

@@ -68,5 +68,5 @@ add_subdirectory(doc)
 ####################################
 # Generate CMake (and UPS, if appropriate) configuration files and
 # packaging.
-cet_cmake_config(COMPATIBILITY SameMajorVersion
+cet_cmake_config(EXTRA_TARGET_VARS CET_EXEC_TEST
   CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in)

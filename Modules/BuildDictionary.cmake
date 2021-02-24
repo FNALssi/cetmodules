@@ -22,11 +22,12 @@ include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
 
-set(_cet_build_dictionary_flags NO_CHECK_CLASS_VERSION NO_INSTALL
-  NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME USE_PROJECT_NAME)
+set(_cet_build_dictionary_flags NO_CHECK_CLASS_VERSION NO_EXPORT
+  NO_INSTALL NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME
+  USE_PROJECT_NAME)
 
 set(_cet_build_dictionary_one_arg_options CLASSES_H CLASSES_DEF_XML
-  DICT_NAME_VAR EXPORT)
+  DICT_NAME_VAR EXPORT_SET)
 
 set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
     DICTIONARY_LIBRARIES REQUIRED_DICTIONARIES)
@@ -69,7 +70,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
        Variable in which to store the plugin name (useful when
        generated).
 
-     ``EXPORT <export-name>``
+     ``EXPORT_SET <export-name>``
        Add the library to the ``<export-name>`` export set.
 
      ``NOP``
@@ -112,7 +113,9 @@ function(build_dictionary)
   if (BD_UNPARSED_ARGUMENTS)
 	  message(FATAL_ERROR  "build_dictionary: too many arguments: \"${BD_UNPARSED_ARGUMENTS}\" from \"${ARGV}\" \n ${build_dictionary_usage}")
   endif()
-  find_package(ROOT 6.00.00 QUIET REQUIRED COMPONENTS Core)
+  if (NOT TARGET ROOT::Core)
+    cet_find_package(ROOT 6.00.00 PUBLIC QUIET REQUIRED COMPONENTS Core)
+  endif()
   if (NOT dictname)
     cet_package_path(current_subdir)
     string(REPLACE "/" "_" dictname "${current_subdir}")
@@ -133,11 +136,11 @@ function(build_dictionary)
   list(APPEND dictionary_liblist )
   set(cml_args)
   cet_passthrough(FLAG APPEND BD_NO_INSTALL cml_args)
-  cet_passthrough(APPEND BD_EXPORT cml_args)
+  cet_passthrough(FLAG APPEND BD_NO_EXOPRT cml_args)
+  cet_passthrough(APPEND BD_EXPORT_SET cml_args)
   cet_make_library(LIBRARY_NAME ${dictname}_dict ${cml_args} SHARED SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp)
   set(ROOTMAP_OUTPUT
     "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>.rootmap")
-  cet_find_package(ROOT PUBLIC QUIET COMPONENTS Core REQUIRED)
   _generate_dictionary(${dictname}
     ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
     ROOTMAP_OUTPUT "${ROOTMAP_OUTPUT}"
@@ -160,7 +163,7 @@ function(build_dictionary)
   else()
     list(APPEND dictionary_liblist PUBLIC ${ROOT_Core_LIBRARY})
   endif()
-  target_link_libraries(${dictname}_dict ${dictionary_liblist})
+  target_link_libraries(${dictname}_dict PRIVATE ${dictionary_liblist})
 
   if (NOT BD_NO_INSTALL)
     install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
