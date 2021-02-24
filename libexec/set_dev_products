@@ -189,6 +189,13 @@ get_derived_parent_data($pi, $sourcedir,
 my $compiler = $pi->{noarch} ? undef :
   compiler_for_quals($qhash->{compiler}, $pi->{qualspec});
 
+# Check whether we have a suitable line in the qualifier table.
+if ($pi->{qualspec} and
+    not exists $qqhash->{$pi->{qualspec}}) {
+  error_exit(sprintf("specified parent qualspec $pi->{qualspec} does not have a corresponding row in the qualifier table.
+Known qualspecs:%s", (scalar keys %$qqhash) ? sprintf("\n  %s", join("\n  ", reverse sort keys %$qqhash)) : ""));
+}
+
 # Now look up products in the hash.
 my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
 classify_deps($pi, $deps);
