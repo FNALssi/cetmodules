@@ -14,13 +14,31 @@ use strict;
 use warnings FATAL =>
   qw(io regexp severe syntax uninitialized void);
 
+use Cwd qw(abs_path);
 use File::Basename;
+use File::Spec;
 use FileHandle;
 use Getopt::Long;
 
-use lib dirname($0);
+use vars qw ($_mydir $_failscript);
+BEGIN {
+  my $_me = readlink($0);
+  if (not $_me) {
+    $_me = $0;
+  } elsif ($_me !~ m&^/&) {
+    $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
+  }
+  $_mydir = dirname($_me);
+  $_failscript = abs_path(File::Spec->catfile($_mydir, 'fail'));
+}
+
+use lib $_mydir;
+
 use parse_deps qw(:DEFAULT $btype_table);
 use warnings FATAL => 'parse_deps';
+
+# Avoid an unsightly shell error message if we fail.
+END { print "$_failscript\n" if ($?); }
 
 sub check_for_old_product_deps {
   my $pfile = shift;
@@ -34,6 +52,28 @@ sub check_for_old_product_deps {
   }
   close(PIN);
   return $retval;
+}
+
+sub maybe_convert_cetbuildtools_args {
+  my @result = ();
+  if (basename(dirname($0)) eq 'bin') {
+    # cetbuildtools-style setup_for_development.
+    my ($s, $b) = (shift, shift);
+    if ($s ne $ENV{CETPKG_SOURCE}) {
+      if (not $s or $s eq $ENV{CETPKG_BUILD}) {
+        error_exit("missing argument \$CETPKG_SOURCE for \$1");
+      } else {
+        error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+      }
+    } elsif ($b ne $ENV{CETPKG_BUILD}) {
+      error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+    }
+    if ($_[0] eq "noarch") {
+      shift;
+      unshift(@_, '--nobuild');
+    }
+  }
+  return (@_);
 }
 
 sub filter_build_types {
@@ -80,6 +120,8 @@ if (check_for_old_product_deps($pfile)) {
 
 # Requested build types and the way they were specified.
 my $input_btypes = {};
+
+@ARGV = maybe_convert_cetbuildtools_args(@ARGV);
 
 # Single letter options for build type (d, o, p).
 my $btype_lookup = { map { (substr($_, 0, 1) => $_) } keys %$btype_table };
@@ -152,7 +194,8 @@ my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
 classify_deps($pi, $deps);
 
 my $tmpfl = "$builddir/setup_$pi->{name}";
-open(my $tset_fh, "> $tmpfl") or die "Couldn't open $tmpfl";
+open(my $tset_fh, "> $tmpfl") or
+  error_exit("couldn't open $tmpfl for write");
 
 print_dep_setup($deps, $tset_fh);
 
@@ -168,11 +211,11 @@ unless ($options->{nobuild}) {
 
 # Write auxiliary files used in table generation from CMake.
 write_table_deps($pi->{name}, $deps) or
- die "unable to write dependencies for $pi->{name}'s UPS table file";
+ error_exit("unable to write dependencies to $deps for $pi->{name}'s UPS table file");
 
 write_table_frag($pi->{name}, $pfile) or
-  die "unable to write UPS table fragment file for $pi->{name}";
+  error_exit("unable to write UPS table fragment file to $pfile for $pi->{name}");
 
+close($tset_fh);
 print "$tmpfl\n";
-close(STDERR);
 exit 0;

@@ -952,11 +952,6 @@ elif ! [ -r "${CETPKG_SOURCE}/CMakeLists.txt" ]; then
 elif ! grep -qEie '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" 2>/dev/null; then
   fatal_error "no project() call in top level CMakeLists.txt
              (${CETPKG_SOURCE}/CMakeLists.txt)"
-elif ! { [ "$CETPKG_SOURCE" = "$MRB_SOURCE" ] || grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
-  -e '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" | head -n 1 | \
-  grep -qEie '^[[:space:]]*(project|find_package)[[:space:]]*\([[:space:]]*cetmodules\b'; } 2>/dev/null; then
-  fatal_error "find_package(cetmodules) must *precede* project() call in
-             order to cleanly override toolchain compile options."
 elif [ "$cetpkg_build" = "/" ]; then
   fatal_error "CETPKG_BUILD == /"
 elif [[ "$CETPKG_BUILD" != /* ]]; then
@@ -972,6 +967,28 @@ fi
 
 source "$CETPKG_BUILD/cetpkg_info.sh" || \
   fatal_error "error sourcing $CETPKG_BUILD/cetpkg_info.sh"
+
+# Which build system does the package think it is using?
+OIFS="${IFS}"; IFS=';'
+if [[ "$CETPKG_SOURCE" = "${MRB_SOURCE}" ]]; then
+  build_system_pkg=cetmodules
+elif [[ ${CETPKG_BUILD_ONLY_DEPS[*]:+"${CETPKG_BUILD_ONLY_DEPS[*]};"}${CETPKG_CMAKE_PROJECT} =~ \
+  (^|;)(cetmodules|cetbuildtools)(;|$) ]]; then
+  build_system_pkg=${BASH_REMATCH[2]}
+fi
+IFS="${OIFS}"; unset OIFS
+
+if [ -z "${build_system_pkg}" ]; then
+  fatal_error "unable to identify a recognized build system package (cetmodules|cetbuildtools) for use with buildtool."
+elif ! { [ "$CETPKG_SOURCE" = "$MRB_SOURCE" ] || grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
+  -e '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" | head -n 1 | \
+  grep -qEie '^[[:space:]]*(project|find_package)[[:space:]]*\([[:space:]]*'"$build_system_pkg"'\b'; } 2>/dev/null; then
+  [ "${build_system_pkg}" = "cetmodules" ] && \
+    warning "find_package($build_system_pkg) must *precede* project() call in
+             order to enable clean override of toolchain compile options
+             (mitigated by buildtool)."
+  CETPKG_CMAKE_ARGS+=(-DCET_BUILD_SYSTEM=${build_system_pkg} -DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/FindBuildSystemPackage.cmake)
+fi
 
 ##################
 # Argument consistency checks.

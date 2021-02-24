@@ -1,10 +1,10 @@
-set(cetbuildtools_VERSION 7.17.01)
-set(cetbuildtools_UPS_VERSION v7_17_01)
-
-set(CET_WARN_DEPRECATED) # Quiet warnings for known old package.
+set(cetbuildtools_VERSION 8.00.00)
+set(cetbuildtools_UPS_VERSION v8_00_00)
 
 find_package(cetmodules NO_MODULE REQUIRED)
 
+include(Compatibility)
+set(CET_WARN_DEPRECATED) # Quiet warnings for known old package.
 set(cetbuildtools_BINDIR ${cetmodules_BINARY_DIR})
 
 include(FindPackageHandleStandardArgs)
