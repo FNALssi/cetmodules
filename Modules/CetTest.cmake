@@ -16,7 +16,7 @@
 #   Do not build the target -- copy in from the source dir (ideal for
 #   e.g. scripts).
 #
-# USE_CATCH_MAIN
+# USE_CATCH2_MAIN
 #
 #   This test will use the Catch test framework
 #   (https://github.com/philsquared/Catch). The specified target will be
@@ -26,7 +26,7 @@
 #   N.B.: if you wish to use the ParseAndAddCatchTests() facility
 #   contributed to the Catch system, you should specify NO_AUTO to avoid
 #   generating a, "standard" test. Note also that you may have your own
-#   test executables using Catch without using USE_CATCH_MAIN. However,
+#   test executables using Catch without using USE_CATCH2_MAIN. However,
 #   be aware that the compilation of a Catch main is quite expensive,
 #   and any tests that *do* use this option will all share the same
 #   compiled main.
@@ -58,6 +58,11 @@
 #   List of top-level dependencies to consider for a PREBUILT
 #   target. Top-level implies a target (not file) created with
 #   ADD_EXECUTABLE, ADD_LIBRARY or ADD_CUSTOM_TARGET.
+#
+# DIRTY_WORKDIR
+#
+#   If set, the working directory will not be cleared prior to execution
+#   of the test.
 #
 # INSTALL_BIN
 #
@@ -259,43 +264,36 @@
 #   cet_test() or add_test() -- require at least one.
 #
 ########################################################################
-# Need argument parser.
-include(CMakeParseArguments)
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
 # Copy function.
 include(CetCopy)
 # Need cet_script for PREBUILT scripts
 include(CetMake)
+# To ascertain the current subdirectory within a package.
+include(CetPackagePath)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
-# Needed to compare versions
-include(CheckProdVersion)
 
-cmake_policy(PUSH)
-cmake_policy(VERSION 3.3) # For if (IN_LIST)
+##################
+# Programs and Modules
 
-if (DEFINED Catch2_VERSION)
-  check_prod_version(catch ${Catch2_VERSION} v2_3_0
-    PRODUCT_MATCHES_VAR CATCH_INCLUDE_SUBDIR_IS_CATCH2
-    )
-  if (CATCH_INCLUDE_SUBDIR_IS_CATCH2)
-    set(CATCH_INCLUDE_SUBDIR catch2)
-  else()
-    set(CATCH_INCLUDE_SUBDIR catch)
-  endif()
-  find_file(CET_CATCH_MAIN_SOURCE
-    cet_${CATCH_INCLUDE_SUBDIR}_main.cpp
-    PATH_SUFFIXES src
-    QUIET
-    )
-else()
-  unset(CET_CATCH_MAIN_SOURCE)
-endif()
-
-# - Programs and Modules
 # Default comparator
 set(CET_RUNANDCOMPARE "${CMAKE_CURRENT_LIST_DIR}/RunAndCompare.cmake")
+
 # Test run wrapper
-set(CET_CET_EXEC_TEST "${cetmodules_bin_dir}/cet_exec_test")
+set(CET_TEST_WRAPPER cetmodules::cet_exec_test)
+
+# Properties
+define_property(TEST PROPERTY KEYWORDS
+  BRIEF_DOCS "Keywords describing the test engine used, test type, etc."
+  FULL_DOCS "ETHEL")
+##################
 
 function(_update_defined_test_groups)
   set(TMP_LIST ${CET_DEFINED_TEST_GROUPS} ${ARGN})
@@ -308,7 +306,7 @@ endfunction()
 
 function(_cet_process_pargs NTEST_VAR)
   set(NTESTS 1)
-  foreach (label ${ARGN})
+  foreach (label IN LISTS ARGN)
     list(LENGTH CETP_PARG_${label} ${label}_length)
     math(EXPR ${label}_length "${${label}_length} - 1")
     if (NOT ${label}_length)
@@ -323,7 +321,7 @@ function(_cet_process_pargs NTEST_VAR)
     set(CETP_PARG_${label} ${CETP_PARG_${label}} PARENT_SCOPE)
     set(${label}_length ${${label}_length} PARENT_SCOPE)
   endforeach()
-  foreach (label ${ARGN})
+  foreach (label IN LISTS ARGN)
     if (${label}_length LESS NTESTS)
       # Need to pad
       math(EXPR nextra "${NTESTS} - ${${label}_length}")
@@ -351,40 +349,63 @@ function(_cet_print_pargs)
     return()
   endif()
   message(STATUS "Test ${TEST_TARGET_NAME}: found ${nlabels} labels for permuted test arguments")
-  foreach (label ${ARGN})
+  foreach (label IN LISTS ARGN)
     message(STATUS "  Label: ${label}, arg: ${${label}_arg}, # vals: ${${label}_length}, vals: ${CETP_PARG_${label}}")
   endforeach()
   message(STATUS "  Calculated ${NTESTS} tests")
 endfunction()
 
 function(_cet_test_pargs VAR)
-  foreach (label ${parg_labels})
+  foreach (label IN LISTS parg_labels)
     list(GET CETP_PARG_${label} ${tid} arg)
-    if (${label}_arg MATCHES "=\$")
+    if (${label}_arg MATCHES [[=$]])
       list(APPEND test_args "${${label}_arg}${arg}")
     else()
-      list(APPEND test_args ${${label}_arg} ${arg})
+      list(APPEND test_args "${${label}_arg}" "${arg}")
     endif()
   endforeach()
   set(${VAR} ${test_args} ${ARGN} PARENT_SCOPE)
 endfunction()
 
-function(_cet_add_test_detail TNAME TEST_WORKDIR)
+function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
   _cet_test_pargs(test_args ${ARGN})
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
     COMMAND
-    ${CET_CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}"
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
     --skip-return-code ${skip_return_code}
-    ${CET_TEST_EXEC} ${test_args})
+    ${TEXEC} ${test_args})
+  _cet_add_test_properties(${TNAME} ${TEXEC})
+endfunction()
+
+function(_cet_exec_location LOC_VAR)
+  list(POP_FRONT ARGN EXEC)
+  if (TARGET "${EXEC}")
+    get_property(target_type TARGET ${EXEC} PROPERTY TYPE)
+    if (target_type STREQUAL "EXECUTABLE")
+      set(EXEC "$<TARGET_FILE:${EXEC}>")
+    else()
+      get_property(imported TARGET ${EXEC} PROPERTY IMPORTED)
+      if (imported)
+        set(EXEC "$<TARGET_PROPERTY:${EXEC},IMPORTED_LOCATION>")
+      else()
+        get_property(exec_location TARGET ${EXEC} PROPERTY CET_EXEC_LOCATION)
+        if (exec_location)
+          set(EXEC "${exec_location}")
+        endif()
+      endif()
+    endif()
+  endif()
+  set(${LOC_VAR} "${EXEC}" PARENT_SCOPE)
 endfunction()
 
 function(_cet_add_test)
+  _cet_exec_location(TEXEC ${CET_TEST_EXEC})
   if (${NTESTS} EQUAL 1)
-    _cet_add_test_detail(${TEST_TARGET_NAME} ${CET_TEST_WORKDIR} ${ARGN})
+    _cet_add_test_detail(${TEST_TARGET_NAME} ${TEXEC} ${CET_TEST_WORKDIR} ${ARGN})
     list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
     file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
     set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
@@ -398,8 +419,8 @@ function(_cet_add_test)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
       set(tname "${TEST_TARGET_NAME}${tnum}")
-      string(REGEX REPLACE "\\.d\$" "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
-      _cet_add_test_detail(${tname} ${test_workdir} ${ARGN})
+      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
+      _cet_add_test_detail(${tname} ${TEXEC} ${test_workdir} ${ARGN})
       list(APPEND ALL_TEST_TARGETS ${tname})
       file(MAKE_DIRECTORY "${test_workdir}")
       set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
@@ -412,12 +433,13 @@ endfunction()
 function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   _cet_test_pargs(tmp_args ${ARGN})
   separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
+  cet_localize_pv(cetmodules LIBEXEC_DIR)
   add_test(NAME "${TNAME}"
     ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
-    COMMAND ${CET_CET_EXEC_TEST} --wd ${TEST_WORKDIR}
+    COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}"
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
     --skip-return-code ${skip_return_code}
     ${CMAKE_COMMAND}
     -DTEST_EXEC=${CET_TEST_EXEC}
@@ -427,7 +449,7 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
     ${DEFINE_TEST_ERR}
     -DTEST_OUT=${CET_TARGET}.out
     ${DEFINE_OUTPUT_FILTER} ${DEFINE_OUTPUT_FILTER_ARGS} ${DEFINE_OUTPUT_FILTERS}
-    ${DEFINE_ART_COMPAT}
+    -Dcetmodules_LIBEXEC_DIR=${cetmodules_LIBEXEC_DIR}
     -P ${CET_RUNANDCOMPARE}
     )
 endfunction()
@@ -448,72 +470,81 @@ function(_cet_add_ref_test)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
       set(tname "${TEST_TARGET_NAME}${tnum}")
-      string(REGEX REPLACE "\\.d\$" "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
+      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
       _cet_add_ref_test_detail(${tname} ${test_workdir} ${ARGN})
       list(APPEND ALL_TEST_TARGETS ${tname})
       file(MAKE_DIRECTORY "${test_workdir}")
       set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
-      cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      if (CET_DATAFILES)
+        cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      endif()
     endforeach()
   endif()
   set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
 endfunction()
 
 ####################################
-# Main macro definitions.
-macro(cet_test_env)
-  cmake_parse_arguments(CET_TEST
-    "CLEAR"
-    ""
-    ""
-    ${ARGN}
-    )
+# Main function definitions.
+function(cet_test_env)
+  cmake_parse_arguments(PARSE_ARGV 0 CET_TEST "CLEAR" "" "")
   if (CET_TEST_CLEAR)
-    set(CET_TEST_ENV "")
+    set(CET_TEST_ENV)
   endif()
-  list(APPEND CET_TEST_ENV ${CET_TEST_UNPARSED_ARGUMENTS})
-endmacro()
+  list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
+  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
+endfunction()
 
 function(cet_test CET_TARGET)
-  # Parse arguments
-  if (${CET_TARGET} MATCHES .*/.*)
-    message(FATAL_ERROR "${CET_TARGET} shuld not be a path. Use a simple "
+  if (NOT BUILD_TESTING) # See CMake's CTest module.
+    return()
+  endif()
+  # Parse arguments.
+  if (${CET_TARGET} MATCHES /)
+    message(FATAL_ERROR "${CET_TARGET} should not be a path. Use a simple "
       "target name with the HANDBUILT and TEST_EXEC options instead.")
   endif()
-  cmake_parse_arguments(CET
-    "HANDBUILT;PREBUILT;USE_CATCH_MAIN;NO_AUTO;USE_BOOST_UNIT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_OPTIONAL_GROUPS;SCOPED"
-    "OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
-    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REMOVE_ON_FAILURE;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES;REF"
-    ${ARGN}
-    )
+  cmake_parse_arguments(PARSE_ARGV 1 CET
+    "DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
+    "EXPORT_SET;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
+    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
     message(FATAL_ERROR "OUTPUT_FILTERS is incompatible with FILTER_ARGS:\nEither use the singular OUTPUT_FILTER or use double-quoted strings in OUTPUT_FILTERS\nE.g. OUTPUT_FILTERS \"filter1 -x -y\" \"filter2 -y -z\"")
   endif()
 
   # CET_SOURCES is obsolete.
   if (CET_SOURCES)
+    warn_deprecated("cet_test(): SOURCES" NEW "SOURCE")
     list(APPEND CET_SOURCE ${CET_SOURCES})
     unset(CET_SOURCES)
   endif()
 
-  # For passage to cet_script, cet_make_exec, etc.
-  if (NOT CET_INSTALL_BIN)
-    set(CET_NO_INSTALL "NO_INSTALL")
+  # CET_USE_CATCH_MAIN is obsolete.
+  if (CET_USE_CATCH_MAIN)
+    warn_deprecated("cet_test(): USE_CATCH_MAIN" NEW "USE_CATCH2_MAIN")
+    set(CET_USE_CATCH2_MAIN TRUE)
+    unset(CET_USE_CATCH_MAIN)
   endif()
 
+  # For passthrough to cet_script, cet_make_exec, etc.
+  cet_passthrough(CET_EXPORT_SET exec_install_args)
+  if (NOT CET_INSTALL_BIN)
+    list(APPEND exec_install_args NO_INSTALL)
+  endif()
+  cet_passthrough(FLAG APPEND CET_NO_EXPORT exec_install_args)
+
   # Find any arguments related to permuted test arguments.
-  foreach (OPT ${CET_UNPARSED_ARGUMENTS})
-    if (OPT MATCHES "^PARG_([A-Za-z_][A-Za-z0-9_]*)$")
+  foreach (OPT IN LISTS CET_UNPARSED_ARGUMENTS)
+    if (OPT MATCHES [[^PARG_([A-Za-z_][A-Za-z0-9_]*)$]])
       if (OPT IN_LIST parg_option_names)
-        message(FATAL_ERROR "For test ${TEST_TARGET_NAME}, permuted argument label ${CMAKE_MATCH_1} specified multiple times.")
+        message(SEND_ERROR "For test ${TEST_TARGET_NAME}, permuted argument label ${CMAKE_MATCH_1} specified multiple times.")
       endif()
-      list(APPEND parg_option_names ${OPT})
-      list(APPEND parg_labels ${CMAKE_MATCH_1})
-    elseif (OPT MATCHES "SAN_OPTIONS$")
+      list(APPEND parg_option_names "${OPT}")
+      list(APPEND parg_labels "${CMAKE_MATCH_1}")
+    elseif (OPT MATCHES [[SAN_OPTIONS$]])
       if (OPT IN_LIST san_option_names)
         message(FATAL_ERROR "For test ${TEST_TARGET_NAME}, ${OPT} specified multiple times")
       endif()
-      list(APPEND san_option_names ${OPT})
+      list(APPEND san_option_names "${OPT}")
     endif()
   endforeach()
   set(cetp_list_options PERMUTE_OPTS ${parg_option_names})
@@ -542,69 +573,29 @@ function(cet_test CET_TARGET)
     set(CET_TEST_EXEC ${CET_TARGET})
   endif()
   if ((CET_HANDBUILT AND CET_PREBUILT) OR
-      (CET_HANDBUILT AND CET_USE_CATCH_MAIN) OR
-      (CET_PREBUILT AND CET_USE_CATCH_MAIN))
-    # CET_HANDBUILT, CET_PREBUILT and CET_USE_CATCH_MAIN are mutually exclusive.
+      (CET_HANDBUILT AND CET_USE_CATCH2_MAIN) OR
+      (CET_PREBUILT AND CET_USE_CATCH2_MAIN))
+    # CET_HANDBUILT, CET_PREBUILT and CET_USE_CATCH2_MAIN are mutually exclusive.
     message(FATAL_ERROR "cet_test: target ${CET_TARGET} must have only one of the"
-      " CET_HANDBUILT, CET_PREBUILT, or CET_USE_CATCH_MAIN options set.")
+      " CET_HANDBUILT, CET_PREBUILT, or CET_USE_CATCH2_MAIN options set.")
   elseif (CET_PREBUILT) # eg scripts.
-    cet_script(${CET_TARGET} ${CET_NO_INSTALL} DEPENDENCIES ${CET_DEPENDENCIES})
-  elseif (NOT CET_HANDBUILT) # Normal build, possibly with CET_USE_CATCH_MAIN set.
+    cet_script(${CET_TARGET} ${exec_install_args} DEPENDENCIES ${CET_DEPENDENCIES})
+  elseif (NOT CET_HANDBUILT) # Normal build, possibly with CET_USE_CATCH2_MAIN set.
     # Build the executable.
     if (NOT CET_SOURCE) # Useful default.
       set(CET_SOURCE ${CET_TARGET}.cc)
     endif()
-    if (CET_USE_CATCH_MAIN)
-      find_package(Catch2 QUIET REQUIRED)
-      if (NOT CATCH_INCLUDE_SUBDIR)
-        message(FATAL_ERROR
-          "cet_test(): Unable to identify Catch2 details -- unavailable?.")
-      endif()
-      if (NOT TARGET cet_${CATCH_INCLUDE_SUBDIR}_main) # Make sure we only build one!
-        if (NOT CET_CATCH_MAIN_SOURCE)
-          message(FATAL_ERROR "cet_test() INTERNAL ERROR: unable to find cet_${CATCH_INCLUDE_SUBDIR}_main.cpp required by USE_CATCH_MAIN")
-        endif()
-        add_library(cet_${CATCH_INCLUDE_SUBDIR}_main STATIC EXCLUDE_FROM_ALL ${CET_CATCH_MAIN_SOURCE})
-        set_property(TARGET cet_${CATCH_INCLUDE_SUBDIR}_main PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-        # Strip (x10 shrinkage on Linux with GCC 6.3.0)!
-        add_custom_command(TARGET cet_${CATCH_INCLUDE_SUBDIR}_main POST_BUILD
-          COMMAND strip -S $<TARGET_FILE:cet_${CATCH_INCLUDE_SUBDIR}_main>
-          COMMENT "Stripping Catch main library"
-          )
-      endif()
-    endif()
-    if (CET_SOURCE)
-      list(APPEND cme_args SOURCE ${CET_SOURCE})
-    endif()
-    if (CET_LIBRARIES)
-      list(APPEND cme_args LIBRARIES ${CET_LIBRARIES})
-    endif()
-    cet_make_exec(${CET_TARGET} ${CET_NO_INSTALL}
-      ${cme_args} ${CETP_UNPARSED_ARGUMENTS})
-    if (CET_USE_CATCH_MAIN)
-      target_link_libraries(${CET_TARGET} cet_${CATCH_INCLUDE_SUBDIR}_main)
-    endif()
-    if (CET_USE_BOOST_UNIT)
-      # Make sure we have the correct library available.
-      find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
-      # Compile options (-Dxxx) for simple-format unit tests.
-      set_target_properties(${CET_TARGET} PROPERTIES
-        COMPILE_DEFINITIONS "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK"
-        )
-      target_link_libraries(${CET_TARGET} Boost::unit_test_framework)
-    endif()
-    if (COMMAND find_tbb_offloads)
-      find_tbb_offloads(FOUND_VAR have_tbb_offload ${CET_SOURCE})
-      if (have_tbb_offload)
-        set_target_properties(${CET_TARGET} PROPERTIES LINK_FLAGS ${TBB_OFFLOAD_FLAG})
-      endif()
-    endif()
+    cet_passthrough(FLAG IN_PLACE CET_USE_BOOST_UNIT)
+    cet_passthrough(FLAG IN_PLACE CET_USE_CATCH2_MAIN)
+    cet_make_exec(NAME ${CET_TARGET} ${exec_install_args}
+      ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
+      SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES})
   endif()
 
   if (NOT CET_NO_AUTO)
-    # If GLOBAL is not set, prepend ${product}: to the target name
+    # If GLOBAL is not set, prepend ${PROJECT_NAME}: to the target name
     if (CET_SCOPED)
-      set(TEST_TARGET_NAME "${product}:${CET_TARGET}")
+      set(TEST_TARGET_NAME "${PROJECT_NAME}:${CET_TARGET}")
     else()
       set(TEST_TARGET_NAME "${CET_TARGET}")
     endif()
@@ -629,7 +620,7 @@ function(cet_test CET_TARGET)
     if (DEFINED CET_DATAFILES)
       list(REMOVE_DUPLICATES CET_DATAFILES)
       set(datafiles_tmp)
-      foreach (df ${CET_DATAFILES})
+      foreach (df IN LISTS CET_DATAFILES)
         get_filename_component(dfd ${df} DIRECTORY)
         if (dfd)
           list(APPEND datafiles_tmp ${df})
@@ -643,6 +634,9 @@ function(cet_test CET_TARGET)
     if (CET_CONFIGURATIONS)
       set(CONFIGURATIONS_CMD CONFIGURATIONS)
     endif()
+    if (CET_DIRTY_WORKDIR)
+      set(CET_DIRTY_WORKDIR_ARG --dirty-workdir)
+    endif()
 
     list(FIND CET_TEST_PROPERTIES SKIP_RETURN_CODE skip_return_code)
     if (skip_return_code GREATER -1)
@@ -653,29 +647,34 @@ function(cet_test CET_TARGET)
       list(APPEND CET_TEST_PROPERTIES SKIP_RETURN_CODE ${skip_return_code})
     endif()
     if (CET_REF)
-      list(FIND CET_TEST_PROPERTIES PASS_REGULAR_EXPRESSION has_pass_exp)
-      list(FIND CET_TEST_PROPERTIES FAIL_REGULAR_EXPRESSION has_fail_exp)
-      if (has_pass_exp GREATER -1 OR has_fail_exp GREATER -1)
+      if ("PASS_REGULAR_EXPRESSION" IN_LIST CET_TEST_PROPERTIES OR
+          "FAIL_REGULAR_EXPRESSION" IN_LIST CET_TEST_PROPERTIES)
         message(FATAL_ERROR "Cannot specify REF option for test ${CET_TARGET} in conjunction with (PASS|FAIL)_REGULAR_EXPESSION.")
       endif()
-      list(LENGTH CET_REF CET_REF_LEN)
-      if (CET_REF_LEN EQUAL 1)
-        set(OUTPUT_REF ${CET_REF})
-      else()
-        list(GET CET_REF 0 OUTPUT_REF)
-        list(GET CET_REF 1 ERROR_REF)
+      list(POP_FRONT CET_REF OUTPUT_REF ERROR_REF)
+      if (ERROR_REF)
         set(DEFINE_ERROR_REF "-DTEST_REF_ERR=${ERROR_REF}")
         set(DEFINE_TEST_ERR "-DTEST_ERR=${CET_TARGET}.err")
       endif()
       if (CET_OUTPUT_FILTER)
         set(DEFINE_OUTPUT_FILTER "-DOUTPUT_FILTER=${CET_OUTPUT_FILTER}")
         if (CET_OUTPUT_FILTER_ARGS)
-          separate_arguments(FILTER_ARGS UNIX_COMMAND "${CET_OUTPUT_FILTER_ARGS}")
-          set(DEFINE_OUTPUT_FILTER_ARGS "-DOUTPUT_FILTER_ARGS=${FILTER_ARGS}")
+          separate_arguments(FILTER_ARGS NATIVE_COMMAND "${CET_OUTPUT_FILTER_ARGS}")
+          string(PREPEND DEFINE_OUTPUT_FILTER_ARGS "-DOUTPUT_FILTER_ARGS=")
         endif()
       elseif (CET_OUTPUT_FILTERS)
-        string(REPLACE ";" "::" DEFINE_OUTPUT_FILTERS "${CET_OUTPUT_FILTERS}")
-        set(DEFINE_OUTPUT_FILTERS "-DOUTPUT_FILTERS=${DEFINE_OUTPUT_FILTERS}")
+        foreach (filter IN LISTS CET_OUTPUT_FILTERS)
+          separate_arguments(args NATIVE_COMMAND "${filter}")
+          cet_convert_target_args(args "${filter}")
+          set(filter)
+          foreach (arg IN LISTS args)
+            _cet_exec_location(arg "${arg}")
+            list(APPEND filter "${arg}")
+          endforeach()
+          list(APPEND DEFINE_OUTPUT_FILTERS "${filter}")
+        endforeach()
+        string(REPLACE ";" "\\;" DEFINE_OUTPUT_FILTERS "${DEFINE_OUTPUT_FILTERS}")
+        string(PREPEND DEFINE_OUTPUT_FILTERS "-DOUTPUT_FILTERS=")
       endif()
       _cet_add_ref_test(${CET_TEST_ARGS})
     else(CET_REF)
@@ -696,7 +695,7 @@ function(cet_test CET_TARGET)
       set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
         ENVIRONMENT "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
     endif()
-    foreach (san_env
+    foreach (san_env IN ITEMS
         ASAN_OPTIONS MSAN_OPTIONS LSAN_OPTIONS TSAN_OPTIONS UBSAN_OPTIONS)
       if (CETP_${san_env})
         set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
@@ -706,7 +705,7 @@ function(cet_test CET_TARGET)
           ENVIRONMENT "${san_env}=$ENV{${san_env}}")
       endif()
     endforeach()
-    foreach (target ${ALL_TEST_TARGETS})
+    foreach (target IN LISTS ALL_TEST_TARGETS)
       if (CET_TEST_ENV)
         # Set global environment.
         get_test_property(${target} ENVIRONMENT CET_TEST_ENV_TMP)
@@ -732,13 +731,13 @@ function(cet_test CET_TARGET)
       endif()
     endforeach()
   else(NOT CET_NO_AUTO)
-    if (CET_CONFIGURATIONS OR CET_DATAFILES OR CET_NO_OPTIONAL_GROUPS OR
+    if (CET_CONFIGURATIONS OR CET_DATAFILES OR CET_DIRTY_WORKDIR OR CET_NO_OPTIONAL_GROUPS OR
         CET_OPTIONAL_GROUPS OR CET_OUTPUT_FILTER OR CET_OUTPUT_FILTERS OR
         CET_OUTPUT_FILTER_ARGS OR CET_REF OR CET_REQUIRED_FILES OR
         CET_SCOPED OR CET_TEST_ARGS OR CET_TEST_PROPERTIES OR
         CET_TEST_WORKDIR OR NPARG_LABELS)
       message(FATAL_ERROR "The following arguments are not meaningful in the presence of NO_AUTO:
-CONFIGURATIONS DATAFILES NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT_FILTER OUTPUT_FILTERS OUTPUT_FILTER_ARGS PARG_<label> REF REQUIRED_FILES SCOPED TEST_ARGS TEST_PROPERTIES TEST_WORKDIR")
+CONFIGURATIONS DATAFILES DIRTY_WORKDIR NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT_FILTER OUTPUT_FILTERS OUTPUT_FILTER_ARGS PARG_<label> REF REQUIRED_FILES SCOPED TEST_ARGS TEST_PROPERTIES TEST_WORKDIR")
     endif()
   endif(NOT CET_NO_AUTO)
   if (CET_INSTALL_BIN AND CET_HANDBUILT)
@@ -746,21 +745,22 @@ CONFIGURATIONS DATAFILES NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT_FILTER OUTPUT
   endif()
   if (CET_INSTALL_EXAMPLE)
     # Install to examples directory of product.
-    install(FILES ${CET_SOURCE} ${CET_DATAFILES}
+    install(FILES "${CET_SOURCE}" ${CET_DATAFILES}
       DESTINATION example
       )
   endif()
   if (CET_INSTALL_SOURCE)
-    # Install to sources/test (will need to be amended for eg ART's
-    # multiple test directories.
-    install(FILES ${CET_SOURCE}
-      DESTINATION ${${CMAKE_PROJECT_NAME}_test_dir}
-      )
+    cet_package_path(CURRENT_SUBDIR)
+    cet_regex_escape("${${PROJECT_NAME}_TEST_DIR}" e_test_dir)
+    string(REGEX REPLACE "^(test|${e_test_dir})(/|$)"
+      "" CURRENT_SUBDIR "${CURRENT_SUBDIR}")
+    install(FILES "${CET_SOURCE}"
+      DESTINATION "${${PROJECT_NAME}_TEST_DIR}/${CURRENT_SUBDIR}")
   endif()
 endfunction(cet_test)
 
 function(cet_test_assertion CONDITION FIRST_TARGET)
-  if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+  if (CMAKE_SYSTEM_NAME MATCHES "Darwin" )
     set_tests_properties(${FIRST_TARGET} ${ARGN} PROPERTIES
       PASS_REGULAR_EXPRESSION
       "Assertion failed: \\(${CONDITION}\\), "
@@ -771,6 +771,15 @@ function(cet_test_assertion CONDITION FIRST_TARGET)
       "Assertion `${CONDITION}' failed\\."
       )
   endif()
+endfunction()
+
+# FIXME: Needs work!
+function(_cet_add_test_properties TEST_NAME TEST_EXEC)
+  if (NOT TARGET ${TEST_EXEC}) # Not interested.
+    return()
+  endif()
+  set_property(TEST ${TEST_NAME} APPEND PROPERTY KEYWORDS CET
+    $<TARGET_PROPERTY:${TEST_EXEC}>)
 endfunction()
 
 cmake_policy(POP)

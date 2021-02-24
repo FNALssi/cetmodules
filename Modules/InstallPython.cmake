@@ -136,48 +136,24 @@
 #
 ########################################################################
 
-########################################################################
-include(CMakeParseArguments)
+# Avoid unwanted repeat inclusion.
+include_guard(DIRECTORY)
 
-function (_to_python_list OUTPUT_VAR)
-  cmake_parse_arguments(TPL
-    "APPEND"
-    "PYTHON_VAR"
-    ""
-    ${ARGN}
-    )
-  if (TPL_PYTHON_VAR)
-    set(tmp "${TPL_PYTHON_VAR}=[ ")
-  else()
-    set(tmp "[ ")
-  endif()
-  foreach (item ${TPL_UNPARSED_ARGUMENTS})
-    if (NOT item OR item MATCHES "[^-\\+0-9\\.]*([eE][-0-9]+)?")
-      set(item "'${item}'")
-    endif()
-    set(tmp "${tmp}${item},")
-  endforeach()
-  string(REGEX REPLACE "(,| )$" " ]" tmp "${tmp}")
-  if (TPL_APPEND)
-    set(${OUTPUT_VAR} "${${OUTPUT_VAR}}${tmp}" PARENT_SCOPE)
-  else()
-    set(${OUTPUT_VAR} "${tmp}" PARENT_SCOPE)
-  endif()
-endfunction()
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(install_python)
   set(setup_arg_indent "        ")
-  cmake_parse_arguments(IP
+  cmake_parse_arguments(PARSE_ARGV 0 IP
     "NO_INSTALL"
     "SETUP_PY;NAME;VERSION"
-    "SETUP_ARGS;SETUP_PREAMBLE;SCRIPTS;MODULES;PACKAGES;PACKAGE_DATA;DATA_FILES"
-    ${ARGN})
+    "SETUP_ARGS;SETUP_PREAMBLE;SCRIPTS;MODULES;PACKAGES;PACKAGE_DATA;DATA_FILES")
   if (NOT IP_SCRIPTS AND NOT IP_MODULES AND NOT IP_SETUP_PY AND NOT PACKAGES)
     message(FATAL_ERROR "install_python called with no defined "
       "SCRIPTS, MODULES, PACKAGES or SETUP_PY.")
   endif()
   if (IP_SETUP_PY)
-    foreach (var NAME VERSION SETUP_ARGS SETUP_PREAMBLE SCRIPTS MODULES PACKAGES PACKGE_DATA DATA_FILES)
+    foreach (var IN ITEMS NAME VERSION SETUP_ARGS SETUP_PREAMBLE SCRIPTS MODULES PACKAGES PACKGE_DATA DATA_FILES)
       if (IP_${var})
         list(APPEND error_vars "${var}")
       endif()
@@ -191,13 +167,13 @@ function(install_python)
     message(FATAL_ERROR "install_python: PACKAGE_DATA makes no sense without PACKAGES.")
   endif()
   if (NOT IP_NAME)
-    set(IP_NAME ${product})
+    set(IP_NAME ${PROJECT_NAME})
   endif() # IP_NAME
   if (NOT IP_VERSION)
-    set(IP_VERSION ${cet_dot_version})
+    set(IP_VERSION ${PROJECT_VERSION})
   endif() # IP_VERSION
   if (IP_SCRIPTS) # scripts=[ ... ]
-    foreach(item ${IP_SCRIPTS})
+    foreach(item IN LISTS IP_SCRIPTS)
       list(APPEND tmp "${CMAKE_CURRENT_SOURCE_DIR}/${item}")
     endforeach()
     set(IP_SCRIPTS "${tmp}")
@@ -220,7 +196,7 @@ function(install_python)
   endif() # IP_PACKAGES
   unset(this_list)
   if (IP_PACKAGE_DATA) # package_data={ '' : [ ... ] '<pkg>' [ ... ] ... }
-    foreach(arg ${IP_PACKAGE_DATA})
+    foreach(arg IN LISTS IP_PACKAGE_DATA)
       if (arg STREQUAL "ROOT" OR arg STREQUAL "PKG")
         if (NOT package_data)
           set(package_data "package_data={ ")
@@ -255,7 +231,7 @@ function(install_python)
   endif() # IP_PACKAGE_DATA
   unset(this_list)
   if (IP_DATA_FILES) # data_files=[ ('<dir>', [ ... ]), ... ]
-    foreach(arg ${IP_DATA_FILES})
+    foreach(arg IN LISTS IP_DATA_FILES)
       if (arg STREQUAL "DIR")
         if (NOT data_files)
           set(data_files "data_files=[ ")
@@ -308,11 +284,37 @@ function(install_python)
   endif()
   add_custom_target(python_${IP_NAME}_build
     ALL
-    COMMAND python "${IP_SETUP_PY}" install --install-lib="${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_lib_dir}" --install-scripts="${CMAKE_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_bin_dir}" --install-headers="${product}"
+    COMMAND python "${IP_SETUP_PY}" install --install-lib="${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR}" --install-scripts="${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_SCRIPTS_DIR}" --install-headers="${PROJECT_NAME}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     DEPENDS "${IP_SETUP_PY}"
     )
   if (NOT IP_NO_INSTALL)
-    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=${CMAKE_INSTALL_PREFIX} --install-lib=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_lib_dir} --install-scripts=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_bin_dir} --install-headers=${CMAKE_INSTALL_PREFIX}/${${CMAKE_PROJECT_NAME}_inc_dir})")
+    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=\"\${CMAKE_INSTALL_PREFIX}\" --install-lib=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_LIBRARY_DIR}\" --install-scripts=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_SCRIPTS_DIR}\" --install-headers=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INCLUDE_DIR}\")")
   endif()
 endfunction()
+
+function (_to_python_list OUTPUT_VAR)
+  cmake_parse_arguments(PARSE_ARGV 1 TPL
+    "APPEND"
+    "PYTHON_VAR"
+    "")
+  if (TPL_PYTHON_VAR)
+    set(tmp "${TPL_PYTHON_VAR}=[ ")
+  else()
+    set(tmp "[ ")
+  endif()
+  foreach (item IN LISTS TPL_UNPARSED_ARGUMENTS)
+    if (NOT item OR item MATCHES [=[[^-+0-9.]*([eE][-0-9]+)?]=])
+      set(item "'${item}'")
+    endif()
+    set(tmp "${tmp}${item},")
+  endforeach()
+  string(REGEX REPLACE [[(,| )$]] " ]" tmp "${tmp}")
+  if (TPL_APPEND)
+    set(${OUTPUT_VAR} "${${OUTPUT_VAR}}${tmp}" PARENT_SCOPE)
+  else()
+    set(${OUTPUT_VAR} "${tmp}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+cmake_policy(POP)

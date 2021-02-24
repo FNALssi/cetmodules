@@ -1,25 +1,72 @@
-# ======================================================================
-#  cetmodules
-# ======================================================================
+########################################################################
+# cetmodules
+#
+#   Scripts and CMake modules to aid in the building and use of
+#   interdependent scientific software.
+#
+# FEATURES:
+#
+# * Compatibility with cetbuildtools and UPS environments with only
+#   minor changes.
+#
+# * Facilities for ROOT dictionary / C++ module generation.
+#
+# * Facilities for generation of art suite modules, module skeleton
+#   generators, services, and tools.
+#
+# * Assisted production of libraries, executables and other targets
+#   using modern CMake idioms
+#
+# * Assisted production of full-featured CMake config files with target
+#   import / export and dependency management.
+#
+# * Easy installation and management of different types of data file
+#   with relevance to HEP and beyond, including FHiCL, GDML, and source.
+#
+# * Awareness of multi-project builds.
+#
+########################################################################
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.12...3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 1.04.00 LANGUAGES NONE)
+project(cetmodules VERSION 2.10.00 LANGUAGES NONE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Modules)
+# Bootstrap finding our own modules.
+list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
+  ${PROJECT_SOURCE_DIR}/Modules/compat)
 
+# No tests of cetmodules.
+set(BUILD_TESTING OFF)
+
+# Other configuration.
+set(${PROJECT_NAME}_NOARCH TRUE)
+set(${PROJECT_NAME}_FHICL_DIR "")
+set(${PROJECT_NAME}_INCLUDE_DIR "")
+set(${PROJECT_NAME}_LIBRARY_DIR "")
+
+# Basic build environment.
 include(CetCMakeEnv)
-cet_cmake_env(NO_FLAVOR PAD_MINOR ON)
+cet_cmake_env()
 
+# Make sure downstream packages can find our modules.
+cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
+
+####################################
+# Build components.
 add_subdirectory(config)
 add_subdirectory(Modules)
+add_subdirectory(libexec)
+add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
+add_subdirectory(ups-templates)
+add_subdirectory(doc)
+####################################
 
-include(CetCMakeConfig)
-cet_cmake_config(NO_FLAVOR)
-if (WANT_UPS)
-  add_subdirectory(ups)
-endif()
+####################################
+# Generate CMake (and UPS, if appropriate) configuration files and
+# packaging.
+cet_cmake_config(EXTRA_TARGET_VARS CET_EXEC_TEST
+  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in)

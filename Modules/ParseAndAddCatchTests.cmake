@@ -9,22 +9,22 @@
 #                                                                                                  #
 #  Usage                                                                                           #
 # 1. make sure this module is in the path or add this otherwise:                                   #
-#    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake.modules/")              #
+#    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake.modules/")              #
 # 2. make sure that you've enabled testing option for the project by the call:                     #
 #    enable_testing()                                                                              #
 # 3. add the lines to the script for testing target (sample CMakeLists.txt):                       #
 #        project(testing_target)                                                                   #
-#        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake.modules/")          #
+#        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake.modules/")          #
 #        enable_testing()                                                                          #
 #                                                                                                  #
 #        find_path(CATCH_INCLUDE_DIR "catch.hpp")                                                  #
 #        include_directories(${INCLUDE_DIRECTORIES} ${CATCH_INCLUDE_DIR})                          #
 #                                                                                                  #
 #        file(GLOB SOURCE_FILES "*.cpp")                                                           #
-#        add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})                                           #
+#        add_executable(${PROJECT_NAME} ${SOURCE_FILES})                                           #
 #                                                                                                  #
 #        include(ParseAndAddCatchTests)                                                            #
-#        ParseAndAddCatchTests(${CMAKE_PROJECT_NAME}                                                     #
+#        ParseAndAddCatchTests(${PROJECT_NAME}                                                     #
 #                              [TargetVar <targetVar>]                                             #
 #                              [ExtraLabels <extraLabels>])                                        #
 #                                                                                                  #
@@ -43,7 +43,8 @@
 #                                                                                                  #
 #==================================================================================================#
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_policy(PUSH)
+cmake_policy(VERSION 2.8.8)
 
 option(PARSE_CATCH_TESTS_VERBOSE "Print Catch to CTest parser debug messages" OFF)
 option(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS "Exclude tests with [!hide], [.] or [.foo] tags" OFF)
@@ -197,3 +198,5 @@ function(ParseAndAddCatchTests TestTarget)
       set(${PACT_TargetsVar} "${${PACT_TargetsVar}}" PARENT_SCOPE)
     endif()
 endfunction()
+
+cmake_policy(POP)

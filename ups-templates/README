@@ -1,0 +1,8 @@
+This directory contains templates for CMake.
+
+To use the templates in this directory,  where XXX is the product name:
+1. cp setup_for_development <your-source-code>/ups/
+2. cp setup_deps <your-source-code>/ups/
+4. cp product_deps.template <your-source-code>/ups/product_deps
+5. Edit the list of required products and qualifiers in product_deps
+

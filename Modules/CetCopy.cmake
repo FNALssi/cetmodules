@@ -41,14 +41,19 @@
 # program changes if one lists the script in the DEPENDS list of the
 # custom command.
 ########################################################################
-include (CMakeParseArguments)
-get_filename_component(abs_build ${CMAKE_BINARY_DIR} REALPATH CACHE)
-string(LENGTH "${abs_build}" abs_build_len)
+
+# Avoid unnecessary repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
+include(CetPackagePath)
+
 function (cet_copy)
-  cmake_parse_arguments(CETC "PROGRAMS;NAME_AS_TARGET"
+  cmake_parse_arguments(PARSE_ARGV 0 CETC "PROGRAMS;NAME_AS_TARGET"
     "DESTINATION;NAME;WORKING_DIRECTORY"
-    "DEPENDENCIES"
-    ${ARGN})
+    "DEPENDENCIES")
   if (NOT CETC_DESTINATION)
     message(FATAL_ERROR "Missing required option argument DESTINATION")
   endif()
@@ -56,7 +61,7 @@ function (cet_copy)
   if (NOT CETC_WORKING_DIRECTORY)
     set(CETC_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   endif()
-  foreach (source ${CETC_UNPARSED_ARGUMENTS})
+  foreach (source IN LISTS CETC_UNPARSED_ARGUMENTS)
     if (CETC_NAME)
       set(dest_path "${real_dest}/${CETC_NAME}")
     else()
@@ -66,28 +71,28 @@ function (cet_copy)
     if (CETC_NAME_AS_TARGET)
       get_filename_component(target ${dest_path} NAME)
     else()
-      string(FIND "${dest_path}" "${abs_build}" abs_build_found)
-      if (abs_build_found EQUAL 0)
-        string(SUBSTRING "${dest_path}" ${abs_build_len} -1 dest_path_target)
+      cet_package_path(dest_path_target PATH "${dest_path}" TOP_PROJECT BINARY)
+      if (dest_path_target)
         string(REPLACE "/" "+" target "${dest_path_target}")
       else()
         string(REPLACE "/" "+" target "${dest_path}")
       endif()
     endif()
     string(REGEX REPLACE "[: ]" "+" target "${target}")
+    if (CETC_PROGRAMS)
+      set(chmod_cmd COMMAND chmod +x "${dest_path}")
+    endif()
     add_custom_command(OUTPUT "${dest_path}"
       WORKING_DIRECTORY "${CETC_WORKING_DIRECTORY}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${real_dest}"
       COMMAND ${CMAKE_COMMAND} -E copy "${source}" "${dest_path}"
+      ${chmod_cmd}
       COMMENT "Copying ${source} to ${dest_path}"
-      DEPENDS "${source}" ${CETC_DEPENDENCIES}
-      )
-    if (CETC_PROGRAMS)
-      add_custom_command(OUTPUT "${dest_path}"
-        COMMAND chmod +x "${dest_path}"
-        APPEND
-        )
-    endif()
+      VERBATIM COMMAND_EXPAND_LISTS
+      DEPENDS "${source}" ${CETC_DEPENDENCIES})
     add_custom_target(${target} ALL DEPENDS "${dest_path}")
+    set_property(TARGET ${target} PROPERTY CET_EXEC_LOCATION "${dest_path}")
   endforeach()
 endfunction()
+
+cmake_policy(POP)

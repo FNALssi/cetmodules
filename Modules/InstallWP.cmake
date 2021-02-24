@@ -1,25 +1,37 @@
 ########################################################################
-# install_wp([SUBDIRNAME dir] LIST files...)
-#   Install WP data in ${${CMAKE_PROJECT_NAME}_wp_dir}/${SUBDIRNAME}
+# install_wp()
 #
-# N.B. fp_dir must be set prior to calling install_wp(),, otherwise
-# install_wp() will generate a FATAL_ERROR.
+#   Install WP data in ${${PROJECT_NAME}_WP_DIR}/<subdir>
+#
+# Usage: install_wp([SUBDIRNAME <subdir>] LIST ...)
+#
+# See CetInstall.cmake for full usage description.
 ########################################################################
-include(CetProjectVars)
+
+# Avoid unwanted repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
+include(CetInstall)
+include(ProjectVariable)
 
 function(install_wp)
-  cet_project_var(wp_dir MISSING_OK
-    DOCSTRING "Directory below prefix to install WP files")
-  cmake_parse_arguments(IWP "" "SUBDIRNAME" "LIST" ${ARGN})
-  if (NOT ${CMAKE_PROJECT_NAME}_wp_dir)
-    message(FATAL_ERROR "ERROR: install_wp() called without ${CMAKE_PROJECT_NAME}_wp_dir being configured.")
+  if (NOT "WP_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+    project_variable(WP_DIR CONFIG
+      OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+      DOCSTRING "Directory below prefix to install WP files")
+    if (product AND ${product}_perllib MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_wp PROPERTY VALUE \
+\"${${PROJECT_NAME}_wp}\"\
+")
+    endif()
   endif()
-  if (IWP_LIST)
-    cet_copy(${IWP_LIST}
-      DESTINATION "${PROJECT_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_wp_dir}/${IWP_SUBDIRNAME}"
-      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    install(FILES ${IWP_LIST} DESTINATION ${${CMAKE_PROJECT_NAME}_wp_dir}/${IWP_SUBDIRNAME})
-  else()
-    message(FATAL_ERROR "ERROR: install_wp(): LIST is mandatory.")
-  endif()
+  list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
+  _cet_install(wp ${PROJECT_NAME}_WP_DIR ${ARGN}
+    _LIST_ONLY)
 endfunction()
+
+cmake_policy(POP)

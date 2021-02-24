@@ -1,5 +1,2 @@
-
-FILE(GLOB modules [^.]*.cmake )
-INSTALL(FILES ${modules}
-  DESTINATION Modules
-  )
+install(DIRECTORY ./ DESTINATION Modules
+  FILES_MATCHING PATTERN "*.cmake" PATTERN "[.#]*.cmake" EXCLUDE)

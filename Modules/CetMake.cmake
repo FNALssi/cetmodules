@@ -1,10 +1,10 @@
 ########################################################################
-# cet_make
+# CetMake.cmake
 #
 # Identify the files in the current source directory and deal with them
 # appropriately.
 #
-# Users may opt to just include cet_make() in their CMakeLists.txt
+# Users may opt to just invoke cet_make() in their CMakeLists.txt
 #
 # This implementation is intended to be called NO MORE THAN ONCE per
 # subdirectory.
@@ -19,22 +19,22 @@
 #           [EXCLUDE <ignore these files>] )
 #
 #   If USE_PRODUCT_NAME is specified, the product name will be prepended
-#   to the calculated library name 
+#   to the calculated library name
 #   USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive
 #
 #   NOTE: if your code includes art plugins, you MUST use art_make
 #   instead of cet_make: cet_make will ignore all known plugin code.
 #
-# cet_make_library( LIBRARY_NAME <library name> 
-#                   SOURCE <source code list> 
-#                   [LIBRARIES <library list>] 
+# cet_make_library( LIBRARY_NAME <library name>
+#                   SOURCE <source code list>
+#                   [LIBRARIES <library list>]
 #                   [WITH_STATIC_LIBRARY]
 #                   [NO_INSTALL] )
 #
 #   Make the named library.
 #
-# cet_make_exec( <executable name>  
-#                [SOURCE <source code list>] 
+# cet_make_exec( <executable name>
+#                [SOURCE <source code list>]
 #                [LIBRARIES <library link list>]
 #                [USE_BOOST_UNIT]
 #                [NO_INSTALL] )
@@ -42,19 +42,19 @@
 #   Build a regular executable.
 #
 # cet_script( <script-names> ...
-#             [DEPENDENCIES <deps>] 
-#             [NO_INSTALL] 
+#             [DEPENDENCIES <deps>]
+#             [NO_INSTALL]
 #             [GENERATED]
 #             [REMOVE_EXTENSIONS] )
 #
-#   Copy the named scripts to ${${CMAKE_PROJECT_NAME}_bin_dir} (usually bin/).
+#   Copy the named scripts to ${${PROJECT_NAME}_SCRIPTS_DIR} (usually bin/).
 #
 #   If the GENERATED option is used, the script will be copied from
 #   ${CMAKE_CURRENT_BINARY_DIR} (after being made by a CONFIGURE
 #   command, for example); otherwise it will be copied from
 #   ${CMAKE_CURRENT_SOURCE_DIR}.
 #
-#   If REMOVE_EXTENSIONS is specified, extensions will be removed from script names 
+#   If REMOVE_EXTENSIONS is specified, extensions will be removed from script names
 #   when they are installed.
 #
 #   NOTE: If you wish to use one of these scripts in a CUSTOM_COMMAND,
@@ -74,340 +74,344 @@
 #   X systems).
 #
 ########################################################################
+
+# Avoid unwanted repeat inclusion.
+include_guard(DIRECTORY)
+
 cmake_policy(PUSH)
-cmake_policy(VERSION 3.0.1) # We've made this work for 3.0.1.
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetCopy)
-include(CetParseArgs)
 include(CetPackagePath)
-include(InstallSource)
+include(CetProcessLiblist)
+include(CetRegisterExportSet)
 
-macro( cet_make_exec cet_exec_name )
-  set(cet_exec_file_list "")
-  set(cet_make_exec_usage "USAGE: cet_make_exec( <executable name> [SOURCE <exec source>] [LIBRARIES <library list>] )")
-  #message(STATUS "cet_make_exec debug: called with ${ARGN} from ${CMAKE_CURRENT_SOURCE_DIR}")
-  cet_parse_args( CME "LIBRARIES;SOURCE" "USE_BOOST_UNIT;NO_INSTALL" ${ARGN})
-  # there are no default arguments
-  if( CME_DEFAULT_ARGS )
-     message(FATAL_ERROR  " undefined arguments ${CME_DEFAULT_ARGS} \n ${cet_make_exec_usage}")
-  endif()
-  #message(STATUS "debug: cet_make_exec called with ${cet_exec_name} ${CME_LIBRARIES}")
-  if (NOT CME_SOURCE)
-    FILE( GLOB exec_src ${cet_exec_name}.c ${cet_exec_name}.cc ${cet_exec_name}.cpp ${cet_exec_name}.C ${cet_exec_name}.cxx )
-    list(LENGTH exec_src n_sources)
-    if (n_sources EQUAL 1) # If there's more than one, let the user specify explicitly.
-      list(INSERT CME_SOURCE 0 ${exec_src})
-    endif()
-  endif()
-  add_executable( ${cet_exec_name} ${CME_SOURCE} )
-  if(COMMAND find_tbb_offloads)
-    find_tbb_offloads(FOUND_VAR have_tbb_offload ${CME_SOURCE})
-    if(have_tbb_offload)
-      set_target_properties(${cet_exec_name} PROPERTIES LINK_FLAGS ${TBB_OFFLOAD_FLAG})
-    endif()
-  endif()
-  if(CME_USE_BOOST_UNIT)
-    # Make sure we have the correct library available.
-    find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework)
-    # Compile options (-Dxxx) for simple-format unit tests.
-    set_target_properties(${cet_exec_name} PROPERTIES
-      COMPILE_DEFINITIONS "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK"
-      )
-    target_link_libraries(${cet_exec_name} Boost::unit_test_framework)
-  endif()
-  if(CME_LIBRARIES)
-     set(link_lib_list "")
-  foreach (lib ${CME_LIBRARIES})
-    string(REGEX MATCH [/] has_path "${lib}")
-    if( has_path )
-      list(APPEND link_lib_list ${lib})
-    else()
-      string(TOUPPER  ${lib} ${lib}_UC )
-      #_cet_debug_message( "simple_plugin: check ${lib}" )
-      if( ${${lib}_UC} )
-        _cet_debug_message( "changing ${lib} to ${${${lib}_UC}}")
-        list(APPEND link_lib_list ${${${lib}_UC}})
-      else()
-        list(APPEND link_lib_list ${lib})
-      endif()
-    endif( has_path )
+set(_cet_make_usage "\
+USAGE: cet_make([USE_(PROJECT|PRODUCT)_NAME|LIBRARY_NAME <library-name>]
+                [LIB_LIBRARIES <library-dependencies>...]
+                [LIB_LOCAL_INCLUDE_DIRS <include-dirs>...]
+                [DICT_LIBRARIES <dict-library-dependencies>...]
+                [DICT_LOCAL_INCLUDE_DIRS <include-dirs>...]
+                [SUBDIRS <source-subdir>...]
+                [EXCLUDE ([REGEX] <exclude>...)...]
+                [LIB_ALIASES <alias>...]
+                [VERSION] [SOVERSION <API-version>]
+                [EXPORT_SET <export-name>]
+                [NO_INSTALL|INSTALL_LIBS_ONLY]
+                [NO_DICTIONARY] [USE_PRODUCT_NAME] [WITH_STATIC_LIBRARY])\
+")
+
+set(_cet_make_flags BASENAME_ONLY EXCLUDE_FROM_ALL INSTALL_LIBS_ONLY
+  LIB_INTERFACE LIB_MODULE LIB_OBJECT LIB_ONLY LIB_SHARED LIB_STATIC
+  NO_DICTIONARY NO_EXPORT NO_INSTALL NO_LIB NO_LIB_SOURCE NOP
+  USE_PRODUCT_NAME USE_PROJECT_NAME VERSION WITH_STATIC_LIBRARY)
+
+set(_cet_make_one_arg_options EXPORT_SET LIBRARY_NAME LIBRARY_NAME_VAR
+  SOVERSION)
+
+set(_cet_make_list_options DICT_LIBRARIES DICT_LOCAL_INCLUDE_DIRS
+  EXCLUDE LIB_ALIASES LIB_LIBRARIES LIB_LOCAL_INCLUDE_DIRS LIB_SOURCE
+  LIBRARIES SUBDIRS)
+
+function(cet_make)
+  cmake_parse_arguments(PARSE_ARGV 0 CM
+    "${_cet_make_flags}"
+    "${_cet_make_one_arg_options}"
+    "${_cet_make_list_options}")
+  # Argument verification.
+  _cet_verify_cet_make_args()
+  ##################
+  # Prepare common passthroughs.
+  cet_passthrough(IN_PLACE CM_EXPORT_SET)
+  foreach (flag EXCLUDE_FROM_ALL NO_EXPORT NO_INSTALL VERSION)
+    cet_passthrough(FLAG IN_PLACE CM_${flag})
   endforeach()
-     target_link_libraries( ${cet_exec_name} ${link_lib_list} )
+  ##################
+  if (NOT (CM_NO_LIB OR "LIB_SOURCE" IN_LIST CM_KEYWORDS_MISSING_VALUES))
+    # We want a library.
+    _cet_maybe_make_library()
   endif()
-  if(CME_NO_INSTALL)
-    #message(STATUS "${cet_exec_name} will not be installed")
-  else()
-    #message( STATUS "cet_make_exec: executables will be installed in ${${CMAKE_PROJECT_NAME}_bin_dir}")
-    install( TARGETS ${cet_exec_name} DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir} )
+  if (CM_LIB_ONLY)
+    return()
   endif()
-endmacro( cet_make_exec )
-
-macro( cet_make )
-  set(cet_file_list "")
-  set(cet_make_usage "USAGE: cet_make( [LIBRARY_NAME <library name>] [LIBRARIES <library list>] [SUBDIRS <source subdirectory>] [EXCLUDE <ignore these files>] )")
-  #message(STATUS "cet_make debug: called with ${ARGN} from ${CMAKE_CURRENT_SOURCE_DIR}")
-  cet_parse_args( CM "LIBRARY_NAME;LIBRARIES;SUBDIRS;EXCLUDE" "NO_DICTIONARY;WITH_STATIC_LIBRARY;USE_PRODUCT_NAME" ${ARGN})
-  # there are no default arguments
-  if( CM_DEFAULT_ARGS )
-     message(FATAL_ERROR  " undefined arguments ${CM_DEFAULT_ARGS} \n ${cet_make_usage}")
-  endif()
-  # use either LIBRARY_NAME or USE_PRODUCT_NAME, not both
-  if (CM_USE_PRODUCT_NAME AND CM_LIBRARY_NAME)
-    message(FATAL_ERROR "CET_MAKE: USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive.")
-  endif()
-  # check for extra link libraries
-  if(CM_LIBRARIES)
-     #set(cet_liblist ${CM_LIBRARIES})
-     set(cet_liblist "")
-     foreach (lib ${CM_LIBRARIES})
-       string(REGEX MATCH [/] has_path "${lib}")
-       if( has_path )
-	 list(APPEND cet_liblist ${lib})
-       else()
-	 string(TOUPPER  ${lib} ${lib}_UC )
-	 #_cet_debug_message( "simple_plugin: check ${lib}" )
-	 if( ${${lib}_UC} )
-           _cet_debug_message( "changing ${lib} to ${${${lib}_UC}}")
-           list(APPEND cet_liblist ${${${lib}_UC}})
-	 else()
-           list(APPEND cet_liblist ${lib})
-	 endif()
-       endif( has_path )
-     endforeach()
-  endif()
-  # now look for other source files in this directory
-  #message(STATUS "cet_make debug: listed files ${cet_file_list}")
-  FILE( GLOB src_files *.c *.cc *.cpp *.C *.cxx )
-  FILE( GLOB ignore_dot_files  .*.c .*.cc .*.cpp .*.C .*.cxx )
-  FILE( GLOB ignore_plugins
-    *_generator.cc
-    *_module.cc
-    *_plugin.cc
-    *_service.cc
-    *_source.cc
-    *_tool.cc
-    *_dict.cpp
-    *_map.cpp
-    )
-  # check subdirectories and also CMAKE_CURRENT_BINARY_DIR for generated code
-  LIST(APPEND CM_SUBDIRS ${CMAKE_CURRENT_BINARY_DIR})
-  foreach( sub ${CM_SUBDIRS} )
-     FILE( GLOB subdir_src_files ${sub}/*.c ${sub}/*.cc ${sub}/*.cpp ${sub}/*.C ${sub}/*.cxx )
-     FILE( GLOB subdir_ignore_dot_files ${sub}/.*.c ${sub}/.*.cc ${sub}/.*.cpp ${sub}/.*.C ${sub}/.*.cxx )
-     FILE( GLOB subdir_ignore_plugins
-       ${sub}/*_generator.cc
-       ${sub}/*_module.cc
-       ${sub}/*_plugin.cc
-       ${sub}/*_service.cc
-       ${sub}/*_source.cc
-       ${sub}/*_source.cc
-       ${sub}/*_dict.cpp
-       ${sub}/*_map.cpp
-       )
-     if( subdir_src_files )
-       list(APPEND  src_files ${subdir_src_files})
-     endif( subdir_src_files )
-     if( subdir_ignore_plugins )
-       list(APPEND  ignore_plugins ${subdir_ignore_plugins})
-     endif( subdir_ignore_plugins )
-     if( subdir_ignore_dot_files )
-       list(APPEND  ignore_dot_files ${subdir_ignore_dot_files})
-     endif( subdir_ignore_dot_files )
-  endforeach(sub)
-  #message(STATUS "cet_make ignore list: ${ignore_dot_files}")
-  if( ignore_plugins )
-    LIST( REMOVE_ITEM src_files ${ignore_plugins} )
-  endif()
-  if( ignore_dot_files )
-    LIST( REMOVE_ITEM src_files ${ignore_dot_files} )
-  endif()
-  #message(STATUS "cet_make debug: exclude files ${CM_EXCLUDE}")
-  if(CM_EXCLUDE)
-     foreach( exclude_file ${CM_EXCLUDE} )
-         LIST( REMOVE_ITEM src_files ${CMAKE_CURRENT_SOURCE_DIR}/${exclude_file} )
-     endforeach( exclude_file )
-  endif()
-  #message(STATUS "cet_make debug: other files ${src_files}")
-  set(have_library FALSE)
-  foreach( file ${src_files} )
-      #message(STATUS "cet_make debug: checking ${file}")
-      set(have_file FALSE)
-      foreach( known_file ${cet_file_list} )
-         if( "${file}" MATCHES "${known_file}" )
-	    set(have_file TRUE)
-	 endif()
-      endforeach( known_file )
-      if( NOT have_file )
-         #message(STATUS "cet_make debug: found new file ${file}")
-         set(cet_file_list ${cet_file_list} ${file} )
-         set(cet_make_library_src ${cet_make_library_src} ${file} )
-         set(have_library TRUE)
-      endif()
-  endforeach(file)
-  #message(STATUS "cet_make debug: known files ${cet_file_list}")
-
-  # calculate base name
-  cet_package_path(CURRENT_SUBDIR)
-  STRING( REGEX REPLACE "/" "_" cet_make_name "${CURRENT_SUBDIR}" )
-  #message(STATUS "cet_make debug:  calculated library name is  ${cet_make_name} for ${product}")
-  if (CM_USE_PRODUCT_NAME)
-    set( cet_make_name ${product}_${cet_make_name} )
-    #message(STATUS "cet_make debug:  calculated library name is now ${cet_make_name} for ${product}")
-  endif()
-
-  if( have_library )
-    if(CM_LIBRARY_NAME)
-      set(cet_make_library_name ${CM_LIBRARY_NAME})
-    else()
-      set(cet_make_library_name ${cet_make_name})
+  # Look for the makings of a dictionary and decide how to make it.
+  if (NOT CM_NO_DICTIONARY AND
+      EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes.h")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml")
+      cet_passthrough(IN_PLACE KEYWORD LOCAL_INCLUDE_DIRS
+        CM_DICT_LOCAL_INCLUDE_DIRS)
+      include(BuildDictionary)
+      build_dictionary(${CM_LIBRARY_NAME}
+        DICTIONARY_LIBRARIES ${CM_DICT_LIBRARIES} NOP
+        ${CM_DICT_LOCAL_INCLUDE_DIRS}
+        ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
+        ${CM_VERSION})
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h")
+      include(CetRootCint)
+      cet_rootcint(${CM_LIBRARY_NAME}
+        ${CM_DICT_LOCAL_INCLUDE_DIRS}
+        ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
+        ${CM_VERSION})
     endif()
-    _cet_debug_message("cet_make: building library ${cet_make_library_name} for ${CMAKE_CURRENT_SOURCE_DIR}")
-    if(CM_LIBRARIES) 
-       cet_make_library( LIBRARY_NAME ${cet_make_library_name}
-                	 SOURCE ${cet_make_library_src}
-			 LIBRARIES  ${cet_liblist} )
-    else() 
-       cet_make_library( LIBRARY_NAME ${cet_make_library_name}
-                	 SOURCE ${cet_make_library_src} )
-    endif() 
-    #message( STATUS "cet_make debug: library ${cet_make_library_name} will be installed in ${${CMAKE_PROJECT_NAME}_lib_dir}")
-  else( )
-    _cet_debug_message("cet_make: no library for ${CMAKE_CURRENT_SOURCE_DIR}")
-  endif( )
+  endif()
+endfunction()
 
-  # is there a dictionary?
-  FILE(GLOB dictionary_header classes.h )
-  FILE(GLOB dictionary_xml classes_def.xml )
-  if( NOT CM_NO_DICTIONARY AND dictionary_header AND dictionary_xml )
-     _cet_debug_message("cet_make: found dictionary in ${CMAKE_CURRENT_SOURCE_DIR}")
-     set(cet_file_list ${cet_file_list} ${dictionary_xml} ${dictionary_header} )
-     if(CM_LIBRARIES) 
-        build_dictionary( DICTIONARY_LIBRARIES ${cet_liblist} )
-     else()
-        build_dictionary(  )
-     endif()
-  endif()
+set(_cet_make_exec_usage "")
 
-endmacro( cet_make )
-
-macro( cet_make_library )
-  set(cet_file_list "")
-  set(cet_make_library_usage "USAGE: cet_make_library( LIBRARY_NAME <library name> SOURCE <source code list> [LIBRARIES <library link list>] )")
-  #message(STATUS "cet_make_library debug: called with ${ARGN} from ${CMAKE_CURRENT_SOURCE_DIR}")
-  cet_parse_args( CML "LIBRARY_NAME;LIBRARIES;SOURCE" "WITH_STATIC_LIBRARY;NO_INSTALL" ${ARGN})
-  # there are no default arguments
-  if( CML_DEFAULT_ARGS )
-    message(FATAL_ERROR  " undefined arguments ${CML_DEFAULT_ARGS} \n ${cet_make_library_usage}")
+function(cet_make_exec)
+  cmake_parse_arguments(PARSE_ARGV 0 CME
+    "EXCLUDE_FROM_ALL;NO_EXPORT;NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
+    "EXEC_NAME;EXPORT_SET;NAME" "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
+  # Argument verification.
+  if (CME_EXEC_NAME)
+    warn_deprecated("EXEC_NAME" NEW "NAME")
+    set(CME_NAME "${CME_EXEC_NAME}")
+    unset(CME_EXEC_NAME)
+  elseif (NOT CME_NAME)
+    warn_deprecated("<name> as non-option argument to cet_make_exec()"
+      NEW "cet_make_exec(NAME <name> ...)")
+    list(POP_FRONT CME_UNPARSED_ARGUMENTS CME_NAME)
   endif()
-  # check for a source code list
-  if(CML_SOURCE)
-    set(cet_src_list ${CML_SOURCE})
-  else()
-    message(FATAL_ERROR  "SOURCE is required \n ${cet_make_library_usage}")
+  if (NOT CME_NAME)
+    message(FATAL_ERROR "NAME <name> *must* be provided")
+  elseif (CME_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "non-option arguments prohibited")
   endif()
-  # verify that the library name has been specified
-  if(CML_LIBRARY_NAME)
-    add_library( ${CML_LIBRARY_NAME} SHARED ${cet_src_list} )
-  else()
-    message(FATAL_ERROR  "LIBRARY_NAME is required \n ${cet_make_library_usage}")
+  if (CME_USE_CATCH_MAIN)
+    warn_deprecated("cet_make_exec(): USE_CATCH_MAIN" NEW "USE_CATCH2_MAIN")
+    set(CME_USE_CATCH2_MAIN TRUE)
+    unset(CME_USE_CATCH_MAIN)
   endif()
-  if(CML_LIBRARIES)
-    set(cml_lib_list "")
-    foreach (lib ${CML_LIBRARIES})
-      string(REGEX MATCH [/] has_path "${lib}")
-      if( has_path )
-        list(APPEND cml_lib_list ${lib})
+  if (NOT DEFINED CME_SOURCE)
+    cet_source_file_extensions(source_glob)
+    list(TRANSFORM source_glob PREPEND "${CME_NAME}.")
+    file(GLOB found_sources CONFIGURE_DEPENDS ${source_glob})
+    list(LENGTH found_sources n_sources)
+    if (n_sources EQUAL 1)
+      list(POP_FRONT found_sources CME_SOURCE)
+    elseif (n_sources EQUAL 0)
+      message(WARNING "no suitable candidate source found for ${CME_NAME} from \
+enabled languages ${_cet_enabled_languages} in ${CMAKE_CURRENT_SOURCE_DIR}.
+If this is intentional, specify with dangling SOURCE keyword to silence this warning\
+")
+    else()
+      message(FATAL_ERROR
+        "unable to identify a unique candidate source for ${CME_NAME} - found:"
+        "\n${found_sources}\nUse SOURCE <sources> to remove ambiguity")
+    endif()
+  endif()
+  cet_passthrough(FLAG IN_PLACE CME_EXCLUDE_FROM_ALL)
+  # Define the main executable target.
+  add_executable(${CME_NAME} ${CME_SOURCE} ${CME_EXCLUDE_FROM_ALL})
+  # Local include directories.
+  if (NOT (DEFINED CME_LOCAL_INCLUDE_DIRS OR
+        "LOCAL_INCLUDE_DIRS" IN_LIST CME_KEYWORDS_MISSING_VALUES))
+    set(CME_LOCAL_INCLUDE_DIRS
+      "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}")
+  endif()
+  target_include_directories(${CME_NAME}
+    PRIVATE ${CME_LOCAL_INCLUDE_DIRS})
+  # Handle Boost unit test framework.
+  if (CME_USE_BOOST_UNIT)
+    cet_find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
+    if (TARGET Boost::unit_test_framework)
+      target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
+      # Belt and braces (cf historical bug in fhiclcpp tests).
+      target_compile_definitions(${CME_NAME} PRIVATE BOOT_TEST_NO_OLD_TOOLS)
+    else()
+      # *Someone* didn't use Boost's CMake config file to define targets.
+      target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+      target_compile_definitions(${CME_NAME} PRIVATE
+        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK;BOOST_TEST_NO_OLD_TOOLS")
+    endif()
+  endif()
+  # Handle request for Catch2 main.
+  if (CME_USE_CATCH2_MAIN)
+    cet_find_package(Catch2 PRIVATE QUIET REQUIRED)
+    if (NOT TARGET Catch2_main)
+      cet_localize_pv(cetmodules CATCH2_MAIN)
+      get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+      list(POP_FRONT catch2_include_dir catch2_include_subdir)
+      if (EXISTS "${catch2_include_subdir}/catch2")
+        set(catch2_include_subdir "catch2")
       else()
-        string(TOUPPER  ${lib} ${lib}_UC )
-        #_cet_debug_message( "simple_plugin: check ${lib}" )
-        if( ${${lib}_UC} )
-          _cet_debug_message( "changing ${lib} to ${${${lib}_UC}}")
-          list(APPEND cml_lib_list ${${${lib}_UC}})
-        else()
-          list(APPEND cml_lib_list ${lib})
-        endif()
-      endif( has_path )
-    endforeach()
-    target_link_libraries( ${CML_LIBRARY_NAME} ${cml_lib_list} )
+        set(catch2_include_subdir "catch")
+      endif()
+      cet_make_library(LIBRARY_NAME Catch2_main STATIC STRIP_LIBS
+        EXCLUDE_FROM_ALL NO_INSTALL
+        SOURCE ${cetmodules_CATCH2_MAIN}
+        LIBRARIES PRIVATE Catch2::Catch2)
+      target_compile_definitions(Catch2_main PRIVATE
+        "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
+    endif()
+    target_link_libraries(${CME_NAME} PRIVATE Catch2_main Catch2::Catch2)
   endif()
-  if(COMMAND find_tbb_offloads)
-    find_tbb_offloads(FOUND_VAR have_tbb_offload ${cet_src_list})
-    if(have_tbb_offload)
-      set_target_properties(${CML_LIBRARY_NAME} PROPERTIES LINK_FLAGS ${TBB_OFFLOAD_FLAG})
+  if (NOT CME_NO_EXPORT_ALL_SYMBOLS)
+    target_link_options(${CME_NAME} PRIVATE -rdynamic)
+  endif()
+  # Library links.
+  cet_process_liblist(liblist ${CME_LIBRARIES})
+  target_link_libraries(${CME_NAME} PRIVATE ${liblist})
+  # For target aliases.
+  cet_register_export_set(SET_NAME ${CME_EXPORT_SET} SET_VAR CME_EXPORT_SET NAMESPACE_VAR namespace)
+  ##################
+  # Installation.
+  if (NOT CME_NO_INSTALL)
+    install(TARGETS ${CME_NAME} EXPORT ${CME_EXPORT_SET}
+      RUNTIME DESTINATION ${${PROJECT_NAME}_BIN_DIR})
+    if (NOT CME_NO_EXPORT)
+      _add_to_exported_targets(EXPORT_SET ${CME_EXPORT_SET} TARGETS ${CME_NAME})
     endif()
   endif()
-  #message( STATUS "cet_make_library debug: CML_NO_INSTALL is ${CML_NO_INSTALL}")
-  #message( STATUS "cet_make_library debug: CML_WITH_STATIC_LIBRARY is ${CML_WITH_STATIC_LIBRARY}")
-  if( CML_NO_INSTALL )
-    #message(STATUS "cet_make_library debug: ${CML_LIBRARY_NAME} will not be installed")
-  else()
-    cet_add_to_library_list( ${CML_LIBRARY_NAME})
-    ##_cet_debug_message( "cet_make_library: ${CML_LIBRARY_NAME} will be installed in ${${CMAKE_PROJECT_NAME}_lib_dir}")
-    install( TARGETS  ${CML_LIBRARY_NAME} 
-	     RUNTIME DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir}
-	     LIBRARY DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
-	     ARCHIVE DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
-             )
-  endif()
-  if( CML_WITH_STATIC_LIBRARY )
-    add_library( ${CML_LIBRARY_NAME}S STATIC ${cet_src_list} )
-    if(CML_LIBRARIES)
-       target_link_libraries( ${CML_LIBRARY_NAME}S ${cml_lib_list} )
+  add_executable(${namespace}::${CME_NAME} ALIAS ${CME_NAME})
+  foreach (alias IN LISTS CME_ALIASES)
+    add_executable(${namespace}::${alias} ALIAS ${CME_NAME})
+    if (NOT (CME_NO_INSTALL OR CME_NO_EXPORT))
+      _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
+"add_executable(${namespace}::${alias} ALIAS ${namespace}::${CME_NAME})")
     endif()
-    set_target_properties( ${CML_LIBRARY_NAME}S PROPERTIES OUTPUT_NAME ${CML_LIBRARY_NAME} )
-    set_target_properties( ${CML_LIBRARY_NAME}  PROPERTIES OUTPUT_NAME ${CML_LIBRARY_NAME} )
-    set_target_properties( ${CML_LIBRARY_NAME}S PROPERTIES CLEAN_DIRECT_OUTPUT 1 )
-    set_target_properties( ${CML_LIBRARY_NAME}  PROPERTIES CLEAN_DIRECT_OUTPUT 1 )
-    if( CML_NO_INSTALL )
-      #message(STATUS "cet_make_library debug: ${CML_LIBRARY_NAME}S will not be installed")
-    else()
-      install( TARGETS  ${CML_LIBRARY_NAME}S 
-	       RUNTIME DESTINATION ${${CMAKE_PROJECT_NAME}_bin_dir}
-	       LIBRARY DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
-	       ARCHIVE DESTINATION ${${CMAKE_PROJECT_NAME}_lib_dir}
-               )
-    endif()
-  endif( CML_WITH_STATIC_LIBRARY )
-endmacro( cet_make_library )
+  endforeach()
+endfunction()
 
-file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/")
-
-macro (cet_script)
-  cet_parse_args(CS "DEPENDENCIES" "GENERATED;NO_INSTALL;REMOVE_EXTENSIONS" ${ARGN})
+function(cet_script)
+  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_EXPORT;NO_INSTALL;REMOVE_EXTENSIONS"
+    "DESTINATION;EXPORT_SET" "DEPENDENCIES")
   if (CS_GENERATED)
-    set(CS_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR})
-  else()
-    set(CS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+    warn_deprecated("cet_script(GENERATED)"
+      " - CMake source property GENERATED is set automatically by add_custom_command, etc. or can be set manually otherwise")
   endif()
-  foreach(target_name ${CS_DEFAULT_ARGS})
-    if(CS_REMOVE_EXTENSIONS)
-       get_filename_component(target ${target_name} NAME_WE )
+  if (NOT CS_DESTINATION)
+    set(CS_DESTINATION "${${PROJECT_NAME}_SCRIPTS_DIR}")
+  endif()
+  foreach(script IN LISTS CS_UNPARSED_ARGUMENTS)
+    unset(need_copy)
+    get_property(generated SOURCE "${script}" PROPERTY GENERATED)
+    get_filename_component(script_name "${script}" NAME)
+    if (generated OR CS_GENERATED)
+      get_filename_component(script_source "${script}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     else()
-       set(target ${target_name})
+      # Should exist: make sure we can find it and that it is
+      # executable.
+      get_filename_component(script_source "${script}" ABSOLUTE)
+      if (NOT EXISTS "${script_source}")
+        message(FATAL_ERROR "${script} is not accessible: correct location or set GENERATED source property")
+      endif()
+      execute_process(COMMAND test -x "${script_source}"
+        OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE need_copy)
     endif()
-    cet_copy(${CS_SOURCE_DIR}/${target_name}
-      PROGRAMS
-      NAME ${target}
-      NAME_AS_TARGET
-      DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-      )
-    # Install in product if desired.
+    if (CS_REMOVE_EXTENSIONS)
+      get_filename_component(target "${script_source}" NAME_WE)
+      cet_passthrough(KEYWORD RENAME target rename_arg)
+    else()
+      set(target "${script_name}")
+    endif()
+    cet_register_export_set(SET_NAME ${CS_EXPORT_SET} SET_VAR CS_EXPORT_SET NAMESPACE_VAR ns)
+    if (need_copy)
+      message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
+      cet_copy("${script_source}" PROGRAMS
+        NAME ${target} NAME_AS_TARGET
+        DEPENDENCIES ${CS_DEPENDENCIES}
+        DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      # cet_copy() will create the primary (non-qualified) target as a
+      # custom target. We create the namespaced target as IMPORTED
+      # rather than ALIAS because one can only create ALIASes to
+      # libraries, executables or IMPORTED targets.
+      add_executable(${ns}::${target} IMPORTED GLOBAL)
+      set_target_properties(${ns}::${target} PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}")
+    else()
+      # "Normal" - non-qualified target is an IMPORTED reference to the
+      # source file, and the namespaced target is an ALIAS for
+      # transparency between standalone and multi-project (e.g. MRB)
+      # builds.
+      add_executable(${target} IMPORTED GLOBAL)
+      set_target_properties(${target} PROPERTIES
+        IMPORTED_LOCATION "${script_source}")
+      add_executable(${ns}::${target} ALIAS ${target})
+    endif()
     if (NOT CS_NO_INSTALL)
-      install(PROGRAMS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}"
-        DESTINATION "${${CMAKE_PROJECT_NAME}_bin_dir}")
+      install(PROGRAMS "${script_source}"
+        DESTINATION "${CS_DESTINATION}"
+        ${rename_arg})
+      if (NOT CS_NO_EXPORT)
+        _cet_export_import_cmd(TARGETS ${ns}::${target} COMMANDS "\
+add_executable(${ns}::${target} IMPORTED)
+set_target_properties(${ns}::${target}
+  PROPERTIES IMPORTED_LOCATION \"\${PACKAGE_PREFIX_DIR}/${CS_DESTINATION}/${target}\")\
+")
+      endif()
     endif()
   endforeach()
-endmacro()
+endfunction()
 
-function(cet_lib_alias LIB_TARGET)
-  foreach(alias ${ARGN})
-    add_custom_command(TARGET ${LIB_TARGET}
-      POST_BUILD
-      COMMAND ln -sf $<TARGET_LINKER_FILE_NAME:${LIB_TARGET}>
-      $<TARGET_PROPERTY:${LIB_TARGET},LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${alias}${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMENT "Generate / refresh courtesy link ${CMAKE_SHARED_LIBRARY_PREFIX}${alias}${CMAKE_SHARED_LIBRARY_SUFFIX} -> $<TARGET_LINKER_FILE_NAME:${LIB_TARGET}>"
-      VERBATIM)
-  endforeach()
+function(_cet_verify_cet_make_args)
+  if (CM_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "cet_make(): unrecognized arguments ${CM_UNPARSED_ARGUMENTS}
+${cet_make_usage}\
+")
+  elseif (CM_LIBRARY_NAME AND (CM_USE_PRODUCT_NAME OR CM_USE_PROJECT_NAME))
+    message(FATAL_ERROR "cet_make(): USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive")
+  elseif (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
+    message(FATAL_ERROR "cet_make(): NO_INSTALL and INSTALL_LIBS_ONLY are mutually exclusive")
+  elseif (CM_NO_INSTALL AND CM_EXPORT_SET)
+    message(FATAL_ERROR "cet_make(): NO_INSTALL AND EXPORT_SET are mutually exclusive")
+  endif()
+  if (CM_USE_PROJECT_NAME AND CM_USE_PRODUCT_NAME)
+    message(WARNING "cet_make(): USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
+  elseif (CM_USE_PROJECT_NAME OR CM_USE_PRODUCT_NAME)
+    set(CM_USE_PROJECT_NAME TRUE)
+    unset(CM_USE_PRODUCT_NAME)
+  endif()
+endfunction()
+
+function(_cet_maybe_make_library)
+  if (NOT (CM_NO_LIB_SOURCE OR CM_LIB_SOURCE))
+    # Look for suitable source files for the library.
+    unset(src_file_globs)
+    cet_source_file_extensions(source_file_patterns)
+    list(TRANSFORM source_file_patterns PREPEND "*.")
+    set(src_file_globs ${source_file_patterns})
+    foreach(sub IN LISTS CM_SUBDIRS CMAKE_CURRENT_BINARY_DIR)
+      list(TRANSFORM source_file_patterns PREPEND "${sub}/"
+        OUTPUT_VARIABLE sub_globs)
+      list(APPEND src_file_globs ${sub_globs})
+    endforeach()
+    if (src_file_globs)
+      # Invoke CONFIGURE_DEPENDS to force the build system to regenerate
+      # if the result of this glob changes. Note that in the case of
+      # generated files (in and under ${CMAKE_CURRENT_BINARY_DIR}, this
+      # can only be accurate for files generated at configure rather
+      # than build time.
+      file(GLOB CM_LIB_SOURCE CONFIGURE_DEPENDS ${src_file_globs})
+    endif()
+    cet_exclude_files_from(CM_LIB_SOURCE ${CM_EXCLUDE} NOP
+      REGEX [=[_(generator|module|plugin|service|source|tool)\.cc$]=]
+      [=[_dict\.cpp$]=] NOP)
+  endif()
+  if (CM_LIB_SOURCE OR CM_NO_LIB_SOURCE) # We have a library to build.
+    set(cml_args)
+    # Simple passthrough.
+    cet_passthrough(IN_PLACE CM_LIBRARY_NAME)
+    cet_passthrough(APPEND CM_SO_VERSION cml_args)
+    foreach (kw IN ITEMS BASENAME_ONLY INSTALL_LIBS_ONLY
+        USE_PROJECT_NAME WITH_STATIC_LIBRARY)
+      cet_passthrough(FLAG APPEND CM_${kw} cml_args)
+    endforeach()
+    # Deal with synonyms.
+    cet_passthrough(APPEND VALUES ${CM_LIB_LOCAL_INCLUDE_DIRS}
+      ${CM_LOCAL_INCLUDE_DIRS} KEYWORD LOCAL_INCLUDE_DIRS
+      cml_args)
+    # Deal with LIB_XXX.
+    foreach (kw IN ITEMS INTERFACE MODULE OBJECT SHARED STATIC)
+      cet_passthrough(FLAG APPEND KEYWORD ${kw} CM_LIB_${kw} cml_args)
+    endforeach() 
+    cet_passthrough(APPEND KEYWORD ALIASES CM_LIB_ALIASES cml_args)
+    # Generate the library.
+    cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT_SET} ${CM_EXCLUDE_FROM_ALL}
+      ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${cml_args}
+      LIBRARIES ${CM_LIBRARIES} ${CM_LIB_LIBRARIES} NOP
+      SOURCE ${CM_LIB_SOURCE})
+  endif()
 endfunction()
 
 cmake_policy(POP)

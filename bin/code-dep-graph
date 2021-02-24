@@ -1,0 +1,342 @@
+#!/bin/bash
+
+shopt -s extglob
+
+declare -a ignored_deps=(sys)
+
+# Need ack
+ack --noenv --thppt >/dev/null 2>&1 || \
+    { echo "code-dep-graph requires ack!" 1>&2; exit 1; }
+
+# Cope with ack < 2.0
+ack --noenv --bar >/dev/null 2>&1 || a_arg="-a"
+
+function set_pwd_P_arg() {
+  ( cd / ; /bin/pwd -P ) >/dev/null 2>&1
+  if (( $? == 0 )); then
+    pwd_P_arg="-P"
+  fi
+}
+
+function ignore_dep() {
+  local dep="${1}"
+  local depdir=`dirname "${dep}"`
+  for i in "${ignored_deps[@]}"; do
+    if [[ ${i} = "${dep}" ]]; then
+      return 0
+    fi
+  done
+  return 1;
+}
+
+function usage() {
+  cat <<EOF
+usage: ${0##*/} [<options>] [-d <topdir>] [-o <outfile>]"
+
+Options:
+
+  -D
+     Show external dependencies also. Specify twice to include external
+     dependencies that would usually be ignored (like sys/).
+
+  -h
+     This help.
+
+  -v
+     Verbose output.
+
+Post-processing:
+
+Output is in the graphviz, "dot" format. Examples of post-processing:
+
+* Basic graph (could be complicated).
+
+  dot -Tpng -o out.png in.dot
+
+* Apply transitive reduction to graph prior to main processing.
+
+  tred in.dot | dot -Tpng -o out.dot
+EOF
+}
+
+function find_paths_helper() {
+  local prefix="${1}"
+  find . \( -type d \( -name .git -o -name .svn -o -name CVS -o -name exe -o -name test -o -name unittest -o -name java -o -name job -o -name safe -o -name '*[-.]safe' -o -name '*[-.]new' -o -name '*[-.]old' \) -prune \) -o \
+         -type f \
+         \( -path "*/${prefix}CMakeLists.txt" -o \
+            -path "*/${prefix}SConscript" -o \
+            -path "*/${prefix}GNUmakefile" -o \
+            -path "*/${prefix}[Mm]akefile" \) -printf "%P\n" | \
+    sed -e "s&${prefix}"'/\{0,1\}\(CMakeLists\.txt\|SConscript\|\(GNUm\|[Mm]\)akefile\)$&&'
+}
+
+function package_name() {
+  local path=${1}
+  local pathfrag=${2}
+  if [[ $(basename "${pathfrag}") == "${pathfrag}" ]]; then
+    local file=${pathfrag}
+    local ppath=${path}
+    local pfile=${file}
+  else
+    local pfile=${pathfrag}
+    local ppath="${path}/$(dirname ${pathfrag})"
+    local file=$(basename "${pathfrag}")
+  fi
+  local sanitized_path=`echo "${path}" | perl -wpe 's&\b(?:interface|inc|include|src|cxx|detail)\b&&g; s&/$&&;'`
+  if [[ -r "${TMP}.int_packages" ]] && ! grep -e "^${sanitized_path}\$" "${TMP}.int_packages" >/dev/null 2>&1; then
+    # Not interested in external packages
+    echo "${sanitized_path}"
+    return
+  fi
+  local opwd=`/bin/pwd ${pwd_P_arg}`
+  local plugin
+  local type
+  cd "${topdir}/${path}">/dev/null 2>&1
+  local rec_output=$(echo "${pfile}" | perl -wne '
+chomp;
+my $count = 0;
+my ($stem, $plugin_ext) = m&^(?:.*/+)?(.*)_(generator|module|service|source|tool)\.(?:cc)(\.in)?$&;
+if (${stem}) {
+  print "${stem} ${plugin_ext}\n";
+  exit;
+}
+s&\b(?:interface|inc|include)/&src/&;
+s&\.(?:h|H|hh|hpp|hxx)(?:\.in)?$&& and not -f "${_}.cxx" or exit; # Expensive -- only for headers.
+foreach my $plugin_ext qw(generator module service source tool) {
+  # print STDERR "INFO: looking for ${_}_${plugin_ext}.cc or ${_}_${plugin_ext}.cc.in in ",`pwd`;
+  if (-f "${_}_${plugin_ext}.cc" or -f "${_}_${plugin_ext}.cc.in") {
+    ($stem) = m&^(?:.*/+)?(.*)$&;
+    print "${stem} ${plugin_ext}\n";
+    exit;
+  }
+}' )
+  local plugin=$(echo "$rec_output" | cut -d' ' -f 1)
+  local type=$(echo "$rec_output" | cut -d' ' -f 2)
+  if [[ "$type" = "$plugin" ]]; then
+    unset type
+  fi
+  cd "$opwd" >/dev/null 2>&1
+  local result
+  if [[ -z "${plugin}" ]]; then
+    result=`echo "${path}" | perl -wpe 's&\b(?:interface|inc|include|src|cxx|detail)\b&&g; s&/$&&;'`
+  else
+    result=`echo "${ppath}/$plugin" | perl -wpe 's&\b(?:interface|inc|include|src|cxx|detail)\b&&g; s&/$&&; s&/+&_&g;'`
+    echo "${result} ${type}" >> "${TMP}.plugins"
+  fi
+  echo "${result}"
+}
+
+function find_int_packages() {
+  local prefix
+  find . -mindepth 1 -maxdepth 1 -type d -printf "%P\n" | while read dir; do (
+    { [[ "$dir" == "CVS" ]] || \
+      [[ "$dir" == "External"* ]] || \
+      [[ "$dir" == "."* ]] || \
+      [[ "$dir" = "bin" ]] || \
+      [[ "$dir" = "doc" ]] || \
+      [[ "$dir" = "exe" ]] || \
+      [[ "$dir" = "include" ]] || \
+      [[ "$dir" = "job" ]] || \
+      [[ "$dir" = "lib" ]] || \
+      [[ "$dir" = "man" ]] || \
+      [[ "$dir" = "results" ]] || \
+      [[ "$dir" = "test" ]] || \
+      [[ "$dir" = "tmp" ]] || \
+      [[ "$dir" = "ups" ]] || \
+      [[ "$dir" == *[-.]new ]] || \
+      [[ "$dir" == *[-.]safe ]] || \
+      [[ "$dir" == *[-.]old ]] || \
+      [[ "$dir" == *[-.]bak ]]; } && continue
+    cd "$dir"
+    if [[ -d "cxx/src" ]]; then
+      prefix="cxx/src/"
+    elif [[ -d "src" ]]; then
+      prefix="src/"
+    else
+      prefix=""
+    fi
+    echo "$dir" >> "${TMP}.int_packages.tmp"
+    find_paths_helper "$prefix" | while read subdir; do
+      if [[ -n "${subdir}" ]]; then
+        echo "${dir}/${subdir}"
+      else
+        echo "${dir}"
+      fi
+    done
+    )
+  done | sort -u | while read path; do # Find packages.
+    ( cd $path
+      echo $path >>  "${TMP}.int_packages.tmp"
+      echo $path
+      for file in `ack --noenv $a_arg -g '_(generator|module|service|source|tool)\.cc(?:\.in)?$' </dev/null 2>/dev/null`; do
+        package_name "${path}" "${file}" >> "${TMP}.int_packages.tmp"
+      done
+    )
+  done
+  sort -u "${TMP}.int_packages.tmp" > "${TMP}.int_packages"
+}
+
+(( want_ext_deps = 0 ))
+
+while getopts :Dd:ho:v OPT; do
+    case $OPT in
+  D)
+      (( ++want_ext_deps ))
+      ;;
+	d)
+	    topdir="$OPTARG"
+	    ;;
+  h)
+      usage
+      exit 1
+      ;;
+	o)
+	    outfile="$OPTARG"
+	    ;;
+  v)
+      verbose=1
+      ;;
+	*)
+      usage
+	    exit 2
+    esac
+done
+shift $[ OPTIND - 1 ]
+
+[[ -n "$outfile" ]] && exec>$outfile
+
+cd "$topdir" || { echo "Unable to cd to \"$topdir\"" 1>&2; exit 1; }
+
+topdir=`/bin/pwd` # Absolute, for reference later.
+TMP=`mktemp "${TMPDIR:-/tmp}/code-dep-graph.XXXXXXXXXX"`
+[[ -n "$TMP" ]] || { echo "ERROR: could not open temporary file for write" 1>&2; exit 1; }
+trap "rm -f \"$TMP\"* 2>/dev/null" EXIT
+
+cat <<EOF
+digraph {
+  node [ shape=rectangle ]
+EOF
+find_int_packages > "$TMP"
+cat "${TMP}" | while read path; do
+  ( cd $path
+    echo "INFO: Examining directory ${path}." 1>&2
+    declare -a dirs=( . src inc include interface detail )
+    ack --noenv $a_arg -n -g '\.(h|H|hh|hpp|hxx|C|cc|cpp|cxx)(\.in)?$' "${dirs[@]}" </dev/null 2>/dev/null | \
+     while read file; do
+      [[ `basename "${file}"` == "classes.h" ]] && continue
+      package=$(package_name "${path}" "${file}")
+      (( ${verbose:-0} )) && echo "INFO: -> Dependencies of file $file in package $package." 1>&2
+      grep -he '^[ \t]*#include[ \t]*"' \
+           -e '^[ \t]*#include[ \t]*<.*/.*>' "${file}" | \
+       sed -e 's/^[ \t]*#include[ \t]*["<]\(.*\)[">].*$/\1/' | \
+       grep -e '/' | \
+       sort -u | while read dep; do
+         pa=`dirname "${dep}"`
+         pb=`basename "${dep}"`
+         [[ "${pb}" == "fwd.h" ]] && continue; # Assume no link dependencies.
+#         set -x
+         result=$(package_name "${pa}" "${pb}")
+#         set +x
+#         (( ${verbose:-0} )) && echo "INFO:    -> pa, pb -> result -- $pa, $pb = $result" 1>&2
+         echo $result
+       done | sort -u | while read dep; do
+        if [[ "$package" == "$dep" ]]; then
+          continue # Self-dependency
+        fi
+        dep_top=${dep%%/*}
+        if ! grep -e "^${dep_top}\$" "${TMP}.int_packages" >/dev/null 2>&1; then
+          if (( want_ext_deps == 0 )) || \
+             { (( want_ext_deps == 1 )) && ignore_dep "${dep}"; }; then
+            (( ${verbose:-0} )) && echo "INFO:    -> Ignoring external dependency $package -> $dep." 1>&2
+            continue
+          else
+            (( ${verbose:-0} )) && echo "INFO:    -> Found dependency $dep in $package." 1>&2
+            echo "${dep}" >> "$TMP.deps"
+          fi
+        fi
+        if [[ "$package_top" == "FWCore" ]]; then
+          old_fw=1 # Special instructions
+        fi
+        (( ${verbose:-0} )) && echo "INFO:    -> Found dependency $dep in $package." 1>&2
+        echo "  \"$package\" -> \"$dep\";"
+      done
+    done | sort -u
+  ); done
+
+[[ -f "$TMP.deps" ]] && sort -u "$TMP.deps" | while read dep; do
+  echo "  \"$dep\" [ shape=rectangle, style=\"rounded,filled\", color=pink ]"
+done
+
+[[ -f "$TMP.plugins" ]] && sort -u "$TMP.plugins" | while read module type; do
+    case $type in
+        "module"|"generator")
+        color=olivedrab2
+        ;;
+        "service")
+        color=cyan
+        ;;
+        "source")
+        color=goldenrod3
+        ;;
+        "")
+        continue
+        ;;
+        *)
+        echo "WARNING: Unrecognized plugin type $type" 1>&2
+        color=white
+    esac
+  echo "  \"${module}\" [ shape=rectangle, style=\"filled\", color=${color} ]"
+done
+
+if (( ${old_fw:-0} )); then
+cat <<EOF
+
+  { rank = 0;
+    FWCoreMessageLogger;
+    FWCoreParameterSet;
+  }
+  { rank = 1;
+    FWCoreVersion;
+  }
+  { rank = 2;
+    FWCoreUtilities;
+  }
+  { rank = 3;
+    FWCorePluginManager;
+    DataFormatsProvenance;
+  }
+  { rank = 4;
+    FWCoreRootAutoLibraryLoader;
+    FWCorePrescaleService;
+    DataFormatsCommon;
+  }
+  { rank = 5;
+    FWCoreFramework;
+    FWCoreServices;
+  }
+  { rank = 6;
+    FWCoreServiceRegistry;
+  }
+  { rank = 7;
+    FWCoreMessageService;
+    FWCoreCatalog;
+    IOPoolCommon;
+  }
+  { rank = 8;
+    FWCoreSources;
+  }
+  { rank = 9;
+    IOPoolInput;
+    FWCoreModules;
+    IOPoolOutput;
+    DataFormatsTestObjects;
+    DataFormatsWrappedStdDictionaries;
+  }
+EOF
+else
+cat <<EOF
+EOF
+fi
+cat <<EOF
+}
+EOF

@@ -1,0 +1,231 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
+
+Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
+
+my $options =
+  {
+   dicts => 0,
+   exes => 0,
+   extlibs => 0,
+   "test-tree" => 0
+  };
+
+my $deleted_nodes = {};
+
+my $opt_file = glob("~/.cgfrc");
+
+if (-f $opt_file) {
+  open(OPTS, $opt_file) or die "Unable to read options file $opt_file.";
+  my @file_options = map { split; } <OPTS>;
+  close(OPTS);
+  chomp @file_options;
+  unshift @ARGV, @file_options;
+}
+
+GetOptions($options,
+           "dicts",
+           "no-dicts" => sub { $options->{dicts} = 0; },
+           "exes",
+           "no-exes" => sub { $options->{exes} = 0; },
+           "extlibs",
+           "no-extlibs" => sub { $options->{extlibs} = 0; },
+           "short-libnames",
+           "no-short-libnames" => sub { $options->{"short-libnames"} = 0; },
+           "test-tree",
+           "no-test-tree" => sub { $options->{"test-tree"} = 0; },
+           "help|h|?") or pod2usage(-exitval => 2);
+
+$options->{help} and pod2usage(-exitval => 1, -verbose => 3);
+
+while (<>) {
+  if (m&^\s*"(node\d+)"\s*\[\s*(.*?)\s*\].*$&) {
+    my $node = { name => $1 };
+    my $pars = $2;
+    while ($pars =~ m&(\w+)="([^"]+)"\s*&g) {
+      $node->{$1} = $2;
+    }
+    $node->{type} = type_from_shape($node->{shape});
+    if ($options->{"short-libnames"} and
+        $node->{label} =~ m&/&) {
+      $node->{label} = basename($node->{label});
+    }
+    node_color($node);
+    if (wanted($node)) {
+      print_node($node);
+    } else {
+      $deleted_nodes->{$node->{name}} = 1;
+    }
+  } elsif (m&"(node\d+)" -> "(node\d+)"&) {
+    if (! exists $deleted_nodes->{$1} and
+        ! exists $deleted_nodes->{$2}) {
+      print;
+    }
+  } elsif (m&node\d+ -> node\d+&) {
+    print STDERR <<EOF;
+ERROR: cmake-graphviz-filt must be run on direct output of
+cmake --graphviz. Has this been preprocessed with (e.g.) tred?
+EOF
+    exit(1);
+  } else {
+    print;
+  }
+}
+
+1;
+
+sub node_color {
+  my $node = shift;
+  if ($node->{type} eq "extlib") {
+    $node->{style} = "filled";
+    $node->{color} = "pink";
+  } elsif ($node->{type} eq "exe") {
+    $node->{style} = "filled";
+    $node->{color} = "orange";
+  } elsif ($node->{label} =~ m&_service$&) {
+    $node->{style} = "filled";
+    $node->{color} = "cyan";
+  } elsif ($node->{label} =~ m&_(module|output)$&) {
+    $node->{style} = "filled";
+    $node->{color} = "olivedrab2";
+  } elsif ($node->{label} =~ m&_(source|generator)$&) {
+    $node->{style} = "filled";
+    $node->{color} = "goldenrod3";
+  } elsif ($node->{label} =~ m&_(dict|map)$&) {
+    $node->{style} = "filled";
+    $node->{color} = "wheat1";
+  }
+}
+
+sub type_from_shape {
+  my $shape = shift;
+  if ($shape eq "house") {
+    return "exe";
+  } elsif ($shape eq "polygon") {
+    return "lib";
+  } elsif ($shape eq "ellipse") {
+    return "extlib";
+  } else {
+    return "UNKNOWN";
+  }
+}
+
+sub wanted {
+  my $node = shift;
+  my $result = 1;
+  if ($node->{label} =~ m&^test_& and not $options->{"test-tree"}) {
+    $result = 0;
+  } elsif ($node->{type} eq "exe" and not $options->{exes}) {
+    $result = 0;
+  } elsif ($node->{type} eq "extlib" and not $options->{extlibs}) {
+    $result = 0;
+  } elsif ($node->{type} eq "lib" and
+           $node->{label} =~ m&_(dict|map)$& and
+           not $options->{dicts}) {
+    $result = 0;
+  }
+  return $result;
+}
+
+sub print_node {
+  my $node = shift;
+  print sprintf('"%s" [ %s ]',
+                $node->{name},
+                join(" ", map { ($_ eq "name" or $_ eq "type")?():sprintf("$_=\"%s\"", $node->{$_}); } sort keys %$node)
+               ), "\n";
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+cmake-graphviz-filt: filter the output of cmake's --graphviz option to
+produce a less cluttered dependency graph.
+
+
+=head1 SYNOPSIS
+
+B<cmake-graphviz-filt> I<options>
+
+B<cmake-graphviz-filt> B<--help> | B<-h> | B<-?>
+
+Options: [I<--[no-]dicts>] [I<--[no-]exes>] [I<--[no-]extlibs>]
+         [I<--short-libnames>]
+
+B<cmake-graphviz-filt> is a filter: input is expected on STDIN, and will
+be delivered to STDOUT.
+
+=head1 DESCRIPTION
+
+B<cmake-graphviz-filt> will filter, shape and color the nodes defined by
+the output of cmake --graphviz and send the output so-filtered to STDOUT.
+
+
+=head2 OPTIONS
+
+=over
+
+=item B<[no-]dicts>
+
+Output or omit the node and connection information for ROOT dictionary
+and map libraries (default no).
+
+
+=item B<[no-]exes>
+
+Output or omit the node and connection information for executables
+(default no).
+
+
+=item B<[no-]extlibs>
+
+Output or omit the node and connection information for external
+libraries (default no).
+
+
+=item B<[no-]short-libnames>
+
+Any fully-specified library pathnames are or (are not) shortened to
+their basenames (default no).
+
+
+=item B<[no-]test-tree>
+
+Output or omit node and connection information for libraries and modules
+under the top-level "test" directory (default no).
+
+=back
+
+
+=head2 LEGEND
+
+External libraries (if selected) are shown as I<filled pink ellipses>.
+
+Executables (if selected) are shown as I<filled orange houses>.
+
+Art services are shown as I<filled cyan polygons>.
+
+Art sources or artdaq generators are shown as I<filled goldenrod3 polygons>.
+
+Art modules (filters, producers, analyzers or outputs) are shown as
+I<filled olivedrab2 polygons>.
+
+Art dictionaries and maps (if selected) are shown as I<filled wheat1 polygons>.
+
+
+=head2 FILES
+
+B<~/.cgfrc>
+
+  Options file (options exactly as if they were specified on the command
+  line, space- or newline-separated. Options on the command-line will
+  override any specified in this file.
+
+=cut

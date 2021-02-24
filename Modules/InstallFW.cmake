@@ -1,25 +1,36 @@
 ########################################################################
-# install_fw([SUBDIRNAME dir] LIST files...)
-#   Install FW data in ${${CMAKE_PROJECT_NAME}_fw_dir}/${SUBDIRNAME}
+# install_fw()
 #
-# N.B. fw_dir must be set prior to calling install_fw(), otherwise
-# install_fw() will generate a FATAL_ERROR.
+#   Install FW data in ${${PROJECT_NAME}_FW_DIR}/<subdir>
+#
+# Usage: install_wp([SUBDIRNAME <subdir>] LIST ...)
+#
+# See CetInstall.cmake for full usage description.
 ########################################################################
-include(CetProjectVars)
+
+# Avoid unwanted repeat inclusion.
+include_guard(DIRECTORY)
+
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+
+include(CetInstall)
+include(ProjectVariable)
 
 function(install_fw)
-  cet_project_var(fw_dir MISSING_OK
-    DOCSTRING "Directory below prefix to install FW files")
-  cmake_parse_arguments(IFW "" "SUBDIRNAME" "LIST" ${ARGN})
-  if (NOT ${CMAKE_PROJECT_NAME}_fw_dir)
-    message(FATAL_ERROR "ERROR: install_fw() called without ${CMAKE_PROJECT_NAME}_fw_dir being configured.")
+  if (NOT "FW_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+    project_variable(FW_DIR CONFIG
+      OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+      DOCSTRING "Directory below prefix to install FW files")
+    if (product AND ${product}_fwdir MATCHES "^\$") # Placeholder
+      cmake_language(EVAL CODE
+        "set_property(CACHE ${PROJECT_NAME}_fwdir PROPERTY VALUE \
+\"${${PROJECT_NAME}_fwdir}\"\
+")
+    endif()
   endif()
-  if (IFW_LIST)
-    cet_copy(${IFW_LIST}
-      DESTINATION "${PROJECT_BINARY_DIR}/${${CMAKE_PROJECT_NAME}_fw_dir}/${IFW_SUBDIRNAME}"
-      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    install(FILES ${IFW_LIST} DESTINATION ${${CMAKE_PROJECT_NAME}_fw_dir}/${IFW_SUBDIRNAME})
-  else()
-    message(FATAL_ERROR "ERROR: install_fw(): LIST is mandatory.")
-  endif()
+  list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
+  _cet_install(fw ${PROJECT_NAME}_FW_DIR ${ARGN} _LIST_ONLY)
 endfunction()
+
+cmake_policy(POP)

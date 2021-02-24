@@ -1,0 +1,2 @@
+# Check package components.
+check_required_components(@PROJECT_NAME@)
