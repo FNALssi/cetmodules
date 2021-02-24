@@ -14,7 +14,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     install(CODE "\
 # Detect misplaced installs from older, cetbuildtools-using packages.
   if (product AND version AND IS_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/\${product}/\${version}\")
-    message(WARNING \"Fixing faulty install: remove \${product}/\${version}/ \
+    message(VERBOSE \"Tidying legacy installations: remove \${product}/\${version}/ \
 from install paths.\")
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar c -- .
                     COMMAND ${CMAKE_COMMAND} -E tar xv -C ../..
