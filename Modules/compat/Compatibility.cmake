@@ -24,7 +24,7 @@ function(warn_deprecated OLD)
   if (WD_NEW)
     set(msg " - use ${WD_NEW} instead")
   endif()
-  message(DEPRECATION "${OLD} is deprecated in cetmodules 2.0+"
+  message(DEPRECATION "${OLD} is deprecated in cetmodules 2.10+"
     ${msg} ${WD_UNPARSED_ARGUMENTS})
 endfunction()
 

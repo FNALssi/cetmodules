@@ -5,7 +5,7 @@
 #
 # USAGE: cet_cmake_config([ARCH_INDEPENDENT|NOARCH|NO_FLAVOR]
 #                         [COMPATIBILITY <compatibility>]
-#                         [CONFIG_FRAGMENTS <config-fragment>...])
+#                         [NO_CMAKE_CONFIG|CONFIG_FRAGMENTS <config-fragment>...])
 #
 ####################################
 # OPTIONS
@@ -62,40 +62,19 @@ function(cet_cmake_config)
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
-    ""
+    "NO_CMAKE_CONFIG"
     "COMPATIBILITY;WORKDIR"
-    "CONFIG_PRE_INIT;CONFIG_POST_INIT;CONFIG_POST_VARS;CONFIG_POST_DEPS;CONFIG_POST_TARGETS;PATH_VARS")
+    "CONFIG_PRE_INIT;CONFIG_POST_INIT;CONFIG_POST_VARS;CONFIG_POST_DEPS;CONFIG_POST_TARGET_VARS;CONFIG_POST_TARGETS;PATH_VARS")
+  if (CCC_NO_CMAKE_CONFIG AND
+      (CCC_COMPATIBILITY OR CCC_WORKDIR OR CCC_CONFIG_PRE_INIT OR
+        CCC_CONFIG_POST_INIT OR CCC_CONFIG_POST_VARS OR
+        CCC_CONFIG_POST_DEPS OR CCC_CONFIG_POST_TARGET_VARS OR
+        CCC_CONFIG_POST_TARGETS OR CCC_PATH_VARS))
+    message(AUTHOR_WARNING "all other options are ignored when NO_CMAKE_CONFIG is set")
+  endif()
   if (CCC_NO_FLAVOR)
-    message(WARNING "cet_cmake_config: NO_FLAVOR is deprecated: use ARCH_INDEPENDENT (a.k.a. NOARCH) instead")
-  endif()
-  set(distdir "${${PROJECT_NAME}_DATA_ROOT_DIR}")
-  if (${PROJECT_NAME}_NOARCH)
-    set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
-  elseif (${PROJECT_NAME}_LIBRARY_DIR)
-    set(distdir "${${PROJECT_NAME}_LIBRARY_DIR}")
-  elseif (NOT ${PROJECT_NAME}_NOARCH STREQUAL "")
-    message(SEND_ERROR "refusing to install architecture-dependent \
-CMake Config files in ${distdir}: set ${PROJECT_NAME}_NOARCH to TRUE or \
-set ${PROJECT_NAME}_LIBRARY_DIR.\
-")
-  else()
-    message(WARNING "${PROJECT_NAME}_LIBRARY_DIR is explicitly cleared \
-but ${PROJECT_NAME}_NOARCH is undefined: installing possibly \
-architecture-dependent CMake Config files under ${distdir}.
-
-To suppress this warning, set ${PROJECT_NAME}_NOARCH to TRUE or \
-set ${PROJECT_NAME}_LIBRARY_DIR.
-")
-  endif()
-  if (NOT CCC_COMPATIBILITY)
-    set(CCC_COMPATIBILITY AnyNewerVersion)
-  endif()
-  string(APPEND distdir "/${PROJECT_NAME}/cmake")
-  if (NOT CCC_WORKDIR)
-    set(CCC_WORKDIR "genConfig")
-  endif()
-  if (NOT IS_ABSOLUTE "${CCC_WORKDIR}")
-    string(PREPEND CCC_WORKDIR "${CMAKE_CURRENT_BINARY_DIR}/")
+    warn_deprecated("cet_cmake_config(NO_FLAVOR)"
+      NEW "cet_cmake_config(ARCH_INDEPENDENT) (a.k.a. NOARCH)")
   endif()
   ####################################
   # Generate UPS table files, etc. if requested.
@@ -103,11 +82,45 @@ set ${PROJECT_NAME}_LIBRARY_DIR.
     process_ups_files()
   endif()
   ####################################
-  # Generate and install config files.
-  _install_package_config_files()
+  # Process config-related arguments.
+  if (NOT CCC_NO_CMAKE_CONFIG)
+    set(distdir "${${PROJECT_NAME}_DATA_ROOT_DIR}")
+    if (${PROJECT_NAME}_NOARCH)
+      set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
+    elseif (${PROJECT_NAME}_LIBRARY_DIR)
+      set(distdir "${${PROJECT_NAME}_LIBRARY_DIR}")
+    elseif (NOT ${PROJECT_NAME}_NOARCH STREQUAL "")
+      message(SEND_ERROR "refusing to install architecture-dependent \
+CMake Config files in ${distdir}: set ${PROJECT_NAME}_NOARCH to TRUE or \
+set ${PROJECT_NAME}_LIBRARY_DIR.\
+")
+    else()
+      message(WARNING "${PROJECT_NAME}_LIBRARY_DIR is explicitly cleared \
+but ${PROJECT_NAME}_NOARCH is undefined: installing possibly \
+architecture-dependent CMake Config files under ${distdir}.
+
+To suppress this warning, set ${PROJECT_NAME}_NOARCH to TRUE or \
+set ${PROJECT_NAME}_LIBRARY_DIR.
+")
+    endif()
+    if (NOT CCC_COMPATIBILITY)
+      set(CCC_COMPATIBILITY AnyNewerVersion)
+    endif()
+    string(APPEND distdir "/${PROJECT_NAME}/cmake")
+    if (NOT CCC_WORKDIR)
+      set(CCC_WORKDIR "genConfig")
+    endif()
+    if (NOT IS_ABSOLUTE "${CCC_WORKDIR}")
+      string(PREPEND CCC_WORKDIR "${CMAKE_CURRENT_BINARY_DIR}/")
+    endif()
+    ####################################
+    # Generate and install config files.
+    _install_package_config_files()
+  endif()
   ####################################
   # Packaging.
   if (PROJECT_BINARY_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+    # Protected against legacy call from UPS directory.
     include(UseCPack)
   endif()
 endfunction()
@@ -137,6 +150,11 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   _generate_config_vars(${FRAG_LIST} _GCP_${PATH_VARS_VAR})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_VARS})
   ####################################
+  # Stage: deps
+  ####################################
+  _generate_transitive_deps(${FRAG_LIST})
+  list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_DEPS})
+  ####################################
   # Stage: targets
   ####################################
   _generate_target_imports(${FRAG_LIST})
@@ -146,12 +164,7 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   ####################################
   _generate_target_vars(${FRAG_LIST})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_TARGET_VARS})
-  ####################################
-  # Stage: deps
-  ####################################
-  _generate_transitive_deps(${FRAG_LIST})
-  list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_DEPS})
-  # Propogate variables required upstream.
+  # Propagate variables required upstream.
   list(APPEND ${PATH_VARS_VAR} "${_GCP_${PATH_VARS_VAR}}")
   set(${PATH_VARS_VAR} "${${PATH_VARS_VAR}}" PARENT_SCOPE)
   foreach (pvar IN LISTS _GCP_${PATH_VARS_VAR})
@@ -401,7 +414,12 @@ endif()\
     list(PREPEND transitive_deps "\
 ####################################
 # Transitive dependencies.
-####################################\
+####################################
+set(_${PROJECT_NAME}_PACKAGE_PREFIX_DIR \"\${PACKAGE_PREFIX_DIR}\")\
+")
+    list(APPEND transitive_deps "\
+set(PACKAGE_PREFIX_DIR \"\${_${PROJECT_NAME}_PACKAGE_PREFIX_DIR}\")
+unset(_${PROJECT_NAME}_PACKAGE_PREFIX_DIR)\
 ")
     list(JOIN transitive_deps "\n" tmp)
     set(transitive_deps "${tmp}")
