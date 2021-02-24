@@ -419,6 +419,7 @@ maybe_redirect() {
   fi
 }
 restore_output_streams() {
+  eval 'printf "\n"' ${redirected:+1>&3}
   if (( redirected )); then
     info "buildtool log ended at $(date)"
     exec 2>&4- 1>&3-
@@ -488,7 +489,7 @@ cmd() {
   done
   shift $(( OPTIND - 1 ))
   (( do_verbose )) && \
-    writeStuff "COMMAND: $*\nWD: ${wd:-$(pwd -P)}${desc+\nDESCRIPTION: $desc}\n"
+    writeStuff "COMMAND: $*\nWD: ${wd:-$(pwd -P)}${desc+\nDESCRIPTION: $desc}"
   SECONDS=0
   ( if [ -n "$wd" ]; then cd "$wd" || exit; fi; "$@" ); local status=$?; echo
   (( do_verbose )) && \
@@ -513,7 +514,10 @@ ${redirected:+\"\\n             See $log for details\" 2>/dev/null}"
   fi
 }
 
-announce_stage() { banner "$(info "stage $stage${build_info:+ for $build_info}$@")"; }
+announce_stage() {
+  eval 'printf "\n"' ${redirected:+1>&3}
+  banner "$(info "stage $stage${build_info:+ for $build_info}$@")"
+}
 
 calculate_ops_dir() {
   if (( force_top )); then
@@ -787,7 +791,7 @@ stage_ip() {
     stage_regex='^\.\.\.[[:space:]]+'"$stage"'$'
   fi
   if { "${cmd_args[@]}" -t help "${cmd_postargs[@]}" | \
-    grep -Ee "${stage_regex}"; } >/dev/null 2>&1; then
+    grep -Ee "${stage_regex}" >/dev/null 2>&1; }; then
     announce_stage
     cmd -d "$stage"  \
       "${cmd_args[@]}" -t "$stage" "${cmd_postargs[@]}"
@@ -1121,7 +1125,7 @@ if [[ "$generator_arg" == *Ninja* ]]; then
   (( using_ninja = 1 ))
 fi
 
-(( $@ )) && report "Additional arguments for cmake --build (build, install, package): $@"
+[[ -n "$*" ]] && report "Additional arguments for cmake --build (build, install, package): $*"
 
 # If we're tee-ing.
 if (( tee )); then
