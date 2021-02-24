@@ -119,6 +119,10 @@ macro(cet_cmake_env)
   set(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
   set(CMAKE_FIND_PACKAGE_NO_SYSTEM_PACKAGE_REGISTRY TRUE)
 
+  # Ask CMake to exit on error at install time if it is asked to install
+  # files in an absolute location.
+  set(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION TRUE)
+
   ##################
   # Project variables - see ProjectVariable.cmake. See especially the
   # explanation of initialization and default semantics.
