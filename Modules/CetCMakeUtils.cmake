@@ -132,8 +132,7 @@ include(CetRegexEscape)
 function(cet_passthrough)
   cmake_parse_arguments(PARSE_ARGV 0 CP
     "APPEND;FLAG;IN_PLACE" "EMPTY_KEYWORD;KEYWORD" "VALUES")
-  if (NOT (CP_VALUES OR
-        "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
+  if (NOT (CP_VALUES OR "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
     list(POP_FRONT CP_UNPARSED_ARGUMENTS CP_IN_VAR)
     if (CP_IN_VAR MATCHES
         "^CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES)$")
@@ -142,7 +141,7 @@ not permitted - specify values with VALUES instead\
 ")
     elseif (NOT CP_IN_VAR)
       message(FATAL_ERROR "vacuous IN_VAR non-option argument - missing VALUES?")
-    elseif (NOT CP_KEYWORD)
+    elseif (NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
       string(REGEX REPLACE "^_*[^_]+_(.*)$" "\\1" CP_KEYWORD "${CP_IN_VAR}")
     endif()
     if (CP_IN_PLACE)
@@ -162,7 +161,7 @@ not permitted - specify values with VALUES instead\
       message(FATAL_ERROR "vacuous OUT_VAR non-option argument")
     endif()
   endif()
-  if (NOT CP_KEYWORD)
+  if (NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
     set(CP_KEYWORD  "${CP_OUT_VAR}")
   endif()
   if (CP_UNPARSED_ARGUMENTS)
