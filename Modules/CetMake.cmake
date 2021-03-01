@@ -266,11 +266,11 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   add_executable(${namespace}::${CME_NAME} ALIAS ${CME_NAME})
   foreach (alias IN LISTS CME_ALIAS)
     add_executable(${namespace}::${alias} ALIAS ${CME_NAME})
-    if (NOT (CME_NO_INSTALL OR CME_NO_EXPORT))
-      _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
-"add_executable(${namespace}::${alias} ALIAS ${namespace}::${CME_NAME})")
-    endif()
   endforeach()
+  if (NOT (CME_NO_INSTALL OR CME_NO_EXPORT))
+    cet_export_alias(ALIAS_NAMESPACE ${namespace}
+      EXPORT_SET ${CME_EXPORT_SET} ALIAS ${CME_ALIAS})
+  endif()
 endfunction()
 
 function(cet_script)
