@@ -11,13 +11,12 @@ if (SPHINX-BUILD_EXECUTABLE)
   find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
   execute_process(COMMAND "${SPHINX-BUILD_EXECUTABLE}" --version
-    COMMAND_ECHO STDERR
     ERROR_QUIET
     OUTPUT_VARIABLE sphinx-doc_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   string(REGEX REPLACE "^[^ 	]+[ 	]+" ""
     sphinx-doc_VERSION "${sphinx-doc_VERSION}")
-  message(VERBOSE "sphinx-doc_VERSION=${sphinx-doc_VERSION}")
+  message(VERBOSE "Found sphinx-doc_VERSION=${sphinx-doc_VERSION}")
 endif()
 
 include(FindPackageHandleStandardArgs)
