@@ -605,11 +605,21 @@ function(cet_test CET_TARGET)
     _cet_print_pargs("${parg_labels}")
 
     # Set up to handle a per-test work directory for parallel testing.
-    if (NOT CET_TEST_WORKDIR)
-      set(CET_TEST_WORKDIR "${CET_TARGET}.d")
+    if (IS_ABSOLUTE "${CET_TEST_WORKDIR}")
+      cet_package_path(source_path_subdir PATH "${CET_TEST_WORKDIR}" SOURCE)
+      if (source_path_subdir) # Be careful in source tree.
+        if (NOT IS_DIRECTORY "${CET_TEST_WORKDIR}")
+          message(SEND_ERROR "Refusing to create working directory ${CET_TEST_WORKDIR} in source tree")
+        endif()
+        set(CET_DIRTY_WORKDIR TRUE)
+      endif()
+    else()
+      if (NOT CET_TEST_WORKDIR)
+        set(CET_TEST_WORKDIR "${CET_TARGET}.d")
+      endif()
+      get_filename_component(CET_TEST_WORKDIR "${CET_TEST_WORKDIR}"
+        ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     endif()
-    get_filename_component(CET_TEST_WORKDIR "${CET_TEST_WORKDIR}"
-      ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
     cet_passthrough(FLAG IN_PLACE KEYWORD --dirty-workdir CET_DIRTY_WORKDIR)
 
