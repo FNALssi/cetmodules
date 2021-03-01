@@ -160,7 +160,7 @@ set(_cet_make_exec_usage "")
 
 function(cet_make_exec)
   cmake_parse_arguments(PARSE_ARGV 0 CME
-    "EXCLUDE_FROM_ALL;NO_EXPORT;NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
+    "EXCLUDE_FROM_ALL;NO_EXPORT;NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;NOP;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
     "EXEC_NAME;EXPORT_SET;NAME" "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE")
   # Argument verification.
   if (CME_EXEC_NAME)
@@ -175,7 +175,7 @@ function(cet_make_exec)
   if (NOT CME_NAME)
     message(FATAL_ERROR "NAME <name> *must* be provided")
   elseif (CME_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "non-option arguments prohibited")
+    message(FATAL_ERROR "non-option arguments prohibited: ${CME_UNPARSED_ARGUMENTS}")
   endif()
   if (CME_USE_CATCH_MAIN)
     warn_deprecated("cet_make_exec(): USE_CATCH_MAIN" NEW "USE_CATCH2_MAIN")
@@ -274,7 +274,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
 endfunction()
 
 function(cet_script)
-  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_EXPORT;NO_INSTALL;REMOVE_EXTENSIONS"
+  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_EXPORT;NO_INSTALL;NOP;REMOVE_EXTENSIONS"
     "DESTINATION;EXPORT_SET" "DEPENDENCIES")
   if (CS_GENERATED)
     warn_deprecated("cet_script(GENERATED)"
