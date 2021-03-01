@@ -209,10 +209,14 @@ print_dep_setup($deps, $tset_fh);
 # Finish off with the buildtools setup file and environment variables
 # required for development.
 unless ($options->{nobuild}) {
+  my $cmake_args = ups_to_cmake($pi);
+  if (exists $deps->{cetbuildtools}) {
+    push $cmake_args, @{cmake_cetb_compat_defs()};
+  }
   cetpkg_info_file(%{$pi},
                    source => $sourcedir,
                    build => $builddir,
-                   cmake_args => ups_to_cmake($pi));
+                   cmake_args => $cmake_args);
   print_dev_setup($pi, $tset_fh);
 }
 

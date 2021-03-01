@@ -73,6 +73,7 @@ $btype_table = { debug => 'Debug',
   qw(
       cetpkg_info_file
       classify_deps
+      cmake_cetb_compat_defs
       compiler_for_quals
       deps_for_quals
       error_exit
@@ -1195,6 +1196,13 @@ sub write_table_frag {
   print $fh join("\n", @$fraglines), "\n";
   close($fh);
   1;
+}
+
+sub cmake_cetb_compat_defs {
+  return [ map { my $var_stem = var_stem_for_dirkey($_);
+                 my $dirkey_ish = $_; $dirkey_ish =~ s&([^_])dir$&${1}_dir&;
+                 "-DCETB_COMPAT_${dirkey_ish}:STRING=${var_stem}";
+               } sort keys %$pathspec_info ];
 }
 
 1;
