@@ -242,8 +242,8 @@
 #
 # * If cet_test_env() is called in a directory to set the environment
 #   for tests then that will be propagated to tests defined in
-#   subdirectories unless include(CetTest) or cet_test_env(CLEAR ...) is
-#   invoked in that directory.
+#   subdirectories unless cet_test_env(CLEAR ...) is invoked in that
+#   directory.
 #
 ########################################################################
 
