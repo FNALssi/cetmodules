@@ -1,7 +1,7 @@
 ########################################################################
 # art_dictionary
 #
-#   Wrapper around cetbuildtools' build_dictionary featuring the ### MIGRATE-ACTION-REQUIRED: remove
+#   Wrapper around cetmodules' build_dictionary featuring the
 #   addition of commonly required libraries to the dictionary library
 #   link list.
 #
@@ -41,7 +41,7 @@ function(art_dictionary)
     math(EXPR idx "${idx} + 1")
     list(GET ARGV ${idx} dict_name_var)
   endif()
-  build_dictionary(DICTIONARY_LIBRARIES PRIVATE NOP ${ARGV})
+  build_dictionary(${ARGV})
   if (dict_name_var)
     set(${dict_name_var} "${${dict_name_var}}" PARENT_SCOPE)
   endif()
