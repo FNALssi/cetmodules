@@ -606,7 +606,7 @@ if (CMAKE_SCRIPT_MODE_FILE) # Smoke test.
 endif()
 
 function(_cet_export_import_cmd)
-  cmake_parse_arguments(PARSE_ARGV 0 _cc "" "" "COMMANDS;TARGETS")
+  cmake_parse_arguments(PARSE_ARGV 0 _cc "NOP" "EXPORT_SET" "COMMANDS;TARGETS")
   if (NOT _cc_COMMANDS)
     set(_cc_COMMANDS "${_cc_UNPARSED_ARGUMENTS}")
   endif()
