@@ -41,6 +41,7 @@ macro(find_ups_boost)
   _parse_fup_arguments(boost ${ARGN} PROJECT Boost _OPTS "BOOST_TARGETS")
 
   if (NOT _FUP_BOOST_TARGETS)
+    set(_fub_no_boost_cmake ${_FUP_PROJECT}_NO_BOOST_CMAKE)
     set(${_FUP_PROJECT}_NO_BOOST_CMAKE ON)
   endif()
 
@@ -63,6 +64,10 @@ macro(find_ups_boost)
       (_FUP_INTERFACE OR _FUP_INCLUDED_${_FUP_PROJECT}))
     include_directories(SYSTEM $ENV{BOOST_INC})
     set(_FUP_INCLUDED_${_FUP_PROJECT} TRUE)
+  endif()
+  if (DEFINED _fub_no_boost_cmake)
+    set(${_FUP_PROJECT}_NO_BOOST_CMAKE ${_fub_no_boost_cmake})
+    unset(${_fub_no_boost_cmake})
   endif()
 endmacro()
 
