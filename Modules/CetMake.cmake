@@ -94,7 +94,7 @@ USAGE: cet_make([USE_(PROJECT|PRODUCT)_NAME|LIBRARY_NAME <library-name>]
                 [DICT_LOCAL_INCLUDE_DIRS <include-dirs>...]
                 [SUBDIRS <source-subdir>...]
                 [EXCLUDE ([REGEX] <exclude>...)...]
-                [LIB_ALIASES <alias>...]
+                [LIB_ALIAS <alias>...]
                 [VERSION] [SOVERSION <API-version>]
                 [EXPORT_SET <export-name>]
                 [NO_INSTALL|INSTALL_LIBS_ONLY]
@@ -110,7 +110,7 @@ set(_cet_make_one_arg_options EXPORT_SET LIBRARY_NAME LIBRARY_NAME_VAR
   SOVERSION)
 
 set(_cet_make_list_options DICT_LIBRARIES DICT_LOCAL_INCLUDE_DIRS
-  EXCLUDE LIB_ALIASES LIB_LIBRARIES LIB_LOCAL_INCLUDE_DIRS LIB_SOURCE
+  EXCLUDE LIB_ALIAS LIB_LIBRARIES LIB_LOCAL_INCLUDE_DIRS LIB_SOURCE
   LIBRARIES SUBDIRS)
 
 function(cet_make)
@@ -264,7 +264,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     endif()
   endif()
   add_executable(${namespace}::${CME_NAME} ALIAS ${CME_NAME})
-  foreach (alias IN LISTS CME_ALIASES)
+  foreach (alias IN LISTS CME_ALIAS)
     add_executable(${namespace}::${alias} ALIAS ${CME_NAME})
     if (NOT (CME_NO_INSTALL OR CME_NO_EXPORT))
       _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
@@ -405,7 +405,7 @@ function(_cet_maybe_make_library)
     foreach (kw IN ITEMS INTERFACE MODULE OBJECT SHARED STATIC)
       cet_passthrough(FLAG APPEND KEYWORD ${kw} CM_LIB_${kw} cml_args)
     endforeach() 
-    cet_passthrough(APPEND KEYWORD ALIASES CM_LIB_ALIASES cml_args)
+    cet_passthrough(APPEND KEYWORD ALIAS CM_LIB_ALIAS cml_args)
     # Generate the library.
     cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT_SET} ${CM_EXCLUDE_FROM_ALL}
       ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${cml_args}

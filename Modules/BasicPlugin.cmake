@@ -17,7 +17,7 @@ include(CetProcessLiblist)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL USE_BOOST_UNIT USE_PRODUCT_NAME VERSION)
 set(cet_bp_one_arg_opts EXPORT_SET SOVERSION)
-set(cet_bp_list_options ALIASES IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS PLUGIN_SOURCE SOURCE)
+set(cet_bp_list_options ALIAS IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS PLUGIN_SOURCE SOURCE)
 
 #[================================================================[.rst:
 .. cmake:command:: basic_plugin
@@ -29,9 +29,9 @@ set(cet_bp_list_options ALIASES IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS PLUGIN_
 
         basic_plugin(<name> <type> [<options>])
 
-   **Options:**
-     ``ALIASES <alias>...``
-       Create the specified CMake alias targets to the plugin.
+     ``ALIAS <alias>...``
+       Create the specified CMake alias targets to the implementation
+       library.
 
      ``ALLOW_UNDERSCORES``
        Normally, neither ``<name>`` nor ``<type>`` may contain
@@ -171,7 +171,7 @@ function(basic_plugin NAME SUFFIX)
     cet_passthrough(FLAG APPEND BP_${kw} cml_common_args)
   endforeach()
   # These items are only for the implementation library.
-  foreach (kw IN ITEMS ALIASES)
+  foreach (kw IN ITEMS ALIAS)
     cet_passthrough(APPEND BP_${kw} cml_impl_args)
   endforeach()
   foreach (kw IN ITEMS NO_EXPORT USE_BOOST_UNIT)

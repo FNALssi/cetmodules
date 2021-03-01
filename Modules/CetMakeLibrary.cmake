@@ -16,7 +16,7 @@ function(cet_make_library)
   cmake_parse_arguments(PARSE_ARGV 0 CML
     "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
     "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;SOVERSION;TARGET_NAME"
-    "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
+    "ALIAS;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
   cmake_parse_arguments(CML2
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   ##################
@@ -275,7 +275,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       set(primary_exported_target ${CML_TARGET_NAME})
     endif()
     # Deal with aliases to primary target.
-    foreach (alias IN LISTS CML_ALIASES extra_alias)
+    foreach (alias IN LISTS CML_ALIAS extra_alias)
       add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
       if (NOT (CML_NO_INSTALL OR CML_NO_EXPORT))
         _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
