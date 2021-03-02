@@ -5,10 +5,19 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(BasicPlugin)
 
-function(module_plugin NAME)
-  set(deps art_plugin_support::module_macros art::Framework_Core)
-  if (NOT TARGET art_plugin_support::module_macros)
-    set(deps
+set(_module_plugin_SUFFIX module)
+
+function(module_plugin NAME BASE)
+  if (BASE MATCHES "(Analyzer|Filter|Module|Output|Producer)\$" AND
+      TARGET art_plugin_types::${BASE})
+    set(deps REG art_plugin_types::${BASE})
+  elseif (BASE)
+    message(FATAL_ERROR "unknown BASE type ${BASE} for plugin type ${_module_plugin_SUFFIX}
+Define CMake function ${BASE}(NAME) or variable ${BASE}_LIBRARIES before calling build_plugin()")
+  elseif (TARGET art_plugin_types::${_module_plugin_SUFFIX})
+    set(deps REG art_plugin_types::${_module_plugin_SUFFIX})
+  else()
+    set(deps CONDITIONAL
       art_Framework_Core
       art_Framework_Principal
       art_Framework_Services_Registry
@@ -19,10 +28,11 @@ function(module_plugin NAME)
       fhiclcpp
       cetlib
       cetlib_except
-      Boost::filesystem)
+      Boost::filesystem
+    )
   endif()
-  basic_plugin(${NAME} "module" NOP ${ARGN}
-    LIBRARIES PLUGIN "${deps}")
+  basic_plugin(${NAME} ${_module_plugin_SUFFIX} ${ARGN}
+    LIBRARIES ${deps})
 endfunction()
 
 cmake_policy(POP)

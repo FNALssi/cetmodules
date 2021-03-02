@@ -242,8 +242,8 @@
 #
 # * If cet_test_env() is called in a directory to set the environment
 #   for tests then that will be propagated to tests defined in
-#   subdirectories unless include(CetTest) or cet_test_env(CLEAR ...) is
-#   invoked in that directory.
+#   subdirectories unless cet_test_env(CLEAR ...) is invoked in that
+#   directory.
 #
 ########################################################################
 
@@ -370,12 +370,12 @@ endfunction()
 function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
   _cet_test_pargs(test_args ${ARGN})
   add_test(NAME "${TNAME}"
-    ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
+    CONFIGURATIONS ${CET_CONFIGURATIONS}
     COMMAND
     ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
     --skip-return-code ${skip_return_code}
     ${TEXEC} ${test_args})
   _cet_add_test_properties(${TNAME} ${TEXEC})
@@ -435,11 +435,11 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
   cet_localize_pv(cetmodules LIBEXEC_DIR)
   add_test(NAME "${TNAME}"
-    ${CONFIGURATIONS_CMD} ${CET_CONFIGURATIONS}
+    CONFIGURATIONS ${CET_CONFIGURATIONS}
     COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
     --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
     --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR_ARG}
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
     --skip-return-code ${skip_return_code}
     ${CMAKE_COMMAND}
     -DTEST_EXEC=${CET_TEST_EXEC}
@@ -526,7 +526,7 @@ function(cet_test CET_TARGET)
   endif()
 
   # For passthrough to cet_script, cet_make_exec, etc.
-  cet_passthrough(CET_EXPORT_SET exec_install_args)
+  set(exec_install_args EXPORT_SET ${CET_EXPORT_SET} NOP)
   if (NOT CET_INSTALL_BIN)
     list(APPEND exec_install_args NO_INSTALL)
   endif()
@@ -601,20 +601,27 @@ function(cet_test CET_TARGET)
     endif()
 
     # For which configurations should this test (set) be valid?
-    if (CET_CONFIGURATIONS)
-      set(CONFIGURATIONS_CMD CONFIGURATIONS)
-    endif()
-
     # Print configured permuted arguments.
     _cet_print_pargs("${parg_labels}")
 
     # Set up to handle a per-test work directory for parallel testing.
-    if (NOT CET_TEST_WORKDIR)
-      set(CET_TEST_WORKDIR "${CET_TARGET}.d")
+    if (IS_ABSOLUTE "${CET_TEST_WORKDIR}")
+      cet_package_path(source_path_subdir PATH "${CET_TEST_WORKDIR}" SOURCE)
+      if (source_path_subdir) # Be careful in source tree.
+        if (NOT IS_DIRECTORY "${CET_TEST_WORKDIR}")
+          message(SEND_ERROR "Refusing to create working directory ${CET_TEST_WORKDIR} in source tree")
+        endif()
+        set(CET_DIRTY_WORKDIR TRUE)
+      endif()
+    else()
+      if (NOT CET_TEST_WORKDIR)
+        set(CET_TEST_WORKDIR "${CET_TARGET}.d")
+      endif()
+      get_filename_component(CET_TEST_WORKDIR "${CET_TEST_WORKDIR}"
+        ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     endif()
-    get_filename_component(CET_TEST_WORKDIR "${CET_TEST_WORKDIR}"
-      ABSOLUTE BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
+    cet_passthrough(FLAG IN_PLACE KEYWORD --dirty-workdir CET_DIRTY_WORKDIR)
 
     # Deal with specified data files.
     if (DEFINED CET_DATAFILES)
@@ -630,13 +637,6 @@ function(cet_test CET_TARGET)
       endforeach()
       set(CET_DATAFILES ${datafiles_tmp})
     endif(DEFINED CET_DATAFILES)
-
-    if (CET_CONFIGURATIONS)
-      set(CONFIGURATIONS_CMD CONFIGURATIONS)
-    endif()
-    if (CET_DIRTY_WORKDIR)
-      set(CET_DIRTY_WORKDIR_ARG --dirty-workdir)
-    endif()
 
     list(FIND CET_TEST_PROPERTIES SKIP_RETURN_CODE skip_return_code)
     if (skip_return_code GREATER -1)

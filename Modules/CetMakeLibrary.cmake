@@ -16,7 +16,7 @@ function(cet_make_library)
   cmake_parse_arguments(PARSE_ARGV 0 CML
     "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
     "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;SOVERSION;TARGET_NAME"
-    "ALIASES;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
+    "ALIAS;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
   cmake_parse_arguments(CML2
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   ##################
@@ -256,6 +256,24 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       endif()
     endif()
   endforeach()
+  if (CML_HEADERS_TARGET)
+    if (TARGET ${PROJECT_NAME}_headers)
+      message(NOTICE "Requested headers target ${PROJECT_NAME}_headers already exists - ignoring")
+    else()
+      add_library(${PROJECT_NAME}_headers INTERFACE)
+      target_include_directories(${PROJECT_NAME}_headers INTERFACE
+        "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>"
+        "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}>"
+        )
+      set(headers_alias headers)
+      if (NOT namespace STREQUAL PROJECT_NAME)
+        string(PREPEND headers_alias "${PROJECT_NAME}_")
+      endif()
+      set_property(TARGET ${PROJECT_NAME}_headers PROPERTY EXPORT_NAME ${headers_alias})
+      list(APPEND lib_targets ${PROJECT_NAME}_headers)
+      add_library(${namespace}::${headers_alias} ALIAS ${PROJECT_NAME}_headers)
+    endif()
+  endif()
   # Install libraries.
   #
   # ...(except our object library).
@@ -270,37 +288,13 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
 	    ARCHIVE DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}")
   endif()
   if (TARGET ${CML_TARGET_NAME})
-    get_property(primary_exported_target TARGET ${CML_TARGET_NAME} PROPERTY EXPORT_NAME)
-    if (NOT primary_exported_target)
-      set(primary_exported_target ${CML_TARGET_NAME})
-    endif()
     # Deal with aliases to primary target.
-    foreach (alias IN LISTS CML_ALIASES extra_alias)
+    foreach (alias IN LISTS CML_ALIAS extra_alias)
       add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
-      if (NOT (CML_NO_INSTALL OR CML_NO_EXPORT))
-        _cet_export_import_cmd(TARGETS ${namespace}::${alias} COMMANDS
-          "add_library(${namespace}::${alias} ALIAS ${namespace}::${primary_exported_target})")
-      endif()
     endforeach()
-  endif()
-  if (CML_HEADERS_TARGET)
-    if (TARGET ${PROJECT_NAME}_headers)
-      message(NOTICE "Requested headers target ${PROJECT_NAME}_headers already exists - ignoring")
-    else()
-      add_library(${PROJECT_NAME}_headers INTERFACE)
-      target_include_directories(${PROJECT_NAME}_headers INTERFACE
-        "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>"
-        "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}>"
-        )
-      set(headers_alias headers)
-      if (NOT namespace STREQUAL PROJECT_NAME)
-        string(PREPEND headers_alias "${PROJECT_NAME}_")
-      endif()
-      add_library(${namespace}::${headers_alias} ALIAS ${PROJECT_NAME}_headers)
-      if (NOT (CML_NO_INSTALL OR CML_NO_EXPORT))
-        set_property(TARGET ${PROJECT_NAME}_headers PROPERTY EXPORT_NAME ${headers_alias})
-        _add_to_exported_targets(EXPORT_SET ${CML_EXPORT_SET} TARGETS ${PROJECT_NAME}_headers)
-      endif()
+    if (NOT (CML_NO_INSTALL OR CML_NO_EXPORT))
+      cet_export_alias(ALIAS_NAMESPACE ${namespace}
+        EXPORT_SET ${CME_EXPORT_SET} ALIAS ${CML_ALIAS} ${extra_alias})
     endif()
   endif()
 endfunction()

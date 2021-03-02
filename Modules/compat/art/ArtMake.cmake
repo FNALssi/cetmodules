@@ -120,7 +120,7 @@ endmacro(art_make_exec)
 # art_make_library
 ####################################
 function(art_make_library)
-  if ((ART_MAKE_PREPEND_PRODUCT_NAME OR
+  if ((ART_MAKE_PREPEND_PRODUCT_NAME OR # Historical compatibility.
         ART_MAKE_PREPEND_PROJECT_NAME) AND NOT "${ARGV}" MATCHES
       "(^|;)(LIBRARY|USE_PRO(DU|JE)CT)_NAME(;|$)")
     list(PREPEND ARGV USE_PROJECT_NAME)
