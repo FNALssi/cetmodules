@@ -552,7 +552,7 @@ endfunction()
        :cmake:variable:`CMAKE_MODULE_PATH <cmake:variable:CMAKE_MODULE_PATH>`
        in the CMake config file for ``<project>``.
 
-     ``NO_CONFIG``
+     ``NO_LOCAL``
 
        Do not add these directories to 
        :cmake:variable:`CMAKE_MODULE_PATH <cmake:variable:CMAKE_MODULE_PATH>`

@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.11.00 LANGUAGES NONE)
+project(cetmodules VERSION 2.12.00 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
@@ -45,6 +45,8 @@ set(${PROJECT_NAME}_NOARCH TRUE)
 set(${PROJECT_NAME}_FHICL_DIR "")
 set(${PROJECT_NAME}_INCLUDE_DIR "")
 set(${PROJECT_NAME}_LIBRARY_DIR "")
+
+set(CETMODULES_MIN_CETBUILDTOOLS_VERSION 8.02.00)
 
 # Basic build environment.
 include(CetCMakeEnv)
@@ -69,4 +71,6 @@ add_subdirectory(doc)
 # Generate CMake (and UPS, if appropriate) configuration files and
 # packaging.
 cet_cmake_config(EXTRA_TARGET_VARS CET_EXEC_TEST
-  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake.in)
+  CONFIG_PRE_INIT config/${PROJECT_NAME}-override-toolchain.cmake
+  config/${PROJECT_NAME}-CMP0096.cmake
+)
