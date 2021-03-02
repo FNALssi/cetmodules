@@ -2,4 +2,3 @@
 if (POLICY CMP0096)
   cmake_policy(SET CMP0096 NEW)
 endif()
-cmake_policy(PUSH)
