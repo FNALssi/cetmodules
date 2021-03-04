@@ -15,6 +15,10 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetRegexEscape)
 
+# Watch for changes to CMAKE_MODULE_PATH that could break
+# forward/backward compatibility.
+include(CetCMPCleaner)
+
 ##################
 # OPTIONS
 ##################
