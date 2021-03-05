@@ -136,7 +136,7 @@ function(build_dictionary)
   list(APPEND dictionary_liblist )
   set(cml_args)
   cet_passthrough(FLAG APPEND BD_NO_INSTALL cml_args)
-  cet_passthrough(FLAG APPEND BD_NO_EXOPRT cml_args)
+  cet_passthrough(FLAG APPEND BD_NO_EXPORT cml_args)
   cet_passthrough(APPEND BD_EXPORT_SET cml_args)
   cet_make_library(LIBRARY_NAME ${dictname}_dict ${cml_args} SHARED SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp)
   set(ROOTMAP_OUTPUT

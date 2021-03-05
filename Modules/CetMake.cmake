@@ -349,12 +349,8 @@ function(_cet_verify_cet_make_args)
     message(FATAL_ERROR "cet_make(): unrecognized arguments ${CM_UNPARSED_ARGUMENTS}
 ${cet_make_usage}\
 ")
-  elseif (CM_LIBRARY_NAME AND (CM_USE_PRODUCT_NAME OR CM_USE_PROJECT_NAME))
-    message(FATAL_ERROR "cet_make(): USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive")
   elseif (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
     message(FATAL_ERROR "cet_make(): NO_INSTALL and INSTALL_LIBS_ONLY are mutually exclusive")
-  elseif (CM_NO_INSTALL AND CM_EXPORT_SET)
-    message(FATAL_ERROR "cet_make(): NO_INSTALL AND EXPORT_SET are mutually exclusive")
   endif()
   if (CM_USE_PROJECT_NAME AND CM_USE_PRODUCT_NAME)
     message(WARNING "cet_make(): USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
