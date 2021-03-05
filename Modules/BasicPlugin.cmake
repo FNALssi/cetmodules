@@ -158,7 +158,8 @@ function(basic_plugin NAME SUFFIX)
   cmake_parse_arguments(PARSE_ARGV 2 BP
     "${cet_bp_flags}" "${cet_bp_one_arg_opts}" "${cet_bp_list_options}")
   if (BP_UNPARSED_ARGUMENTS)
-    warn_deprecated("unprocessed arguments" NEW "LIBRARIES")
+    warn_deprecated("use of non-option arguments (${BP_UNPARSED_ARGUMENTS})"
+      NEW "LIBRARIES")
     list(APPEND BP_LIBRARIES ${BP_UNPARSED_ARGUMENTS})
   endif()
   if (BP_BASENAME_ONLY AND BP_USE_PRODUCT_NAME)
