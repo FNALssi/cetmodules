@@ -2,7 +2,8 @@
 ########################################################################
 # buildtool
 #
-# General purpose CMake / build script for packages using cetbuildtools.
+#   General purpose CMake / build script for packages using cetmodules
+#   or cetbuildtools.
 #
 # Chris Green <greenc@fnal.gov>
 #
