@@ -18,12 +18,15 @@
 #
 #   BUILD_ONLY
 #   PRIVATE
+#   INTERFACE
 #   PUBLIC
 #
-#     If PUBLIC is specified, an appropriate find_dependency() call will
-#     be added to this package's Config.cmake file to ensure that the
-#     required package will be found when necessary for dependent
-#     packages; BUILD_ONLY or PRIVATE will not.
+#     If PUBLIC or INTERFACE is specified (or we are maintaining
+#     compatibility with the older cetbduiltools), an appropriate
+#     find_dependency() call will be added to this package's
+#     Config.cmake file to ensure that the required package will be
+#     found when necessary for dependent packages; BUILD_ONLY or PRIVATE
+#     will not add such a call.
 #
 #   REQUIRED_BY <components>
 #
@@ -35,8 +38,8 @@
 # ################
 # NOTES
 #
-# * Minimize unwanted dependencies downstream by using PUBLIC, INTERFACE
-#   and PRIVATE as necessary to match their use in cet_make(),
+# * Minimize unwanted dependencies downstream by using PUBLIC or
+#   PRIVATE/BUILD_ONLY as necessary to match their use in cet_make(),
 #   cet_make_library(), cet_make_exec() and their CMake equivalents,
 #   add_library(), and add_executable().
 #

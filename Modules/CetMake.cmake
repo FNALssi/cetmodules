@@ -378,9 +378,9 @@ function(_cet_maybe_make_library)
     if (src_file_globs)
       # Invoke CONFIGURE_DEPENDS to force the build system to regenerate
       # if the result of this glob changes. Note that in the case of
-      # generated files (in and under ${CMAKE_CURRENT_BINARY_DIR}, this
+      # generated files (in and under ${CMAKE_CURRENT_BINARY_DIR}), this
       # can only be accurate for files generated at configure rather
-      # than build time.
+      # than generate or build time.
       file(GLOB CM_LIB_SOURCE CONFIGURE_DEPENDS ${src_file_globs})
     endif()
     cet_exclude_files_from(CM_LIB_SOURCE ${CM_EXCLUDE} NOP

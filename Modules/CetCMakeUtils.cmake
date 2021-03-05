@@ -356,8 +356,8 @@ function(cet_timestamp VAR)
       ERROR_VARIABLE error
       RESULT_VARIABLE status)
     if (error OR NOT (status EQUAL 0 AND result))
-      message(WARNING "attempt to obtain local timezone code with \"${date_cmd}\" \
-returned status code ${status} and error output \"${error}\" in addition to output \"${TZ_OUTPUT}\"\
+      message(WARNING "attempt to obtain date/time with \"${date_cmd}\" \
+returned status code ${status} and error output \"${error}\" in addition to output \"${result}\"\
 ")
     endif()
   else()
