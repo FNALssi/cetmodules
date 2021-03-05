@@ -11,7 +11,7 @@ the current project.
 include_guard(DIRECTORY)
 
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
 include(CetRegexEscape)
 
@@ -200,7 +200,11 @@ old-style variables for library targets\
   # cmake_install.cmake files per UPS conventions.
   string(APPEND CMAKE_INSTALL_PREFIX \"/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}\")\
 ")
-  elseif (NOT WANT_UPS)
+    # Install a delayed installation of a delayed function call to fix
+    # legacy installations.
+    cmake_language(DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL
+      cmake_language DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL _restore_install_prefix)
+  else()
     # Define a fallback macro in case of layer 8 issues.
     macro(process_ups_files)
       message(FATAL_ERROR
@@ -316,6 +320,39 @@ function(_use_maybe_unused)
     if (${var})
     endif()
   endforeach()
+endfunction()
+
+function(_restore_install_prefix)
+  message(VERBOSE "Executing delayed install(CODE...)")
+  # With older CMakeLists.txt files, deal with low level install()
+  # invocations with an extra "${project}/${version}"
+  install(CODE "\
+# Detect misplaced installs from older, cetbuildtools-using packages.
+  if (IS_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\")
+    message(VERBOSE \"tidying legacy installations: relocate ${product}/${version}/*\")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar c \"../../${product}_${version}-tmpinstall.tar\" .
+                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\"
+                    COMMAND_ERROR_IS_FATAL ANY)
+    file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xv \"${product}_${version}-tmpinstall.tar\"
+                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
+                    COMMAND_ERROR_IS_FATAL ANY)
+    file(REMOVE \"\${CMAKE_INSTALL_PREFIX}/${product}_${version}-tmpinstall.tar\")
+  endif()
+
+  # We need to reset CMAKE_INSTALL_PREFIX to its original value at this
+  # time.
+  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)
+  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)\
+")
+  cet_regex_escape("/${product}/${version}" e_pv 1)
+  # Fix the install manifest at the top level.
+  cmake_language(EVAL CODE "\
+cmake_language(DEFER DIRECTORY \"${CMAKE_SOURCE_DIR}\" CALL
+  install CODE \"\
+list(TRANSFORM CMAKE_INSTALL_MANIFEST_FILES REPLACE \\\"${e_pv}${e_pv}\\\" \\\"/${product}/${version}\\\")\
+\")\
+")
 endfunction()
 
 cmake_policy(POP)

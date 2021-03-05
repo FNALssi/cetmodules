@@ -44,15 +44,24 @@
 include_guard(DIRECTORY)
 
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19.6 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetPackagePath)
 include(Compatibility)
 include(GenerateFromFragments)
 
-# Generate config and version files for the current project.
 function(cet_cmake_config)
+  # Delay the call until we're (almost) done with the project.
+  cmake_language(EVAL CODE "
+    cmake_language(DEFER DIRECTORY \"${PROJECT_SOURCE_DIR}\"
+      CALL _cet_cmake_config_impl ${ARGV})\
+")
+endfunction()
+
+# Generate config and version files for the current project.
+function(_cet_cmake_config_impl)
+  message(VERBOSE "Executing delayed generation of config files")
   project_variable(NOARCH TYPE BOOL
     DOCSTRING "If TRUE, ${PROJECT_NAME} is (at least nominally) architecture-independent.")
   # Save CMAKE_MODULE_PATH for later.

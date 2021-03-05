@@ -9,25 +9,6 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  # Avoid double-dipping with older project CMakeLists.txt files.
-  if (WANT_UPS)
-    install(CODE "\
-# Detect misplaced installs from older, cetbuildtools-using packages.
-  if (product AND version AND IS_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/\${product}/\${version}\")
-    message(VERBOSE \"Tidying legacy installations: remove \${product}/\${version}/ \
-from install paths.\")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar c -- .
-                    COMMAND ${CMAKE_COMMAND} -E tar xv -C ../..
-                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
-                    COMMAND_ERROR_IS_FATAL)
-  endif()
-
-  # We need to reset CMAKE_INSTALL_PREFIX to its original value at this
-  # time.
-  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)
-  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)\
-")
-  endif()
   if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     if (CETMODULES_CONFIG_CPACK_MACRO)
       cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
