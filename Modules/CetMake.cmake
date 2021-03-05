@@ -130,6 +130,9 @@ function(cet_make)
   if (NOT (CM_NO_LIB OR "LIB_SOURCE" IN_LIST CM_KEYWORDS_MISSING_VALUES))
     # We want a library.
     _cet_maybe_make_library()
+    if (CM_LIBRARY_NAME_VAR)
+      set(${CM_LIBRARY_NAME_VAR} "${${CM_LIBRARY_NAME_VAR}}" PARENT_SCOPE)
+    endif()
   endif()
   if (CM_LIB_ONLY)
     return()
@@ -388,6 +391,9 @@ function(_cet_maybe_make_library)
     set(cml_args)
     # Simple passthrough.
     cet_passthrough(IN_PLACE CM_LIBRARY_NAME)
+    if (CM_LIBRARY_NAME_VAR)
+      list(APPEND cml_args LIBRARY_NAME_VAR "${CM_LIBRARY_NAME_VAR}")
+    endif()
     cet_passthrough(APPEND CM_SO_VERSION cml_args)
     foreach (kw IN ITEMS BASENAME_ONLY INSTALL_LIBS_ONLY
         USE_PROJECT_NAME WITH_STATIC_LIBRARY)
@@ -407,6 +413,9 @@ function(_cet_maybe_make_library)
       ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${cml_args}
       LIBRARIES ${CM_LIBRARIES} ${CM_LIB_LIBRARIES} NOP
       SOURCE ${CM_LIB_SOURCE})
+    if (CM_LIBRARY_NAME_VAR)
+      set(${CM_LIBRARY_NAME_VAR} "${${CM_LIBRARY_NAME_VAR}}" PARENT_SCOPE)
+    endif()
   endif()
 endfunction()
 
