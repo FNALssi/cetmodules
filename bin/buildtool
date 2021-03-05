@@ -970,7 +970,8 @@ source "$CETPKG_BUILD/cetpkg_info.sh" || \
 
 # Which build system does the package think it is using?
 OIFS="${IFS}"; IFS=';'
-if [[ "$CETPKG_SOURCE" = "${MRB_SOURCE}" ]]; then
+if [[ "$CETPKG_SOURCE" = "$MRB_SOURCE" ]] || \
+  [[ "$CETPKG_CMAKE_PROJECT" = "cetbuildtools" ]]; then
   build_system_pkg=cetmodules
 elif [[ ${CETPKG_BUILD_ONLY_DEPS[*]:+"${CETPKG_BUILD_ONLY_DEPS[*]};"}${CETPKG_CMAKE_PROJECT} =~ \
   (^|;)(cetmodules|cetbuildtools)(;|$) ]]; then

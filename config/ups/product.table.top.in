@@ -18,9 +18,5 @@ Group:
 Common:
 
   Action = Setup
-    ##################
-    # Basic common setup.
-    prodDir()
-    setupEnv()
-    envSet(${UPS_PROD_NAME_UC}_VERSION, @AT@@PROJECT_NAME@_UPS_PRODUCT_VERSION@AT@)
+@UPS_SETUP_PREAMBLE@    envSet(${UPS_PROD_NAME_UC}_VERSION, @AT@@PROJECT_NAME@_UPS_PRODUCT_VERSION@AT@)
 @SETUP_DEPENDENCIES@@TABLE_VARS@

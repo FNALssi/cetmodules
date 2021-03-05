@@ -292,6 +292,15 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
 
     # Generate the UPS table file from its fragments.
     cet_localize_pv(cetmodules CONFIG_DIR)
+    set(UPS_SETUP_PREAMBLE "\
+    ##################
+    # Basic common setup.\n\
+")
+    # cetbuildtools is special, because we preempt it.
+    if (NOT PROJECT_NAME STREQUAL cetbuildtools)
+      string(APPEND UPS_SETUP_PREAMBLE "    prodDir()\n")
+    endif()
+    string(APPEND UPS_SETUP_PREAMBLE "    setupEnv()\n")
     generate_from_fragments("${PROJECT_BINARY_DIR}/${table_file}"
       NO_FRAGMENT_DELIMITERS
       FRAGMENTS

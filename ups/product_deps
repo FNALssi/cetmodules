@@ -18,6 +18,8 @@ qualifier	cmake	ninja	cetpkgsupport
 end_qualifier_list
 
 table_fragment_begin
+    # Masquerade as cetbuildtools.
+    envSet(CETBUILDTOOLS_DIR,${CETMODULES_DIR})
 table_fragment_end
 
 # Preserve tabs and formatting in emacs and vi / vim:

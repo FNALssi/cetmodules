@@ -995,7 +995,7 @@ sub print_dep_setup {
     my $dep_info = $deps->{$dep};
     my $fh;
     if ($dep_info->{only_for_build}) {
-      next if $dep eq "cetmodules"; # Dealt with elsewhere.
+      next if $dep =~ m&^cet(buildtools|modules)$&; # Dealt with elsewhere.
       $fh = $only_cmds_fh;
     } else {
       $fh = $setup_cmds_fh;
