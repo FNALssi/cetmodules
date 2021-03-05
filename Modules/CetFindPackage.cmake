@@ -74,7 +74,8 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 macro(cet_find_package)
   cmake_parse_arguments(_CFP "BUILD_ONLY;INTERFACE;PRIVATE;PUBLIC"
     "" "REQUIRED_BY" "${ARGN}")
-  if (NOT (_CFP_INTERFACE OR _CFP_PRIVATE OR _CFP_BUILD_ONLY))
+  if (CET_CETBUILDTOOLS_COMPAT OR
+      NOT (_CFP_INTERFACE OR _CFP_PRIVATE OR _CFP_BUILD_ONLY))
     set(_CFP_PUBLIC TRUE)
   endif()
   if (CET_FIND_QUIET OR
