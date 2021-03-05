@@ -37,11 +37,8 @@ set(_simple_plugin_var_list CETLIB_EXCEPT HEP_CONCURRENCY CETLIB FHICLCPP
   MF_MESSAGELOGGER CANVAS ART_FRAMEWORK_CORE CANVAS_ROOT_IO ART_ROOT_IO)
 
 cet_find_package(messagefacility PRIVATE QUIET)
-if (messagefacility_FOUND AND TARGET messagefacility::MF_MessageLogger)
-  include(mfPlugin)
-  include(mfStatsPlugin)
-endif()
-
+include(mfPlugin OPTIONAL)
+include(mfStatsPlugin OPTIONAL)
 include(modulePlugin)
 include(pluginPlugin)
 include(servicePlugin)

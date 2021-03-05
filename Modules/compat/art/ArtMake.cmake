@@ -104,9 +104,9 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-include(CetMake)
-include(CetFindPackage)
 include(BuildPlugins)
+include(CetFindPackage)
+include(CetMake)
 
 ####################################
 # art_make_exec
@@ -119,18 +119,18 @@ endmacro(art_make_exec)
 ####################################
 # art_make_library
 ####################################
-function(art_make_library)
-  if ((ART_MAKE_PREPEND_PRODUCT_NAME OR # Historical compatibility.
-        ART_MAKE_PREPEND_PROJECT_NAME) AND NOT "${ARGV}" MATCHES
-      "(^|;)(LIBRARY|USE_PRO(DU|JE)CT)_NAME(;|$)")
-    list(PREPEND ARGV USE_PROJECT_NAME)
+macro(art_make_library)
+  set(_cet_aml_args "${ARGV}")
+  if (ART_MAKE_PREPEND_PRODUCT_NAME)
+    list(PREPEND _cet_aml_args USE_PROJECT_NAME)
   endif()
-  if ("${ARGV}" MATCHES "(^|;)(NO_)?SOURCE(;|$)")
-    cet_make_library(${ARGV})
+  if (_cet_aml_args MATCHES "(^|;)(NO_)?SOURCE(;|$)")
+    cet_make_library(${_cet_aml_args})
   else()
-    cet_make(LIB_ONLY ${ARGV})
+    cet_make(LIB_ONLY ${_cet_aml_args})
   endif()
-endfunction()
+  unset(_cet_aml_args)
+endmacro()
 
 ####################################
 # art_make
@@ -144,13 +144,10 @@ function(art_make)
   set(seen_art_make_flags "${ARGV}")
   list(FILTER seen_art_make_flags INCLUDE REGEX "${flags_regex}")
   list(TRANSFORM ARGV REPLACE "${flags_regex}" "NOP")
-  if ("USE_PRODUCT_NAME" IN_LIST seen_art_make_flags)
-    if ("LIBRARY_NAME" IN_LIST ARGV)
-      message(FATAL_ERROR "ART_MAKE: USE_PRODUCT_NAME and LIBRARY_NAME are mutually exclusive.")
-    elseif ("USE_PROJECT_NAME" IN_LIST seen_art_make_args)
-      message(WARNING "USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
-      list(REMOVE_ITEM seen_art_make_flags "USE_PRODUCT_NAME")
-    endif()
+  if ("USE_PRODUCT_NAME" IN_LIST seen_art_make_flags AND
+      "USE_PROJECT_NAME" IN_LIST seen_art_make_flags)
+    message(WARNING "USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
+    list(REMOVE_ITEM seen_art_make_flags "USE_PRODUCT_NAME")
   endif()
   foreach (flag IN LISTS seen_art_make_flags)
     set(AM_${flag} ${flag})
@@ -265,7 +262,7 @@ function(art_make)
 
   # Find sources for a library and make it.
   if (NOT AM_NO_LIB)
-    art_make_library(${cet_make_args})
+    art_make_library(${cet_make_args} LIBRARY_NAME_VAR library_name)
   endif()
 
   # Finish off with the dictionary.
@@ -273,7 +270,7 @@ function(art_make)
       EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes.h" AND
       EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml")
     include(ArtDictionary)
-    art_dictionary(${dict_args})
+    art_dictionary(${dict_args} DICTIONARY_LIBRARIES PRIVATE ${library_name})
   endif()
 endfunction()
 

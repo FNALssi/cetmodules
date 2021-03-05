@@ -30,7 +30,7 @@ Define CMake function ${BASE}(NAME) or variable ${BASE}_LIBRARIES before calling
       REG art_plugin_types::serviceDefinition)
   else()
     # Older art suites.
-    set(deps CONDITIONAL
+    set(deps PUBLIC
       art_Framework_Services_Registry
       art_Persistency_Common
       art_Utilities
