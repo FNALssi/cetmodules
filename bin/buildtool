@@ -301,8 +301,8 @@ MISC. OPTIONS.
   appropriate (overrides CETPKG_J if specified).
 
 -l
---log[=<log-file>]
---log-file[=<log-file>]
+--log[=<log-dir-or-filepath>]
+--log-file[=<log-dir-or-filepath>]
 
   All build output is redirected to the specified log-file, or one with
   a default name if no other is specified. Unless --quiet is also
@@ -421,7 +421,7 @@ maybe_redirect() {
 restore_output_streams() {
   eval 'printf "\n"' ${redirected:+1>&3}
   if (( redirected )); then
-    info "buildtool log ended at $(date)"
+    info "buildtool finished at $(date); log written to $log"
     exec 2>&4- 1>&3-
   fi
 }
@@ -903,10 +903,11 @@ while true; do
     -i|--install) (( no_build = 1 )); (( do_install = 1 ));;
     --info) (( want_info = 1 ));;
     -j) plevel="$2"; shift;;
-    -l) log="$log_default";;
+    -l) log="$log_default"; (( log_is_default = 1 ));;
     --log|--log-file) shift
       [ -d "$1" ] && log="$1/$log_default" || \
-        log="${1:-${log:-$log_default}}";;
+        log="${1:-${log:-$log_default}}"
+      [ "$1" = "${log%/*}" ] && (( log_is_default = 1 )) || unset log_is_default;;
     -p|--package) (( no_build = 1 )); (( do_package = 1 ));;
     -q|--quiet) (( quiet = 1 ));;
     -s|--subdir) subdir="$2"; shift;;
@@ -967,6 +968,17 @@ fi
 
 source "$CETPKG_BUILD/cetpkg_info.sh" || \
   fatal_error "error sourcing $CETPKG_BUILD/cetpkg_info.sh"
+
+if (( log_is_default )); then
+  # Update the default log file name with what we know.
+  log="$( cd "$(dirname "${log}")" && pwd)"
+  log_bits=("${log:+$log/}build_$CETPKG_NAME"
+    $CETPKG_VERSION
+    ${CETPKG_QUALSPEC//:/_}
+    ${log_default#build_}
+  )
+  OIFS="$IFS"; IFS="_"; log="${log_bits[*]}"; IFS="$OIFS"
+fi
 
 # Which build system does the package think it is using?
 OIFS="${IFS}"; IFS=';'
