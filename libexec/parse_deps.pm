@@ -1205,11 +1205,14 @@ sub write_table_deps {
 sub write_table_frag {
   my ($parent, $pfile) = @_;
   my $fraglines = get_table_fragment($pfile);
-  return 1 unless $fraglines and scalar @$fraglines;
-  open(my $fh, ">", "table_frag_$parent") or return;
-  print $fh join("\n", @$fraglines), "\n";
-  close($fh);
-  1;
+  if ($fraglines and scalar @$fraglines) {
+    open(my $fh, ">", "table_frag_$parent") or return;
+    print $fh join("\n", @$fraglines), "\n";
+    close($fh);
+  } else {
+    unlink("table_frag_$parent");
+    1;
+  }
 }
 
 sub cmake_cetb_compat_defs {
