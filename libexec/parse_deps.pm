@@ -1032,24 +1032,35 @@ EOF
 
 sub print_dep_setup_one {
   my ($dep, $dep_info, $out) = @_;
-  my $ql =
-    sprintf(" -q +\%s",
-            join(":+", split(':', $dep_info-> {qualspec} || '')));
   my $thisver =
     (not $dep_info->{version} or $dep_info->{version} eq "-") ? "" :
       $dep_info->{version};
+  my @setup_options =
+    (exists $dep_info->{setup_options} and $dep_info->{setup_options}) ?
+     @{$dep_info->{setup_options}} : ();
+  my @prodspec =
+    ("$dep", "$thisver");
+  my $qualstring = join(":+", split(':', $dep_info-> {qualspec} || ''));
+  push @prodspec, '-q', $qualstring if $qualstring;
   print $out "# > $dep <\n";
   if ($dep_info->{optional}) {
-    print $out <<"EOF";
+    my $prodspec_string = join(' ', @prodspec);
+    printf $out <<"EOF";
 # Setup of $dep is optional.
-ups exist $dep $thisver$ql
+ups exist $prodspec_string
 test "\$?" != 0 && \\
-  echo \QINFO: skipping missing optional product $dep $thisver$ql\E || \\
+  echo \QINFO: skipping missing optional product $prodspec_string\E || \\
 EOF
     print $out "  ";
   }
-  print $out "setup -B $dep $thisver$ql; ";
-  setup_err($out, "setup -B $dep $thisver$ql failed");
+  my $setup_cmd = join(' ', qw(setup -B), @prodspec, @setup_options);
+  if (scalar @setup_options) {
+    # Work around bug in ups active -> unsetup_all for UPS<=6.0.8.
+    $setup_cmd=sprintf('%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
+                       "$setup_cmd", ("SETUP_\U$dep\E") x 2);
+  }
+  print $out "$setup_cmd; ";
+  setup_err($out, "$setup_cmd failed");
 }
 
 sub setup_err {
@@ -1161,12 +1172,15 @@ EOF
 
 sub table_dep_setup {
   my ($dep, $dep_info, $fh) = @_;
-  printf $fh
-    "setup%s(%s %s -q+%s)\n",
-      $dep_info->{optional} ? "Optional" : "Required",
-        $dep,
-          $dep_info->{version},
-            join(":+", split(':', $dep_info->{qualspec} || ''));
+  my @setup_cmd_args =
+    ($dep,
+     ($dep_info->{version} ne '-c') ? $dep_info->{version} : (),
+     $dep_info->{qualspec} ?
+     ('-q', sprintf("+%s", join(":+", split(':', $dep_info->{qualspec} || '')))) :
+     ());
+  printf $fh "setup%s(%s)\n",
+    ($dep_info->{optional}) ? "Optional" : "Required",
+      join(' ', @setup_cmd_args);
 }
 
 sub var_stem_for_dirkey {
