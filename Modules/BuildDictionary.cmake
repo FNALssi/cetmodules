@@ -16,7 +16,7 @@ generate a ROOT dictionary from a selection XML
 include_guard(DIRECTORY)
 
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
 include(CetPackagePath)
 include(CetProcessLiblist)
@@ -109,7 +109,7 @@ function(build_dictionary)
     "${_cet_build_dictionary_flags}"
     "${_cet_build_dictionary_one_arg_options}"
     "${_cet_build_dictionary_list_options}")
-  list(POP_FRONT dictname)
+  list(POP_FRONT BD_UNPARSED_ARGUMENTS dictname)
   if (BD_UNPARSED_ARGUMENTS)
 	  message(FATAL_ERROR  "build_dictionary: too many arguments: \"${BD_UNPARSED_ARGUMENTS}\" from \"${ARGV}\" \n ${build_dictionary_usage}")
   endif()
