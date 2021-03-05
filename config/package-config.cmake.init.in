@@ -1,5 +1,4 @@
 ###############################################################################@AT@PACKAGE_INIT@AT@
 
-
 # Make find_dependency() macro available.
 include(CMakeFindDependencyMacro)
