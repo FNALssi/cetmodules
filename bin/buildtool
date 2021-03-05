@@ -714,17 +714,17 @@ ${tred:+| tred} > \"$gfile\""
 
   if (( do_test )); then
     stage=test
-    local status= build_testing=
+    local status= build_testing= skip_msg=
     build_testing=$(cmake_var BUILD_TESTING)
     status=$?
-    if (( status )) || ! [ -f "$CETPKG_BUILD/CTestTestfile.cmake" ]; then
-      local skip_msg=
-      if (( status == 0 )) && \
-        [[ "$build_testing" =~ ^(0|OFF|NO?|FALSE|IGNORE|(.+-)?NOTFOUND)?$ ]]; then
-        skip_msg=" SKIPPED: BUILD_TESTING set FALSE in CMake Cache"
-      else
-        skip_msg=" SKIPPED: no tests configured"
-      fi
+    if ! { (( status == 0 )) || [ -f "$CETPKG_BUILD/CTestTestfile.cmake" ]; }; then
+      skip_msg=" SKIPPED: no tests configured"
+    elif  [[ "$build_testing" =~ ^(0|OFF|NO?|FALSE|IGNORE|(.+-)?NOTFOUND)?$ ]]; then
+      skip_msg=" SKIPPED: BUILD_TESTING set FALSE in CMake Cache"
+    elif (( do_test > 1 )) && (( short_circuit )); then
+      skip_msg=" SKIPPED per --short-circuit"
+    fi
+    if [ -n "${skip_msg}" ]; then
       announce_stage "$skip_msg"
       unset do_test
     else
@@ -1053,8 +1053,8 @@ fi
 
 # Did we specify all?
 if (( all )); then
-  (( do_build = 1 ))
-  (( do_test = 1 ))
+  (( do_build = 2 ))
+  (( do_test = 2 ))
   (( do_install = 1 ))
   (( do_package = 1 ))
 else
