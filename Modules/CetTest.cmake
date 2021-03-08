@@ -269,7 +269,7 @@
 include_guard(DIRECTORY)
 
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 # Copy function.
 include(CetCopy)

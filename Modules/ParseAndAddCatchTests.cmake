@@ -44,7 +44,10 @@
 #==================================================================================================#
 
 cmake_policy(PUSH)
-cmake_policy(VERSION 2.8.8)
+cmake_policy(VERSION 2.8.12)
+if (POLICY CMP0110)
+  cmake_policy(SET CMP0110 NEW)
+endif()
 
 option(PARSE_CATCH_TESTS_VERBOSE "Print Catch to CTest parser debug messages" OFF)
 option(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS "Exclude tests with [!hide], [.] or [.foo] tags" OFF)

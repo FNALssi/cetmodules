@@ -62,14 +62,18 @@ find_package(TBB NO_MODULE)
 # Add some information depending on whether we have the UPS/SciSoft or
 # TBB-official config file.
 if (TBB_FOUND)
-  if (NOT TBB_FIND_COMPONENTS)
-    set(TBB_FIND_COMPONENTS "tbb;tbbmalloc;tbbmalloc_proxy")
-    foreach (_cet_tbb_component IN LISTS TBB_FIND_COMPONENTS)
-      set(TBB_FIND_REQUIRED_${_cet_tbb_component} TRUE)
-    endforeach()
+  if (TBB_DIR AND EXISTS "${TBB_DIR}/../../../../ups/tbb.table" AND
+      2021.1.1 VERSION_GREATER ${TBB_VERSION})
+    set(_cet_tbb_fnal_config TRUE)
+    if (NOT TBB_FIND_COMPONENTS)
+      set(TBB_FIND_COMPONENTS "tbb;tbbmalloc;tbbmalloc_proxy")
+      foreach (_cet_tbb_component IN LISTS TBB_FIND_COMPONENTS)
+        set(TBB_FIND_REQUIRED_${_cet_tbb_component} TRUE)
+      endforeach()
+    endif()
   endif()
   foreach(_cet_tbb_component IN LISTS TBB_FIND_COMPONENTS)
-    if (TBB AND EXISTS "$ENV{TBB_LIB}")
+    if (_cet_tbb_fnal_config)
       if (TBB_${_cet_tbb_component}_FOUND)
         continue()
       elseif (TARGET TBB::${_cet_tbb_component})
@@ -99,9 +103,10 @@ if (TBB_FOUND)
     endif()
   endforeach()
 endif()
+unset(_cet_tbb_fnal_config)
 
 ##################
-# UPS config file provided two functions—we should at least stub
+# FNAL config file provided two functions—we should at least stub
 # them out:
 set(_cet_tbb_err_msg " is obsolete: use \
 check_cxx_compiler_flag() (include(CheckCXXCompilerFlag)), \
