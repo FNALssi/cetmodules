@@ -129,11 +129,28 @@ set ${PROJECT_NAME}_LIBRARY_DIR.
   endif()
   ####################################
   # Packaging.
-  if (PROJECT_BINARY_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-    # Protected against legacy call from UPS directory.
-    include(UseCPack)
-  endif()
+  _configure_cpack()
 endfunction()
+
+macro(_configure_cpack)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+      if (CETMODULES_CONFIG_CPACK_MACRO)
+        cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
+        include(CPack)
+      else()
+        message(WARNING "automatic configuration of CPack is supported only for WANT_UPS builds at this time")
+      endif()
+    else()
+      message(VERBOSE "\
+automatic configuration of CPack is not supported for subprojects at \
+this time ($(CMAKE_PROJECT_NAME) -> ${PROJECT_NAME}\
+")
+    endif()
+  else()
+    message(WARNING "Invocation of UseCPack.cmake is supported from top-level project CMakeLists.txt ONLY")
+  endif()
+endmacro()
 
 # Add a separator to STRINGVAR iff it already has content.
 macro(_add_sep STRINGVAR)
