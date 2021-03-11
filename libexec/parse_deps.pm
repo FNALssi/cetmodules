@@ -855,8 +855,9 @@ sub get_cmake_project_info {
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
   open(CML, "<", "$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
   my $filedata = join('',<CML>);
+  close(CML);
   my ($prod, $ver) =
-    $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*([^\s)]+)(?:.*\s+VERSION\s+"?([^\s)]+)"?)?&ms;
+    $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*([^\s)]+)(?:[^)]*?\s+VERSION\s+"?([^\s)]+)"?)?&ms;
   error_exit("unable to find suitable CMake project() declaration in $cmakelists")
     unless $prod;
   $ver or $options{quiet_warnings} or
