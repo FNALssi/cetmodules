@@ -220,7 +220,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     if (TARGET Boost::unit_test_framework)
       target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
       # Belt and braces (cf historical bug in fhiclcpp tests).
-      target_compile_definitions(${CME_NAME} PRIVATE BOOT_TEST_NO_OLD_TOOLS)
+      target_compile_definitions(${CME_NAME} PRIVATE BOOST_TEST_NO_OLD_TOOLS)
     else()
       # *Someone* didn't use Boost's CMake config file to define targets.
       target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
