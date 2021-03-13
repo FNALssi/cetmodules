@@ -854,15 +854,85 @@ sub get_cmake_project_info {
   my ($pkgtop, %options) = @_;
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
   open(CML, "<", "$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
-  my $filedata = join('',<CML>);
+  my @buffer = <CML>;
   close(CML);
-  my ($prod, $ver) =
-    $filedata =~ m&^\s*(?:(?i)project)\s*\(\s*([^\s)]+)(?:[^)]*?\s+VERSION\s+"?([^\s)]+)"?)?&ms;
-  error_exit("unable to find suitable CMake project() declaration in $cmakelists")
-    unless $prod;
-  $ver or $options{quiet_warnings} or
-    warning("unable to extract version information from project call for $prod");
-  return ($prod, ${ver} || undef);
+  my ($proj_info, $version_info);
+  my $line = '';
+  # Try our best to be thorough.
+ lines:  while (scalar @buffer) {
+    $line = join('', $line, shift @buffer);
+    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>\S+)\s*&&s) {
+      # Enough of a project() call to start processing it.
+      $proj_info = { %+ };
+      # This loop will go over the remains of the project() call - over
+      # multiple lines if necessary - separating arguments and end-of
+      # line comments and storing them. Double-quoted arguments (even
+      # multi-line ones) are handled correctly. Note that the "++" in
+      # the clause matching double-quoted strings is *not* a benign
+      # typo: it is a "greedy" modifier responsible for preventing
+      # backtracking within that clause (e.g.) in the case of a dangling
+      # double-quote, so we don't wander off into alternate clauses.
+      while (1) {
+        if ($line =~ s&^(?P<args>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?:[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
+          push @{$proj_info->{args}}, join('', $+{args} // (), $+{nl} // ());
+        }
+        last if ($line =~ m&^\s*\)& or not scalar @buffer);
+        $line = join('', $line, shift @buffer);
+      }
+      error_exit("runaway trying to parse project() line in $cmakelists?")
+        unless $line =~ m&^\s*\)&;
+      $line = ''; # Clear for next loop, if there is one.
+      # Now separate multiple arguments on each line. We process the
+      # arguments in two passes like this for historical reasons and
+      # clarity.
+      my @all_args =
+        map { my $tmp = [];
+              pos() = undef;
+              my $endmatch = pos();
+              while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
+                last if ($endmatch // 0) == pos();
+                push $tmp, sprintf("$+{arg}%s", $+{nl} // '');
+                $endmatch = pos();
+              }
+              error_exit("Leftovers: >", substr($_, $endmatch // 0), "<")
+                unless length() == ($endmatch // 0);
+              $tmp;
+            } @{$proj_info->{args}};
+      my $VERSION_next;
+    all_args: foreach my $arg_group (@all_args) {
+        foreach my $arg (@$arg_group) {
+          if (not
+              $arg =~ m&^(?P<q>"?+)(?P<v>.*?)\k{q}(?P<nl>[\n]++)?+$&s) {
+            error_exit("argh");
+          }
+          if ($VERSION_next) {
+            $version_info = { %+ };
+            last lines;
+          } elsif ($+{v} eq "VERSION") {
+            $VERSION_next = 1;
+            next;
+          }
+        }
+      }
+    } elsif ($line =~ m&^(\s*(?i:project)\s*(?:\(\s*)?)(?:#[^\n]*)?$&s) {
+      # Possibly the beginnings of a project call.
+      $line = ${1};
+    } else { # Not interesting.
+      $line = '';
+    } # Analysis of $line.
+  } # Buffer entries.
+  if ($line) {
+    error_exit("failure parsing $cmakelists for project() call: unparse-able text:\n$line\n");
+  } elsif (not $proj_info) {
+    error_exit("unable to find suitable CMake project() declaration in $cmakelists")
+  } elsif (not $options{quiet_warnings}) {
+    if (not exists $version_info->{v}) {
+      warning("no VERSION keyword found in project() call in $cmakelists");
+    } elsif (not $version_info->{v}) {
+      warning("vacuous VERSION keyword found in project() call in $cmakelists");
+    }
+  }
+  return ($proj_info->{name} || undef, $version_info->{v} || undef);
 }
 
 sub ups_to_cmake {

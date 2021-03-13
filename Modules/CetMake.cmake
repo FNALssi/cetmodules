@@ -123,7 +123,7 @@ function(cet_make)
   ##################
   # Prepare common passthroughs.
   cet_passthrough(IN_PLACE CM_EXPORT_SET)
-  foreach (flag EXCLUDE_FROM_ALL NO_EXPORT NO_INSTALL VERSION)
+  foreach (flag EXCLUDE_FROM_ALL NO_EXPORT NO_INSTALL USE_PROJECT_NAME VERSION)
     cet_passthrough(FLAG IN_PLACE CM_${flag})
   endforeach()
   ##################
@@ -146,13 +146,13 @@ function(cet_make)
       include(BuildDictionary)
       build_dictionary(${CM_LIBRARY_NAME}
         DICTIONARY_LIBRARIES ${CM_DICT_LIBRARIES} NOP
-        ${CM_DICT_LOCAL_INCLUDE_DIRS}
+        ${CM_DICT_LOCAL_INCLUDE_DIRS} ${CM_USE_PROJECT_NAME}
         ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
     elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h")
       include(CetRootCint)
       cet_rootcint(${CM_LIBRARY_NAME}
-        ${CM_DICT_LOCAL_INCLUDE_DIRS}
+        ${CM_DICT_LOCAL_INCLUDE_DIRS} ${CM_USE_PROJECT_NAME}
         ${CM_EXPORT_SET} ${CM_NO_EXPORT} ${CM_NO_INSTALL}
         ${CM_VERSION})
     endif()
@@ -347,7 +347,7 @@ set_target_properties(${ns}::${target}
   endforeach()
 endfunction()
 
-function(_cet_verify_cet_make_args)
+macro(_cet_verify_cet_make_args)
   if (CM_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "cet_make(): unrecognized arguments ${CM_UNPARSED_ARGUMENTS}
 ${cet_make_usage}\
@@ -361,7 +361,7 @@ ${cet_make_usage}\
     set(CM_USE_PROJECT_NAME TRUE)
     unset(CM_USE_PRODUCT_NAME)
   endif()
-endfunction()
+endmacro()
 
 function(_cet_maybe_make_library)
   if (NOT (CM_NO_LIB_SOURCE OR CM_LIB_SOURCE))
@@ -396,7 +396,7 @@ function(_cet_maybe_make_library)
     endif()
     cet_passthrough(APPEND CM_SO_VERSION cml_args)
     foreach (kw IN ITEMS BASENAME_ONLY INSTALL_LIBS_ONLY
-        USE_PROJECT_NAME WITH_STATIC_LIBRARY)
+        WITH_STATIC_LIBRARY)
       cet_passthrough(FLAG APPEND CM_${kw} cml_args)
     endforeach()
     # Deal with synonyms.
@@ -410,7 +410,7 @@ function(_cet_maybe_make_library)
     cet_passthrough(APPEND KEYWORD ALIAS CM_LIB_ALIAS cml_args)
     # Generate the library.
     cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT_SET} ${CM_EXCLUDE_FROM_ALL}
-      ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${cml_args}
+      ${CM_NO_EXPORT} ${CM_NO_INSTALL} ${CM_VERSION} ${CM_USE_PROJECT_NAME} ${cml_args}
       LIBRARIES ${CM_LIBRARIES} ${CM_LIB_LIBRARIES} NOP
       SOURCE ${CM_LIB_SOURCE})
     if (CM_LIBRARY_NAME_VAR)

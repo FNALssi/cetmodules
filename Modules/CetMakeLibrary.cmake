@@ -45,25 +45,17 @@ function(cet_make_library)
       set(libname_bits "${prefix}")
     endif()
   endif()
-  if (NOT (libname_bits OR CML_USE_PROJECT_NAME))
+  if (CML_USE_PROJECT_NAME)
+    list(PREPEND libname_bits "${PROJECT_NAME}")
+  elseif (NOT libname_bits)
     message(FATAL_ERROR "cet_make_library() invoked from ${PROJECT_NAME} top directory: \
 LIBRARY_NAME or USE_PROJECT_NAME options required\
 ")
   endif()
   if (CML_TARGET_NAME STREQUAL "BASENAME")
     set(targetname_bits ${basename})
-  endif()
-  if (NOT CML_TARGET_NAME)
-    if (libname_bits)
-      set(targetname_bits "${libname_bits}")
-    else() # USE_PROJECT_NAME must be set to even get here.
-      set(targetname_bits "${PROJECT_NAME}")
-    endif()
-  endif()
-  # Leave this check last to avoid prepending the project name to the
-  # target name if we don't need it.
-  if (CML_USE_PROJECT_NAME)
-    list(PREPEND libname_bits "${PROJECT_NAME}")
+  elseif (NOT CML_TARGET_NAME)
+    set(targetname_bits "${libname_bits}")
   endif()
   # Sanitize.
   string(REGEX REPLACE "[/:;_]+" "_" CML_LIBRARY_NAME "${libname_bits}")
