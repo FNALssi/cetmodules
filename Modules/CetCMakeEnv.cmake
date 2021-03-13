@@ -277,6 +277,7 @@ endfunction()
 macro(_cetbuildtools_compatibility_early)
   set(product "${${PROJECT_NAME}_UPS_PRODUCT_NAME}")
   if (UPS_${product}_CMAKE_PROJECT_VERSION AND
+      PROJECT_VERSION AND
       NOT UPS_${product}_CMAKE_PROJECT_VERSION STREQUAL PROJECT_VERSION)
     if (COMMAND mrb_check_subdir_order) # Using mrb.
       set(_cce_problem "mrbsetenv was run")
