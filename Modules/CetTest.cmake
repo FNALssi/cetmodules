@@ -499,7 +499,7 @@ function(cet_test CET_TARGET)
     return()
   endif()
   # Parse arguments.
-  if (${CET_TARGET} MATCHES /)
+  if (CET_TARGET MATCHES /)
     message(FATAL_ERROR "${CET_TARGET} should not be a path. Use a simple "
       "target name with the HANDBUILT and TEST_EXEC options instead.")
   endif()
