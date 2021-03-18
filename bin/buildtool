@@ -1033,29 +1033,6 @@ if (( log_is_default )); then
   OIFS="$IFS"; IFS="_"; log="${log_bits[*]}"; IFS="$OIFS"
 fi
 
-# Which build system does the package think it is using?
-OIFS="${IFS}"; IFS=';'
-if [[ "$CETPKG_SOURCE" = "$MRB_SOURCE" ]] || \
-  [[ "$CETPKG_CMAKE_PROJECT" = "cetbuildtools" ]]; then
-  build_system_pkg=cetmodules
-elif [[ ${CETPKG_BUILD_ONLY_DEPS[*]:+"${CETPKG_BUILD_ONLY_DEPS[*]};"}${CETPKG_CMAKE_PROJECT} =~ \
-  (^|;)(cetmodules|cetbuildtools)(;|$) ]]; then
-  build_system_pkg=${BASH_REMATCH[2]}
-fi
-IFS="${OIFS}"; unset OIFS
-
-if [ -z "${build_system_pkg}" ]; then
-  fatal_error "unable to identify a recognized build system package (cetmodules|cetbuildtools) for use with buildtool."
-elif ! { [ "$CETPKG_SOURCE" = "$MRB_SOURCE" ] || grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
-  -e '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" | head -n 1 | \
-  grep -qEie '^[[:space:]]*(project|find_package)[[:space:]]*\([[:space:]]*'"$build_system_pkg"'\b'; } 2>/dev/null; then
-  [ "${build_system_pkg}" = "cetmodules" ] && \
-    warning "find_package($build_system_pkg) must *precede* project() call in
-             order to enable clean override of toolchain compile options
-             (mitigated by buildtool)."
-  CETPKG_CMAKE_ARGS+=(-DCET_BUILD_SYSTEM=${build_system_pkg} -DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/FindBuildSystemPackage.cmake)
-fi
-
 ##################
 # Argument consistency checks.
 (( force_top )) && [ -n "$subdir" ] && \

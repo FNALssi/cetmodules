@@ -14,14 +14,14 @@ use strict;
 use warnings;
 use warnings::register;
 
+use Cwd qw(abs_path);
+use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK);
 
 use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
-
-use File::Basename qw(basename dirname);
 
 $pathspec_info =
   {
@@ -952,6 +952,29 @@ sub ups_to_cmake {
      error_exit("unrecognized compiler qualifier $pi->{cqual}"));
 
   my @cmake_args=();
+
+  ##################
+  # Build system bootstrap.
+  my $bootstrap;
+  if ($pi->{build_only_deps} and
+      grep { $_ eq 'cetbuildtools'; } @{$pi->{build_only_deps}}) {
+    push @cmake_args, @{cmake_cetb_compat_defs()};
+    $bootstrap = "BootstrapCetbuildtools.cmake";
+  } elsif ($pi->{cmake_project} ne "cetmodules" and not
+           ($ENV{MRB_SOURCE} and
+            $ENV{CETPKG_SOURCE} eq $ENV{MRB_SOURCE})) {
+    $bootstrap = "BootstrapCetmodules.cmake";
+  }
+  if ($bootstrap) {
+    my $src_modules_dir =
+      File::Spec->catfile($ENV{MRB_SOURCE}, 'cetmodules', 'Modules');
+    push @cmake_args,
+      sprintf("-DCMAKE_PROJECT_$pi->{cmake_project}_INCLUDE_BEFORE=%s",
+              abs_path(File::Spec->catfile
+                       ((($ENV{MRB_SOURCE} and -d $src_modules_dir) ?
+                         $src_modules_dir : ($ENV{CETMODULES_DIR}, 'Modules')),
+                        $bootstrap)));
+  }
 
   ##################
   # UPS-specific CMake configuration.
