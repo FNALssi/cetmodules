@@ -121,39 +121,18 @@ function(_add_transitive_dependency FIRST_ARG)
     unset(docstring_extra)
   endif()
   # Set up the beginning of the call.
-  set(find_dep_string "find_dependency(")
-  string(LENGTH "${find_dep_string}" cursor)
-  set(indent 4)
-  string(REPEAT " " ${indent} fill)
-  # Add each arg in turn, keeping line length below 72 if possible.
-  foreach (arg IN LISTS DEP ARGN)
-    string(LENGTH "${arg}" arglen)
-    math(EXPR new_cursor "${cursor} + ${arglen} + 1")
-    if (new_cursor LESS_EQUAL 72)
-      set(cursor ${new_cursor})
-    else()
-      # Strip trailing whitespace and start a new indented line.
-      string(REGEX REPLACE " +$" ""
-        find_dep_string "${find_dep_string}")
-      list(APPEND ${cache_var} "${find_dep_string}")
-      set(find_dep_string "${fill}")
-      math(EXPR cursor "${indent} + ${arglen} + 1")
-    endif()
-    # Print an argument with trailing space.
-    string(APPEND find_dep_string "${arg} ")
-  endforeach()
-  # Strip the trailing space before closing the function call.
-  string(REGEX REPLACE " +$" ""
-    find_dep_string "${find_dep_string}")
+  list(APPEND DEP ${ARGN})
+  list(JOIN DEP " " tmp)
+  set(find_dep_string "find_dependency(${tmp})")
   list(APPEND ${cache_var} "${find_dep_string}")
   if (NOT DEFINED CACHE{${cache_var}})
-    set(${cache_var} "${${cache_var}})" CACHE INTERNAL
+    set(${cache_var} "${${cache_var}}" CACHE INTERNAL
       "Transitive dependency directives for ${PROJECT_NAME}\
 ${docstring_extra}\
 ")
   else()
     set_property(CACHE ${cache_var}
-      PROPERTY VALUE "${${cache_var}})")
+      PROPERTY VALUE "${${cache_var}}")
   endif()
 endfunction()
 
