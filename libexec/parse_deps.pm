@@ -465,13 +465,15 @@ sub get_qualifier_list {
 
 sub get_qualifier_matrix {
   my ($qlen, $qlist, $notes) = get_qualifier_list(shift);
-  my ($qhash, $qqhash, $nhash); # (by-column, by-row, notes)
-  my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
-  $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
-  $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @$qlist };
-  my @headers = (@prods, shift @$notes || ());
-  $nhash = { map { ( $_->[0] => (shift @$notes or '')); } @$qlist };
-  return ($qlen, $qhash, $qqhash, $nhash, \@headers);
+  my ($qhash, $qqhash, $nhash, $headers); # (by-column, by-row, notes, headers)
+  if ($qlist and scalar @$qlist) {
+    my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
+    $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
+    $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @$qlist };
+    $headers = [@prods, shift @$notes || ()];
+    $nhash = { map { ( $_->[0] => (shift @$notes or '')); } @$qlist };
+  }
+  return ($qlen, $qhash, $qqhash, $nhash, $headers);
 }
 
 sub match_qual {
