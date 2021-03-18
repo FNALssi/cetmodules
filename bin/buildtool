@@ -51,10 +51,11 @@ Misc options: [-D<CMake-definition>]+
               [--clean-logs]
               [--cmake-debug]
               [--cmake-trace]
+              [--cmake-trace-expand]
               [--deleted-header[s] <header>[,<header>]+]
               [-f|--force-top]
               [-g|--graphviz=<dot-file> [--gfilt <gfilt-opt>[,<gfilt-opt>]+]]
-              [[--generator <make|ninja>[:<secondary-generator>]]
+              [--generator <make|ninja>[:<secondary-generator>]]
               [-j #]
               [-l|--log[=<log-file>]|--log-file[=<log-file>]]
               [-q|--quiet]
@@ -224,6 +225,10 @@ MISC. OPTIONS.
 --cmake-trace
 
   Add --trace to the CMake command line options.
+
+--cmake-trace-expand
+
+  Add --trace-expand to the CMake command line options.
 
 --deleted-header[s] <header>[,<header>]+
 
@@ -764,7 +769,7 @@ ${tred:+| tred} > \"$gfile\""
       test_specs="${l_regex:+--L \"$l_regex\"}"
       [ -n "$le_regex" ] && test_specs="${test_specs:+$test_specs }--LE \"$le_regex\""
     fi
-    warning "test label specifications $test_specs ignored since tests are not enabled"
+    warning "test label specifications $test_specs ignored since tests are skipped"
   fi
   if (( do_install )); then
     stage_ip install
