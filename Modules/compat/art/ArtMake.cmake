@@ -106,6 +106,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 include(BuildPlugins)
 include(CetMake)
+include(Compatibility)
 
 ####################################
 # art_make_exec
@@ -114,6 +115,16 @@ macro(art_make_exec)
   warn_deprecated("art_make_exec()" NEW "cet_make_exec")
   cet_make_exec(${ARGV})
 endmacro(art_make_exec)
+
+if (NOT COMMAND cet_test)
+  macro(cet_test)
+    message(WARNING "cet_test() called without an explicit include(CetTest) - mitigating.
+This will be an error in a future version of cetmodules\
+")
+    include(CetTest)
+    cet_test(${ARGV})
+  endmacro(cet_test)
+endif()
 
 ####################################
 # art_make_library
