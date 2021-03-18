@@ -56,6 +56,7 @@ sub check_for_old_product_deps {
 
 sub maybe_convert_cetbuildtools_args {
   my @result = ();
+  my $options = shift;
   if (basename(dirname($0)) eq 'bin') {
     # cetbuildtools-style setup_for_development.
     my ($s, $b) = (shift, shift);
@@ -69,8 +70,7 @@ sub maybe_convert_cetbuildtools_args {
       error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }
     if ($_[0] eq "noarch") {
-      shift;
-      unshift(@_, '--nobuild');
+      $options->{noarch} = 1
     }
   }
   return (@_);
@@ -121,7 +121,7 @@ if (check_for_old_product_deps($pfile)) {
 # Requested build types and the way they were specified.
 my $input_btypes = {};
 
-@ARGV = maybe_convert_cetbuildtools_args(@ARGV);
+@ARGV = maybe_convert_cetbuildtools_args($options, @ARGV);
 
 # Single letter options for build type (d, o, p).
 my $btype_lookup = { map { (substr($_, 0, 1) => $_) } keys %$btype_table };
@@ -141,6 +141,16 @@ if (scalar keys %$input_btypes > 1) {
 
 # Get information from the product_deps file.
 my $pi = get_parent_info($pfile);
+if ($options->{noarch}) {
+  my $msg = "'set_dev_products noarch' (from old noarch variant of setup_for_development) is deprecated.";
+  if (not ($pi->{noarch} or $pi->{no_fq_dir})) {
+    $msg = "${msg}
+Use 'no_fq_dir' (no EXEC_PREFIX) or 'noarch' (EXEC_PREFIX=noarch-<quals>) in ups/product_deps
+Setting $pi->{no_fq_dir} for backward compatibility.";
+    $pi->{no_fq_dir} = 1;
+  }
+}
+
 my ($phash) = get_product_list($pfile);
 my ($ndeps, $qhash, $qqhash) = get_qualifier_matrix($pfile);
 
@@ -186,8 +196,9 @@ get_derived_parent_data($pi, $sourcedir,
                         $build_type || ());
 
 # Check for compiler.
-my $compiler = $pi->{noarch} ? undef :
-  compiler_for_quals($qhash->{compiler}, $pi->{qualspec});
+my $compiler;
+$compiler = compiler_for_quals($qhash->{compiler}, $pi->{qualspec})
+  if $qhash->{compiler} && ! $pi->{noarch};
 
 # Check whether we have a suitable line in the qualifier table.
 if ($pi->{qualspec} and
