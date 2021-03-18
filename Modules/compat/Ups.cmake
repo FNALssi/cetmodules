@@ -86,14 +86,6 @@ if (NOT WANT_UPS)
     " use buildtool)")
 endif()
 
-# Set up the correspondences for some otherwise problematic packages.
-set(UPS_cppunit_CMAKE_PROJECT_NAME CppUnit)
-set(UPS_range_CMAKE_PROJECT_NAME Range)
-set(UPS_smc_compiler_CMAKE_PROJECT_NAME Smc)
-set(UPS_sqlite_CMAKE_PROJECT_NAME SQLite3)
-set(UPS_tbb_CMAKE_PROJECT_NAME TBB)
-set(UPS_xerces_c_CMAKE_PROJECT_NAME XercesC)
-
 function(process_ups_files)
   if (NOT UPS_TAR_DIR)
     message(FATAL_ERROR "Set the CMake variable WANT_UPS prior to including"

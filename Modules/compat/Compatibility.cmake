@@ -77,6 +77,8 @@ function(set_dot_version PRODUCTNAME UPS_VERSION)
   warn_deprecated("set_dot_version()" " - refer to \${PROJECT_NAME}_VERSION instead")
   string(TOUPPER ${PRODUCTNAME} PRODUCTNAME_UC)
   to_dot_version(${UPS_VERSION} tmp)
+  # Remove FNAL-specific version trailer.
+  string(REGEX REPLACE [=[[a-z]+[0-9]*$]=] "" tmp "${tmp}")
   if (${PRODUCTNAME_UC}_DOT_VERSION)
     message(WARNING "replacing existing value of ${PRODUCTNAME_UC}_DOT_VERSION (${${PRODUCTNAME_UC}_DOT_VERSION}) with ${tmp}")
   endif()

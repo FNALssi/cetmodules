@@ -17,7 +17,7 @@ if (NOT Range_FOUND)
   endif()
 endif()
 if (NOT Range_FOUND)
-  find_file(_cet_Range_hpp NAMES range.hpp HINTS ENV RANGE_INC
+  find_file(_cet_Range_hpp NAMES range_fwd.hpp HINTS ENV RANGE_INC
     PATH_SUFFIXES range/v3)
   if (_cet_Range_hpp)
     get_filename_component(_cet_Range_include_dir "${_cet_Range_hpp}" PATH)
