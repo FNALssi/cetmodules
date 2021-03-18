@@ -419,7 +419,7 @@ endforeach()\
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach (_expectedTarget IN ITEMS \
+foreach (_expectedTarget IN ITEMS\
 " "${tmp})" "\
   list(APPEND _expectedTargets \${_expectedTarget})
   if (NOT TARGET \${_expectedTarget})
