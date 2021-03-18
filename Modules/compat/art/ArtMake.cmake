@@ -107,6 +107,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 include(BuildPlugins)
 include(CetMake)
 include(Compatibility)
+include(CetTest)
 
 ####################################
 # art_make_exec
@@ -116,16 +117,6 @@ macro(art_make_exec)
   cet_make_exec(${ARGV})
 endmacro(art_make_exec)
 
-if (NOT COMMAND cet_test)
-  macro(cet_test)
-    message(WARNING "cet_test() called without an explicit include(CetTest) - mitigating.
-This will be an error in a future version of cetmodules\
-")
-    include(CetTest)
-    cet_test(${ARGV})
-  endmacro(cet_test)
-endif()
-
 ####################################
 # art_make_library
 ####################################
@@ -133,6 +124,9 @@ macro(art_make_library)
   set(_cet_aml_args "${ARGV}")
   if (ART_MAKE_PREPEND_PRODUCT_NAME)
     list(PREPEND _cet_aml_args USE_PROJECT_NAME)
+  endif()
+  if (ART_MAKE_LIBRARY_NO_BASENAME_ONLY)
+    list(REMOVE_ITEM _cet_aml_args BASENAME_ONLY)
   endif()
   if (_cet_aml_args MATCHES "(^|;)(NO_)?SOURCE(;|$)")
     cet_make_library(${_cet_aml_args})
