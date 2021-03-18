@@ -861,7 +861,7 @@ sub get_cmake_project_info {
   # Try our best to be thorough.
  lines:  while (scalar @buffer) {
     $line = join('', $line, shift @buffer);
-    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>\S+)\s*&&s) {
+    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>[^\s)]+)\s*&&s) {
       # Enough of a project() call to start processing it.
       $proj_info = { %+ };
       # This loop will go over the remains of the project() call - over
