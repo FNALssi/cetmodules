@@ -35,9 +35,9 @@ function(install_gdml)
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   if ("LIST" IN_LIST ARGN)
-    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}")
+    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR ${ARGN})
   else()
-    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR "${ARGN}"
+    _cet_install(gdml ${PROJECT_NAME}_GDML_DIR ${ARGN}
       _SQUASH_SUBDIRS _GLOBS "?*.gdml")
   endif()
 endfunction()
