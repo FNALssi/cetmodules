@@ -699,51 +699,58 @@ sub offset_annotated_items {
 #
 # alpha[[-_]NN] (alpha releases);
 # beta[[-_]NN] (beta releases);
-# rc[[-_]NN] or pre[[-_]NN] (prereleases);
+# rc[[-_]NN] or pre[[-_]NN] (pre-releases);
 # <empty>;
 # p[-_]NN or patch[[-_]NN] (patch releases);
 # Anything else.
 sub parse_version_extra {
-  my $vInfo = shift;
-  # Swallow optional _ or - separator to 4th field.
-  if (($vInfo->{micro} // '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
-    $vInfo->{micro} = "$1";
-  } else {
-    $vInfo->{micro} = undef;
-  }
-  my ($extra, $etext, $enum) = (${2} // "", ${3} // "", (defined ${2} and ${4} or -1));
+  my $vInfo = shift or die "INTERNAL ERROR in parse_version_extra()";
+  return $vInfo unless $vInfo->{extra};
+  my $etype = 0;
+  my ($etext, $enum) =
+    ($vInfo->{extra} =~ m&(\D*?)[-_.,]?(\d*)$&);
   if (not $etext) {
     $vInfo->{extra_type} = 0;
-  } elsif ($etext eq "patch" or ($enum >= 0 and $etext eq "p")) {
+  } elsif ($etext eq "patch" or
+           (defined $enum and $enum >= 0 and $etext eq "p")) {
     $vInfo->{extra_type} = 1;
-  } elsif ($etext eq "rc" or
-           $etext eq "pre") {
+    $etext = "patch";
+  } elsif ("\L$etext\E" eq "rc" or
+           "\L$etext\E" eq "pre") {
     $vInfo->{extra_type} = -1;
     $etext = "pre";
-  } elsif ($etext eq "beta") {
+  } elsif ("\L$etext\E" eq "gamma") {
     $vInfo->{extra_type} = -2;
-  } elsif ($etext eq "alpha") {
+  } elsif ("\L$etext\E" eq "beta") {
     $vInfo->{extra_type} = -3;
+  } elsif ("\L$etext\E" eq "alpha") {
+    $vInfo->{extra_type} = -4;
   } else {
     $vInfo->{extra_type} = 2;
   }
-  $vInfo->{extra} = $extra;
-  $vInfo->{extra_num} = $enum;
-  $vInfo->{extra_text} = $etext;
+  $vInfo->{extra_text} = ($etype < -1) ? "\L$etext\E" : "$etext";
+  $vInfo->{extra_num} = $enum || 0;
+  return $vInfo;
 }
 
 sub parse_version_string {
   my $dv = shift // "";
   $dv =~ s&^v&&o;
   my $result = {};
-  if ($dv) {
-    @{$result}{qw(major minor micro)} = split /[_.]/, $dv, 3;
-    parse_version_extra($result);
-  } else {
-    my @keys = qw(major minor micro extra_type extra extra_text extra_num);
-    @{$result}{@keys} = (undef) x scalar @keys;
+  my $def_ps = '[-_.,]';
+  my ($ps, $es);
+  foreach my $key (qw(major minor patch tweak)) {
+    my $sep = (defined $ps) ? "\Q$ps\E" : $def_ps;
+    if ($dv =~ m&\G(\d+)?((?(1)$sep?|$sep))&gc) {
+      $ps = $ps // $2 if $es = $2; # Yes, second expr. is an assignment.
+      $result->{$key} = $1 // 0;
+      push @{$result->{bits}}, $result->{$key};
+    } else {
+      $result->{extra} = ($dv =~ m&\G(.+)$&);
+      $result->{pre_extra_sep} = ($es ne $ps) ? $es : '' if $es;
+    }
   }
-  return $result;
+  return parse_version_extra($result);
 }
 
 sub _format_version {
@@ -752,10 +759,9 @@ sub _format_version {
   my $separator = shift // '.';
   my $preamble = shift // '';
   return sprintf("${preamble}%s%s",
-                 join($separator,
-                      $v->{major} // (),
-                      $v->{minor} // (),
-                      $v->{micro} // ()),
+                 join($separator, @{$v->{bits} || ()}),
+                 (defined $v->{pre_extra_sep}) ?
+                 $v->{pre_extra_sep} || $separator : '',
                  $v->{extra} // '');
 }
 
@@ -779,10 +785,11 @@ sub version_cmp($$) {
   return
     ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
       ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
-        ($vInfoA->{micro} // 0) <=> ($vInfoB->{micro} // 0) ||
-          ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
-            ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
-              ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
+        ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0) ||
+          ($vInfoA->{tweak} // 0) <=> ($vInfoB->{tweak} // 0) ||
+            ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
+              ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
+                ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
 }
 
 my $cqual_table =
