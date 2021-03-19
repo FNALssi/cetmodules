@@ -160,12 +160,12 @@ transitive dependencies.\
 endmacro()
 
 # Attempt to ascertain the correct project name for a product.
-function(product_to_project PRODUCT PROJECT_VAR)
+function(product_to_project PRODUCT PROJ_VAR)
   # See if we can preempt:
   if (DEFINED UPS_${PRODUCT}_CMAKE_PROJECT_NAME)
     # If the variable evaluates to TRUE, we're golden; otherwise we've
     # tried before and failed so give up.
-    set(${PROJECT_VAR} ${UPS_${PRODUCT}_CMAKE_PROJECT_NAME} PARENT_SCOPE)
+    set(${PROJ_VAR} ${UPS_${PRODUCT}_CMAKE_PROJECT_NAME} PARENT_SCOPE)
     return()
   endif()
   string(TOLOWER "${PRODUCT}" PRODUCT_LC)
@@ -193,7 +193,7 @@ function(product_to_project PRODUCT PROJECT_VAR)
       list(FIND candidates_lc "${PRODUCT_LC}" idx)
       if (idx GREATER -1)
         list(GET candidates ${idx} result)
-        set(${PROJECT_VAR} ${result} PARENT_SCOPE)
+        set(${PROJ_VAR} ${result} PARENT_SCOPE)
         set(UPS_${PRODUCT}_CMAKE_PROJECT_NAME ${result} PARENT_SCOPE)
         return()
       endif()

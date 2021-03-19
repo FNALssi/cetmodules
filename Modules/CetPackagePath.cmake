@@ -77,10 +77,10 @@ function(cet_package_path RESULT_VAR)
 endfunction()
 
 # Internal function to be called from cet_package_path ONLY.
-function(_cpp_package_path VAR PROJECT_BASE)
+function(_cpp_package_path VAR PROJ_BASE)
   cmake_parse_arguments(PARSE_ARGV 2 _cpp "" "PATH_BASE" "")
   get_filename_component(PUT "${CPP_PATH}" ABSOLUTE BASE_DIR ${_cpp_PATH_BASE})
-  file(RELATIVE_PATH RESULT "${PROJECT_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
+  file(RELATIVE_PATH RESULT "${PROJ_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
   if (NOT RESULT) # Exact match.
     set(RESULT .)
   elseif (RESULT MATCHES [[^\.\./]]) # Not under expected base.
