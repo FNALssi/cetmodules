@@ -7,6 +7,10 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
+if (POLICY CMP0112)
+  cmake_policy(SET CMP0112 NEW)
+endif()
+
 include(CetPackagePath)
 
 set(_RC_PROG "$<IF:$<TARGET_EXISTS:ROOT::rootcling>,ROOT::rootcling,${ROOT_rootcling_CMD}>")

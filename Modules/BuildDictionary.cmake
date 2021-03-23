@@ -18,6 +18,10 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
+if (POLICY CMP0112)
+  cmake_policy(SET CMP0112 NEW)
+endif()
+
 include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
@@ -104,6 +108,9 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
    .. seealso:: :cmake:command:`cet_cmake_library`, :cmake:command:`check_class_version`
 #]================================================================]
 function(build_dictionary)
+  if (POLICY CMP0112)
+    cmake_policy(SET CMP0112 NEW)
+  endif()
   set(build_dictionary_usage "USAGE: build_dictionary( [dictionary_name] [DICTIONARY_LIBRARIES <library list>] [COMPILE_FLAGS <flags>] [DICT_NAME_VAR <var>] [NO_INSTALL] )")
   cmake_parse_arguments(PARSE_ARGV 0 BD
     "${_cet_build_dictionary_flags}"
@@ -193,6 +200,10 @@ function(build_dictionary)
 endfunction()
 
 function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
+  if (POLICY CMP0112)
+    cmake_policy(SET CMP0112 NEW)
+  endif()
+
   cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
   set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
