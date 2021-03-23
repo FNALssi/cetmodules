@@ -133,6 +133,8 @@ function(_cet_install CATEGORY)
           else()
             if (_I_SUBDIRNAME)
               string(JOIN "/" tmp_subdir "${_I_SUBDIRNAME}" "${SUBDIR}")
+            else()
+              set(tmp_subdir "${SUBDIR}")
             endif()
             # One subdirectory at a time.
             _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
