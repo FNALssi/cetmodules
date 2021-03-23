@@ -1189,7 +1189,7 @@ sub fq_path_for {
     { key => '-', path => $default };
   my $fq_path = $pathspec->{fq_path} || undef;
   unless ($fq_path or ($pathspec->{key} eq '-' and not $pathspec->{path})) {
-    my $want_fq = $pi->{fq_dir} and
+    my $want_fq = $pi->{fq_dir} &&
       ($pathspec->{key} eq 'fq_dir' or
        ($pathspec->{key} eq '-' and grep { $_ eq $dirkey } qw(bindir libdir)));
     $fq_path =
