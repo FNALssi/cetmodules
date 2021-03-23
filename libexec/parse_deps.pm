@@ -946,13 +946,20 @@ sub get_cmake_project_info {
 
 sub ups_to_cmake {
   my ($pi) = @_;
-  $pi->{cmake_project} and
-    $pi->{name} and
+  if ($pi->{cmake_project} and
+      $pi->{name} and
       $pi->{cmake_project} ne
-        $pi->{name} and
-          warning("UPS product name is $pi->{name}.",
-                  "CMake project name is $pi->{cmake_project}.",
-                  "CMake variable names will be based on CMake project name.");
+      $pi->{name}) {
+    warning("UPS product name is $pi->{name}.",
+            "CMake project name is $pi->{cmake_project}.");
+    if ($pi->{cmake_project} =~ m&\$& ) {
+      warning("CMake variable names will be based on UPS product name ($pi->{name}).",
+              "Please verify project() for $pi->{name} manually.");
+      $pi->{cmake_project} = $pi->{name};
+    } else {
+      warning("CMake variable names will be based on CMake project name.");
+    }
+  }
 
   (not $pi->{cqual}) or
     (exists $cqual_table->{$pi->{cqual}} and
