@@ -1265,6 +1265,28 @@ EOF
     print $out
       print_dev_setup_var("FHICL_FILE_PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
+
+  # FW_SEARCH_PATH.
+  my $fw_pathspec = get_pathspec($pi, 'set_fwdir') || {};
+  die "INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called first"
+    if ($fw_pathspec->{path} and not $fw_pathspec->{fq_path});
+  my @fqdirs =
+    map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_BUILD}', $_); }
+      (fq_path_for($pi, 'gdmldir', 'gdml') || (),
+       fq_path_for($pi, 'fwdir') || ());
+  push @fqdirs, map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
+    @{$fw_pathspec->{fq_path} || []};
+  print $out print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs);
+
+  # WIRECELL_PATH.
+  my $wp_pathspec = get_pathspec($pi, 'set_wpdir') || {};
+  die "INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called first"
+    if ($wp_pathspec->{path} and not $wp_pathspec->{fq_path});
+  @fqdirs =
+    map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
+      @{$wp_pathspec->{fq_path} || []};
+  print $out print_dev_setup_var("WIRECELL_PATH", \@fqdirs);
+
   # PYTHONPATH.
   if ($pi->{define_pythonpath}) {
     print $out
