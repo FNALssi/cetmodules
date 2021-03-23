@@ -121,7 +121,7 @@ function(build_dictionary)
     string(REPLACE "/" "_" dictname "${current_subdir}")
   endif()
   if (BD_USE_PRODUCT_NAME)
-    string(PREPEND dictname "${PROJECT_NAME}_")
+    string(PREPEND dictname "${CETMODULES_CURRENT_PROJECT_NAME}_")
   endif()
   if (BD_DICT_NAME_VAR)
     set(${BD_DICT_NAME_VAR} ${dictname} PARENT_SCOPE)
@@ -166,9 +166,9 @@ function(build_dictionary)
   target_link_libraries(${dictname}_dict PRIVATE ${dictionary_liblist})
 
   if (NOT BD_NO_INSTALL)
-    install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
+    install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
     if (PCM_OUTPUT)
-      install(FILES ${PCM_OUTPUT} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
+      install(FILES ${PCM_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
     endif()
   endif()
   if (NOT TARGET BuildDictionary_AllDicts)
@@ -239,7 +239,7 @@ ${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
     ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
     COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
     -s ${CLASSES_DEF_XML}
-		-I${PROJECT_SOURCE_DIR}
+		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}
 		${GENREFLEX_INCLUDES}
     ${CXX_STD_FLAG}
     ${GENREFLEX_FLAGS}

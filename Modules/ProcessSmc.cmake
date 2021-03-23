@@ -44,7 +44,7 @@ function(process_smc TARGET_OR_VAR)
     add_custom_command(OUTPUT "${cpp_out}" "${h_out}" "${dot_out}"
       COMMAND ${smc_cmd} -graph -glevel 2 "${CMAKE_CURRENT_SOURCE_DIR}/${source}" &&
       ${smc_cmd} -d "${CMAKE_CURRENT_BINARY_DIR}" -c++ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" &&
-      perl -wapi\\~ -e "'s&\(\#\\s*include\\s+\"\)\\Q${PROJECT_BINARY_DIR}/\\E&$$1&'"
+      perl -wapi\\~ -e "'s&\(\#\\s*include\\s+\"\)\\Q${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/\\E&$$1&'"
       "${cpp_out}"
       MAIN_DEPENDENCY "${source}"
       DEPENDS Smc::Smc)

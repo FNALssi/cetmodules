@@ -567,8 +567,8 @@ sub fix_cmake_one {
       my ($var_stem) =
           map { ($dirkey_ish eq $_ or $dirkey_alt eq $_) ?
                   var_stem_for_dirkey($_) : (); } keys %$pathspec_info;
-      $line =~ s&(\$\{\$\{product\}_\Q$dirkey_ish\E\})&\${\${PROJECT_NAME}_$var_stem\}&g and
-      verbose("$1 -> \${\${PROJECT_NAME}_$var_stem}");
+      $line =~ s&(\$\{\$\{product\}_\Q$dirkey_ish\E\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem\}&g and
+      verbose("$1 -> \${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem}");
     }
     flag_recommended($line, ": use add_subdirectory()")
       if ($line =~ m&^\s*(?i:subdirs)\s*\($&);
@@ -581,12 +581,12 @@ sub fix_cmake_one {
     flag_recommended($line, ": use find_package() to handle external modules directories")
       if $line =~ m&\bCMAKE_MODULE_PATH\b.*\$ENV$&;
     $line =~ s&(\$\{product\}/\${version\}/)&&g and verbose("\${product}/\${version}/ -> \"\"");
-    $line =~ s&(\$\{flavorqual(?:_dir)?\})&\${\${PROJECT_NAME}_EXEC_PREFIX}&g and
-      verbose("$1 -> \"\${\${PROJECT_NAME}_EXEC_PREFIX}\"");
-    $line =~ s&(\$\{product\})&\${PROJECT_NAME}&g and
-      verbose("$1 -> \"\${PROJECT_NAME}\"");
-    $line =~ s&(\$\{version\})&\${PROJECT_VERSION}&g and
-      verbose("$1 -> \"\${PROJECT_VERSION}\"");
+    $line =~ s&(\$\{flavorqual(?:_dir)?\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}&g and
+      verbose("$1 -> \"\${\${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}\"");
+    $line =~ s&(\$\{product\})&\${CETMODULES_CURRENT_PROJECT_NAME}&g and
+      verbose("$1 -> \"\${CETMODULES_CURRENT_PROJECT_NAME}\"");
+    $line =~ s&(\$\{version\})&\${CETMODULES_CURRENT_PROJECT_VERSION}&g and
+      verbose("$1 -> \"\${CETMODULES_CURRENT_PROJECT_VERSION}\"");
     while ($line =~ m&\G.*?\b(?P<clause>find_package\b\s*\(\s*(?P<pkg>[^\s)"]+))&g) {
       my $safe_pos = pos($line);
       $+{pkg} ne 'cetmodules' and

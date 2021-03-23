@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_generate_sphinxdocs)
   project_variable(DOC_DIR ${CMAKE_INSTALL_DOCDIR}
-    DOCSTRING "Location of installed documentation for ${PROJECT_NAME}")
+    DOCSTRING "Location of installed documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
   cet_find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
   cmake_parse_arguments(PARSE_ARGV 0 CGS "NITPICKY;NO_ALL;NO_INSTALL;QUIET;VERBOSE"
     "CACHE_DIR;CONF_DIR;SOURCE_DIR;TARGET_STEM;TARGETS_VAR"
@@ -20,7 +20,7 @@ function(cet_generate_sphinxdocs)
     set(CGS_OUTPUT_FORMATS html)
   elseif ("man" IN_LIST CGS_OUTPUT_FORMATS)
     project_variable(MAN_DIR ${CMAKE_INSTALL_MANDIR}
-      DOCSTRING "Location of manpage documentation for ${PROJECT_NAME}")
+      DOCSTRING "Location of manpage documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   if (NOT CGS_NO_ALL)
     set(all_arg ALL)
@@ -76,7 +76,7 @@ function(cet_generate_sphinxdocs)
       set(efa_arg)
     endif()
     install(DIRECTORY ${dirs} ${efa_arg}
-      DESTINATION "${${PROJECT_NAME}_DOC_DIR}"
+      DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
       DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
       GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

@@ -1,2 +1,2 @@
 # Check package components.
-check_required_components(@PROJECT_NAME@)
+check_required_components(@CETMODULES_CURRENT_PROJECT_NAME@)

@@ -126,7 +126,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
      ``VERSION``
        The library's build version will be set to
-       :cmake:variable:`PROJECT_NAME` (*cf* :cmake:prop_tgt:`VERSION`).
+       :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME` (*cf* :cmake:prop_tgt:`VERSION`).
 
    **Deprecated options:**
 
@@ -179,7 +179,7 @@ function(basic_plugin NAME SUFFIX)
     endif()
     string(REPLACE "/" "_" plugin_stem "${CURRENT_SUBDIR}")
     if (BP_USE_PRODUCT_NAME)
-      string(JOIN "_" plugin_stem "${PROJECT_NAME}" "${plugin_stem}")
+      string(JOIN "_" plugin_stem "${CETMODULES_CURRENT_PROJECT_NAME}" "${plugin_stem}")
     endif()
     string(JOIN "_" plugin_stem  "${plugin_stem}" "${NAME}")
   endif()

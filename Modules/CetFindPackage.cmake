@@ -10,7 +10,7 @@
 #                  [REQUIRED_BY <components>...])
 #
 #   External dependencies specified using cet_find_package() will be
-#   automatically collated and added to ${PROJECT_NAME}Config.cmake as
+#   automatically collated and added to ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake as
 #   approriate (see OPTIONS).
 #
 # ################
@@ -113,11 +113,11 @@ function(_add_transitive_dependency FIRST_ARG)
   if (FIRST_ARG STREQUAL "COMPONENT")
     list(POP_FRONT ARGN COMPONENT DEP)
     set(cache_var
-      CETMODULES_FIND_DEPS_COMPONENT_${COMPONENT}_PROJECT_${PROJECT_NAME})
+      CETMODULES_FIND_DEPS_COMPONENT_${COMPONENT}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     set(docstring_extra " component ${COMPONENT}")
   else()
     set(DEP "${FIRST_ARG}")
-    set(cache_var CETMODULES_FIND_DEPS_PROJECT_${PROJECT_NAME})
+    set(cache_var CETMODULES_FIND_DEPS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     unset(docstring_extra)
   endif()
   # Set up the beginning of the call.
@@ -127,7 +127,7 @@ function(_add_transitive_dependency FIRST_ARG)
   list(APPEND ${cache_var} "${find_dep_string}")
   if (NOT DEFINED CACHE{${cache_var}})
     set(${cache_var} "${${cache_var}}" CACHE INTERNAL
-      "Transitive dependency directives for ${PROJECT_NAME}\
+      "Transitive dependency directives for ${CETMODULES_CURRENT_PROJECT_NAME}\
 ${docstring_extra}\
 ")
   else()

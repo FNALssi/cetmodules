@@ -593,9 +593,9 @@ function(cet_test CET_TARGET)
   endif()
 
   if (NOT CET_NO_AUTO)
-    # If GLOBAL is not set, prepend ${PROJECT_NAME}: to the target name
+    # If GLOBAL is not set, prepend ${CETMODULES_CURRENT_PROJECT_NAME}: to the target name
     if (CET_SCOPED)
-      set(TEST_TARGET_NAME "${PROJECT_NAME}:${CET_TARGET}")
+      set(TEST_TARGET_NAME "${CETMODULES_CURRENT_PROJECT_NAME}:${CET_TARGET}")
     else()
       set(TEST_TARGET_NAME "${CET_TARGET}")
     endif()
@@ -751,11 +751,11 @@ CONFIGURATIONS DATAFILES DIRTY_WORKDIR NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT
   endif()
   if (CET_INSTALL_SOURCE)
     cet_package_path(CURRENT_SUBDIR)
-    cet_regex_escape("${${PROJECT_NAME}_TEST_DIR}" e_test_dir)
+    cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_TEST_DIR}" e_test_dir)
     string(REGEX REPLACE "^(test|${e_test_dir})(/|$)"
       "" CURRENT_SUBDIR "${CURRENT_SUBDIR}")
     install(FILES "${CET_SOURCE}"
-      DESTINATION "${${PROJECT_NAME}_TEST_DIR}/${CURRENT_SUBDIR}")
+      DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_TEST_DIR}/${CURRENT_SUBDIR}")
   endif()
 endfunction(cet_test)
 

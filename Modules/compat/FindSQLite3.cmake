@@ -22,7 +22,7 @@ set(CMAKE_MODULE_PATH "${_cet_sqlite_cmake_module_path}")
 unset(_cet_sqlite_cmake_module_path)
 
 # Set a variable for backward compatibility.
-if (SQLite3_FOUND AND ${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
+if (SQLite3_FOUND AND ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
   if (TARGET SQLite::SQLite3)
     set(SQLITE3 SQLite::SQLite3 CACHE FILEPATH
       "Location of the SQLite3 library (old-style CET compatibility)")

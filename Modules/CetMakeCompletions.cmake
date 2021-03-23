@@ -58,7 +58,7 @@ function(cet_make_completions exec)
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
   add_dependencies(MakeCompletions_${exec} ${exec})
 
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${PROJECT_NAME}_BIN_DIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR})
 endfunction(cet_make_completions)
 
 cmake_policy(POP)

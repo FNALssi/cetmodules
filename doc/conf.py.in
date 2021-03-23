@@ -22,7 +22,7 @@ copyright = '2010-{0}, Fermi Alliance LLC.'.format(datetime.date.today().year)
 author = '@PROJ_AUTHORS@'.replace(";", ", ")
 
 # The full version, including alpha/beta/rc tags
-release = '@PROJECT_VERSION@'
+release = '@CETMODULES_CURRENT_PROJECT_VERSION@'
 
 # Major.minor
 version = '.'.join(release.split('.')[0:1])

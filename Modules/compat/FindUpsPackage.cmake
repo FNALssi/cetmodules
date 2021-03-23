@@ -28,7 +28,7 @@ transitive dependencies.\
   if (_FUP_PROJECT)
     if (NOT _FUP_INCLUDED_${_FUP_PROJECT})
       if (_FUP_PRODUCT IN_LIST
-          ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND NOT "PRIVATE"
+          ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND NOT "PRIVATE"
           IN_LIST _FUP_UNPARSED_ARGUMENTS)
         list(APPEND _FUP_UNPARSED_ARGUMENTS PRIVATE)
         message(VERBOSE "requested product ${_FUP_PRODUCT} is build-only, omitting from transitive dependencies")
@@ -44,12 +44,12 @@ transitive dependencies.\
       # Since we're asking for a UPS package old-style, we will enable it
       # to define old-style all-caps environment variables for appropriate
       # targets.
-      set(${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS TRUE)
+      set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS TRUE)
       # Find the package.
       cet_find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION} ${_FUP_UNPARSED_ARGUMENTS})
       # Reset to cached value.
-      set(${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS
-        $CACHE{${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS})
+      set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS
+        $CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS})
       # Restore CMAKE_DISABLE_FIND_PACKAGE in case someone wants to try
       # again e.g. without UPS.
       if (_fup_reset_disable)

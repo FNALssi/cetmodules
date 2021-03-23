@@ -38,7 +38,7 @@ function(cet_have_qual QUAL)
   if (NOT CHQ_REGEX)
     cet_regex_escape("${QUAL}" QUAL)
   endif()
-  if (${PROJECT_NAME}_QUALIFIER_STRING MATCHES "(^|:)${QUAL}(:|$)")
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_QUALIFIER_STRING MATCHES "(^|:)${QUAL}(:|$)")
     set(${OUT_VAR} TRUE PARENT_SCOPE)
   else ()
     set(${OUT_VAR} FALSE PARENT_SCOPE)
@@ -105,14 +105,7 @@ endfunction()
 function(cet_checkpoint_cmp)
   set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_VALUE "${CMAKE_MODULE_PATH}"
     CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
-  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT "${PROJECT_NAME}"
-    CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
-endfunction()
-
-function(cet_checkpoint_cmp)
-  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_VALUE "${CMAKE_MODULE_PATH}"
-    CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
-  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT "${PROJECT_NAME}"
+  set(CETMODULES_CMAKE_MODULE_PATH_CHECKPOINT_PROJECT "${CETMODULES_CURRENT_PROJECT_NAME}"
     CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
 endfunction()
 
@@ -138,7 +131,7 @@ function(cet_checkpoint_did)
   get_property(did DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
   set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_VALUE "${did}"
     CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
-  set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT "${PROJECT_NAME}"
+  set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT "${CETMODULES_CURRENT_PROJECT_NAME}"
     CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
 endfunction()
 

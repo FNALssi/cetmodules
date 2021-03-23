@@ -91,8 +91,7 @@ if (_cet_smc_pkg_prefix)
   endforeach()
   set(CMAKE_FIND_PACKAGE_NAME ${_cet_smc_pkg_prefix})
 endif()
-
-if (smc_FOUND AND ${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
+if (smc_FOUND AND ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
   set(SMC Smc::Smc)
 endif()
 

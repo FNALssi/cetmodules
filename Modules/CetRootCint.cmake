@@ -66,7 +66,7 @@ function(cet_rootcint OUTPUT_NAME)
     OUTPUT ${OUTPUT_NAME}Cint.cc # ${RC_PCM} ${RC_RMF}
     COMMAND ${_RC_PROG} -f ${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_NAME}Cint.cc
     ${RC_FLAGS}
-		-I${PROJECT_SOURCE_DIR} "${CINT_INCS}"
+		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR} "${CINT_INCS}"
     -I${ROOTSYS}/include
 		-DUSE_ROOT
 		${CINT_HEADER_LIST} LinkDef.h
@@ -80,10 +80,10 @@ function(cet_rootcint OUTPUT_NAME)
   # set variable for install_source
   if (NOT RC_NO_INSTALL)
     if (RC_PCM)
-      install(FILES ${RC_PCM} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
+      install(FILES ${RC_PCM} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
     endif()
     if (RC_RMF)
-      install(FILES ${RC_RMF} DESTINATION ${${PROJECT_NAME}_LIBRARY_DIR})
+      install(FILES ${RC_RMF} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
     endif()
   endif()
   #message(STATUS "cet_rootcint debug: generated code list ${cet_generated_code}")

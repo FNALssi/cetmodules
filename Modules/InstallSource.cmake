@@ -1,7 +1,7 @@
 ########################################################################
 # install_source()
 #
-#   Install source files under ${${PROJECT_NAME}_INSTALLED_SOURCE_DIR}
+#   Install source files under ${${CETMODULES_CURRENT_PROJECT_NAME}_INSTALLED_SOURCE_DIR}
 #
 # Usage: install_source([SUBDIRNAME <subdir>] LIST ...)
 #        install_source([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
@@ -33,7 +33,7 @@ include(CetPackagePath)
 include(ProjectVariable)
 
 function(install_source) 
-  if (NOT "INSTALLED_SOURCE_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+  if (NOT "INSTALLED_SOURCE_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     project_variable(INSTALLED_SOURCE_DIR "source" CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install source files for debug and other purposes")
@@ -43,10 +43,10 @@ function(install_source)
   cet_package_path(CURRENT_SUBDIR)
   string(APPEND IS_SUBDIRNAME "/${CURRENT_SUBDIR}")
   if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
-    _cet_install(source ${PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGMUENTS}
+    _cet_install(source ${CETMODULES_CURRENT_PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGMUENTS}
       SUBDIRNAME ${IS_SUBDIRNAME} _INSTALL_ONLY)
   else()
-    _cet_install(source ${PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGUMENTS}
+    _cet_install(source ${CETMODULES_CURRENT_PROJECT_NAME}_INSTALLED_SOURCE_DIR ${IS_UNPARSED_ARGUMENTS}
       SUBDIRNAME ${IS_SUBDIRNAME}
       _SEARCH_BUILD _INSTALL_ONLY
       _EXTRA_BASENAME_EXCLUDES "?*.bak" "?*.~" "?*.~[0-9]*" "?*.old"

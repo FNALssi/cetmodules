@@ -1,7 +1,7 @@
 ########################################################################
 # install_perllib()
 #
-#   Install perl modules in ${${PROJECT_NAME}_PERLLIB_DIR}.
+#   Install perl modules in ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}.
 #
 # Usage: install_perllib([DROP_PREFIX <dropdir>] [SUBDIRNAME <subdir>]
 #                        [BASENAME_EXCLUDES ...] [EXCLUDES ...]
@@ -15,8 +15,8 @@
 #
 # If DROP_PREFIX is specified, remove <dropdir> at the beginning of each
 # package subdirectory path before installing into
-# ${${PROJECT_NAME}_PERLLIB_DIR}/<subdir>. Otherwise, drop
-# ${${PROJECT_NAME}_PERLLIB_DIR}.
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}/<subdir>. Otherwise, drop
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}.
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
@@ -30,21 +30,21 @@ include(CetPackagePath)
 include(ProjectVariable)
 
 function(install_perllib)
-  if (NOT "PERLLIB_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+  if (NOT "PERLLIB_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     project_variable(PERLLIB_DIR perllib CONFIG
       OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install perl files")
     if (product AND ${product}_perllib MATCHES "^\$") # Placeholder
       cmake_language(EVAL CODE
-        "set_property(CACHE ${PROJECT_NAME}_perllib PROPERTY VALUE \
-\"${${PROJECT_NAME}_perllib}\"\
+        "set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_perllib PROPERTY VALUE \
+\"${${CETMODULES_CURRENT_PROJECT_NAME}_perllib}\"\
 ")
     endif()
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   cmake_parse_arguments(PARSE_ARGV 0 IPRL "" "DROP_PREFIX;SUBDIRNAME" "")
   if (NOT DEFINED IPRL_DROP_PREFIX)
-    set(IPRL_DROP_PREFIX ${${PROJECT_NAME}_PERLLIB_DIR})
+    set(IPRL_DROP_PREFIX ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR})
   endif()
   cet_package_path(CURRENT_SUBDIR SOURCE BASE_SUBDIR ${IPRL_DROP_PREFIX})
   string(APPEND IPRL_SUBDIRNAME "/${CURRENT_SUBDIR}")
@@ -53,7 +53,7 @@ function(install_perllib)
   if (CURRENT_SUBDIR_NAME STREQUAL "CetSkelPlugins")
     _cet_perl_plugin_version(PLUGIN_VERSION_FILE)
   endif()
-  _cet_install(perllib ${PROJECT_NAME}_PERLLIB_DIR ${IPRL_UNPARSED_ARGUMENTS}
+  _cet_install(perllib ${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR ${IPRL_UNPARSED_ARGUMENTS}
     SUBDIRNAME ${IPRL_SUBDIRNAME}
     _NO_LIST _INSTALLED_FILES_VAR ${IPRL_INSTALLED_FILES_VAR}
     _EXTRA_EXTRAS ${PLUGIN_VERSION_FILE}
@@ -72,7 +72,7 @@ function(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
     set(cetlib_PLUGINVERSIONINFO_PM_IN "$ENV{CETLIB_DIR}/perllib/PluginVersionInfo.pm.in")
   endif()
   set(tmp
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/PluginVersionInfo.pm")
+    "${CMAKE_CURRENT_BINARY_DIR}/${CETMODULES_CURRENT_PROJECT_NAME}/PluginVersionInfo.pm")
   configure_file("${cetlib_PLUGINVERSIONINFO_PM_IN}"
     "${tmp}"
     @ONLY)
@@ -94,7 +94,7 @@ function(_cet_perllib_config_setup)
     endif()
     string(REGEX REPLACE [=[[-./ ]]=] "_" pmvarname "${pmvarname}")
     string(TOUPPER "${pmvarname}" pmvarname)
-    if (NOT "${pmvarname}" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+    if (NOT "${pmvarname}" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
       project_variable("${pmvarname}" TYPE FILEPATH_FRAGMENT CONFIG
         DOCSTRING "${docstring}" "${pmfile}")
     endif()
