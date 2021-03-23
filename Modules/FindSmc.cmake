@@ -1,21 +1,3 @@
-set(_cet_smc_var_names
-  FIND_COMPONENTS FOUND VERSION INCLUDE_DIR INCLUDE_DIRS LIBRARIES LIBRARY)
-
-if (NOT CMAKE_FIND_PACKAGE_NAME STREQUAL Smc)
-  set(_cet_smc_pkg_prefix ${CMAKE_FIND_PACKAGE_NAME})
-  set(Smc_FIND_COMPONENTS ${${_cet_smc_pkg_prefix}_FIND_COMPONENTS})
-  foreach (_cet_smc_component IN LISTS Smc_FIND_COMPONENTS)
-    set(Smc_FIND_REQUIRED_${_cet_smc_component}
-      ${${_cet_smc_pkg_prefix}_FIND_REQUIRED_${_cet_smc_component}})
-  endforeach()
-  foreach (_cet_smc_var IN ITEMS
-      FIND_VERSION FIND_VERSION_MAJOR FIND_VERSION_MINOR FIND_VERSION_MICRO FIND_VERSION_TWEAK)
-    set(Smc_${_cet_smc_var} "${_cet_smc_pkg_prefix}_${_cet_smc_var}")
-  endforeach()
-else()
-  unset(_cet_smc_pkg_prefix)
-endif()
-
 set(_cet_smc_cmake_module_path "${CMAKE_MODULE_PATH}")
 set(CMAKE_MODULE_PATH) # Don't want to find ourselves and loop.
 find_package(Smc QUIET)
@@ -75,27 +57,12 @@ if (Smc_JAR)
     OUTPUT_VARIABLE Smc_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
-message(STATUS "Found Smc.jar version ${Smc_VERSION}")
+
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Smc NAME_MISMATCHED
+find_package_handle_standard_args(Smc
   VERSION_VAR Smc_VERSION
   REQUIRED_VARS Smc_JAR Smc_FOUND Smc_statemap_h)
 
-if (_cet_smc_pkg_prefix)
-  foreach (_cet_smc_var IN LISTS _cet_smc_var_names)
-    set(${_cet_smc_pkg_prefix}_${_cet_smc_var} "${Smc_${_cet_smc_var}}")
-  endforeach()
-  foreach (_cet_smc_component IN LISTS ${_cet_smc_pkg_prefix_}_FIND_COMPONENTS)
-    set(${_cet_smc_pkg_prefix}_FIND_REQUIRED_${_cet_smc_component} ${Smc_FIND_REQUIRED_${_cet_smc_component}})
-    set(${_cet_smc_pkg_prefix}_${_cet_smc_component}_FOUND ${Smc_${_cet_smc_component}_FOUND})
-  endforeach()
-  set(CMAKE_FIND_PACKAGE_NAME ${_cet_smc_pkg_prefix})
-endif()
 if (smc_FOUND AND ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
   set(SMC Smc::Smc)
 endif()
-
-unset(_cet_smc_component)
-unset(_cet_smc_pkg_prefix)
-unset(_cet_smc_var)
-unset(_cet_smc_var_names)
