@@ -29,6 +29,7 @@ function(cet_rootcint OUTPUT_NAME)
     OUTPUT_VARIABLE CINT_DEPENDS)
   list(TRANSFORM CINT_CXX REPLACE "^.*/(.*)\\.cxx$" "${curdir}/\\1.h"
     OUTPUT_VARIABLE CINT_HEADER_LIST)
+  list(REVERSE CINT_HEADER_LIST) # Historical reasons.
   if (NOT RC_LIB_TARGET)
     if (TARGET ${OUTPUT_NAME}_dict)
       set(RC_LIB_TARGET ${OUTPUT_NAME}_dict)
