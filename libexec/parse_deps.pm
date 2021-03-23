@@ -1205,22 +1205,24 @@ sub print_dev_setup_var {
   if (ref $val eq 'ARRAY') {
     @vals=@$val;
   } else {
-    @vals=($val);
+    @vals=($val || ());
   }
   my $result;
   open(my $out, ">", \$result) or
     die "could not open memory stream to variable \$out";
-  print $out "# $var\n",
-    "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
-  print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
-  if ($no_errclause) {
-    print $out "\n";
-  } else {
-    print $out "; ";
-    setup_err($out, "failure to prepend to $var");
+  if (scalar @vals) {
+    print $out "# $var\n",
+      "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
+    print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
+    if ($no_errclause) {
+      print $out "\n";
+    } else {
+      print $out "; ";
+      setup_err($out, "failure to prepend to $var");
+    }
   }
   close($out);
-  return $result;
+  return $result // '';
 }
 
 sub print_dev_setup {
