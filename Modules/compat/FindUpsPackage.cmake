@@ -94,20 +94,7 @@ transitive dependencies.\
       set(${_FUP_PRODUCT_UC} ${FUP_PRODUCT_UC}-NOTFOUND)
     else()
       set(_FUP_PROJECT ${_FUP_PRODUCT})
-      # We're stretching: try to find a suitably-named library.
-      string(REPLACE "_" "-" dashed "${_FUP_PRODUCT_LC}")
-      find_library(${_FUP_PRODUCT_UC}
-        NAMES ${_FUP_PRODUCT} ${_FUP_PRODUCT_UC} ${_FUP_PRODUCT_LC} ${dashed}
-        HINTS ${_FUP_PREFIX})
-      if (${_FUP_PRODUCT_UC})
-        set(${_FUP_PRODUCT}_FOUND TRUE)
-        set(${_FUP_PRODUCT_UC}_FOUND TRUE)
-        set(${_FUP_PRODUCT}_LIBRARY ${${_FUP_PRODUCT_UC}})
-        set(${_FUP_PRODUCT}_LIBRARIES ${${_FUP_PRODUCT_UC}})
-        get_filename_component(${_FUP_PRODUCT}_LIBRARY_DIR
-          "${${_FUP_PRODUCT}_LIBRARY}" DIRECTORY CACHE)
-      endif()
-      # Now try to find a suitable include directory.
+      # We're stretching: at least try to find a suitable include directory.
       foreach (_fup_env_suffix IN ITEMS INC INCDIR INC_DIR INCLUDE_DIR)
         if (DEFINED ENV{${_FUP_PRODUCT_UC}_${_fup_env_suffix}} AND
             IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${_fup_env_suffix}}")
@@ -115,6 +102,7 @@ transitive dependencies.\
             "$ENV{${_FUP_PRODUCT_UC}_${_fup_env_suffix}}")
           set(${_FUP_PRODUCT}_INCLUDE_DIRS
             "$ENV{${_FUP_PRODUCT_UC}_${_fup_env_suffix}}")
+          set(${_FUP_PROJECT}_FOUND TRUE)
           break()
         endif()
       endforeach()
