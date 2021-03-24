@@ -104,7 +104,7 @@ if (( want_clean )); then
 fi
 
 shopt -s nocasematch
-(( $CET_DEBUG_TEST_ENVIRONMENT )) || \
+(( CET_DEBUG_TEST_ENVIRONMENT > 0 )) || \
   { [ -n "$CET_DEBUG_TEST_ENVIRONMENT" ] && \
   [[ "$CET_DEBUG_TEST_ENVIRONMENT" =~ ^([yt]|yes|true|on) ]]; } && \
   printenv | sort 1>&2

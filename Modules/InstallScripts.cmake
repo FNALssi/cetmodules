@@ -1,8 +1,8 @@
 ########################################################################
 # install_scripts()
 #
-# Install scripts in ${${PROJECT_NAME}_SCRIPTS_DIR} or
-# ${${PROJECT_NAME}_TEST_DIR} (if marked AS_TEST).
+# Install scripts in ${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR} or
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_TEST_DIR} (if marked AS_TEST).
 #
 # Usage: install_scripts([SUBDIRNAME <subdir>] [AS_TEST] LIST ...)
 #        install_scripts([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
@@ -36,10 +36,10 @@ function(install_scripts)
     set(pvar SCRIPTS)
   endif()
   if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
-    _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
       PROGRAMS _INSTALL_ONLY)
   else()
-    _cet_install(scripts ${PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
       PROGRAMS _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS ${GLOBS})
   endif()
 endfunction()

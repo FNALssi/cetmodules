@@ -3,8 +3,8 @@
 #                  [MUST_EXIST] [SOURCE] [BINARY])
 #
 # Calculate the path to PATH relative to
-# ${PROJECT_SOURCE_DIR}/${BASE_SUBDIR} (SOURCE) or
-# ${PROJECT_BINARY_DIR}/${BASE_SUBDIR} (BINARY) and save the result in
+# ${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/${BASE_SUBDIR} (SOURCE) or
+# ${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${BASE_SUBDIR} (BINARY) and save the result in
 # VAR.
 #
 # BASE_SUBDIR (if specified) must not be *relative*, not absolute.
@@ -14,8 +14,8 @@
 # relative, we treat it as relative to these defaults as appropriate.
 #
 # If neither SOURCE nor BINARY is specified or both are specified, we
-# check relative to ${PROJECT_SOURCE_DIR} first, and then to
-# ${PROJECT_BINARY_DIR}. If we cannot calculate a valid relative path,
+# check relative to ${CETMODULES_CURRENT_PROJECT_SOURCE_DIR} first, and then to
+# ${CETMODULES_CURRENT_PROJECT_BINARY_DIR}. If we cannot calculate a valid relative path,
 # VAR will be empty. If MUST_EXIST is specified and the calculated path
 # does not exist in the filesystem, VAR will be set to NOTFOUND.
 ########################################################################
@@ -77,10 +77,10 @@ function(cet_package_path RESULT_VAR)
 endfunction()
 
 # Internal function to be called from cet_package_path ONLY.
-function(_cpp_package_path VAR PROJECT_BASE)
+function(_cpp_package_path VAR PROJ_BASE)
   cmake_parse_arguments(PARSE_ARGV 2 _cpp "" "PATH_BASE" "")
   get_filename_component(PUT "${CPP_PATH}" ABSOLUTE BASE_DIR ${_cpp_PATH_BASE})
-  file(RELATIVE_PATH RESULT "${PROJECT_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
+  file(RELATIVE_PATH RESULT "${PROJ_BASE}/${CPP_BASE_SUBDIR}" "${PUT}")
   if (NOT RESULT) # Exact match.
     set(RESULT .)
   elseif (RESULT MATCHES [[^\.\./]]) # Not under expected base.

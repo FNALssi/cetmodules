@@ -2,7 +2,7 @@
 # install_headers()
 #
 #   Install headers scripts under
-#     ${${PROJECT_NAME}_INCLUDE_DIR}[/${PROJECT_NAME}]
+#     ${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}[/${CETMODULES_CURRENT_PROJECT_NAME}]
 #
 # Usage: install_headers([USE_(PRODUCT|PROJECT)_NAME]
 #                        [SUBDIRNAME <subdir>] LIST ...)
@@ -19,8 +19,8 @@
 # build-only item. If you specifically want it, add it to EXTRAS.
 #
 # USE_PRODUCT_NAME (deprecated) and USE_PROJECT_NAME will append a
-# directory ${PROJECT_NAME} to
-# ${${PROJECT_NAME}_INCLUDE_DIR}/<subdir>. In any case, the current
+# directory ${CETMODULES_CURRENT_PROJECT_NAME} to
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}/<subdir>. In any case, the current
 # package subdirectory will be appended to the result followed by any
 # SUBDIRS for files found therein.
 #
@@ -44,17 +44,17 @@ function(install_headers)
   cet_package_path(CURRENT_SUBDIR)
   if (ART_MAKE_PREPEND_PRODUCT_NAME OR # Historical compatibility.
       IHDR_USE_PROJECT_NAME OR IHDR_USE_PRODUCT_NAME)
-    string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${PROJECT_NAME}")
+    string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   if (NOT IHDR_NO_RELATIVE_SUBDIR)
     string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${CURRENT_SUBDIR}")
   endif()
   cet_passthrough(FLAG IN_PLACE KEYWORD _SQUASH_SUBDIRS IHDR_SQUASH_SUBDIRS)
   if ("LIST" IN_LIST IHDR_UNPARSED_ARGUMENTS)
-    _cet_install(headers ${PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
+    _cet_install(headers ${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
       SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY ${IHDR_SQUASH_SUBDIRS})
   else()
-    _cet_install(headers ${PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
+    _cet_install(headers ${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
       SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY ${IHDR_SQUASH_SUBDIRS}
       _SEARCH_BUILD _EXTRA_BASENAME_EXCLUDES classes.h Linkdef.h
       _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc")

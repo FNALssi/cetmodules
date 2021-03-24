@@ -557,13 +557,13 @@ endfunction()
        Do not add these directories to 
        :cmake:variable:`CMAKE_MODULE_PATH <cmake:variable:CMAKE_MODULE_PATH>`
        in the current scope. Implied if ``<project>`` is not equal to
-       :cmake:variable:`PROJECT_NAME <cmake:variable:PROJECT_NAME>`
+       :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME <cmake:variable:CETMODULES_CURRENT_PROJECT_NAME>`
 
       ``PROJECT <project>``
 
         Specify the project to which these module directories belong. If
         not specifed, ``<project>`` defaults to
-        :cmake:variable:`PROJECT_NAME <cmake:variable:PROJECT_NAME>`.
+        :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME <cmake:variable:CETMODULES_CURRENT_PROJECT_NAME>`.
 
    **Non-option arguments:**
      ``<dir>...``
@@ -573,14 +573,14 @@ endfunction()
 function(cet_cmake_module_directories)
   cmake_parse_arguments(PARSE_ARGV 0 CMD "NO_LOCAL;NO_CONFIG" "PROJECT" "")
   if (CMD_PROJECT)
-    if (NOT CMD_PROJECT STREQUAL PROJECT_NAME)
+    if (NOT CMD_PROJECT STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
       set(NO_LOCAL TRUE)
     endif()
   else()
-    set(CMD_PROJECT "${PROJECT_NAME}")
+    set(CMD_PROJECT "${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   if (NOT CMD_NO_LOCAL)
-    list(TRANSFORM CMD_UNPARSED_ARGUMENTS PREPEND "${PROJECT_SOURCE_DIR}/"
+    list(TRANSFORM CMD_UNPARSED_ARGUMENTS PREPEND "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/"
       REGEX "^[^/]+" OUTPUT_VARIABLE tmp)
     list(PREPEND CMAKE_MODULE_PATH "${tmp}")
     set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
@@ -656,13 +656,13 @@ function(_cet_export_import_cmd)
     set(_cc_COMMANDS "${_cc_UNPARSED_ARGUMENTS}")
   endif()
   string(REPLACE "\n" ";" _cc_COMMANDS "${_cc_COMMANDS}")
-  if (DEFINED CACHE{CETMODULES_IMPORT_COMMANDS_PROJECT_${PROJECT_NAME}})
-    set_property(CACHE CETMODULES_IMPORT_COMMANDS_PROJECT_${PROJECT_NAME}
+  if (DEFINED CACHE{CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set_property(CACHE CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
       APPEND PROPERTY VALUE "${_cc_COMMANDS}")
   else()
-    set(CETMODULES_IMPORT_COMMANDS_PROJECT_${PROJECT_NAME}
+    set(CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
       "${_cc_COMMANDS}" CACHE INTERNAL
-      "Convenience aliases for exported non-runtime targets for project ${PROJECT_NAME}")
+      "Convenience aliases for exported non-runtime targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   _add_to_exported_targets(TARGETS ${_cc_TARGETS})
 endfunction()
@@ -673,7 +673,7 @@ function(_add_to_exported_targets)
     return()
   endif()
   if (_add_EXPORT_SET)
-    set(cache_var CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${PROJECT_NAME})
+    set(cache_var CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     set(export_names)
     foreach (tgt IN LISTS _add_TARGETS)
       get_property(export_name TARGET ${tgt} PROPERTY EXPORT_NAME)
@@ -683,23 +683,23 @@ function(_add_to_exported_targets)
         list(APPEND export_names ${tgt})
       endif()
     endforeach()
-    if (DEFINED CACHE{CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${PROJECT_NAME}})
-      set_property(CACHE CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${PROJECT_NAME}
+    if (DEFINED CACHE{CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+      set_property(CACHE CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
         APPEND PROPERTY VALUE ${export_names})
     else()
-      set(CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${PROJECT_NAME}
+      set(CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
         ${export_names} CACHE INTERNAL
-        "List of export names for ${_add_EXPORT_SET} targets for project ${PROJECT_NAME}")
+        "List of export names for ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
     endif()
   else()
     set(_add_EXPORT_SET manual)
-    set(cache_var CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${PROJECT_NAME})
+    set(cache_var CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
   endif()
   if (DEFINED CACHE{${cache_var}})
     set_property(CACHE ${cache_var} APPEND PROPERTY VALUE ${_add_TARGETS})
   else()
     set(${cache_var} ${_add_TARGETS} CACHE INTERNAL
-      "List of exported ${_add_EXPORT_SET} targets for project ${PROJECT_NAME}")
+      "List of exported ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
 endfunction()
 

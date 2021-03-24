@@ -46,9 +46,9 @@ function(cet_make_library)
     endif()
   endif()
   if (CML_USE_PROJECT_NAME)
-    list(PREPEND libname_bits "${PROJECT_NAME}")
+    list(PREPEND libname_bits "${CETMODULES_CURRENT_PROJECT_NAME}")
   elseif (NOT libname_bits)
-    message(FATAL_ERROR "cet_make_library() invoked from ${PROJECT_NAME} top directory: \
+    message(FATAL_ERROR "cet_make_library() invoked from ${CETMODULES_CURRENT_PROJECT_NAME} top directory: \
 LIBRARY_NAME or USE_PROJECT_NAME options required\
 ")
   endif()
@@ -129,14 +129,14 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   if (NOT (DEFINED CML_LOCAL_INCLUDE_DIRS OR
       "LOCAL_INCLUDE_DIRS" IN_LIST CML_KEYWORDS_MISSING_VALUES))
     set(CML_LOCAL_INCLUDE_DIRS
-      "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}")
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}" "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}")
   else()
     set(local_include_dirs)
     foreach (dir IN LISTS CML_LOCAL_INCLUDE_DIRS)
       if (IS_ABSOLUTE "${dir}")
         list(APPEND local_include_dirs "${dir}")
       else()
-        foreach (base IN LISTS PROJECT_BINARY_DIR PROJECT_SOURCE_DIR)
+        foreach (base IN LISTS CETMODULES_CURRENT_PROJECT_BINARY_DIR CETMODULES_CURRENT_PROJECT_SOURCE_DIR)
           get_filename_component(tmp "${dir}" ABSOLUTE BASE_DIR "${base}")
           list(APPEND local_include_dirs "${tmp}")
         endforeach()
@@ -161,7 +161,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
             BASE_SUBDIR ${CML_INSTALLED_PATH_BASE} NOP
             "${source}")
           list(APPEND lib_sources "$<BUILD_INTERFACE:${source_path}>"
-            "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}/${installed_path}>")
+            "$<INSTALL_INTERFACE:${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}/${installed_path}>")
           continue() # Add this rather than the original.
         endif()
         # Add verbatim.
@@ -209,7 +209,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     target_sources(${lib_target} ${lib_sources})
     target_include_directories(${lib_target}
       ${include_scope} "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>"
-      INTERFACE "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}>"
+      INTERFACE "$<INSTALL_INTERFACE:${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}>"
     )
     if (NOT lib_name STREQUAL lib_target)
       set_property(TARGET ${lib_target} PROPERTY
@@ -232,7 +232,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     endif()
     if (lib_type STREQUAL "SHARED" OR lib_type STREQUAL "MODULE")
       set_target_properties(${lib_target} PROPERTIES
-        $<$<BOOL:${CML_VERSION}>:VERSION ${PROJECT_VERSION}>
+        $<$<BOOL:${CML_VERSION}>:VERSION ${CETMODULES_CURRENT_PROJECT_VERSION}>
         $<$<BOOL:${CML_SOVERSION}>:SOVERSION ${CML_SOVERSION}>)
     endif()
     target_link_libraries(${lib_target} ${liblist})
@@ -249,21 +249,21 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     endif()
   endforeach()
   if (CML_HEADERS_TARGET)
-    if (TARGET ${PROJECT_NAME}_headers)
-      message(NOTICE "Requested headers target ${PROJECT_NAME}_headers already exists - ignoring")
+    if (TARGET ${CETMODULES_CURRENT_PROJECT_NAME}_headers)
+      message(NOTICE "Requested headers target ${CETMODULES_CURRENT_PROJECT_NAME}_headers already exists - ignoring")
     else()
-      add_library(${PROJECT_NAME}_headers INTERFACE)
-      target_include_directories(${PROJECT_NAME}_headers INTERFACE
+      add_library(${CETMODULES_CURRENT_PROJECT_NAME}_headers INTERFACE)
+      target_include_directories(${CETMODULES_CURRENT_PROJECT_NAME}_headers INTERFACE
         "$<BUILD_INTERFACE:${CML_LOCAL_INCLUDE_DIRS}>"
-        "$<INSTALL_INTERFACE:${${PROJECT_NAME}_INCLUDE_DIR}>"
+        "$<INSTALL_INTERFACE:${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}>"
         )
       set(headers_alias headers)
-      if (NOT namespace STREQUAL PROJECT_NAME)
-        string(PREPEND headers_alias "${PROJECT_NAME}_")
+      if (NOT namespace STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
+        string(PREPEND headers_alias "${CETMODULES_CURRENT_PROJECT_NAME}_")
       endif()
-      set_property(TARGET ${PROJECT_NAME}_headers PROPERTY EXPORT_NAME ${headers_alias})
-      list(APPEND lib_targets ${PROJECT_NAME}_headers)
-      add_library(${namespace}::${headers_alias} ALIAS ${PROJECT_NAME}_headers)
+      set_property(TARGET ${CETMODULES_CURRENT_PROJECT_NAME}_headers PROPERTY EXPORT_NAME ${headers_alias})
+      list(APPEND lib_targets ${CETMODULES_CURRENT_PROJECT_NAME}_headers)
+      add_library(${namespace}::${headers_alias} ALIAS ${CETMODULES_CURRENT_PROJECT_NAME}_headers)
     endif()
   endif()
   # Install libraries.
@@ -275,9 +275,9 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       _add_to_exported_targets(EXPORT_SET ${CML_EXPORT_SET} TARGETS ${lib_targets})
     endif()
     install(TARGETS ${lib_targets} EXPORT ${CML_EXPORT_SET}
-	    RUNTIME DESTINATION "${${PROJECT_NAME}_BIN_DIR}"
-	    LIBRARY DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}"
-	    ARCHIVE DESTINATION "${${PROJECT_NAME}_LIBRARY_DIR}")
+	    RUNTIME DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR}"
+	    LIBRARY DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}"
+	    ARCHIVE DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}")
   endif()
   if (TARGET ${CML_TARGET_NAME})
     # Return the target name if we've been asked.

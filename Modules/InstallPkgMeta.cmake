@@ -3,7 +3,7 @@
 # install_license()
 #
 #   Install package metadata such as INSTALL, README and LICENSE files
-# in ${${PROJECT_NAME}_PKG_META_DIR}.
+# in ${${CETMODULES_CURRENT_PROJECT_NAME}_PKG_META_DIR}.
 #
 # Usage: install_pkgmeta([SUBDIRNAME <subdir>] LIST ...)
 #        install_pkgmeta([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
@@ -33,7 +33,7 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(install_pkgmeta)
-  if (NOT "PKG_META_DIR" IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
+  if (NOT "PKG_META_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     project_variable(PKG_META_DIR .
       NO_WARN_REDUNDANT OMIT_IF_NULL
       DOCSTRING "Directory below prefix to install package metadata such as INSTALL, README and LICENSE files."
@@ -42,7 +42,7 @@ function(install_pkgmeta)
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.  
   cmake_parse_arguments(PARSE_ARGV 0 _IP ""
     "INSTALLER_LICENSE;INSTALLER_README;INSTALLER_WELCOME" "")
-  _cet_install(pkgmeta ${PROJECT_NAME}_PKG_META_DIR
+  _cet_install(pkgmeta ${CETMODULES_CURRENT_PROJECT_NAME}_PKG_META_DIR
     ${_IP_UNPARSED_ARGUMENTS}
     _SQUASH_SUBDIRS _INSTALL_ONLY
     _EXTRA_EXTRAS ${_IP_LIST} ${_IP_INSTALLER_LICENSE}
@@ -62,7 +62,7 @@ function(install_pkgmeta)
     endif()
   endif()
   if (DEFINED license)
-    set(${PROJECT_NAME}_CPACK_RESOURCE_FILE_LICENSE "${license}" CACHE INTERNAL
+    set(${CETMODULES_CURRENT_PROJECT_NAME}_CPACK_RESOURCE_FILE_LICENSE "${license}" CACHE INTERNAL
       "Installer license file for CMake Project ${CMAKE_PROJECT}")
   endif()
   if (DEFINED _IP_INSTALLER_README)
@@ -75,11 +75,11 @@ function(install_pkgmeta)
     endif()
   endif()
   if (DEFINED readme)
-    set(${PROJECT_NAME}_CPACK_RESOURCE_FILE_README "${readme}" CACHE INTERNAL
+    set(${CETMODULES_CURRENT_PROJECT_NAME}_CPACK_RESOURCE_FILE_README "${readme}" CACHE INTERNAL
       "Installer README file for CMake Project ${CMAKE_PROJECT}")
   endif()
   if (DEFINED _IP_INSTALLER_WELCOME)
-    set(${PROJECT_NAME}_CPACK_RESOURCE_FILE_WELCOME "${_IP_INSTALLER_WELCOME}"
+    set(${CETMODULES_CURRENT_PROJECT_NAME}_CPACK_RESOURCE_FILE_WELCOME "${_IP_INSTALLER_WELCOME}"
       CACHE INTERNAL
       "Installer WELCOME file for CMake Project ${CMAKE_PROJECT}")
   endif()

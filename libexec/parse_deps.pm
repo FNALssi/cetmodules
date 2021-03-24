@@ -14,14 +14,14 @@ use strict;
 use warnings;
 use warnings::register;
 
+use Cwd qw(abs_path);
+use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK);
 
 use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
-
-use File::Basename qw(basename dirname);
 
 $pathspec_info =
   {
@@ -465,13 +465,15 @@ sub get_qualifier_list {
 
 sub get_qualifier_matrix {
   my ($qlen, $qlist, $notes) = get_qualifier_list(shift);
-  my ($qhash, $qqhash, $nhash); # (by-column, by-row, notes)
-  my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
-  $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
-  $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @$qlist };
-  my @headers = (@prods, shift @$notes || ());
-  $nhash = { map { ( $_->[0] => (shift @$notes or '')); } @$qlist };
-  return ($qlen, $qhash, $qqhash, $nhash, \@headers);
+  my ($qhash, $qqhash, $nhash, $headers); # (by-column, by-row, notes, headers)
+  if ($qlist and scalar @$qlist) {
+    my @prods = @{shift @$qlist}; # Drop header row from @$qlist.
+    $qhash = { map { my $idx = $_; ( $prods[$idx] => { map { (@$_[0] => @$_[$idx]); } @$qlist } ); } 1..$qlen };
+    $qqhash = { map { my @dq = @$_; ( $dq[0] => { map { ( $prods[$_] => $dq[$_] ); } 1..$qlen } ); } @$qlist };
+    $headers = [@prods, shift @$notes || ()];
+    $nhash = { map { ( $_->[0] => (shift @$notes or '')); } @$qlist };
+  }
+  return ($qlen, $qhash, $qqhash, $nhash, $headers);
 }
 
 sub match_qual {
@@ -697,51 +699,58 @@ sub offset_annotated_items {
 #
 # alpha[[-_]NN] (alpha releases);
 # beta[[-_]NN] (beta releases);
-# rc[[-_]NN] or pre[[-_]NN] (prereleases);
+# rc[[-_]NN] or pre[[-_]NN] (pre-releases);
 # <empty>;
 # p[-_]NN or patch[[-_]NN] (patch releases);
 # Anything else.
 sub parse_version_extra {
-  my $vInfo = shift;
-  # Swallow optional _ or - separator to 4th field.
-  if (($vInfo->{micro} // '') =~ m&^(\d+)[-_]?((.*?)[-_]?(\d*))$&o) {
-    $vInfo->{micro} = "$1";
-  } else {
-    $vInfo->{micro} = undef;
-  }
-  my ($extra, $etext, $enum) = (${2} // "", ${3} // "", (defined ${2} and ${4} or -1));
+  my $vInfo = shift or die "INTERNAL ERROR in parse_version_extra()";
+  return $vInfo unless $vInfo->{extra};
+  my $etype = 0;
+  my ($etext, $enum) =
+    ($vInfo->{extra} =~ m&(\D*?)[-_.,]?(\d*)$&);
   if (not $etext) {
     $vInfo->{extra_type} = 0;
-  } elsif ($etext eq "patch" or ($enum >= 0 and $etext eq "p")) {
+  } elsif ($etext eq "patch" or
+           (defined $enum and $enum >= 0 and $etext eq "p")) {
     $vInfo->{extra_type} = 1;
-  } elsif ($etext eq "rc" or
-           $etext eq "pre") {
+    $etext = "patch";
+  } elsif ("\L$etext\E" eq "rc" or
+           "\L$etext\E" eq "pre") {
     $vInfo->{extra_type} = -1;
     $etext = "pre";
-  } elsif ($etext eq "beta") {
+  } elsif ("\L$etext\E" eq "gamma") {
     $vInfo->{extra_type} = -2;
-  } elsif ($etext eq "alpha") {
+  } elsif ("\L$etext\E" eq "beta") {
     $vInfo->{extra_type} = -3;
+  } elsif ("\L$etext\E" eq "alpha") {
+    $vInfo->{extra_type} = -4;
   } else {
     $vInfo->{extra_type} = 2;
   }
-  $vInfo->{extra} = $extra;
-  $vInfo->{extra_num} = $enum;
-  $vInfo->{extra_text} = $etext;
+  $vInfo->{extra_text} = ($etype < -1) ? "\L$etext\E" : "$etext";
+  $vInfo->{extra_num} = $enum || 0;
+  return $vInfo;
 }
 
 sub parse_version_string {
   my $dv = shift // "";
   $dv =~ s&^v&&o;
   my $result = {};
-  if ($dv) {
-    @{$result}{qw(major minor micro)} = split /[_.]/, $dv, 3;
-    parse_version_extra($result);
-  } else {
-    my @keys = qw(major minor micro extra_type extra extra_text extra_num);
-    @{$result}{@keys} = (undef) x scalar @keys;
+  my $def_ps = '[-_.,]';
+  my ($ps, $es);
+  foreach my $key (qw(major minor patch tweak)) {
+    my $sep = (defined $ps) ? "\Q$ps\E" : $def_ps;
+    if ($dv =~ m&\G(\d+)?((?(1)$sep?|$sep))&gc) {
+      $ps = $ps // $2 if $es = $2; # Yes, second expr. is an assignment.
+      $result->{$key} = $1 // 0;
+      push @{$result->{bits}}, $result->{$key};
+    } else {
+      $result->{extra} = ($dv =~ m&\G(.+)$&);
+      $result->{pre_extra_sep} = ($es ne $ps) ? $es : '' if $es;
+    }
   }
-  return $result;
+  return parse_version_extra($result);
 }
 
 sub _format_version {
@@ -750,10 +759,9 @@ sub _format_version {
   my $separator = shift // '.';
   my $preamble = shift // '';
   return sprintf("${preamble}%s%s",
-                 join($separator,
-                      $v->{major} // (),
-                      $v->{minor} // (),
-                      $v->{micro} // ()),
+                 join($separator, @{$v->{bits} || ()}),
+                 (defined $v->{pre_extra_sep}) ?
+                 $v->{pre_extra_sep} || $separator : '',
                  $v->{extra} // '');
 }
 
@@ -777,10 +785,11 @@ sub version_cmp($$) {
   return
     ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
       ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
-        ($vInfoA->{micro} // 0) <=> ($vInfoB->{micro} // 0) ||
-          ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
-            ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
-              ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
+        ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0) ||
+          ($vInfoA->{tweak} // 0) <=> ($vInfoB->{tweak} // 0) ||
+            ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
+              ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
+                ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
 }
 
 my $cqual_table =
@@ -861,7 +870,7 @@ sub get_cmake_project_info {
   # Try our best to be thorough.
  lines:  while (scalar @buffer) {
     $line = join('', $line, shift @buffer);
-    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>\S+)\s*&&s) {
+    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>[^\s)]+)\s*&&s) {
       # Enough of a project() call to start processing it.
       $proj_info = { %+ };
       # This loop will go over the remains of the project() call - over
@@ -937,13 +946,20 @@ sub get_cmake_project_info {
 
 sub ups_to_cmake {
   my ($pi) = @_;
-  $pi->{cmake_project} and
-    $pi->{name} and
+  if ($pi->{cmake_project} and
+      $pi->{name} and
       $pi->{cmake_project} ne
-        $pi->{name} and
-          warning("UPS product name is $pi->{name}.",
-                  "CMake project name is $pi->{cmake_project}.",
-                  "CMake variable names will be based on CMake project name.");
+      $pi->{name}) {
+    warning("UPS product name is $pi->{name}.",
+            "CMake project name is $pi->{cmake_project}.");
+    if ($pi->{cmake_project} =~ m&\$& ) {
+      warning("CMake variable names will be based on UPS product name ($pi->{name}).",
+              "Please verify project() for $pi->{name} manually.");
+      $pi->{cmake_project} = $pi->{name};
+    } else {
+      warning("CMake variable names will be based on CMake project name.");
+    }
+  }
 
   (not $pi->{cqual}) or
     (exists $cqual_table->{$pi->{cqual}} and
@@ -952,6 +968,29 @@ sub ups_to_cmake {
      error_exit("unrecognized compiler qualifier $pi->{cqual}"));
 
   my @cmake_args=();
+
+  ##################
+  # Build system bootstrap.
+  my $bootstrap;
+  if ($pi->{build_only_deps} and
+      grep { $_ eq 'cetbuildtools'; } @{$pi->{build_only_deps}}) {
+    push @cmake_args, @{cmake_cetb_compat_defs()};
+    $bootstrap = "BootstrapCetbuildtools.cmake";
+  } elsif ($pi->{cmake_project} ne "cetmodules" and not
+           ($ENV{MRB_SOURCE} and
+            $ENV{CETPKG_SOURCE} eq $ENV{MRB_SOURCE})) {
+    $bootstrap = "BootstrapCetmodules.cmake";
+  }
+  if ($bootstrap) {
+    my $src_modules_dir =
+      File::Spec->catfile($ENV{MRB_SOURCE}, 'cetmodules', 'Modules');
+    push @cmake_args,
+      sprintf("-DCMAKE_PROJECT_$pi->{cmake_project}_INCLUDE_BEFORE=%s",
+              abs_path(File::Spec->catfile
+                       ((($ENV{MRB_SOURCE} and -d $src_modules_dir) ?
+                         $src_modules_dir : ($ENV{CETMODULES_DIR}, 'Modules')),
+                        $bootstrap)));
+  }
 
   ##################
   # UPS-specific CMake configuration.
@@ -1150,7 +1189,7 @@ sub fq_path_for {
     { key => '-', path => $default };
   my $fq_path = $pathspec->{fq_path} || undef;
   unless ($fq_path or ($pathspec->{key} eq '-' and not $pathspec->{path})) {
-    my $want_fq = $pi->{fq_dir} and
+    my $want_fq = $pi->{fq_dir} &&
       ($pathspec->{key} eq 'fq_dir' or
        ($pathspec->{key} eq '-' and grep { $_ eq $dirkey } qw(bindir libdir)));
     $fq_path =
@@ -1166,22 +1205,24 @@ sub print_dev_setup_var {
   if (ref $val eq 'ARRAY') {
     @vals=@$val;
   } else {
-    @vals=($val);
+    @vals=($val || ());
   }
   my $result;
   open(my $out, ">", \$result) or
     die "could not open memory stream to variable \$out";
-  print $out "# $var\n",
-    "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
-  print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
-  if ($no_errclause) {
-    print $out "\n";
-  } else {
-    print $out "; ";
-    setup_err($out, "failure to prepend to $var");
+  if (scalar @vals) {
+    print $out "# $var\n",
+      "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
+    print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
+    if ($no_errclause) {
+      print $out "\n";
+    } else {
+      print $out "; ";
+      setup_err($out, "failure to prepend to $var");
+    }
   }
   close($out);
-  return $result;
+  return $result // '';
 }
 
 sub print_dev_setup {
@@ -1224,6 +1265,28 @@ EOF
     print $out
       print_dev_setup_var("FHICL_FILE_PATH",
                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
+
+  # FW_SEARCH_PATH.
+  my $fw_pathspec = get_pathspec($pi, 'set_fwdir') || {};
+  die "INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called first"
+    if ($fw_pathspec->{path} and not $fw_pathspec->{fq_path});
+  my @fqdirs =
+    map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_BUILD}', $_); }
+      (fq_path_for($pi, 'gdmldir', 'gdml') || (),
+       fq_path_for($pi, 'fwdir') || ());
+  push @fqdirs, map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
+    @{$fw_pathspec->{fq_path} || []};
+  print $out print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs);
+
+  # WIRECELL_PATH.
+  my $wp_pathspec = get_pathspec($pi, 'set_wpdir') || {};
+  die "INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called first"
+    if ($wp_pathspec->{path} and not $wp_pathspec->{fq_path});
+  @fqdirs =
+    map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
+      @{$wp_pathspec->{fq_path} || []};
+  print $out print_dev_setup_var("WIRECELL_PATH", \@fqdirs);
+
   # PYTHONPATH.
   if ($pi->{define_pythonpath}) {
     print $out

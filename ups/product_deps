@@ -8,9 +8,9 @@ libdir	-
 
 product         version		qual	<table_format=2>
 cetpkgsupport	-c
-cmake		v3_19_6
+cmake		v3_20_0
 ninja		-c		-	optional
-sphinx		v3_5_2		-	only_for_build
+sphinx		v3_5_3		-	only_for_build
 end_product_list
  
 qualifier	cmake	ninja	cetpkgsupport

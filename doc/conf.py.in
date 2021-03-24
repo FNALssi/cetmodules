@@ -17,12 +17,12 @@ sys.path.insert(0, os.path.abspath('_extensions'))
 
 # -- Project information -----------------------------------------------------
 
-project = '@PROJECT_NAME@'
+project = '@PROJ_NAME@'
 copyright = '2010-{0}, Fermi Alliance LLC.'.format(datetime.date.today().year)
-author = '@PROJECT_AUTHORS@'.replace(";", ", ")
+author = '@PROJ_AUTHORS@'.replace(";", ", ")
 
 # The full version, including alpha/beta/rc tags
-release = '@PROJECT_VERSION@'
+release = '@CETMODULES_CURRENT_PROJECT_VERSION@'
 
 # Major.minor
 version = '.'.join(release.split('.')[0:1])

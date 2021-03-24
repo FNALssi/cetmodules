@@ -47,7 +47,7 @@
 #             [GENERATED]
 #             [REMOVE_EXTENSIONS] )
 #
-#   Copy the named scripts to ${${PROJECT_NAME}_SCRIPTS_DIR} (usually bin/).
+#   Copy the named scripts to ${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR} (usually bin/).
 #
 #   If the GENERATED option is used, the script will be copied from
 #   ${CMAKE_CURRENT_BINARY_DIR} (after being made by a CONFIGURE
@@ -210,14 +210,14 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   if (NOT (DEFINED CME_LOCAL_INCLUDE_DIRS OR
         "LOCAL_INCLUDE_DIRS" IN_LIST CME_KEYWORDS_MISSING_VALUES))
     set(CME_LOCAL_INCLUDE_DIRS
-      "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}")
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}" "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}")
   endif()
   target_include_directories(${CME_NAME}
     PRIVATE ${CME_LOCAL_INCLUDE_DIRS})
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
     cet_find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
-    if (TARGET Boost::unit_test_framework)
+    if (TARGET Boost::unit_test_framework AND Boost_VERSION VERSION_GREATER_EQUAL 1.70.0)
       target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
       # Belt and braces (cf historical bug in fhiclcpp tests).
       target_compile_definitions(${CME_NAME} PRIVATE BOOST_TEST_NO_OLD_TOOLS)
@@ -225,7 +225,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
       # *Someone* didn't use Boost's CMake config file to define targets.
       target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
       target_compile_definitions(${CME_NAME} PRIVATE
-        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK;BOOST_TEST_NO_OLD_TOOLS")
+        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK")
     endif()
   endif()
   # Handle request for Catch2 main.
@@ -261,7 +261,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   # Installation.
   if (NOT CME_NO_INSTALL)
     install(TARGETS ${CME_NAME} EXPORT ${CME_EXPORT_SET}
-      RUNTIME DESTINATION ${${PROJECT_NAME}_BIN_DIR})
+      RUNTIME DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR})
     if (NOT CME_NO_EXPORT)
       _add_to_exported_targets(EXPORT_SET ${CME_EXPORT_SET} TARGETS ${CME_NAME})
     endif()
@@ -284,7 +284,7 @@ function(cet_script)
       " - CMake source property GENERATED is set automatically by add_custom_command, etc. or can be set manually otherwise")
   endif()
   if (NOT CS_DESTINATION)
-    set(CS_DESTINATION "${${PROJECT_NAME}_SCRIPTS_DIR}")
+    set(CS_DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR}")
   endif()
   foreach(script IN LISTS CS_UNPARSED_ARGUMENTS)
     unset(need_copy)
@@ -349,14 +349,14 @@ endfunction()
 
 macro(_cet_verify_cet_make_args)
   if (CM_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "cet_make(): unrecognized arguments ${CM_UNPARSED_ARGUMENTS}
-${cet_make_usage}\
-")
-  elseif (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
+    warn_deprecated("non-option arguments" NEW "LIBRARIES")
+  endif()
+  if (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
     message(FATAL_ERROR "cet_make(): NO_INSTALL and INSTALL_LIBS_ONLY are mutually exclusive")
   endif()
   if (CM_USE_PROJECT_NAME AND CM_USE_PRODUCT_NAME)
     message(WARNING "cet_make(): USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
+    unset(CM_USE_PRODUCT_NAME)
   elseif (CM_USE_PROJECT_NAME OR CM_USE_PRODUCT_NAME)
     set(CM_USE_PROJECT_NAME TRUE)
     unset(CM_USE_PRODUCT_NAME)

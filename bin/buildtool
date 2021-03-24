@@ -49,12 +49,14 @@ Misc options: [-D<CMake-definition>]+
               [--LE <label-regex>]
               [-c|--clean]
               [--clean-logs]
+              [-X(c|b|t|i),<arg>[,<arg>]+]
               [--cmake-debug]
               [--cmake-trace]
+              [--cmake-trace-expand]
               [--deleted-header[s] <header>[,<header>]+]
               [-f|--force-top]
               [-g|--graphviz=<dot-file> [--gfilt <gfilt-opt>[,<gfilt-opt>]+]]
-              [[--generator <make|ninja>[:<secondary-generator>]]
+              [--generator <make|ninja>[:<secondary-generator>]]
               [-j #]
               [-l|--log[=<log-file>]|--log-file[=<log-file>]]
               [-q|--quiet]
@@ -208,6 +210,13 @@ MISC. OPTIONS.
   options are mutually exclusive with --test-labels, -T and -R, but not
   with each other. Specifying one of these options implies -t.
 
+-X[cbtip],<arg>[,<arg>]+[,--,<non-option-arg>[,<non-option-arg>]+]
+
+  EXtra arguments to be passed to the Configure, Build, Test, Install,
+  or Package stages. <arg>s will be added at the end of option
+  arguments, while <non-option-arg>s will be added at the end of
+  non-option arguments.
+
 -c
 --clean
 
@@ -224,6 +233,10 @@ MISC. OPTIONS.
 --cmake-trace
 
   Add --trace to the CMake command line options.
+
+--cmake-trace-expand
+
+  Add --trace-expand to the CMake command line options.
 
 --deleted-header[s] <header>[,<header>]+
 
@@ -657,6 +670,8 @@ do_work() {
       -w "$CETPKG_BUILD" find_and_remove_deleted_header_refs || true
     # CMake 3.13 required for -S / -B.
     require_cmake 3.13
+    [ -z "${c_postargs[*]}" ] || \
+      error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
     cmd -d "execute CMake" \
       cmake -DCMAKE_INSTALL_PREFIX="$install_prefix" \
       ${garg[@]:+"${garg[@]}"} \
@@ -664,6 +679,7 @@ do_work() {
       ${cmake_options[@]:+"${cmake_options[@]}"} \
       ${cmake_defs[@]:+"${cmake_defs[@]}"} \
       ${generator_arg:+"$generator_arg"} \
+      ${c_opt_args[*]:+"${c_opt_args[@]}"} \
       -S "$CETPKG_SOURCE" -B "$CETPKG_BUILD" || \
       check_status # Fail here if there's a problem, quiet otherwise.
     if [ -f "$gtmpfile" ]; then
@@ -706,9 +722,11 @@ ${tred:+| tred} > \"$gfile\""
         cmake --build "$CETPKG_BUILD" \
         ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"} \
         ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"} \
+        ${b_opt_args[*]:+"${b_opt_args[@]}"} \
         "--" \
         ${extra_generator_args[@]:+"${extra_generator_args[@]}"} \
-        ${generator_user_args[@]:+"${generator_user_args[@]}"}
+        ${generator_user_args[@]:+"${generator_user_args[@]}"} \
+        ${b_postargs[*]:+"${b_postargs[@]}"}
       check_status
     fi
   fi
@@ -737,9 +755,13 @@ ${tred:+| tred} > \"$gfile\""
       fi
       # Trap and tee *only* stderr from ctest. Yes, this is fiddly.
       exec 5>&1
+      [ -z "${t_postargs[*]}" ] || \
+        error "specifying non-option arguments for test step (${t_postargs[*]}) is not meaningful"
       { { set +x; } 2>/dev/null # Don't need to see this.
         cmd -d "execute tests" -w "$CETPKG_BUILD"${ops_dir:+"/$ops_dir"} \
-          ctest "${tsargs[@]}" 2>&1 >&5 5>&-
+          ctest ${tsargs[*]:+"${tsargs[@]}"} \
+          ${t_opt_args[*]:+"${t_opt_args[@]}"} \
+          2>&1 >&5 5>&-
         echo $? > "$TMP/status.dat"
       } | tee "$TMP/ctest.err" 5>&-;
       exec 5>&-
@@ -764,7 +786,7 @@ ${tred:+| tred} > \"$gfile\""
       test_specs="${l_regex:+--L \"$l_regex\"}"
       [ -n "$le_regex" ] && test_specs="${test_specs:+$test_specs }--LE \"$le_regex\""
     fi
-    warning "test label specifications $test_specs ignored since tests are not enabled"
+    warning "test label specifications $test_specs ignored since tests are skipped"
   fi
   if (( do_install )); then
     stage_ip install
@@ -776,16 +798,19 @@ ${tred:+| tred} > \"$gfile\""
 
 stage_ip() {
   stage="$1"
+  local s="${1:0:1}"
   local cmd_args=(
     cmake --build "$CETPKG_BUILD"
     ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"}
     ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"}
   )
+  eval cmd_args+=\(\$\{${s}_opt_args\[*\]:+\"\$\{${s}_opt_args\[@\]\}\"\}\)
   local cmd_postargs=(
     "--"
     ${extra_generator_args[@]:+"${extra_generator_args[@]}"}
     ${generator_user_args[@]:+"${generator_user_args[@]}"}
   )
+  eval cmd_postargs+=\(\$\{${s}_postargs\[*\]:+\"\$\{${s}_postargs\[@\]\}\"\}\)
   if (( using_ninja )); then
     stage_regex="^$stage:"
   else
@@ -853,7 +878,7 @@ if (( $? != 4 )); then
   exit 1
 fi
 
-TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTbcfg:hij:lpqs:tv -- "$@"`
+TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
 
 (( $? )) && usage 2
 
@@ -873,6 +898,33 @@ while true; do
     --LE) le_regex=$2; shift;;
     -R|--release) test_labels+=(RELEASE); require_tests;;
     -T|--test-all) test_labels+=(ALL); require_tests;;
+    -X) argbits="$2"; shift;
+      [[ "$argbits" =~ ^([cbtip]),(.*)$ ]] || \
+        { error "bad argument -X$argbits"; usage 2; }
+      extra_arg_type="${BASH_REMATCH[1]}"
+      extra_args="${BASH_REMATCH[2]}"
+      if [ -n "$extra_args" ]; then
+        OIFS="${IFS}" IFS=,
+        extra_opt_args=(${extra_args%%,--,*})
+        extra_postargs=(${extra_args#*,--,})
+        IFS="$OIFS"
+        if [ "$extra_opt_args" = "--" ]; then
+          eval ${extra_arg_type}_opt_args=\(\)
+          eval ${extra_args_type}_postargs=\(\"\${extra_opt_args[@]:1}\"\)
+        elif [ "${extra_opt_args[*]}" = "${extra_postargs[*]}" ]; then
+          if [ "${extra_opt_args[@]:${#extra_opt_args[@]}-1}" = "--" ]; then
+            eval ${extra_arg_type}_opt_args=\(\"\${extra_opt_args[@]:0:${#extra_opt_args[@]}-1}\"\)
+          else
+            eval ${extra_arg_type}_opt_args=\(\"\${extra_opt_args[@]}\"\)
+          fi
+          eval ${extra_arg_type}_postargs=\(\)
+        else
+          eval ${extra_arg_type}_opt_args=\(\"\${extra_opt_args[@]}\"\)
+          eval ${extra_arg_type}_postargs=\(\"\${extra_postargs[@]}\"\)
+        fi
+      else
+        warning "vacuous extra arguments for stage -X$extra_arg_type"
+      fi;;
     -b|--build) (( do_build = 1 ));;
     --clean-logs) (( clean_logs = 1 ));;
     -c|--clean) (( clean = 1 ));;
@@ -979,29 +1031,6 @@ if (( log_is_default )); then
     ${log_default#build_}
   )
   OIFS="$IFS"; IFS="_"; log="${log_bits[*]}"; IFS="$OIFS"
-fi
-
-# Which build system does the package think it is using?
-OIFS="${IFS}"; IFS=';'
-if [[ "$CETPKG_SOURCE" = "$MRB_SOURCE" ]] || \
-  [[ "$CETPKG_CMAKE_PROJECT" = "cetbuildtools" ]]; then
-  build_system_pkg=cetmodules
-elif [[ ${CETPKG_BUILD_ONLY_DEPS[*]:+"${CETPKG_BUILD_ONLY_DEPS[*]};"}${CETPKG_CMAKE_PROJECT} =~ \
-  (^|;)(cetmodules|cetbuildtools)(;|$) ]]; then
-  build_system_pkg=${BASH_REMATCH[2]}
-fi
-IFS="${OIFS}"; unset OIFS
-
-if [ -z "${build_system_pkg}" ]; then
-  fatal_error "unable to identify a recognized build system package (cetmodules|cetbuildtools) for use with buildtool."
-elif ! { [ "$CETPKG_SOURCE" = "$MRB_SOURCE" ] || grep -Eie '^[[:space:]]*find_package[[:space:]]*\([[:space:]]*cetmodules\b' \
-  -e '^[[:space:]]*project[[:space:]]*\(' "${CETPKG_SOURCE}/CMakeLists.txt" | head -n 1 | \
-  grep -qEie '^[[:space:]]*(project|find_package)[[:space:]]*\([[:space:]]*'"$build_system_pkg"'\b'; } 2>/dev/null; then
-  [ "${build_system_pkg}" = "cetmodules" ] && \
-    warning "find_package($build_system_pkg) must *precede* project() call in
-             order to enable clean override of toolchain compile options
-             (mitigated by buildtool)."
-  CETPKG_CMAKE_ARGS+=(-DCET_BUILD_SYSTEM=${build_system_pkg} -DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/FindBuildSystemPackage.cmake)
 fi
 
 ##################

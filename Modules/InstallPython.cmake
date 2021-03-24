@@ -167,10 +167,10 @@ function(install_python)
     message(FATAL_ERROR "install_python: PACKAGE_DATA makes no sense without PACKAGES.")
   endif()
   if (NOT IP_NAME)
-    set(IP_NAME ${PROJECT_NAME})
+    set(IP_NAME ${CETMODULES_CURRENT_PROJECT_NAME})
   endif() # IP_NAME
   if (NOT IP_VERSION)
-    set(IP_VERSION ${PROJECT_VERSION})
+    set(IP_VERSION ${CETMODULES_CURRENT_PROJECT_VERSION})
   endif() # IP_VERSION
   if (IP_SCRIPTS) # scripts=[ ... ]
     foreach(item IN LISTS IP_SCRIPTS)
@@ -284,12 +284,12 @@ function(install_python)
   endif()
   add_custom_target(python_${IP_NAME}_build
     ALL
-    COMMAND python "${IP_SETUP_PY}" install --install-lib="${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR}" --install-scripts="${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_SCRIPTS_DIR}" --install-headers="${PROJECT_NAME}"
+    COMMAND python "${IP_SETUP_PY}" install --install-lib="${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}" --install-scripts="${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR}" --install-headers="${CETMODULES_CURRENT_PROJECT_NAME}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     DEPENDS "${IP_SETUP_PY}"
     )
   if (NOT IP_NO_INSTALL)
-    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=\"\${CMAKE_INSTALL_PREFIX}\" --install-lib=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_LIBRARY_DIR}\" --install-scripts=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_SCRIPTS_DIR}\" --install-headers=\"\${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INCLUDE_DIR}\")")
+    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=\"\${CMAKE_INSTALL_PREFIX}\" --install-lib=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}\" --install-scripts=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR}\" --install-headers=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}\")")
   endif()
 endfunction()
 

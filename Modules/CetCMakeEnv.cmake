@@ -13,11 +13,15 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
-include(CetRegexEscape)
+# Override find package to deal with IN_TREE projects and reduce repeat
+# intiializations.
+include(private/CetFindPackage)
 
 # Watch for changes to CMAKE_MODULE_PATH that could break
 # forward/backward compatibility.
 include(CetCMPCleaner)
+
+include(CetRegexEscape)
 
 ##################
 # OPTIONS
@@ -106,6 +110,8 @@ macro(cet_cmake_env)
       "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file.")
   endif()
 
+  set(CETMODULES_CURRENT_PROJECT_NAME ${PROJECT_NAME})
+
   # Required to ensure correct installation location with
   # cetbuildtools-compatible installations.
   cmake_policy(SET CMP0082 NEW)
@@ -117,6 +123,13 @@ macro(cet_cmake_env)
   if (NOT PROJECT_VERSION)
     message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ to project() call")
   endif()
+  foreach (_cce_v IN ITEMS
+      BINARY_DIR DESCRIPTION HOMEPAGE_URL NAME SOURCE_DIR
+      VERSION VERSION_MAJOR VERSION_MINOR VERSION_PATCH VERSION_TWEAK
+    )
+    set(CETMODULES_CURRENT_PROJECT_${_cce_v} ${PROJECT_${_cce_v}})
+  endforeach()
+  unset(_cce_v)
 
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
@@ -280,13 +293,13 @@ macro(_cetbuildtools_compatibility_early)
       PROJECT_VERSION AND
       NOT UPS_${product}_CMAKE_PROJECT_VERSION STREQUAL PROJECT_VERSION)
     if (COMMAND mrb_check_subdir_order) # Using mrb.
-      set(_cce_problem "mrbsetenv was run")
+      set(_cce_since "mrbsetenv was run")
       set(_cce_action "re-run mrbsetenv")
     else()
-      set(_cce_problem "setup_for_development was sourced")
+      set(_cce_since "setup_for_development was sourced")
       set(_cce_action "re-source setup_for_development")
     endif()
-    message(FATAL_ERROR "Version of ${PROJECT_NAME} in CMakeLists.txt has changed since ${_cce_problem} - ${_cce_action}
+    message(FATAL_ERROR "Version of ${PROJECT_NAME} in CMakeLists.txt has changed since ${_cce_since} - ${_cce_action}
   -> \"${UPS_${product}_CMAKE_PROJECT_VERSION}\" (from setup) != \"${PROJECT_VERSION}\" (in CMakeLists.txt)")
   endif()
   set(version "${${PROJECT_NAME}_UPS_PRODUCT_VERSION}")
@@ -294,6 +307,14 @@ macro(_cetbuildtools_compatibility_early)
       IN_LIST ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND
       NOT PROJECT_VERSION)
     set(PROJECT_VERSION ${UPS_${product}_CMAKE_PROJECT_VERSION})
+    parse_version_string("${PROJECT_VERSION}" PROJECT_VERSION_MAJOR PROJECT_VERSION_MINOR PROJECT_VERSION_PATCH PROJECT_VERSION_TWEAK)
+    if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+      foreach (_cce_v IN ITEMS "" _MAJOR _MINOR _PATCH _TWEAK)
+        set(CMAKE_PROJECT_VERSION${_cce_v} ${PROJECT_VERSION${_cce_v}})
+      endforeach()
+      unset(_cce_v)
+    endif()
+    set(ART_MAKE_LIBRARY_NO_BASENAME_ONLY TRUE) # Historical behavior
   endif()
   set(UPSFLAVOR "${${PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
   set(flavorqual "${${PROJECT_NAME}_EXEC_PREFIX}")

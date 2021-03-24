@@ -61,7 +61,7 @@ if (_cet_catch_pkg_prefix)
   set(CMAKE_FIND_PACKAGE_NAME ${_cet_catch_pkg_prefix})
 endif()
 
-if (catch_FOUND AND ${PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
+if (catch_FOUND AND ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
   set(CATCH Catch2::Catch2)
 endif()
 

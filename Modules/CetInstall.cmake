@@ -10,8 +10,8 @@
 #                  [EXTRAS ...] [SUBDIRS ...])
 #
 # The first form installs the items specified by LIST under (usually)
-# ${${PROJECT_NAME}_X}/<subdir> with respect to the top level
-# build and install directories. If ${PROJECT_NAME}_X is
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_X}/<subdir> with respect to the top level
+# build and install directories. If ${CETMODULES_CURRENT_PROJECT_NAME}_X is
 # vacuous, a FATAL_ERROR will be generated.
 #
 # The second form, where available, looks for generally-recognized files
@@ -20,7 +20,7 @@
 # are also searched. Depending on what is appropriate for files of
 # category x: the build area may be searched for generated files of that
 # category, the current package subdirectory may be appended to
-# ${${PROJECT_NAME}_X}/<subdir>, and/or any SUBDIRs may be honored or
+# ${${CETMODULES_CURRENT_PROJECT_NAME}_X}/<subdir>, and/or any SUBDIRs may be honored or
 # removed. Non-absolute paths for EXCLUDES, EXTRAS, LISTS and SUBDIRS
 # are resolved relative to ${CMAKE_CURRENT_SOURCE_DIR} or
 # ${CMAKE_CURRENT_BINARY_DIR} as appropriate.
@@ -133,6 +133,8 @@ function(_cet_install CATEGORY)
           else()
             if (_I_SUBDIRNAME)
               string(JOIN "/" tmp_subdir "${_I_SUBDIRNAME}" "${SUBDIR}")
+            else()
+              set(tmp_subdir "${SUBDIR}")
             endif()
             # One subdirectory at a time.
             _cet_install_list(${CATEGORY} ${_I_DEST_VAR}
@@ -181,7 +183,7 @@ endfunction()
 # tree.
 #
 # Relative paths for ${${DEST_VAR}} are with respect to
-# ${PROJECT_BINARY_DIR} or ${CMAKE_INSTALL_PREFIX} as appropriate, the
+# ${CETMODULES_CURRENT_PROJECT_BINARY_DIR} or ${CMAKE_INSTALL_PREFIX} as appropriate, the
 # optional subdirectory is relative to the resolved ${${DEST_VAR}}, and
 # listed files are relative to ${CMAKE_CURRENT_SOURCE_DIR}.
 function(_cet_install_list CATEGORY DEST_VAR)
@@ -203,7 +205,7 @@ function(_cet_install_list CATEGORY DEST_VAR)
   endif()
   if (NOT _IL__INSTALL_ONLY)
     cet_copy(${CMODE}
-      DESTINATION "${PROJECT_BINARY_DIR}/${DEST_DIR}"
+      DESTINATION "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${DEST_DIR}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
       ${_IL_LIST})
   endif()
