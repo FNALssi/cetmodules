@@ -674,10 +674,10 @@ do_work() {
       error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
     cmd -d "execute CMake" \
       cmake -DCMAKE_INSTALL_PREFIX="$install_prefix" \
-      ${garg[@]:+"${garg[@]}"} \
-      ${CETPKG_CMAKE_ARGS[@]:+"${CETPKG_CMAKE_ARGS[@]}"} \
-      ${cmake_options[@]:+"${cmake_options[@]}"} \
-      ${cmake_defs[@]:+"${cmake_defs[@]}"} \
+      ${garg[*]:+"${garg[@]}"} \
+      ${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"} \
+      ${cmake_options[*]:+"${cmake_options[@]}"} \
+      ${cmake_defs[*]:+"${cmake_defs[@]}"} \
       ${generator_arg:+"$generator_arg"} \
       ${c_opt_args[*]:+"${c_opt_args[@]}"} \
       -S "$CETPKG_SOURCE" -B "$CETPKG_BUILD" || \
