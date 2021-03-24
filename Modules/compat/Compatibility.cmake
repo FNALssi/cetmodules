@@ -210,6 +210,10 @@ macro(parse_ups_version UPS_VERSION)
   parse_version_string(${UPS_VERSION} VMAJ VMIN VPRJ VPT)
 endmacro()
 
+macro(set_install_root)
+  warn_deprecated("set_install_root()" " and should be removed as redundant")
+endmacro()
+
 function(_parse_fup_arguments _FUP_PRODUCT)
   # Parse for options we expect.
   set(opts BUILD_ONLY INTERFACE PRIVATE OPTIONAL PUBLIC REQUIRED)
