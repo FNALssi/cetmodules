@@ -50,7 +50,7 @@ set(${PROJECT_NAME}_LIBRARY_DIR "")
 include(CetCMakeEnv)
 cet_cmake_env()
 
-project_variable(MIN_CETBUILDTOOLS_VERSION 8.04.00 TYPE STRING CONFIG
+project_variable(MIN_CETBUILDTOOLS_VERSION 8.05.00 TYPE STRING CONFIG
   DOCSTRING "Minimum version of cetbuildtools compatibile with this cetmodules version")
 
 # Make sure downstream packages can find our modules.
