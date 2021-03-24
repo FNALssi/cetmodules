@@ -217,7 +217,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
     cet_find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
-    if (TARGET Boost::unit_test_framework)
+    if (TARGET Boost::unit_test_framework AND Boost_VERSION VERSION_GREATER_EQUAL 1.70.0)
       target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
       # Belt and braces (cf historical bug in fhiclcpp tests).
       target_compile_definitions(${CME_NAME} PRIVATE BOOST_TEST_NO_OLD_TOOLS)
@@ -225,7 +225,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
       # *Someone* didn't use Boost's CMake config file to define targets.
       target_link_libraries(${CME_NAME} PRIVATE ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
       target_compile_definitions(${CME_NAME} PRIVATE
-        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK;BOOST_TEST_NO_OLD_TOOLS")
+        "BOOST_TEST_MAIN;BOOST_TEST_DYN_LINK")
     endif()
   endif()
   # Handle request for Catch2 main.
