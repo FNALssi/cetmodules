@@ -349,14 +349,14 @@ endfunction()
 
 macro(_cet_verify_cet_make_args)
   if (CM_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "cet_make(): unrecognized arguments ${CM_UNPARSED_ARGUMENTS}
-${cet_make_usage}\
-")
-  elseif (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
+    warn_deprecated("non-option arguments" NEW "LIBRARIES")
+  endif()
+  if (CM_NO_INSTALL AND CM_INSTALL_LIBS_ONLY)
     message(FATAL_ERROR "cet_make(): NO_INSTALL and INSTALL_LIBS_ONLY are mutually exclusive")
   endif()
   if (CM_USE_PROJECT_NAME AND CM_USE_PRODUCT_NAME)
     message(WARNING "cet_make(): USE_PRODUCT_NAME and USE_PROJECT_NAME are synonymous")
+    unset(CM_USE_PRODUCT_NAME)
   elseif (CM_USE_PROJECT_NAME OR CM_USE_PRODUCT_NAME)
     set(CM_USE_PROJECT_NAME TRUE)
     unset(CM_USE_PRODUCT_NAME)
