@@ -26,7 +26,7 @@ endfunction()
 function(_cet_convert_target_arg ARG RESULT_VAR)
   # Can we convert it to an uppercase variable we can substitute?
   string(TOUPPER "${ARG}" ${ARG}_UC)
-  if (DEFINED ${${ARG}_UC})
+  if (DEFINED ${${ARG}_UC} AND ${${ARG}_UC})
 	  list(APPEND RESULT "${${${ARG}_UC}}")
   else()
 	  list(APPEND RESULT "${ARG}")
