@@ -17,11 +17,14 @@ use warnings::register;
 use Cwd qw(abs_path);
 use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
+use FindBin;
 
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK);
 
 use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
+
+FindBin::again();
 
 $pathspec_info =
   {
@@ -971,25 +974,15 @@ sub ups_to_cmake {
 
   ##################
   # Build system bootstrap.
-  my $bootstrap;
   if ($pi->{build_only_deps} and
+      scalar @{$pi->{build_only_deps}} and
       grep { $_ eq 'cetbuildtools'; } @{$pi->{build_only_deps}}) {
     push @cmake_args, @{cmake_cetb_compat_defs()};
-    $bootstrap = "BootstrapCetbuildtools.cmake";
+    $pi->{bootstrap_cetbuildtools} = 1
   } elsif ($pi->{cmake_project} ne "cetmodules" and not
            ($ENV{MRB_SOURCE} and
             $ENV{CETPKG_SOURCE} eq $ENV{MRB_SOURCE})) {
-    $bootstrap = "BootstrapCetmodules.cmake";
-  }
-  if ($bootstrap) {
-    my $src_modules_dir =
-      File::Spec->catfile($ENV{MRB_SOURCE}, 'cetmodules', 'Modules');
-    push @cmake_args,
-      sprintf("-DCMAKE_PROJECT_$pi->{cmake_project}_INCLUDE_BEFORE=%s",
-              abs_path(File::Spec->catfile
-                       ((($ENV{MRB_SOURCE} and -d $src_modules_dir) ?
-                         $src_modules_dir : ($ENV{CETMODULES_DIR}, 'Modules')),
-                        $bootstrap)));
+    $pi->{bootstrap_cetmodules} = 1
   }
 
   ##################

@@ -677,6 +677,7 @@ do_work() {
       ${garg[*]:+"${garg[@]}"} \
       ${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"} \
       ${cmake_options[*]:+"${cmake_options[@]}"} \
+      ${cmake_bootstrap_defs[*]:+"${cmake_bootstrap_defs[@]}"} \
       ${cmake_defs[*]:+"${cmake_defs[@]}"} \
       ${generator_arg:+"$generator_arg"} \
       ${c_opt_args[*]:+"${c_opt_args[@]}"} \
@@ -1065,6 +1066,23 @@ calculate_ops_dir
 if [ -n "$plevel" ]; then
   export CMAKE_BUILD_PARALLEL_LEVEL=$plevel
   export CTEST_PARALLEL_LEVEL=$plevel
+fi
+##################
+
+##################
+# Bootstrapping
+cmake_bootstrap_defs=()
+if (( CETPKG_BOOTSTRAP_CETBUILDTOOLS )); then
+  cmake_bootstrap_defs+=("-DCMAKE_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
+elif (( CETPKG_BOOTSTRAP_CETMODULES )); then
+  cmake_bootstrap_defs+=("-DCMAKE_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
+else
+  for pkg in ${CETPKG_BOOTSTRAP_CETBUILDTOOLS[*]:+"${CETPKG_BOOTSTRAP_CETBUILDTOOLS[@]}"}; do
+    cmake_bootstrap_defs+=("-DCMAKE_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
+  done
+  for pkg in ${CETPKG_BOOTSTRAP_CETMODULES[*]:+"${CETPKG_BOOTSTRAP_CETMODULES[@]}"}; do
+    cmake_bootstrap_defs+=("-DCMAKE_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
+  done
 fi
 ##################
 
