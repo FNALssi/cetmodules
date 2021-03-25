@@ -40,7 +40,7 @@ $product_table_format = 2;
 $pinfo_tab_width = 8;
 ##################
 
-my $src = abs_path(shift @ARGV);
+my $src = abs_path(shift @ARGV or '');
 
 if (not $src) {
   $src = $ENV{CETPKG_SOURCE} or error_exit("vacuous source dir and \$CETPKG_SOURCE not set");
