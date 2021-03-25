@@ -554,20 +554,24 @@ sub fix_cmake_one {
     error_exit("unable to write $filepath.new");
   open(my $in, "<", "$filepath") or
     error_exit("unable to open $filepath for read");
+  my $pname = $pi->{name};
   while (my $line = <$in>) {
     if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
       $out->print($line);
       next;
     }
-    while ($line =~ m&\$\{\$\{product\}_([_\w]+)\}&g) {
+    while ($line =~ m&\$\{(?:\$\{product\}|\Q$pname\E)_([_\w]+)\}&g) {
       my $dirkey_ish = $1;
       my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
       my ($var_stem) =
           map { ($dirkey_ish eq $_ or $dirkey_alt eq $_) ?
                   var_stem_for_dirkey($_) : (); } keys %$pathspec_info;
-      $line =~ s&(\$\{\$\{product\}_\Q$dirkey_ish\E\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem\}&g and
-      verbose("$1 -> \${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem}");
+      $line =~ s&(\$\{(?:\$\{product\}|\Q$pname\E)_\Q$dirkey_ish\E\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem\}&g and
+        pos($line) = 0 and
+          verbose("$1 -> \${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem}");
     }
+    $line =~ s&\$\{gdml_install_dir\}&\${\${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR}&g and
+      verbose('${gdml_install_dir} -> ${${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR}');
     flag_recommended($line, ": use add_subdirectory()")
       if ($line =~ m&^\s*(?i:subdirs)\s*\($&);
     flag_required($line, ": avoid using or changing CMAKE_INSTALL_PREFIX")
