@@ -314,7 +314,6 @@ macro(_cetbuildtools_compatibility_early)
       endforeach()
       unset(_cce_v)
     endif()
-    set(ART_MAKE_LIBRARY_NO_BASENAME_ONLY TRUE) # Historical behavior
   endif()
   set(UPSFLAVOR "${${PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
   set(flavorqual "${${PROJECT_NAME}_EXEC_PREFIX}")
