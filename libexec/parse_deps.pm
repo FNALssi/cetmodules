@@ -88,6 +88,7 @@ $btype_table = { debug => 'Debug',
       get_qualifier_matrix
       get_table_fragment
       info
+      notify
       print_dep_setup
       print_dep_setup_one
       print_dev_setup
@@ -120,11 +121,14 @@ sub warning {
   print STDERR map { "WARNING: $_\n"; } ("", (map { split("\n") } @msg), "");
 }
 
-sub info {
-  return if $parse_deps::QUIET;
+sub notify {
   my (@msg) = @_;
   chomp @msg;
   print map { "INFO: $_\n"; } map { split("\n") } @msg;
+}
+
+sub info {
+  notify(@_) unless $parse_deps::QUIET;
 }
 
 sub verbose {
