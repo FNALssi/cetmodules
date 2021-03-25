@@ -389,7 +389,7 @@ EOF
     }
     if (not $project_done) {
       my $proj_info;
-      if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>\S*)\s*&&sp) {
+      if ($line =~ s&^\s*(?i:project)(?:\s*(?:#[^\n]*)\n?)*\s*\((?:\s*(?:#[^\n]*)\n?)*(?P<name>[^\s)]*)\s*&&sp) {
         $proj_info = { pre => ${^MATCH}, %+ };
         if ($proj_info->{name} ne $pi->{name}) {
           my $msg = <<EOF;
@@ -490,6 +490,11 @@ EOF
                        } @all_args)),
                    $proj_info->{post} // ());
         $project_done = 1;
+        next;
+      } elsif ($line =~ m&^\s*(?i:project)(?:\s*(?:#[^\n]*)\n?)*(?:\s*\((?:\s*(?:#[^\n]*)\n?)*)?$&s) {
+        # Possibly the beginnings of a project call: add the next line
+        # and check again.
+        unshift @$buffer, join('', $line, shift @$buffer);
         next;
       } elsif ($line =~ m&^[^#]*\bcet_cmake_env\b&) {
         error_exit("unable to find a suitable project() call to update");
