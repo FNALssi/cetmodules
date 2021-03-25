@@ -88,6 +88,7 @@ $btype_table = { debug => 'Debug',
       get_qualifier_matrix
       get_table_fragment
       info
+      notify
       print_dep_setup
       print_dep_setup_one
       print_dev_setup
@@ -120,11 +121,14 @@ sub warning {
   print STDERR map { "WARNING: $_\n"; } ("", (map { split("\n") } @msg), "");
 }
 
-sub info {
-  return if $parse_deps::QUIET;
+sub notify {
   my (@msg) = @_;
   chomp @msg;
   print map { "INFO: $_\n"; } map { split("\n") } @msg;
+}
+
+sub info {
+  notify(@_) unless $parse_deps::QUIET;
 }
 
 sub verbose {
@@ -641,18 +645,11 @@ sub to_string {
   my $incremental_indent = 2;
   my $hash_indent = length('{ ');
   my $max_incremental_indent = 10;
-  my $item = shift;
-  $item = (defined $item) ? $item : "<undef>";
-  my $indent;
-  my $options = shift;
-  if (not defined $options) {
-    $options = {};
-  } elsif (not (ref $options eq 'HASH')) {
-    $indent = $options;
-    $options = {};
-  } else {
-    $indent = (delete $options->{indent}) || 0;
-  }
+  my $options = ((scalar @_ == 2) and (ref $_[1] eq 'HASH')) ? pop : {};
+  my $indent = delete $options->{indent};
+  $indent = (ref $_[0] and $#_ > 0 and not ref $_[$#_]) ? pop : 0
+    unless defined $indent;
+  my $item = ((scalar @_ > 1) ? [ @_ ] : shift @_) // "<undef>";
   if (exists $options->{preamble}) {
     my ($hanging_preamble) =
       ($options->{preamble} =~ m&^(?:.*?\n)*(.*?)[ 	]*$&);
@@ -664,18 +661,20 @@ sub to_string {
     }
   }
   my $type = ref $item;
+  my $initial_indent = ($options->{full_indent}) ? ' ' x $options->{full_indent} : '';
+  $indent += $options->{full_indent} if $options->{full_indent};
   my $result;
   if (not $type) {
-    $result = "$item";
+    $result = "$initial_indent$item";
   } elsif ($type eq "SCALAR") {
-    $result = "$$item";
+    $result = "$initial_indent$$item";
   } elsif ($type eq "ARRAY") {
     $result =
-      sprintf("\%s ]", offset_annotated_items($indent, '[ ', @$item));
+      sprintf("$initial_indent\%s ]", offset_annotated_items($indent, '[ ', @$item));
   } elsif ($type eq "HASH") {
     $indent += $hash_indent;
     $result =
-      sprintf("{ \%s }",
+      sprintf("${initial_indent}{ \%s }",
               join(sprintf(",\n\%s", ' ' x $indent),
                    map {
                      to_string($item->{$_},
@@ -695,7 +694,7 @@ sub offset_annotated_items {
   my $indent = length($preamble) + $offset;
   return sprintf('%s%s', $preamble,
                  join(sprintf(",\n\%s", ' ' x $indent),
-                      map { to_string($_, $indent); } @args));
+                      map { to_string($_, { indent => $indent }); } @args));
 }
 
 # Sort order:
