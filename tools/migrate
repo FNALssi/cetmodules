@@ -353,8 +353,8 @@ sub process_cml {
       if ($line =~ m&^\s*(?i:cmake_minimum_required)\s*\(\s*VERSION\s+(?P<vmin>.*?)(?:\.\.\.(?P<vmax>.*?))?\s*(?P<fatal>FATAL_ERROR)?\s*\)(?P<post>.*)$&) {
         my $cmr_info = { %+ };
         if ($cmr_info->{vmin} and
-            version_cmp($cmr_info->{vmin},'3.18.2') < 0) {
-          $cmr_info->{vmin} = '3.18.2';
+            version_cmp($cmr_info->{vmin},'3.19') < 0) {
+          $cmr_info->{vmin} = '3.19';
           if ($cmr_info->{vmax} and version_cmp($cmr_info->{vmin}, $cmr_info->{vmax}) != -1) {
             $cmr_info->{policy} = $cmr_info->{vmax};
             undef $cmr_info->{vmax};
@@ -365,20 +365,13 @@ sub process_cml {
                     $cmr_info->{post} // '');
         if ($cmr_info->{policy}) {
           $fh->printf("cmake_policy(VERSION %s)\n", $cmr_info->{policy});
-          if (version_cmp($cmr_info->{policy}, 3.16) < 0) {
-            $fh->print(<<EOF);
-# Policy CMP0096 must be set to NEW to preserve leading zeros in the
-# VERSION set by project().
-cmake_policy(SET CMP0096 NEW)
-EOF
-          }
         }
         $cmr_done = 1;
         unshift @$buffer, @shunt;
         @shunt = ();
         next;
       } elsif ($line =~ m&^\s*(?i:project)\s*\(& or $pass) {
-        $fh->print("cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)\n");
+        $fh->print("cmake_minimum_required(VERSION 3.19 FATAL_ERROR)\n");
         $cmr_done = 1;
         unshift @$buffer, @shunt;
         @shunt = ();
@@ -534,7 +527,7 @@ EOF
   if (scalar @shunt) {
     @$buffer = @shunt;
   } else {
-    $fh->print("cet_cmake_config(COMPATIBILITY SameMajorVersion)\n")
+    $fh->print("cet_cmake_config(COMPATIBILITY AnyNewerVersion)\n")
       unless $seen_cet_cmake_config;
   }
   return ++$pass;
