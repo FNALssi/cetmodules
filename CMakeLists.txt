@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.15.00 LANGUAGES NONE)
+project(cetmodules VERSION 2.16.00 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
@@ -50,7 +50,7 @@ set(${PROJECT_NAME}_LIBRARY_DIR "")
 include(CetCMakeEnv)
 cet_cmake_env()
 
-project_variable(MIN_CETBUILDTOOLS_VERSION 8.05.00 TYPE STRING CONFIG
+project_variable(MIN_CETBUILDTOOLS_VERSION 8.06.00 TYPE STRING CONFIG
   DOCSTRING "Minimum version of cetbuildtools compatibile with this cetmodules version")
 
 # Make sure downstream packages can find our modules.
