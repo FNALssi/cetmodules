@@ -133,6 +133,11 @@ macro(cet_cmake_env)
 
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
+  if (_CCE_UNPARSED_ARGUMENTS)
+    warn_deprecated("cet_cmake_env(${ARGV})"
+      " - remove unneeded legacy arguments ${_CCE_UNPARSED_ARGUMENTS}")
+  endif()
+
   # Remove unwanted information from any previous run.
   _clean_internal_cache_entries()
 
