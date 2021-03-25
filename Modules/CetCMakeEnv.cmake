@@ -369,7 +369,11 @@ function(_restore_install_prefix)
     file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\")
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xv \"${product}_${version}-tmpinstall.tar\"
                     WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
+                    OUTPUT_VARIABLE _cet_install_${product}_legacy
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
                     COMMAND_ERROR_IS_FATAL ANY)
+    message(VERBOSE \"\${_cet_install_${product}_legacy}\")
+    unset(_cet_install_${product}_legacy)
     file(REMOVE \"\${CMAKE_INSTALL_PREFIX}/${product}_${version}-tmpinstall.tar\")
   endif()
 
