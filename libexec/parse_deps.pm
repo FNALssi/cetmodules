@@ -757,11 +757,11 @@ sub parse_version_string {
 
 sub _format_version {
   my $v = shift;
-  $v = parse_version_string($v) unless ref $v;
+  $v = parse_version_string($v) // {} unless ref $v;
   my $separator = shift // '.';
   my $preamble = shift // '';
   return sprintf("${preamble}%s%s",
-                 join($separator, @{$v->{bits} || ()}),
+                 join($separator, @{$v->{bits} // []}),
                  (defined $v->{pre_extra_sep}) ?
                  $v->{pre_extra_sep} || $separator : '',
                  $v->{extra} // '');

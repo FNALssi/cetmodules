@@ -115,7 +115,10 @@ function(_cet_check_find_package_needed PKG RESULT_VAR)
   if (NOT ${PKG}_FOUND)
     return()
   endif()
-  foreach (component IN LISTS _cet_fp_COMPONENTS _cet_fp_OPTIONAL_COMPONENTS)
+  foreach (component IN LISTS
+      _cet_fp_COMPONENTS
+      _cet_fp_OPTIONAL_COMPONENTS
+      ${PKG}_FIND_COMPONENTS)
     if (NOT ${PKG}_${component}_FOUND)
       return()
     endif()
@@ -125,7 +128,10 @@ endfunction()
 
 macro(_cet_ROOT_post_find_package)
   # ROOT doesn't set ROOT_<component>_FOUND according to convention.
-  foreach (component IN LISTS _cet_fp_COMPONENTS _cet_fp_OPTIONAL_COMPONENTS)
+  foreach (component IN LISTS
+      _cet_fp_COMPONENTS
+      _cet_fp_OPTIONAL_COMPONENTS
+      ${PKG}_FIND_COMPONENTS)
     if (ROOT_${component}_LIBRARY AND TARGET ROOT::${component})
       set(ROOT_${component}_FOUND TRUE)
     endif()
