@@ -321,7 +321,7 @@ function(project_variable VAR_NAME)
   ##################
   # Avoid hysteresis.
   unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT CACHE)
-  unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
+  unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT PARENT_SCOPE)
   ##################
   # Make the project variable known to the CMake cache.
   message(DEBUG "set(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} ${DEFAULT_VAL} CACHE ${VAR_TYPE} ${CPV_DOCSTRING} ${FORCE})")
