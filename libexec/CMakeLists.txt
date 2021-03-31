@@ -8,7 +8,8 @@ set(private_programs
   cet_exec_test
   checkClassVersion
   filter-output
-  filter-program-options)
+  filter-program-options
+  fix-man-dirs)
 
 set(legacy_private_programs
   cmake-graphviz-filt
