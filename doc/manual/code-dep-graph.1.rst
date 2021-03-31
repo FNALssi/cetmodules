@@ -1,4 +1,4 @@
-.. code-dep-graph-manual-description: Code-dep-graph Command-Line Reference
+.. cmake-manual-description: Code-dep-graph Command-Line Reference
 
 code-dep-graph(1)
 ****************

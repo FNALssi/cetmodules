@@ -1,4 +1,4 @@
-.. make-bash-completions-manual-description: Make-bash-completions Command-Line Reference
+.. cmake-manual-description: Make-bash-completions Command-Line Reference
 
 make-bash-completions(1)
 ************************

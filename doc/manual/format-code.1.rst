@@ -1,4 +1,4 @@
-.. format-code-manual-description: Format-code Command-Line Reference
+.. cmake-manual-description: Format-code Command-Line Reference
 
 format-code(1)
 **************

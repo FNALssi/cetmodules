@@ -1,4 +1,4 @@
-.. migrate-manual-description: Migrate Command-Line Reference
+.. cmake-manual-description: migrate Command-Line Reference
 
 migrate(1)
 *********

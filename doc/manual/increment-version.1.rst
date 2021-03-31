@@ -1,4 +1,4 @@
-.. increment-version-manual-description: Increment-version Command-Line Reference
+.. cmake-manual-description: Increment-version Command-Line Reference
 
 increment-version(1)
 ********************

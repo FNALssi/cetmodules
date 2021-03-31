@@ -1,4 +1,4 @@
-.. buildtool-manual-description: Buildtool Command-Line Reference
+.. cmake-manual-description: buildtool Command-Line Reference
 
 buildtool(1)
 ************
