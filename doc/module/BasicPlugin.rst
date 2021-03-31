@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/BasicPlugin.cmake
+.. cmake-module:: /../Modules/BasicPlugin.cmake

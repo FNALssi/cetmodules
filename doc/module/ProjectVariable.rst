@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/ProjectVariable.cmake
+.. cmake-module:: /../Modules/ProjectVariable.cmake

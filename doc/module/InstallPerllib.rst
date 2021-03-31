@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallPerllib.cmake
+.. cmake-module:: /../Modules/InstallPerllib.cmake

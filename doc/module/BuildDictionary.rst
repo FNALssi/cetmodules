@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/BuildDictionary.cmake
+.. cmake-module:: /../Modules/BuildDictionary.cmake

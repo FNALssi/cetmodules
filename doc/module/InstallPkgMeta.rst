@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallPkgMeta.cmake
+.. cmake-module:: /../Modules/InstallPkgMeta.cmake

@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallPython.cmake
+.. cmake-module:: /../Modules/InstallPython.cmake

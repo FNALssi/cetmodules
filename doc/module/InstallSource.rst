@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallSource.cmake
+.. cmake-module:: /../Modules/InstallSource.cmake

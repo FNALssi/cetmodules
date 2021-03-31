@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetRootCint.cmake
+.. cmake-module:: /../Modules/CetRootCint.cmake

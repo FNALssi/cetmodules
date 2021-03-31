@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetCopy.cmake
+.. cmake-module:: /../Modules/CetCopy.cmake

@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/ParseVersionString.cmake
+.. cmake-module:: /../Modules/ParseVersionString.cmake

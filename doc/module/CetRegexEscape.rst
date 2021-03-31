@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetRegexEscape.cmake
+.. cmake-module:: /../Modules/CetRegexEscape.cmake

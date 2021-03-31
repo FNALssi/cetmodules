@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallScripts.cmake
+.. cmake-module:: /../Modules/InstallScripts.cmake
