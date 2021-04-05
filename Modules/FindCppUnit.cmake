@@ -6,11 +6,9 @@ FindCppUnit
 include(CetFindPkgConfigPackage)
 include(FindPackageHandleStandardArgs)
 
-if ($ENV{CPPUNIT_FQ_DIR})
-  if (EXISTS "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig/cppunit.pc")
-    # Older cppunit UPS table files added the wrong directory to PKG_CONFIG_PATH.
-    set(ENV{PKG_CONFIG_PATH} "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-  endif()
+if ("$ENV{CPPUNIT_FQ_DIR}" AND EXISTS "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig/cppunit.pc")
+  # Older cppunit UPS table files added the wrong directory to PKG_CONFIG_PATH.
+  set(ENV{PKG_CONFIG_PATH} "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
 set(_cet_findcppunit_required ${${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED})
 set(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
