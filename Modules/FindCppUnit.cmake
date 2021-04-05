@@ -6,7 +6,7 @@ FindCppUnit
 include(CetFindPkgConfigPackage)
 include(FindPackageHandleStandardArgs)
 
-if ($ENV{CPPUNIT_FQ_DIR} AND EXISTS "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig/cppunit.pc")
+if ("$ENV{CPPUNIT_FQ_DIR}" AND EXISTS "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig/cppunit.pc")
   # Older cppunit UPS table files added the wrong directory to PKG_CONFIG_PATH.
   set(ENV{PKG_CONFIG_PATH} "$ENV{CPPUNIT_FQ_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
