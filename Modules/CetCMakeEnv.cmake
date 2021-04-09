@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
 # Override find package to deal with IN_TREE projects and reduce repeat
 # intiializations.
-include(private/CetFindPackage)
+include(private/CetOverrideFindPackage)
 
 # Watch for changes to CMAKE_MODULE_PATH that could break
 # forward/backward compatibility.
