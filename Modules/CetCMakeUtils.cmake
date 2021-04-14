@@ -135,7 +135,7 @@ function(cet_passthrough)
   if (NOT (CP_VALUES OR "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
     list(POP_FRONT CP_UNPARSED_ARGUMENTS CP_IN_VAR)
     if (CP_IN_VAR MATCHES
-        "^CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES)$")
+        "^(ARG[VN]|CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES))$")
       message(FATAL_ERROR "value of IN_VAR non-option argument (\"${CP_IN_VAR}\") is \
 not permitted - specify values with VALUES instead\
 ")
@@ -218,7 +218,7 @@ endfunction()
       ``Fortran`` ``<lang>...`` ``ASM``
 #]================================================================]
 function(cet_source_file_extensions RESULTS_VAR)
-  set(source_glob)
+  set(RESULTS)
   get_property(enabled_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
   # Specific order.
   list(REMOVE_ITEM enabled_languages ASM Fortran C CXX CUDA)
@@ -226,10 +226,10 @@ function(cet_source_file_extensions RESULTS_VAR)
   list(APPEND enabled_languages ASM)
   foreach (lang IN LISTS enabled_languages)
     if (CMAKE_${lang}_COMPILER_LOADED)
-      list(APPEND source_glob ${CMAKE_${lang}_SOURCE_FILE_EXTENSIONS})
+      list(APPEND RESULTS ${CMAKE_${lang}_SOURCE_FILE_EXTENSIONS})
     endif()
   endforeach()
-  set(${RESULTS_VAR} "${source_glob}" PARENT_SCOPE)
+  set(${RESULTS_VAR} "${RESULTS}" PARENT_SCOPE)
 endfunction()
 
 #[================================================================[.rst:
@@ -270,15 +270,15 @@ endfunction()
       Relative paths are interpreted relative to
       ``${CMAKE_CURRENT_SOURCE_DIR}``.
 #]================================================================]
-function(cet_exclude_files_from SOURCES)
-  if (NOT ${SOURCES} OR NOT ARGN) # Nothing to do.
+function(cet_exclude_files_from SOURCES_VAR)
+  if (NOT (${SOURCES_VAR} AND ARGN)) # Nothing to do.
     return()
   endif()
   # Remove known plugin sources and anything else the user specifies.
   cmake_parse_arguments(PARSE_ARGV 1 CEFF "NOP" "" "REGEX")
   if (CEFF_REGEX)
     list(JOIN CEFF_REGEX "|" regex)
-    list(FILTER ${SOURCES} EXCLUDE REGEX "(${regex})")
+    list(FILTER ${SOURCES_VAR} EXCLUDE REGEX "(${regex})")
   endif()
   if (CEFF_UNPARSED_ARGUMENTS)
     # Transform relative paths with respect to the current source
@@ -287,10 +287,10 @@ function(cet_exclude_files_from SOURCES)
       PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/"
       REGEX [=[^[^/]]=])
     # Remove exact matches only.
-    list(REMOVE_ITEM ${SOURCES} ${CEFF_UNPARSED_ARGUMENTS})
+    list(REMOVE_ITEM ${SOURCES_VAR} ${CEFF_UNPARSED_ARGUMENTS})
   endif()
-  list(REMOVE_DUPLICATES ${SOURCES})
-  set(${SOURCES} "${${SOURCES}}" PARENT_SCOPE)
+  list(REMOVE_DUPLICATES ${SOURCES_VAR})
+  set(${SOURCES_VAR} "${${SOURCES_VAR}}" PARENT_SCOPE)
 endfunction()
 
 #[================================================================[.rst:
@@ -363,7 +363,7 @@ returned status code ${status} and error output \"${error}\" in addition to outp
   else()
     string(TIMESTAMP result "${fmt}")
   endif()
-  set(${VAR} ${result} PARENT_SCOPE)
+  set(${VAR} "${result}" PARENT_SCOPE)
 endfunction()
 
 #[================================================================[.rst:
@@ -441,13 +441,13 @@ function(cet_find_simple_package NAME)
   if (CFSB_PATH_SUFFIXES)
     list(INSERT CFSB_PATH_SUFFIXES 0 PATH_SUFFIXES)
   endif()
-  cet_find_library(${CFSP_LIB_VAR} NAMES ${NAME} ${CFSP_LIBNAMES}
+  cet_find_library(${CFSP_LIB_VAR} NAMES "${NAME}" ${CFSP_LIBNAMES}
     ${CFSP_LIBPATH_SUFFIXES}
-    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH
-    )
+    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH)
   set(${CFSP_LIB_VAR} ${${CFSP_LIB_VAR}} PARENT_SCOPE)
   if (NOT CFSP_HEADERS)
-    set(CFSP_HEADERS ${NAME}.h ${NAME}.hh ${NAME}.H ${NAME}.hxx ${NAME}.hpp)
+    set(CFSP_HEADERS "${NAME}.h" "${NAME}.hh" "${NAME}.H" "${NAME}.hxx"
+      "${NAME}.hpp")
   endif()
   if (NOT CFSP_INCPATH_VAR)
     set(CFSP_INCPATH_VAR ${CFSP_LIB_VAR}_INCLUDE)
