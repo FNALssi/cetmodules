@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+CetGenerateSphinxDocs
+=====================
+#]================================================================]
 include_guard(GLOBAL)
 
 get_property(_cgs_job_pools GLOBAL PROPERTY JOB_POOLS)

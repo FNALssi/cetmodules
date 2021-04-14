@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+X
+=
+#]================================================================]
 if (NOT Range_FOUND)
   if (Range_FIND_REQUIRED)
     set(_cet_Range_FIND_REQUIRED ${Range_FIND_REQUIRED})
