@@ -1,7 +1,7 @@
 .. cmake-manual-description: migrate Command-Line Reference
 
 migrate(1)
-*********
+**********
 
 Description
 ===========

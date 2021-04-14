@@ -1,255 +1,196 @@
-.. cmake-manual-description: buildtool Command-Line Reference
+.. cmake-manual-description: build utility script for UPS-compatible builds.
 
 buildtool(1)
 ************
 
+.. program:: buildtool
 
-USAGE:
-======
+Synopsis
+========
 
-.. parsed-literal::   
-       buildtool [<mode-options>] [<misc-options>] [--]           
-                 [<cmake-build-options>] [-- <generator-options>]
+:program:`buildtool`\  [:ref:`mode-option... <buildtool-mode-options>`\|\ :ref:`combo-option... <buildtool-combo-options>`\]
+[:ref:`misc-options <buildtool-misc-options>`\]
+[``--`` [:ref:`CMake build options <buildtool-cmake-build-options>`\]
+[``--`` :ref:`generator options <buildtool-generator-options>`\]]
 
-       buildtool --help|-h
+:program:`buildtool`\  :option:`--help`\|\ :option:`-h`
 
-       buildtool --usage
+:program:`buildtool`\  :option:`--usage`
 
-Mode options
-------------
-              [-C|--cmake-only|-A|--all|--info] ||
-              { [-b|--build] [-i|--install] [-p|--package] [-t|--test] }
+Exclusive :ref:`mode options <buildtool-mode-options>`:
+   :option:`-C`\|\ :option:`--cmake-only`
+   :option:`-A`\|\ :option:`--all`
+   :option:`--info`
+
+Other :ref:`mode options <buildtool-mode-options>`:
+   :option:`-b`\|\ :option:`--build`
+   :option:`-i`\|\ :option:`--install`
+   :option:`-p`\|\ :option:`--package`
+   :option:`--sc`\|\ :option:`--short-circuit`
+   :option:`-t`\|\ :option:`--test`
+
+Combo :ref:`mode options <buildtool-combo-options>`:
+   :option:`-R`\|\ :option:`--release`
+   :option:`-T`\|\ :option:`--test-all`
+
+Miscellaneous :ref:`mode options <buildtool-misc-options>`:
+   | :option:`-D\<CMake-definition>`\ ...
+   | :option:`-E`\|\ :option:`--export-compile-commands`
+   | :option:`-G\<CMake-generator-string>`\|\ :option:`--generator \<make|ninja>[:\<secondary-generator>] <--generator>`
+   | :option:`-I`\|\ :option:`--install-prefix \<ups-top-dir> <--install-prefix>`
+   | :option:`--L \<label-regex> <--L>`
+   | :option:`--LE \<label-regex> <--LE>`
+   | :option:`-c`\|\ :option:`--clean`
+   | :option:`--clean-logs`
+   | :option:`-X\<c|b|t|i|p> \<arg>[,\<arg>]... <-X<c|b|t|i|p>>`
+   | :option:`--cmake-debug`
+   | :option:`--cmake-trace`
+   | :option:`--cmake-trace-expand`
+   | :option:`--deleted-header[s] \<header>[,\<header>]... <--deleted-header[s]>`
+   | :option:`-f`\|\ :option:`--force-top`
+   | :option:`-g \<dot-file> <-g>`\|\ :option:`--graphviz=\<dot-file> <--graphviz>` [:option:`--gfilt[=\<gfilt-opt>[,\<gfilt-opt>]...] <--gfilt>`\]
+   | :option:`-j` ``#``
+   | :option:`-l`\|\ :option:`--log`\ [``=<log-file>``\]|\ :option:`--log-file`\[``=<log-file>``\]
+   | :option:`-q`\|\ :option:`--quiet`
+   | :option:`-s`\|\ :option:`--subdir`
+   | :option:`--tee`
+   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\[``<;|,><group>``\]...
+   | :option:`-v`\|\ :option:`--verbose`
+
+Description
+===========
+
+Despite the bewildering array of available options, :program:`buildtool` is intended to simplify the task of building and debugging code, producing packages for use with `UPS <https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation>`_.
+
+The process of producing a software package from its source consists of multiple steps:
+
+* Configuration
+* Build
+* Test
+* Installation
+* Packaging
+
+:program:`buildtool` assumes one is using `CMake <https://cmake.org>`_ and the macros and functions defined within cetmodules inside a :abbr:`UPS` environment to produce a :abbr:`UPS` package. This in turn implies the existence of files :file:`ups/{product}.table` :file:`ups/product_deps`, and file:`ups/setup_for_development`, the latter of which has already been sourced prior to invoking :program:`buildtool`.
+
+.. note:: :abbr:`UPS` is **deprecated**, in addition to being practically unknown outside certain areas of experimental particle physics. If your package is not already reliant on :abbr:`UPS`, you are encouraged not to start: the macros and functions provided by cetmodules to aid building and packaging your code do not need :abbr:`UPS`, or any of its accoutrements.
+
+   If your package *does* rely on :abbr:`UPS`, you are encouraged to investigate :program:`migrate` to facilitate evolving your package to no longer rely on UPS,becoming buildable via more general means such as `Spack <https://spack.readthedocs.io/>`_, *while still being buildable with and for the* :abbr:`UPS` *environment*.
+
+Options
+=======
+
+.. _buildtool-mode-options:
+
+Modes
+-----
+
+If any of :option:`--info`, :option:`--cmake-only`, or :option:`--all` are set, they override all other mode options.
+
+If any of the other options are selected, they will be executed in their natural order *after* the CMake stage (which is always executed
+in the :envvar:`CETPKG_BUILD` directory) unless :option:`--short-circuit` is used.
+
+Exclusive mode options
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. option:: -A, --all
+
+   Execute all stages.
+
+.. option:: -C, --cmake-only
+
+   Execute *only* the CMake stage.
+
+.. option:: --info
+
+  If already configured (CMake has been run at least once since the last clean), give some basic information about the package, then exit.
+
+Other mode options
+^^^^^^^^^^^^^^^^^^
+
+.. option:: -b, --build
+
+   Execute the build stage from the current directory. This is default if no other mode option is specified.
+
+   .. note:: implies execution of the configuration step unless combined with :option:``--short-circuit``.
+
+.. option:: -i, --install
+
+   Execute the install stage from :envvar:`CETPKG_BUILD`. CMake's generated build procedure will ensure that all build targets are up to date, so an accompanying explicit :option:`--build` option is unnecessary.
+
+.. option:: -p, --package
+
+  Execute the package stage from CETPKG_BUILD to create a binary installation archive. As for :option:`--install`, CMake's generated build procedure will ensure that all build targets are up to date so an accompanying explicit :option:`--build` option is unnecessary. Note that :option:`--package` does *not* imply :option:`--install`: the two operations are independent.
+
+.. option:: -t, --test
+
+   Execute configured tests with :program:`ctest` from the current directory. Implies :option:`--build`.
+
+.. _buildtool-combo-options:
 
 Combo options
 -------------
-              [-R|--release] || [-T|--test-all]
 
-Misc options
------------- 
-              -D<CMake-definition>]+
+.. option:: -R, --release
 
-              -E|--export-compile-commands
+   Equivalent to :option:`-t` :option:`--test-labels=RELEASE <--test-labels>`.
 
-              -G<CMake-generator-string>
+.. option:: -T, --test-all
 
-              -I|--install-prefix <install-location>
+   Equivalent to :option:`-t` :option:`--test-labels=ALL <--test-labels>`.
 
-              --L <label-regex>
+.. _buildtool-misc-options:
 
-              --LE <label-regex>
+Miscellaneous options
+---------------------
 
-              -c|--clean
+.. option:: -D<CMake-definition>
 
-              --clean-logs
+   Pass definitions to the invocation of the CMake stage. A warning shall be issued if this option is specified but the CMake stage is not to be executed.
 
-              --cmake-debug
+.. option:: -E, --export-compile-commands
 
-              --cmake-trace
+   Equivalent to :option:`-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON <-D<CMake-definition>>`. Useful for (e.g.) :program:`clang-tidy`.
 
-              --deleted-header[s] <header>[,<header>]+
+.. option:: -G<CMake-generator-string>
 
-              -f|--force-top
+   Pass the specified CMake generator string through to CMake. Note that, at this time, only the "Unix Makefiles" and "Ninja" generators are supported by buildtool. Any secondary generator specification is passed through unexamined.
 
-              -g|--graphviz=<dot-file> [--gfilt <gfilt-opt>[,<gfilt-opt>]+]
+.. option:: -I <ups-top-dir>, --install-prefix <ups-top-dir>
 
-              [--generator <make|ninja>[:<secondary-generator>]]
+   Specify the location of the private (or public) UPS products area into  which to install the package if install is requested. Overrides the :envvar:`CETPKG_INSTALL` environment variable and anything already known to CMake.
 
-              -j #
+.. option:: --L <label-regex>, --LE <label-regex>
 
-              -l|--log[=<log-file>]|--log-file[=<log-file>]
+   Per :program:`ctest`, include (:option:`--L`) or exclude (:option:`--LE`) labels by CMake regular expression. Both options are mutually exclusive with :option:`--test-labels`, :option:`-T`, and :option:`-R`, but not with each other. Specifying one of these options implies :option:`-t`.
 
-              -q|--quiet
+.. option:: -X<c|b|t|i|p> <arg>[,<arg>]+[,--,<non-option-arg>[,<non-option-arg>]+]
 
-              -s|--subdir
+   E\ ``X``\ tra arguments to be passed to the ``C``\ onfigure, ``b``\ uild, ``t``\ est, ``i``\ nstall, or ``p``\ ackage stages. ``<arg>``\ s will be added at the end of option arguments, while ``<non-option-arg>``\ s will be added at the end of non-option arguments.
 
-              --tee
+.. option:: -c, --clean
 
-              --test-labels|--labels|--test-groups|--groups <group>[<;|,><group>]+
+   Remove CMake-generated files and caches and other build products.
 
-              -v|--verbose
+.. option:: --clean-logs
 
-        Options suffixed with '+' are repeatable and cumulative. If a
-        non-repeatable option is specified multiple times, last invocation wins.
+   Remove ``.log`` files in the :envvar:``CETPKG_BUILD`` top directory.
 
-        The -G and --generator options are mutually-exclusive, and may be specified at most once.
+.. option:: --cmake-debug, --cmake-trace, --cmake-trace-expand
 
-        Required environment: CETPKG_BUILD CETPKG_SOURCE
+   Add the corresponding CMake debug option (:regexp:`s&cmake-&&` to the command-line options for the configure stage.
 
-        Optional environment: CETPKG_INSTALL CETPKG_J
+   .. seealso:: :option:`-Xc <-X<c|b|t|i|p>>`.
 
+.. option:: --deleted-header[s] <header>[,<header>]+
 
-DETAILS
--------
+   Indicate that named headers have been removed from the source, to allow removal and regeneration of dependency files containing references to same.
 
-Required environment variables:
+.. option:: -f, --force-top
 
-        CETPKG_BUILD:   The build area for the current package.
-
-Optional environment variables:
-
-        CETPKG_INSTALL: The default location of the private (or public) UPS
-                products area into which to install the package if
-                install is requested. This is overridden by -I option,
-                but will override existing CMAKE_INSTALL_PREFIX from
-                CMake.
-        CETPKG_J:       Default parallelism for all appropriate steps, assuming
-                -j is not specified explicitly.
-
-Other configuration items:
-
-The following items are obtained from the package's
-cetpkg_info.sh file, which is generated by sourcing
-setup_for_development:
-
-        CETPKG_SOURCE:  The source area for the current package (containing the top-level CMakeLists.txt).
-
-
-MODE OPTIONS
-------------
-
-If any of -A (--all), C (--cmake-only) or --info are set, they override
-all other mode options. The cmake-only mode overrides the all
-option. If any of the other options are selected, they will be executed
-in their natural order *after* the CMake stage (which is always executed
-in the CETPKG_BUILD directory).
-
--A
---all
-
-  Execute all stages.
-
--C
---cmake-only
-
-  Execute *only* the CMake stage.
-
--b
---build
-
-  Execute the build stage from the current directory. This is default if
-  no other mode option is specified.
-
--i
---install
-
-  Execute the install stage from CETPKG_BUILD. CMake's generated build
-  procedure will ensure that all build targets are up to date, so an
-  accompanying explicit --build option is unnecessary.
-
---info
-
-  If already configured (CMake has been run at least once since the last
-  clean), give some basic information about the package, then exit.
-
--p
---package
-
-  Execute the package stage from CETPKG_BUILD to create a binary
-  installation archive. As for --install, CMake's generated build
-  procedure will ensure that all build targets are up to date so an
-  accompanying explicit --build option is unnecessary. Note that
-  --package does *not* imply --install: the two operations are
-  independent.
-
---short-circuit
---sc
-
-  Execute only the specified stages and not those that might be implied
-  (CMake stage, build stage when test stage is specified, etc).
-
--t
---test
-
-  Execute configured tests with ctest from the current
-  directory. Implies --build.
-
-
-COMBO MODE OPTIONS
-------------------
-
--R
---release
-
-  Equivalent to -t --test-labels=RELEASE.
-
--T
---test-all
-
-  Equivalent to -t --test-labels=ALL.
-
-
-MISC. OPTIONS
--------------
-
--D<CMake-definition>
-
-  Pass definitions to the invocation of the CMake stage. A warning shall
-  be issued if this option is specified but the CMake stage is not to be
-  executed.
-
--E
---export-compile-commands
-
-  Equivalent to -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON. Useful for
-  (e.g.) clang-tidy.
-
--G<CMake-generator-string>
-
-  Pass the specified CMake generator string through to CMake. Note that,
-  at this time, only the "Unix Makefiles" and Ninja generators are
-  supported by buildtool. Any secondary generator specification is
-  passed through unexamined.
-
--I <ups-install-dir>
---install-prefix <ups-install-dir>
-
-  Specify the location of the private (or public) UPS products area into
-  which to install the package if install is requested. Overrides the
-  CETPKG_INSTALL environment variable and anything already known to
-  CMake.
-
---L <label-regex>
---LE <label-regex>
-
-  Per CTest, include (--L) or exclude (--LE) labels by CMake regex. Both
-  options are mutually exclusive with --test-labels, -T and -R, but not
-  with each other. Specifying one of these options implies -t.
-
--c
---clean
-
-  Remove CMake-generated files and caches and other build products.
-
---clean-logs
-
-  Remove .log files in the $CETPKG_BUILD top directory.
-
---cmake-debug
-
-  Add --debug-output to the CMake command line options.
-
---cmake-trace
-
-  Add --trace to the CMake command line options.
-
---deleted-header[s] <header>[,<header>]+
-
-  Indicate that named headers have been removed from the source, to
-  allow removal and regeneration of dependency files containing
-  references to same.
-
---force-top
-
-  Force build and test stages (if applicable) to be executed from the
-  top level $CETPKG_BUILD area. Otherwise these stages will execute
-  within the context of the user's current directory at invocation if it
-  is below $CETPKG_BUILD. --force-top is incompatible with --subdir. In
-  any event, any relative or unqualified log file will be output
-  relative to the user's current directory at the time buildtool was
+  Force build and test stages (if applicable) to be executed from the top level :envvar:`CETPKG_BUILD` area. Otherwise these stages will execute  within the context of the user's current directory at invocation if it is below :envvar:`CETPKG_BUILD`. :option:`--force-top` is incompatible with :option:`--subdir`. In any event, any relative or unqualified log file will be output relative to the user's current directory at the time buildtool was
   invoked.
 
--g <dot-file>
---graphviz <dot-file>
+.. option:: -g <dot-file>, --graphviz=<dot-file>
 
   Ask CMake to produce a code dependency graph in graphviz (.dot) format.
 
@@ -258,137 +199,159 @@ MISC. OPTIONS
   production time (NO_UNDEFINED) in order for the information to be
   complete.
 
---gfilt[=<opt>[,<opt>]+]
+.. option:: --gfilt[=<gfilt-opt>[,<gfilt-opt>]...]
 
-  Filter the graphviz output from CMake through cmake-graphviz-filt,
-  with the following options:
+   Filter the graphviz output from CMake through :program:cmake-graphviz-filt, with the following options:
 
-    exes|no-exes
+   .. option:: [no-]exes
+      :noindex:
 
       With or without executables shown (default without).
 
-    dicts|no-dicts
+   .. option:: [no-]dicts
+      :noindex:
 
       With or without dictionary and map libraries (default without).
 
-    extlibs|no-extlibs
+   .. option:: [no-]extlibs
+      :noindex:
 
       With or without extlibs shown (default without).
 
-    short-libnames|no-short-libnames
+   .. option:: [no-]short-libnames
+      :noindex:
 
-      Any fully-specified library pathnames are shortened to their
-      basenames (default long).
+      Any fully-specified library pathnames are shortened to their basenames (default long).
 
-    test-tree|no-test-tree
+   .. option:: [no-]test-tree
+      :noindex:
 
-      With or without libraries and execs from the test directory
-      hierarchy (default without).
+      With or without libraries and execs from the test directory hierarchy (default without).
 
-    tred|no-tred
+   .. option:: [no-]tred
+      :noindex:
 
       With or without transitive dependency reduction (default with).
 
-  Multiple options should be comma-separated. Note that all of these
-  options may be specified in ~/.cgfrc for the same effect (command-line
-  overrides).
+   Multiple options should be comma-separated. Note that all of these options may be specified in :file:`~/.cgfrc` for the same effect (command-line overrides).
 
---generator <generator>[:<secondary-generator>]
+.. option:: --generator <generator>[:<secondary-generator>]
 
-  User-friendly way to specify the generator. Currently supported values
-  are "make" and "ninja" (default make). If <secondary-generator>
-  (e.g. CodeBlocks) is specified it will be passed through as-is.
+   User-friendly way to specify the generator. Currently supported values are "make" and "ninja" (default make). If <secondary-generator> (e.g. CodeBlocks) is specified it will be passed through as-is.
 
--h|--help
+.. option:: -h, --help
 
-  This help (long-form).
+   This help (long-form).
 
--j #
+.. option:: -j <#>
 
-  Specify the level of parallelism for stages for which it is
-  appropriate (overrides CETPKG_J if specified).
+   Specify the level of parallelism for stages for which it is appropriate (overrides :envvar:`CETPKG_J` if specified).
 
--l
---log[=<log-file>]
---log-file[=<log-file>]
+.. option:: -l, --log[=<log-dir-or-filepath>], --log-file[=<log-dir-or-filepath>]
 
-  All build output is redirected to the specified log-file, or one with
-  a default name if no other is specified. Unless --quiet is also
-  specified, stage information will still be printed to the screen,
-  though see --tee below. Note that the short variant does not accept an
-  argument: a log-file name will be generated. The long forms should use
-  "=" to separate the option from its argument.
+   All build output is redirected to the specified log-file, or one with a default name if no other is specified. Unless :option:`--quiet` is also specified, stage information will still be printed to the screen---though see :option:`--tee` below. Note that the short variant does not accept an argument: a log filename will be generated. The long forms should use ``=`` to separate the option from their argument.
 
--q
---quiet
+.. option:: -q, --quiet
 
-  Suppress all non-error output to the screen (but see --tee below). A
-  log file will still be written as normal if so specified.
+   Suppress all non-error output to the screen (but see :option:`--tee` below). A log file will still be written as normal if so specified.
 
--s <subdir>
---subdir <subdir>
+.. option:: -s <subdir>, --subdir <subdir>
 
-  Execute build and install stages from the context of <subdir>, which
-  will be interpreted relative to $CETPKG_BUILD. Incompatible with
-  --force-top. <subdir> will be used in preference to the current user
-  directory, even if the latter is a subdirectory of $CETPKG_BUILD.
+   Execute build and install stages from the context of ``<subdir>``, which will be interpreted relative to :envvar:`CETPKG_BUILD`. Incompatible with :option:`--force-top`. ``<subdir>`` will be used in preference to the current user directory, even if the latter is a subdirectory of :envvar:`CETPKG_BUILD`.
 
---tee
+.. option:: --tee
 
-  Write to a log file (either as specified by --log or the default), but
-  copy output to the screen also: --quiet is overridden by this option.
+   Write to a log file (either as specified by :option:`--log` or the default), but copy output to the screen also: :option:`--quiet` is overridden by this option.
 
---test-labels <group>[<;|,><group>]+
---labels <group>[<;|,><group>]+
---test-groups <group>[<;|,><group>]+
---groups <group>[<;|,><group>]+
+.. option:: --test-labels=<group>[<;|,><group>]..., --labels=<group>[<;|,><group>]..., --test-groups=<group>[<;|,><group>]..., --groups=<group>[<;|,><group>]+
 
-  Specify optional CMake test labels to execute. Since cetbuildtools
-  v6_00_00, this is integrated with the CMake labels facility, and the
-  test selection is done at CTest invocation time rather than CMake time
-  as previously. If this option is activated but tests are not to be
-  run, a warning shall be issued. If no labels are selected, then
-  DEFAULT is selected. A value of ALL is substituted with all known test
-  labels. A leading `-' for a label will lead to its explicit
-  exclusion. See also -T, -R options. Mutually-exclusive with --L and
-  --LE options.
+   Specify optional CMake test labels to execute. Test selection is done at :program:`ctest` invocation time. If this option is activated but tests are not to be run, a warning shall be issued. If no labels are selected, then ``DEFAULT`` is selected. A value of ``ALL`` is substituted with all known test labels. A leading ``-`` for a label will lead to its explicit exclusion. See also :option:`--test-all`, and :option:`--release`. Mutually-exclusive with :option:`--L` and :option:`--LE`.
 
---usage
+.. option:: --usage
 
-  Short help.
+   Short help.
 
--v
---verbose
+.. option:: -v, --verbose
 
-  Extra information about the commands being executed at each step
+   Extra information about the commands being executed at each step.
 
+.. option:: --short-circuit, --sc
 
-EXAMPLES
+   Execute only the specified stages and not those that might be implied.
+
+.. _buildtool-cmake-build-options:
+
+CMake build options
+--------------------
+
+Any options or arguments specified after a single instance of ``--``\ ---or between two instances of same---will be passed to all stages invoked with ``cmake --build``: the build, install and package stages.
+
+.. _buildtool-generator-options:
+
+Generator options
+-----------------
+
+Any options or arguments specified after a second instance of ``--`` will be passed to the configured generator (*e.g.* "UNIX Makefiles" or "Ninja") for the build stage only.
+
+Examples
 ========
 
 Build, test, install and create a package tarball from scratch with
 output to a default-named log file, using parallelism:
 
-$ buildtool -A -c -l -I <install-dir> -j16
+.. code-block:: console
+
+   :program:`buildtool`\  -A -c -l -I <install-dir> -j16
 
 As above, but copying output to screen:
 
-$ buildtool -A -c -l --tee -I <install-dir> -j16
+.. code-block:: console
 
-The need for the -I option may be obviated by defining CETPKG_INSTALL;
+   :program:`buildtool`\  -A -c -l --tee -I <install-dir> -j16
 
+The need for the :option:`-I` option may be obviated by defining :envvar:`CETPKG_INSTALL`;
 the need for the explicit parallelism may be similarly voided by
-defining (eg) CETPKG_J=16.
+defining (*e.g.*) :envvar:`CETPKG_J=16 <CETPKG_J>`.
 
 To build only a particular target within a subdirectory:
 
-$ buildtool --subdir art/Framework/IO/Root -- RootOutput_source.o
+ .. code-block:: console
+
+    buildtool --subdir art/Framework/IO/Root -- RootOutput_source.o
 
 To build and test only:
 
-$ buildtool -t -j16
+.. code-block:: console
+
+   buildtool -t -j16
 
 To install and package only:
 
-$ buildtool -i -p -j16
+.. code-block:: console
 
+   buildtool -i -p -j16
+
+Environment
+===========
+
+Required
+--------
+
+.. envvar:: CETPKG_BUILD
+
+   The path to the build area. Set by sourcing :cmake:manual:`ups/setup_for_development <setup_for_development(7)>`.
+
+.. envvar:: CETPKG_SOURCE
+
+   The path to the source (*i.e.* the top-level :file:`CMakeLists.txt`). Set by sourcing :cmake:manual:`ups/setup_for_development <setup_for_development(7)>`.
+
+Optional
+--------
+
+.. envvar:: CETPKG_INSTALL
+
+   The installation area (must be a properly-initialized unified-UPS top level directory for the installed products to be usable by UPS). May be overridden by :option:`-I`, but takes precedence over :cmake:variable:`CMAKE_INSTALL_PREFIX <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`.
+
+.. envvar:: CETPKG_J
+
+   The default level of parallelism for all appropriate steps; may be overridden by ::option::`-j`. If not specified, the default level of parallelism is controlled by the generator (*e.g.* ``UNIX Makefiles`` *vs* ``Ninja``).

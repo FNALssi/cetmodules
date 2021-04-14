@@ -1,22 +1,39 @@
-.. cmake-manual-description: Format-code Command-Line Reference
+.. cmake-manual-description: run clang-format on a directory within a package.
 
 format-code(1)
 **************
 
-Usage
-=====
+.. program:: format-code
 
-  format-code -d <directory> [-c|-n] [-v] [--use-available]
+Synopsis
+========
+
+:program:`format-code` \ :option:`-d`\|\ :option:`--directory` ``<directory>`` [:option:`-c`\|\ :option:`-n`\] [:option:`-v`\] [:option:`--use-available`\]
+
+Description
+===========
+
+:program:`format-code` will run :program:`format-code` recursively on a directory of a git repository's working tree, optionally committing the result.
 
 Options
 -------
 
-  -d [--directory] arg   Top-level directory to apply formatting script.
-  -c [--commit]          Commit changes after code-formatting has been applied.
-                         To use the 'commit' option, you must have a clean working
-                         area before invoking this script.
-  -n [--dry-run]         No changes will be made.
-  -v [--verbose]
-  --use-available        Use the version of clang-format already set up for use.
-                         This option can be used to override clang-format 7.0.0.
+.. option:: -d <directory>, --directory <directory>
 
+   Top-level directory to which to apply formatting.
+
+.. option:: -c, --commit
+
+   Commit changes after code-formatting has been applied.
+
+   .. warning:: an attempt to use this option with a dirty working area will fail with an error.
+
+.. option:: -n, --dry-run
+
+   No changes will be made to source code.
+
+.. option:: -v, --verbose
+
+.. option:: --use-available
+
+   Use the version of clang-format already set up for use.

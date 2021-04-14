@@ -2,7 +2,7 @@
 CetCMakeEnv
 ===========
 
-This module defines the principal boostrap function
+This module defines the principal bootstrap function
 :cmake:command:`cet_cmake_env` defining the cetmodules build environment for
 the current project.
 #]================================================================]
@@ -92,16 +92,16 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
      Prior to calling :cmake:command:`cet_cmake_env`:
 
      * The current project must have been initialized via
-       :cmake:command:`project() <cmake:command:project>`
+       :cmake:command:`project() <cmake-ref-current:command:project>`
 
      * Any initial or override values for
        :cmake:manual:`cetmodules-project-variables.7` should be set.
 
   **Variables controlling behavior**
     * :cmake:variable:`WANT_UPS`
-    * :cmake:variable:`BUILD_SHARED_LIBS <cmake:variable:BUILD_SHARED_LIBS>`
+    * :cmake:variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
     * :cmake:variable:`BUILD_STATIC_LIBS`
-    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
 #]================================================================]
 macro(cet_cmake_env)
   # project() must have been called first.

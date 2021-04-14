@@ -1,12 +1,14 @@
 .. cmake-manual-description: Code-dep-graph Command-Line Reference
 
 code-dep-graph(1)
-****************
+*****************
 
-Usage 
+Usage
 =====
 
-     code-dep-graph [<options>] [-d <topdir>] [-o <outfile>]"
+.. parsed-literal::
+
+     code-dep-graph [<options>] [-d <topdir>] [-o <outfile>]
 
 Options
 -------

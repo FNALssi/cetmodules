@@ -18,9 +18,11 @@ include(CetRegexEscape)
    **Synopsis:**
      .. code-block:: cmake
 
-       cet_passthrough([FLAG|ARMOR] [KEYWORD <keyword>] [EMPTY_KEYWORD <empty-keyword>]
-                        <in_var> IN_PLACE|<out-var>)
-       cet_passthrough([FLAG|ARMOR] VALUES [<val>...] KEYWORD <keyword> <out-var>
+       cet_passthrough([FLAG|ARMOR] [KEYWORD <keyword>]
+                       [EMPTY_KEYWORD <empty-keyword>] <in_var>
+                       IN_PLACE|<out-var>)
+       cet_passthrough([FLAG|ARMOR] VALUES [<val>...]
+                       KEYWORD <keyword> <out-var>
                        [EMPTY_KEYWORD <empty-keyword>] <out-var>)
 
      Turn a flag or option value into something that can be passed on to
@@ -55,7 +57,7 @@ include(CetRegexEscape)
 
        If specified, the option keyword will be
        ``<keyword>``. Otherwise, if ``<in-var>`` is specified, then it
-       will be the name "``<in-var>``" with any leading ``<word>_``
+       will be the name "``<in-var>``" with any leading ``<prefix>_``
        stripped off the front. Failing that, the name "``<out-var>``"
        will be used as the default.
 
@@ -82,7 +84,8 @@ include(CetRegexEscape)
    **Examples**
      .. code-block:: cmake
 
-        cet_passthrough(FLAG IN_PLACE MYOPTS_VERBOSE)
+     set(MYOPTS_VERBOSE TRUE)
+     cet_passthrough(FLAG IN_PLACE MYOPTS_VERBOSE)
 
      ``MYOPTS_VERBOSE`` will have the value "VERBOSE" in the calling
      function or macro.
@@ -106,7 +109,7 @@ include(CetRegexEscape)
           "Mary had a little lamb; Its fleece was white as snow"
           KEYWORD RHYME MARY_LAMB)
 
-     The list ``MARY_LAMB`` will have the values:
+     The list ``MARY_LAMB`` will consist of the **three** elements:
 
      .. code-block:: console
 
@@ -121,7 +124,7 @@ include(CetRegexEscape)
           "Mary had a little lamb\\\\; Its fleece was white as snow"
           KEYWORD RHYME MARY_LAMB)
 
-     The list ``MARY_LAMB`` will have the values:
+     The list ``MARY_LAMB`` will consist of the **two** elements:
 
      .. code-block:: console
 
@@ -241,7 +244,7 @@ endfunction()
    **Synopsis:**
      .. code-block:: cmake
 
-        cet_exclude_files_from(<list> [REGEX <regex>...]
+        cet_exclude_files_from(<sources-var> [REGEX <regex>...]
           [NOP] <file>...)
 
    **Options:**
@@ -253,17 +256,18 @@ endfunction()
 
      ``REGEX``
 
-       Entries in ``<list>`` matching ``<regex>...`` will be removed.
+       Entries in ``<sources-var>`` matching ``<regex>...`` will be
+       removed.
 
    **Non-option arguments:**
 
-     ``<list>``
+     ``<sources-var>``
 
-       The name of a list of files to be pruned
+       The name of a variable containing a list of files to be pruned.
 
      ``<file>...``
 
-       Files to be removed from ``<list>`` (exact matches only).
+       Files to be removed from ``<sources-var>`` (exact matches only).
 
    .. note::
 
@@ -312,8 +316,8 @@ endfunction()
      ``<fmt>``
 
        The desired format of the timestamp, using ``%`` placeholders
-       according to :any:`string(TIMESTAMP)
-       <cmake-ref-current:timestamp>` or the system :command:`date`
+       according to :ref:`string(TIMESTAMP)
+       <cmake-ref-current:timestamp>` or the system :manpage:`date(1)`
        command.
 
    **Examples:**
@@ -322,14 +326,18 @@ endfunction()
           cet_timestamp(RESULT)
           message(STATUS "${RESULT}")
 
-       ``-- Sun Jan 01 23:59:59 CST 1970``
+       .. code-block:: console
+
+          -- Sun Jan 01 23:59:59 CST 1970
 
      * .. code-block:: cmake
 
           cet_timestamp(RESULT "%Y-%m-%d %H:%M:%S %z")
           message(STATUS "${RESULT}")
 
-       ``-- 1970-01-01 23:59:59 -0600``
+       .. code-block:: console
+
+       -- 1970-01-01 23:59:59 -0600
 
    .. versionchanged:: 2.07.00
       prior to version 2.07.00, ``%Y`` was missing from the default
@@ -337,7 +345,7 @@ endfunction()
 
    .. seealso::
 
-      :any:`string(TIMESTAMP) <cmake-ref-current:timestamp>`
+      :ref:`string(TIMESTAMP) <cmake-ref-current:timestamp>`
 
       :manpage:`date(1)`
 #]================================================================]
@@ -369,7 +377,7 @@ endfunction()
 #[================================================================[.rst:
 .. cmake:command:: cet_find_simple_package
 
-   :cmake:command:`find_package() <cmake:command:find_package>` for
+   :cmake:command:`find_package() <cmake-ref-current:command:find_package>` for
    packages without generated CMake config files or a ``Find<name>.cmake``
    module.
 
@@ -377,6 +385,8 @@ endfunction()
       if no ``FindXXX.cmake`` module or CMake config file is available
       for ``<name>``, write your own find module or request one from the
       SciSoft team.
+
+      .. seealso:: :cmake:manual:`cmake-packages(7) <cmake-ref-current:manual:cmake-packages(7)>`
 
    **Synopsis:**
      .. code-block:: cmake
@@ -403,7 +413,7 @@ endfunction()
 
        Store the found include path in ``<var>``. If not specified, we
        invoke :cmake:command:`include_directories()
-       <cmake:command:include_directories>` with the found include path.
+       <cmake-ref-current:command:include_directories>` with the found include path.
 
      ``LIB_VAR <var>``
 
@@ -549,21 +559,21 @@ endfunction()
      ``NO_CONFIG``
 
        Do not add these directories to
-       :cmake:variable:`CMAKE_MODULE_PATH <cmake:variable:CMAKE_MODULE_PATH>`
+       :cmake:variable:`CMAKE_MODULE_PATH <cmake-ref-current:variable:CMAKE_MODULE_PATH>`
        in the CMake config file for ``<project>``.
 
      ``NO_LOCAL``
 
        Do not add these directories to 
-       :cmake:variable:`CMAKE_MODULE_PATH <cmake:variable:CMAKE_MODULE_PATH>`
+       :cmake:variable:`CMAKE_MODULE_PATH <cmake-ref-current:variable:CMAKE_MODULE_PATH>`
        in the current scope. Implied if ``<project>`` is not equal to
-       :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME <cmake:variable:CETMODULES_CURRENT_PROJECT_NAME>`
+       :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME`
 
       ``PROJECT <project>``
 
         Specify the project to which these module directories belong. If
         not specifed, ``<project>`` defaults to
-        :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME <cmake:variable:CETMODULES_CURRENT_PROJECT_NAME>`.
+        :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME <CETMODULES_CURRENT_PROJECT_NAME>`.
 
    **Non-option arguments:**
      ``<dir>...``
