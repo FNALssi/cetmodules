@@ -140,7 +140,7 @@ function(cet_passthrough)
 not permitted - specify values with VALUES instead\
 ")
     elseif (NOT CP_IN_VAR)
-      message(FATAL_ERROR "vacuous IN_VAR non-option argument - missing VALUES?")
+      message(FATAL_ERROR "vacuous <in-var> non-option argument - missing VALUES?")
     elseif (NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
       string(REGEX REPLACE "^_*[^_]+_(.*)$" "\\1" CP_KEYWORD "${CP_IN_VAR}")
     endif()
