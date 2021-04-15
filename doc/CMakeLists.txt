@@ -29,5 +29,3 @@ cet_generate_sphinxdocs(VERBOSITY 2 NITPICKY
   EXTRA_ARGS # -Dsuppress_warnings=*
   # -W --keep-going
 )
-
-find_package(CppUnit QUIET)
