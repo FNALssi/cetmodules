@@ -24,7 +24,7 @@ elseif (CMAKE_MESSAGE_LOG_LEVEL IN_LIST quiet_levels)
 endif()
 
 # Use it to generate our documentation.
-cet_generate_sphinxdocs(VERBOSITY 2 NITPICKY
+cet_generate_sphinxdocs(${qv_arg} NITPICKY
   CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}"
   EXTRA_ARGS # -Dsuppress_warnings=*
   # -W --keep-going
