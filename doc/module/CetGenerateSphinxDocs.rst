@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetGenerateSphinxDocs.cmake
+.. cmake-module:: /../Modules/CetGenerateSphinxDocs.cmake

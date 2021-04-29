@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetPackagePath.cmake
+.. cmake-module:: /../Modules/CetPackagePath.cmake

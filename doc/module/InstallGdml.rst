@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallGdml.cmake
+.. cmake-module:: /../Modules/InstallGdml.cmake

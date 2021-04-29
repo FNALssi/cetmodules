@@ -1,1 +1,1 @@
-.. cmake-module:: ../../../Modules/compat/Compatibility.cmake
+.. cmake-module:: /../Modules/compat/Compatibility.cmake

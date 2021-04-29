@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/ParseAndAddCatchTests.cmake
+.. cmake-module:: /../Modules/ParseAndAddCatchTests.cmake

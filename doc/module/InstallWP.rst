@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallWP.cmake
+.. cmake-module:: /../Modules/InstallWP.cmake

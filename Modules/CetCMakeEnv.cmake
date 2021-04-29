@@ -2,7 +2,7 @@
 CetCMakeEnv
 ===========
 
-This module defines the principal boostrap function
+This module defines the principal bootstrap function
 :cmake:command:`cet_cmake_env` defining the cetmodules build environment for
 the current project.
 #]================================================================]
@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
 # Override find package to deal with IN_TREE projects and reduce repeat
 # intiializations.
-include(private/CetFindPackage)
+include(private/CetOverrideFindPackage)
 
 # Watch for changes to CMAKE_MODULE_PATH that could break
 # forward/backward compatibility.
@@ -33,9 +33,10 @@ option(WANT_UPS
 UPS-compliant installation tarballs." OFF)
 mark_as_advanced(WANT_UPS)
 
-# What kind of libraries do we build?
-option(BUILD_SHARED_LIBS "Build shared libraries for this project." ON)
-option(BUILD_STATIC_LIBS "Build static libraries for this project." OFF)
+# What kind of things can we build?
+option(BUILD_SHARED_LIBS "Build shared libraries (all projects)." ON)
+option(BUILD_STATIC_LIBS "Build static libraries (all projects)." OFF)
+option(BUILD_DOCS "Build documentation (all_projects)." ON)
 
 # RPATH management.
 option(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
@@ -91,16 +92,16 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
      Prior to calling :cmake:command:`cet_cmake_env`:
 
      * The current project must have been initialized via
-       :cmake:command:`project() <cmake:command:project>`
+       :cmake:command:`project() <cmake-ref-current:command:project>`
 
      * Any initial or override values for
        :cmake:manual:`cetmodules-project-variables.7` should be set.
 
   **Variables controlling behavior**
     * :cmake:variable:`WANT_UPS`
-    * :cmake:variable:`BUILD_SHARED_LIBS <cmake:variable:BUILD_SHARED_LIBS>`
+    * :cmake:variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
     * :cmake:variable:`BUILD_STATIC_LIBS`
-    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
 #]================================================================]
 macro(cet_cmake_env)
   # project() must have been called first.

@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+X
+=
+#]================================================================]
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
@@ -61,39 +65,37 @@ function(check_class_version)
   if (NOT CCV_CLASSES_DEF_XML)
     set(CCV_CLASSES_DEF_XML ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml)
   endif()
-  IF(CCV_ENABLED)
-    set(ASAN_OPTIONS "detect_leaks=0:new_delete_type_mismatch=0")
-    if ("$ENV{ASAN_OPTIONS}")
-      string(PREPEND ASAN_OPTIONS "$ENV{ASAN_OPTIONS}:")
+  set(ASAN_OPTIONS "detect_leaks=0:new_delete_type_mismatch=0")
+  if ("$ENV{ASAN_OPTIONS}")
+    string(PREPEND ASAN_OPTIONS "$ENV{ASAN_OPTIONS}:")
+  endif()
+  set(CMD_ENV "ASAN_OPTIONS=${ASAN_OPTIONS}")
+  if (CETB_SANITIZER_PRELOADS)
+    list(APPEND CMD_ENV "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
+  endif()
+  foreach(ev IN ITEMS LSAN_OPTIONS MSAN_OPTIONS TSAN_OPTIONS UBSAN_OPTIONS)
+    if (DEFINED ENV{${ev}})
+      list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
     endif()
-    set(CMD_ENV "ASAN_OPTIONS=${ASAN_OPTIONS}")
-    if (CETB_SANITIZER_PRELOADS)
-      list(APPEND CMD_ENV "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
-    endif()
-    foreach(ev IN ITEMS LSAN_OPTIONS MSAN_OPTIONS TSAN_OPTIONS UBSAN_OPTIONS)
-      if (DEFINED ENV{${ev}})
-        list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
-      endif()
-    endforeach()
-    # Add the check to the end of the dictionary building step.
-    add_custom_command(OUTPUT ${dictname}_dict_checked
-      COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
-      $<TARGET_FILE:cetmodules::checkClassVersion> ${CCV_EXTRA_ARGS}
-      -l "$<TARGET_LINKER_FILE:${dictname}_dict>"
-      -x ${CCV_CLASSES_DEF_XML}
-      -t ${dictname}_dict_checked
-      COMMENT "Checking class versions for ROOT dictionary ${dictname}"
-      DEPENDS ${dictname}_dict cetmodules::checkClassVersion
-      )
-    add_custom_target(checkClassVersion_${dictname} ALL
-      DEPENDS ${dictname}_dict_checked)
-    # All checkClassVersion invocations must wait until after *all*
-    # dictionaries have been built.
-    add_dependencies(checkClassVersion_${dictname} BuildDictionary_AllDicts)
-    if (CCV_REQUIRED_DICTIONARIES)
-      add_dependencies(${dictname}_dict ${CCV_REQUIRED_DICTIONARIES})
-    endif()
-  ENDIF()
+  endforeach()
+  # Add the check to the end of the dictionary building step.
+  add_custom_command(OUTPUT ${dictname}_dict_checked
+    COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
+    $<TARGET_FILE:cetmodules::checkClassVersion> ${CCV_EXTRA_ARGS}
+    -l "$<TARGET_LINKER_FILE:${dictname}_dict>"
+    -x ${CCV_CLASSES_DEF_XML}
+    -t ${dictname}_dict_checked
+    COMMENT "Checking class versions for ROOT dictionary ${dictname}"
+    DEPENDS ${dictname}_dict cetmodules::checkClassVersion
+    )
+  add_custom_target(checkClassVersion_${dictname} ALL
+    DEPENDS ${dictname}_dict_checked)
+  # All checkClassVersion invocations must wait until after *all*
+  # dictionaries have been built.
+  add_dependencies(checkClassVersion_${dictname} BuildDictionary_AllDicts)
+  if (CCV_REQUIRED_DICTIONARIES)
+    add_dependencies(${dictname}_dict ${CCV_REQUIRED_DICTIONARIES})
+  endif()
 endfunction()
 
 cmake_policy(POP)

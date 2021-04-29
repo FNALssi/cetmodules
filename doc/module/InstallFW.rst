@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallFW.cmake
+.. cmake-module:: /../Modules/InstallFW.cmake

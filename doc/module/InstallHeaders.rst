@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallHeaders.cmake
+.. cmake-module:: /../Modules/InstallHeaders.cmake

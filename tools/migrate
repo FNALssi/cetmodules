@@ -350,14 +350,18 @@ sub write_top_CML {
   my $cml = "CMakeLists.txt";
   my $dest = "$cml.new";
   info("upgrading $cml -> $dest");
-  open(my $cml_out, ">", "$dest") or
-    error_exit("unable to open $dest for write");
   open(my $cml_in, "<", "$cml") or
     error_exit("unable to open $cml for read");
   my @buffer = <$cml_in>;
   $cml_in->close();
+  if ($buffer[0] =~ m&^###\s+MIGRATE-NO-ACTION\b&) {
+    info("upgrading $cml -> $dest SKIPPED due to MIGRATE-NO-ACTION in line 1");
+    return;
+  }
   my $npasses = 0;
   my $max_passes = 3;
+  open(my $cml_out, ">", "$dest") or
+    error_exit("unable to open $dest for write");
   while (scalar @buffer and $npasses < $max_passes) {
     $npasses = process_cml($cml, $cml_out, $pi, \@buffer);
   }
@@ -607,7 +611,18 @@ sub fix_cmake_one {
   open(my $in, "<", "$filename") or
     error_exit("unable to open $filepath for read");
   my $pname = $pi->{name};
+  my $seen_line1;
   while (my $line = <$in>) {
+    if (not defined $seen_line1) {
+      $seen_line1 = 1;
+      if ($line =~ m&^###\s+MIGRATE-NO-ACTION\b&) {
+        info("upgrading $filepath -> $filepath.new SKIPPED due to MIGRATE-NO-ACTION in line 1");
+        $in->close();
+        $out->close();
+        system(qw(rm -f --), "$filename.new");
+        return;
+      }
+    }
     if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
       $out->print($line);
       next;

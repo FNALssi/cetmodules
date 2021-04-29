@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetInstall.cmake
+.. cmake-module:: /../Modules/CetInstall.cmake

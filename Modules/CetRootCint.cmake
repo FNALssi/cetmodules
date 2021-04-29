@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+X
+=
+#]================================================================]
 #
 # cet_rootcint(<output_name> [NO_INSTALL])
 # runs rootcint against files in CMAKE_CURRENT_SOURCE_DIR and puts the result in CMAKE_CURRENT_BINARY_DIR

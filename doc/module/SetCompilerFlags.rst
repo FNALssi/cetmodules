@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/SetCompilerFlags.cmake
+.. cmake-module:: /../Modules/SetCompilerFlags.cmake

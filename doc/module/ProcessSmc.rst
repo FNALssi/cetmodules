@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/ProcessSmc.cmake
+.. cmake-module:: /../Modules/ProcessSmc.cmake

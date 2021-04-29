@@ -8,89 +8,48 @@ Utility Modules
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   ../../module/BasicPlugin
-   ../../module/BuildDictionary
-   ../../module/CetCMakeConfig
-   ../../module/CetCMakeEnv
-   ../../module/CetCMakeUtils
-   ../../module/CetCopy
-   ../../module/CetExclude
-   ../../module/CetFindPackage
-   ../../module/CetFindPkgConfigPackage
-   ../../module/CetGenerateSphinxDocs
-   ../../module/CetInstall
-   ../../module/CetInstalledPath
-   ../../module/CetMake
-   ../../module/CetMakeCompletions
-   ../../module/CetMakeLibrary
-   ../../module/CetPackagePath
-   ../../module/CetProcessLiblist
-   ../../module/CetRegexEscape
-   ../../module/CetRegisterExportName
-   ../../module/CetRootCint
-   ../../module/CetTest
-   ../../module/CetToolchainOverrides
-   ../../module/CheckClassVersion
-   ../../module/CheckProdVersion
-   ../../module/GenerateFromFragments
-   ../../module/InstallFW
-   ../../module/InstallFhicl
-   ../../module/InstallGdml
-   ../../module/InstallHeaders
-   ../../module/InstallPerllib
-   ../../module/InstallPkgMeta
-   ../../module/InstallPython
-   ../../module/InstallScripts
-   ../../module/InstallSource
-   ../../module/InstallWP
-   ../../module/ParseAndAddCatchTests
-   ../../module/ParseVersionString
-   ../../module/ProcessSmc
-   ../../module/ProjectVariable
-   ../../module/RunAndCompare
-   ../../module/SetCompilerFlags
-   ../../module/Ups
-   ../../module/UseCPack
+   /module/*
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :glob:
+
+   /module/hidden/*
+   /module/private/*
 
 Find Modules
 ============
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   ../../module/FindCatch2
-   ../../module/FindCppUnit
-   ../../module/FindRange
-   ../../module/FindSQLite3
-   ../../module/FindSmc
-   ../../module/Findsphinx-doc
-
+   /module/find/*
 
 Compatibility Modules
 =====================
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   ../../module/compat/CetParseArgs
-   ../../module/compat/Compatibility
-   ../../module/compat/InstallLicense
-   ../../module/compat/ParseUpsVersion
+   /module/compat/*
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :glob:
+
+   /module/compat/art/*
 
 Compatibility Find Modules
 ==========================
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   ../../module/compat/FindTBB
-   ../../module/compat/FindUpsBoost
-   ../../module/compat/FindUpsGeant4
-   ../../module/compat/FindUpsPackage
-   ../../module/compat/FindUpsRoot
-   ../../module/compat/Findcatch
-   ../../module/compat/Findcetbuildtools
-   ../../module/compat/Findcppunit
-   ../../module/compat/Findsmc_compiler
-   ../../module/compat/Findsqlite
+   /module/compat/find/*

@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetMakeCompletions.cmake
+.. cmake-module:: /../Modules/CetMakeCompletions.cmake

@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetFindPackage.cmake
+.. cmake-module:: /../Modules/CetFindPackage.cmake

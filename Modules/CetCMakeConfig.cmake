@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+X
+=
+#]================================================================]
 ########################################################################
 # cet_cmake_config
 #
@@ -61,7 +65,7 @@ endfunction()
 
 # Generate config and version files for the current project.
 function(_cet_cmake_config_impl)
-  message(VERBOSE "Executing delayed generation of config files")
+  message(VERBOSE "executing delayed generation of config files")
   project_variable(NOARCH TYPE BOOL
     DOCSTRING "If TRUE, ${CETMODULES_CURRENT_PROJECT_NAME} is (at least nominally) architecture-independent.")
   # Save CMAKE_MODULE_PATH for later.

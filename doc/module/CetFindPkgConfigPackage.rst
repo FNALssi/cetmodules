@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetFindPkgConfigPackage.cmake
+.. cmake-module:: /../Modules/CetFindPkgConfigPackage.cmake

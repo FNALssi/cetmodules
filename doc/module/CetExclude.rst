@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetExclude.cmake
+.. cmake-module:: /../Modules/CetExclude.cmake

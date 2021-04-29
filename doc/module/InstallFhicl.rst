@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/InstallFhicl.cmake
+.. cmake-module:: /../Modules/InstallFhicl.cmake

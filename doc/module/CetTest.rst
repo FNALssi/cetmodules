@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetTest.cmake
+.. cmake-module:: /../Modules/CetTest.cmake

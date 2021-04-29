@@ -1,1 +1,1 @@
-.. cmake-module:: ../../Modules/CetRegisterExportName.cmake
+.. cmake-module:: /../Modules/CetRegisterExportName.cmake

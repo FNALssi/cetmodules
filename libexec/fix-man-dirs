@@ -1,0 +1,18 @@
+#!/bin/bash
+
+subdir="$1"
+if [ -n "${subdir}" ]; then
+  cd "${subdir}" || \
+    { echo "ERROR: unable to change directory to specified subdirectory ${subdir}" 1>&2
+    exit 2; }
+fi
+
+status=0
+
+for dir in [0-9]*; do
+  [ -d "$dir" ] && rm -rf "man$dir" && mv {,man}"$dir" || \
+    { status=$?
+    echo "ERROR: unable to move directory $dir/ -> man$dir/${subdir:+ in subdirectory $subdir}" 1>&2; }
+done
+
+exit $status
