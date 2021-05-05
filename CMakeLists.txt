@@ -28,7 +28,7 @@
 ########################################################################
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
 
 # Project information.
 project(cetmodules VERSION 2.17.00 LANGUAGES NONE)
@@ -51,7 +51,7 @@ include(CetCMakeEnv)
 cet_cmake_env()
 
 project_variable(MIN_CETBUILDTOOLS_VERSION 8.06.00 TYPE STRING CONFIG
-  DOCSTRING "Minimum version of cetbuildtools compatibile with this cetmodules version")
+  DOCSTRING "Minimum version of cetbuildtools compatible with this cetmodules version")
 
 # Make sure downstream packages can find our modules.
 cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
