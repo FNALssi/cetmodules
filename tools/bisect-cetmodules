@@ -1,0 +1,102 @@
+#!/bin/bash
+########################################################################
+# bisect-cetmodules
+#
+# Run git bisect on a cetmodules repository to ascertain when something
+# went wrong.
+#
+########################################################################
+# Prerequisites
+##################
+#
+# 1. CETPKG_SOURCE is defined.
+#
+# 2. This script must be invoked via "git bisect run", after "git bisect
+#    start" has already been invoked.
+#
+# 3. Current working directory must be the cetmodules repository being
+#    bisected.
+#
+########################################################################
+# Notes
+##################
+#
+# * May need tweaking to do *exactly* what is needed to find a given
+#   bug.
+# 
+########################################################################
+
+script_fail_code=250
+script_skip_code=125
+
+die() {
+  trap '' EXIT 
+  local exit_code=$script_fail_code
+  [[ "$1" =~ ^[[:digit:]]+$ ]] && { exit_code=$1; shift; }
+  echo "$*" 1>&2
+  [ -n "$TMP" ] && [ -d "$TMP" ] && \
+    echo "Preserved temporary working area $TMP"
+  exit $exit_code
+}
+
+usage() {
+  exit $script_fail_code
+}
+
+[ -n "$PUT_SOURCE" ] || [ -n "$CETPKG_SOURCE" ] && \
+  PUT_SOURCE="$CETPKG_SOURCE" || \
+  die "specify source to build as PUT_SOURCE or CETPKG_SOURCE"
+
+[ -n "$SETUP_UPS" ] && \
+  [ -f "$CETPKG_SOURCE/ups/setup_for_development" ] || \
+  die "Non-UPS operation currently unimplemented"
+
+good_exp="$1"; shift
+bad_exp="$1"; shift
+skip_exp="$1"; shift
+put_setup_args="$@"
+
+TMP=`mktemp -t -d bisect.XXXXXX`
+trap "rm -rf \"$TMP\" 2>/dev/null" EXIT
+export CETMODULES_SOURCE=`pwd`
+[ -e "$CETMODULES_SOURCE/.git" ] || \
+  die "current working directory is not a git repository"
+ups_top="${UPS_DIR%/ups/*}"
+. "$ups_top/setup" -- 2>/dev/null || die "unable to setup UPS"
+mkdir "$TMP/products" || die "unable to create products/ in $TMP"
+{ tar -C "$ups_top" -c .upsfiles | tar -C "$TMP/products" -x; } || \
+  die "unable to initialize UPS products area in $TMP/products/"
+export PRODUCTS="$TMP/products:$PRODUCTS"
+mkdir -p "$TMP/build/cetmodules" || \
+  die "unable to create build/cetmodules in $TMP"
+
+( cd "$TMP/build/cetmodules" && \
+  trap "git -C \"\$CETMODULES_SOURCE\" restore ." EXIT && \
+  sed -Ei'' -e 's&^([[:space:]]*project.*)2\.[0-9.]*(.*)$&\12.17.00\2&' \
+  $CETMODULES_SOURCE/CMakeLists.txt && \
+  . "$CETMODULES_SOURCE/ups/setup_for_development" -- > \
+  "$TMP"/setup_cetmodules.log 2>&1 && \
+  buildtool -DBUILD_DOCS:BOOL=OFF -fvGNinja -A > \
+  "$TMP"/build_cetmodules.log 2>&1 ) || \
+  die $script_skip_code "setup and build of cetmodules failed"
+
+mkdir -p "$TMP/build/put" || die "unable to create build/put in $TMP"
+
+cd "$TMP/build/put" || die "unable to cd to $TMP/build/put"
+. "$PUT_SOURCE/ups/setup_for_development" \
+  ${PUT_SETUP_ARGS[*]:+"${PUT_SETUP_ARGS[@]}"} > \
+  "$TMP/setup_put.log" 2>&1 || die "setup of product under test failed" && \
+  buildtool -I $TMP/ -fvGNinja --test-groups=ALL -C > "$TMP/build_put.log" 2>&1
+status=$?
+if [ -n "$good_exp" ] && \
+  grep -Ee "$good_exp" "$TMP/build_put.log" >/dev/null 2>&1; then
+  die 0 "matched good_exp ($good_exp)"
+elif [ -n "$bad_exp" ] && \
+  grep -Ee "$bad_exp" "$TMP/build_put.log" >/dev/null 2>&1; then
+  die 1 "matched bad_exp ($bad_exp)"
+elif [ -n "$skip_exp" ] && \
+  grep -Ee "$skip_exp" "$TMP/build_put.log" >/dev/null 2>&1; then
+  die $script_skip_code "matched skip_exp ($skip_exp)"
+else
+  die $status "script exit with code $status"
+fi
