@@ -15,6 +15,12 @@ real_dir() {
     (cd "$1" >/dev/null 2>&1 && pwd -P) 2>/dev/null
 }
 
+cmake_version() {
+  [ -n "$1" ] || { cat >/dev/null 2>/dev/null; return; }
+  printf "$1=(%s)" "$(sed -nEe \
+    '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(-(.+))?$&\"\2\" \"\4\" \"\6\" \"\8\"&p')"
+}
+
 # Program name.
 prog=${0##*/}
 
@@ -22,8 +28,7 @@ prog=${0##*/}
 libexec=$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)
 
 # CMake version.
-cmake_version=($(cmake --version | sed -nEe \
-  '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(\.([[:digit:]]+))?.*$&\2 \4 \6 \8&p'))
+eval $(cmake --version | cmake_version running_cmake_version)
 
 # Usage.
 usage() {
@@ -843,14 +848,13 @@ require_tests() {
 }
 
 require_cmake() {
-  local req_cmake_version=($(echo "$1" | sed -nEe \
-  '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(\.([[:digit:]]+))?.*$&\2 \4 \6 \8&p'))
-  (( ${cmake_version[0]:-0} < ${req_cmake_version[0]:-0} )) || \
-    (( ${cmake_version[1]:-0} < ${req_cmake_version[1]:-0} )) || \
-    (( ${cmake_version[2]:-0} < ${req_cmake_version[2]:-0} )) || \
-    (( ${cmake_version[3]:-0} < ${req_cmake_version[3]:-0} )) || return 0
+  eval local $(echo "$1" | cmake_version req_cmake_version)
+  (( ${running_cmake_version[0]:-0} < ${req_cmake_version[0]:-0} )) || \
+    (( ${running_cmake_version[1]:-0} < ${req_cmake_version[1]:-0} )) || \
+    (( ${running_cmake_version[2]:-0} < ${req_cmake_version[2]:-0} )) || \
+    (( ${running_cmake_version[3]:-0} < ${req_cmake_version[3]:-0} )) || return 0
   local OIFS="$IFS" IFS='.'
-  local msg="${2:-buildtool} requires CMake >= $1 (found ${cmake_version[*]}) - setup issues?"
+  local msg="${2:-buildtool} requires CMake >= $1 (found ${running_cmake_version[*]}) - setup issues?"
   IFS="$OIFS"
   fatal_error "$msg"
   return 1
