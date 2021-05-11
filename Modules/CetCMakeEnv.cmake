@@ -122,7 +122,7 @@ macro(cet_cmake_env)
 
   # We need to know this, one way or the other.
   if (NOT PROJECT_VERSION)
-    message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ to project() call")
+    message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ[-<patch-level>] to project() call")
   endif()
   foreach (_cce_v IN ITEMS
       BINARY_DIR DESCRIPTION HOMEPAGE_URL NAME SOURCE_DIR

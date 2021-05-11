@@ -94,6 +94,7 @@ $btype_table = { debug => 'Debug',
       print_dev_setup
       sort_qual
       table_dep_setup
+      to_cmake_version
       to_dot_version
       to_string
       to_ups_version
@@ -106,7 +107,7 @@ $btype_table = { debug => 'Debug',
       write_table_frag
    );
 
-@EXPORT_OK = qw($btype_table $pathspec_info setup_err);
+@EXPORT_OK = qw($btype_table $pathspec_info parse_version_string setup_err);
 
 sub error_exit {
   my (@msg) = @_;
@@ -202,7 +203,7 @@ sub get_derived_parent_data {
     $pi->{version} = to_ups_version($cmake_project_version)
       unless exists $pi->{version};
   } else {
-    $pi->{cmake_project_version} = to_dot_version($pi->{version});
+    $pi->{cmake_project_version} = to_cmake_version($pi->{version});
   }
 
   my @sorted;
@@ -701,37 +702,40 @@ sub offset_annotated_items {
 #
 # alpha[[-_]NN] (alpha releases);
 # beta[[-_]NN] (beta releases);
-# rc[[-_]NN] or pre[[-_]NN] (pre-releases);
+# rc[[-_]NN] or pre[[-_]NN] (release candidates);
 # <empty>;
 # p[-_]NN or patch[[-_]NN] (patch releases);
 # Anything else.
-sub parse_version_extra {
-  my $vInfo = shift or die "INTERNAL ERROR in parse_version_extra()";
-  return $vInfo unless $vInfo->{extra};
-  my $etype = 0;
+sub _parse_tweak {
+  my $vInfo = shift or die "INTERNAL ERROR in _parse_tweak()";
+  return $vInfo unless $vInfo->{tweak};
   my ($etext, $enum) =
-    ($vInfo->{extra} =~ m&(\D*?)[-_.,]?(\d*)$&);
+    ($vInfo->{tweak} =~ m&(\D*?)[-_.,]?(\d+)?$&);
   if (not $etext) {
-    $vInfo->{extra_type} = 0;
+    $vInfo->{tweak_type} = 0;
   } elsif ($etext eq "patch" or
            (defined $enum and $enum >= 0 and $etext eq "p")) {
-    $vInfo->{extra_type} = 1;
+    $vInfo->{tweak_type} = 1;
     $etext = "patch";
   } elsif ("\L$etext\E" eq "rc" or
            "\L$etext\E" eq "pre") {
-    $vInfo->{extra_type} = -1;
-    $etext = "pre";
+    $vInfo->{tweak_type} = -1;
+    $etext = "rc";
   } elsif ("\L$etext\E" eq "gamma") {
-    $vInfo->{extra_type} = -2;
+    $vInfo->{tweak_type} = -2;
   } elsif ("\L$etext\E" eq "beta") {
-    $vInfo->{extra_type} = -3;
+    $vInfo->{tweak_type} = -3;
   } elsif ("\L$etext\E" eq "alpha") {
-    $vInfo->{extra_type} = -4;
+    $vInfo->{tweak_type} = -4;
+  } elsif (not exists $vInfo->{bits}) {
+    $vInfo->{tweak_type} = -5;
   } else {
-    $vInfo->{extra_type} = 2;
+    $vInfo->{tweak_type} = 2;
   }
-  $vInfo->{extra_text} = ($etype < -1) ? "\L$etext\E" : "$etext";
-  $vInfo->{extra_num} = $enum || 0;
+  $vInfo->{tweak_text} = ($vInfo->{tweak_type} < 1) ? "\L$etext\E" : "$etext";
+  if ($vInfo->{tweak_type} > -5 or defined $enum) {
+    $vInfo->{tweak_num} = $enum // 0;
+  }
   return $vInfo;
 }
 
@@ -741,30 +745,45 @@ sub parse_version_string {
   my $result = {};
   my $def_ps = '[-_.,]';
   my ($ps, $es);
-  foreach my $key (qw(major minor patch tweak)) {
+  my @bits;
+  foreach my $key (qw(major minor patch)) {
     my $sep = (defined $ps) ? "\Q$ps\E" : $def_ps;
-    if ($dv =~ m&\G(\d+)?((?(1)$sep?|$sep))&gc) {
-      $ps = $ps // $2 if $es = $2; # Yes, second expr. is an assignment.
-      $result->{$key} = $1 // 0;
-      push @{$result->{bits}}, $result->{$key};
+    if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?(.+)&$3&) {
+      $ps = $ps // $2 if defined $2;
+      $result->{$key} = $1 if defined $1;
     } else {
-      $result->{extra} = ($dv =~ m&\G(.+)$&);
-      $result->{pre_extra_sep} = ($es ne $ps) ? $es : '' if $es;
+      last;
     }
   }
-  return parse_version_extra($result);
+  $dv =~ s&^$def_ps&& unless $2;
+  $result->{tweak} = $dv if $dv;
+  # Make sure we insert placeholders in the array only if we need them
+  foreach my $key (qw(patch minor major)) {
+    if (exists $result->{$key} or scalar @bits) {
+      $result->{$key} = $result->{$key} // 0;
+      unshift @bits, $result->{$key};
+    }
+  }
+  $result->{bits} = [ @bits ] if scalar @bits;
+  return _parse_tweak($result);
 }
 
 sub _format_version {
   my $v = shift;
   $v = parse_version_string($v) // {} unless ref $v;
   my $separator = shift // '.';
-  my $preamble = shift // '';
-  return sprintf("${preamble}%s%s",
-                 join($separator, @{$v->{bits} // []}),
-                 (defined $v->{pre_extra_sep}) ?
-                 $v->{pre_extra_sep} || $separator : '',
-                 $v->{extra} // '');
+  my $keyword_args = { @_ };
+  my $main_v_string = join($separator, @{$v->{bits} // []});
+  return sprintf("%s%s%s", $keyword_args->{preamble} // '',
+                 $main_v_string,
+                 ($v->{tweak}) ?
+                 sprintf("%s%s",
+                         ($main_v_string) ? $keyword_args->{pre_tweak_sep} // '' : '',
+                         $v->{tweak}) : '');
+}
+
+sub to_cmake_version {
+  return _format_version(shift, '.', pre_tweak_sep => '-');
 }
 
 sub to_dot_version {
@@ -772,7 +791,7 @@ sub to_dot_version {
 }
 
 sub to_ups_version {
-  return _format_version(shift, '_', 'v');
+  return _format_version(shift, '_', preamble => 'v');
 }
 
 sub to_product_name {
@@ -788,10 +807,9 @@ sub version_cmp($$) {
     ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
       ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
         ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0) ||
-          ($vInfoA->{tweak} // 0) <=> ($vInfoB->{tweak} // 0) ||
-            ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0) ||
-              ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '') ||
-                ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
+            ($vInfoA->{tweak_type} // 0) <=> ($vInfoB->{tweak_type} // 0) ||
+              ($vInfoA->{tweak_text} // '') cmp ($vInfoB->{tweak_text} // '') ||
+                ($vInfoA->{tweak_num} // -1) <=> ($vInfoB->{tweak_num} // -1);
 }
 
 my $cqual_table =

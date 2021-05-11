@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL =>
+  qw(io regexp severe syntax uninitialized void);
+
+use Cwd qw(abs_path);
+use File::Basename;
+use File::Spec;
+
+use vars qw ($_pmdir);
+BEGIN {
+  my $_me = readlink($0);
+  if (not $_me) {
+    $_me = $0;
+  } elsif ($_me !~ m&^/&) {
+    $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
+  }
+  $_pmdir =
+    abs_path(File::Spec->catfile(dirname($_me), '..', '..', 'libexec'));
+}
+
+use lib $_pmdir;
+
+use parse_deps qw(parse_version_string to_cmake_version to_string to_ups_version to_dot_version);
+use warnings FATAL => 'parse_deps';
+
+use Test::More;
+
+sub compare_or_show {
+  my $test = shift;
+  my $expected = shift;
+  is_deeply($test, $expected, @_) or
+    diag(to_string($test), " !=\n", to_string($expected), "\n");
+}
+
+my $develop_ref = { qw(tweak develop tweak_text develop tweak_type -5) };
+diag('develop');
+compare_or_show(parse_version_string('develop'), $develop_ref);
+is(to_ups_version('develop'), 'vdevelop');
+is(to_dot_version('develop'), 'develop');
+is(to_cmake_version('develop'), 'develop');
+diag('vdevelop');
+compare_or_show(parse_version_string('vdevelop'), $develop_ref);
+diag('.develop');
+compare_or_show(parse_version_string('.develop'), $develop_ref);
+diag('.versatility');
+compare_or_show(parse_version_string('.versatility'),
+                { qw(tweak versatility tweak_text versatility tweak_type -5) });
+is(to_ups_version('.versatility'), 'vversatility');
+is(to_dot_version('.versatility'), 'versatility');
+is(to_cmake_version('.versatility'), 'versatility');
+diag('1.5.rc7');
+compare_or_show(parse_version_string('1.5.rc7'),
+                { qw(major 1 minor 5 tweak_type -1 tweak rc7 tweak_text rc tweak_num 7),
+                  bits => [ 1, 5 ] });
+diag('v1_5_rc7');
+is(to_ups_version('v1_5_rc7'), 'v1_5rc7');
+is(to_dot_version('v1_5_rc7'), '1.5rc7');
+is(to_cmake_version('v1_5_rc7'), '1.5-rc7');
+diag('1..5.');
+compare_or_show(parse_version_string('1..5.'),
+                { qw(major 1 minor 0 patch 5),
+                  bits => [1, 0, 5] });
+is(to_ups_version('1..5.'), 'v1_0_5');
+is(to_dot_version('1..5.'), '1.0.5');
+is(to_cmake_version('1..5.'), '1.0.5');
+my $rc_ref = { qw(major 1 tweak_type -1 tweak pre7 tweak_text rc tweak_num 7),
+               bits => [1] };
+diag('1pre7');
+compare_or_show(parse_version_string('1pre7'), $rc_ref);
+diag('1.pre7');
+compare_or_show(parse_version_string('1.pre7'), $rc_ref);
+diag('1..pre7');
+compare_or_show(parse_version_string('1..pre7'), $rc_ref);
+diag('1..-pre7');
+compare_or_show(parse_version_string('1..-pre7'), $rc_ref);
+diag('1pre7');
+is(to_ups_version('1pre7'), 'v1pre7');
+is(to_dot_version('1pre7'), '1pre7');
+is(to_cmake_version('1pre7'), '1-pre7');
+diag('1.-pre7');
+is(to_ups_version('1.-pre7'), 'v1pre7');
+is(to_dot_version('1.-pre7'), '1pre7');
+is(to_cmake_version('1.-pre7'), '1-pre7');
+
+done_testing();

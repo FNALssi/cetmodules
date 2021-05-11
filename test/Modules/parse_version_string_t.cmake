@@ -1,0 +1,48 @@
+include(ParseVersionString)
+
+# Sub-test counts.
+set(RUN_COUNT 0)
+set(FAIL_COUNT 0)
+
+# Test function for single variable, including SEP and lists.
+function(pvs_test VERSION EXPECTED)
+  list(POP_FRONT ARGN SEP)
+  if (DEFINED SEP)
+    list(PREPEND SEP SEP)
+  endif()
+  parse_version_string("${VERSION}" ${SEP} RESULT)
+  message(CHECK_START
+    "parse_version_string(\"${VERSION}\" ${SEP} RESULT) -> \"${EXPECTED}\"")
+  math(EXPR RUN_COUNT "${RUN_COUNT} + 1")
+  if (RESULT STREQUAL EXPECTED)
+    message(CHECK_PASS "OK")
+  else()
+    message(CHECK_FAIL "FAIL: \"${RESULT}\"")
+    math(EXPR FAIL_COUNT "${FAIL_COUNT} + 1")
+    set(FAIL_COUNT ${FAIL_COUNT} PARENT_SCOPE)
+  endif()
+  set(RUN_COUNT ${RUN_COUNT} PARENT_SCOPE)
+endfunction()
+
+pvs_test("develop" ";;;develop")
+pvs_test("develop" "-develop" ".")
+pvs_test(".develop" ";;;develop")
+pvs_test(".develop" "-develop" ".")
+pvs_test(".develop" "develop" "-")
+pvs_test("vdevelop" ";;;develop")
+pvs_test(".versatility" ";;;versatility")
+pvs_test("1.5.rc7" "1;5;;rc7")
+pvs_test("1.5.rc7" "1.5-rc7" ".")
+pvs_test("1-5-rc7" "1.5-rc7" ".")
+pvs_test("1-5-rc7" "1-5rc7" "-")
+pvs_test("1..5" "1.0.5" ".")
+pvs_test("1..5" "1;;5")
+pvs_test("1rc7" "1;;;rc7")
+pvs_test("1..rc7" "1;;;rc7")
+
+# Aggregated test report
+if (FAIL_COUNT)
+  message(FATAL_ERROR "parse_version_string_t: ${FAIL_COUNT}/${RUN_COUNT} FAILED")
+else()
+  message(VERBOSE "parse_version_string_t: ${RUN_COUNT}/${RUN_COUNT} PASSED")
+endif()

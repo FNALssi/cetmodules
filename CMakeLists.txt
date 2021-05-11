@@ -37,9 +37,6 @@ project(cetmodules VERSION 2.17.03 LANGUAGES NONE)
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
-# No tests of cetmodules.
-set(BUILD_TESTING OFF)
-
 # Other configuration.
 set(${PROJECT_NAME}_NOARCH TRUE)
 set(${PROJECT_NAME}_FHICL_DIR "")
@@ -65,6 +62,10 @@ add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
+include(CTest)
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()
 add_subdirectory(doc)
 ####################################
 
