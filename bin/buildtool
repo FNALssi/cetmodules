@@ -426,7 +426,7 @@ fatal_error() {
 }
 internal_error() {
   if [[ $1 =~ ^[[:digit:]]+$ ]]; then exitval=$1; shift; else exitval=1; fi
-  writeToErr "INTERNAL ERROR: $*"; exit $exitval
+  writeToErr "INTERNAL ERROR: $*"; unset TMP; exit $exitval
 }
 maybe_redirect() {
   if log_no_tee; then
@@ -435,6 +435,8 @@ maybe_redirect() {
     info "buildtool log started at $(date)"
     (( redirected = 1 ))
     trap "restore_output_streams; cleanup" EXIT
+  else
+    trap "cleanup" EXIT
   fi
 }
 restore_output_streams() {
@@ -1145,7 +1147,7 @@ if (( clean )); then
   if [ -r "$setup_files_backup" ]; then
     tar -C "$CETPKG_BUILD" -f "$setup_files_backup" -x >/dev/null 2>&1 || \
       { unset TMP
-      error_exit "unable to restore setup files from $setup_files_backup after clean"
+      fatal_error "unable to restore setup files from $setup_files_backup after clean"
     }
   fi
   popd >/dev/null || cd "$CETPKG_BUILD" # 2>&1
