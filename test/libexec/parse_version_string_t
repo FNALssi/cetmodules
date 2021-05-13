@@ -35,29 +35,36 @@ sub compare_or_show {
 }
 
 my $develop_ref = { qw(tweak develop tweak_text develop tweak_type -5) };
+
 diag('develop');
 compare_or_show(parse_version_string('develop'), $develop_ref);
 is(to_ups_version('develop'), 'vdevelop');
 is(to_dot_version('develop'), 'develop');
 is(to_cmake_version('develop'), 'develop');
+
 diag('vdevelop');
 compare_or_show(parse_version_string('vdevelop'), $develop_ref);
+
 diag('.develop');
 compare_or_show(parse_version_string('.develop'), $develop_ref);
+
 diag('.versatility');
 compare_or_show(parse_version_string('.versatility'),
                 { qw(tweak versatility tweak_text versatility tweak_type -5) });
 is(to_ups_version('.versatility'), 'vversatility');
 is(to_dot_version('.versatility'), 'versatility');
 is(to_cmake_version('.versatility'), 'versatility');
+
 diag('1.5.rc7');
 compare_or_show(parse_version_string('1.5.rc7'),
                 { qw(major 1 minor 5 tweak_type -1 tweak rc7 tweak_text rc tweak_num 7),
                   bits => [ 1, 5 ] });
+
 diag('v1_5_rc7');
 is(to_ups_version('v1_5_rc7'), 'v1_5rc7');
 is(to_dot_version('v1_5_rc7'), '1.5rc7');
 is(to_cmake_version('v1_5_rc7'), '1.5-rc7');
+
 diag('1..5.');
 compare_or_show(parse_version_string('1..5.'),
                 { qw(major 1 minor 0 patch 5),
@@ -65,23 +72,72 @@ compare_or_show(parse_version_string('1..5.'),
 is(to_ups_version('1..5.'), 'v1_0_5');
 is(to_dot_version('1..5.'), '1.0.5');
 is(to_cmake_version('1..5.'), '1.0.5');
+
 my $rc_ref = { qw(major 1 tweak_type -1 tweak pre7 tweak_text rc tweak_num 7),
                bits => [1] };
+
 diag('1pre7');
 compare_or_show(parse_version_string('1pre7'), $rc_ref);
+
 diag('1.pre7');
 compare_or_show(parse_version_string('1.pre7'), $rc_ref);
+
 diag('1..pre7');
 compare_or_show(parse_version_string('1..pre7'), $rc_ref);
+
 diag('1..-pre7');
 compare_or_show(parse_version_string('1..-pre7'), $rc_ref);
+
 diag('1pre7');
 is(to_ups_version('1pre7'), 'v1pre7');
 is(to_dot_version('1pre7'), '1pre7');
 is(to_cmake_version('1pre7'), '1-pre7');
+
 diag('1.-pre7');
 is(to_ups_version('1.-pre7'), 'v1pre7');
 is(to_dot_version('1.-pre7'), '1pre7');
 is(to_cmake_version('1.-pre7'), '1-pre7');
+
+diag('02.04.03');
+compare_or_show(parse_version_string('02.04.03'),
+                { qw(major 02 minor 04 patch 03),
+                  bits => [ qw( 02 04 03 ) ] });
+is(to_ups_version('02.04.03'), 'v02_04_03');
+is(to_dot_version('02.04.03'), '02.04.03');
+is(to_cmake_version('02.04.03'), '02.04.03');
+
+my $rc_ref = { qw(major 02 minor 04 patch 03
+                  tweak rc07 tweak_type -1 tweak_num 07 tweak_text rc),
+               bits => [ qw( 02 04 03 ) ] };
+
+diag('02.04.03.rc07');
+compare_or_show(parse_version_string('02.04.03.rc07'), $rc_ref);
+is(to_ups_version('02.04.03.rc07'), 'v02_04_03rc07');
+is(to_dot_version('02.04.03.rc07'), '02.04.03rc07');
+is(to_cmake_version('02.04.03.rc07'), '02.04.03-rc07');
+
+diag('02.04.03rc07');
+compare_or_show(parse_version_string('02.04.03rc07'), $rc_ref);
+is(to_ups_version('02.04.03rc07'), 'v02_04_03rc07');
+is(to_dot_version('02.04.03rc07'), '02.04.03rc07');
+is(to_cmake_version('02.04.03rc07'), '02.04.03-rc07');
+
+diag('02.04.03-rc07');
+compare_or_show(parse_version_string('02.04.03-rc07'), $rc_ref);
+is(to_ups_version('02.04.03-rc07'), 'v02_04_03rc07');
+is(to_dot_version('02.04.03-rc07'), '02.04.03rc07');
+is(to_cmake_version('02.04.03-rc07'), '02.04.03-rc07');
+
+diag('v02_04_03rc07');
+compare_or_show(parse_version_string('v02_04_03rc07'), $rc_ref);
+is(to_ups_version('v02_04_03rc07'), 'v02_04_03rc07');
+is(to_dot_version('v02_04_03rc07'), '02.04.03rc07');
+is(to_cmake_version('v02_04_03rc07'), '02.04.03-rc07');
+
+diag('v02_04_03_rc07');
+compare_or_show(parse_version_string('v02_04_03_rc07'), $rc_ref);
+is(to_ups_version('v02_04_03_rc07'), 'v02_04_03rc07');
+is(to_dot_version('v02_04_03_rc07'), '02.04.03rc07');
+is(to_cmake_version('v02_04_03_rc07'), '02.04.03-rc07');
 
 done_testing();

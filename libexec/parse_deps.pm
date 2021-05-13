@@ -747,20 +747,20 @@ sub parse_version_string {
   my ($ps, $es);
   my @bits;
   foreach my $key (qw(major minor patch)) {
-    my $sep = (defined $ps) ? "\Q$ps\E" : $def_ps;
-    if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?(.+)&$3&) {
-      $ps = $ps // $2 if defined $2;
+    my $sep = (defined $ps) ? $ps : $def_ps;
+    if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?&&) {
+      $ps = "[$2]" if defined $2 and not defined $ps;
       $result->{$key} = $1 if defined $1;
     } else {
       last;
     }
   }
   $dv =~ s&^$def_ps&& unless $2;
-  $result->{tweak} = $dv if $dv;
+  $result->{tweak} = $dv if $dv ne '';
   # Make sure we insert placeholders in the array only if we need them
   foreach my $key (qw(patch minor major)) {
     if (exists $result->{$key} or scalar @bits) {
-      $result->{$key} = $result->{$key} // 0;
+      $result->{$key} = 0 unless defined $result->{$key};
       unshift @bits, $result->{$key};
     }
   }
