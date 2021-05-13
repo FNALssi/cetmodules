@@ -15,6 +15,12 @@ real_dir() {
     (cd "$1" >/dev/null 2>&1 && pwd -P) 2>/dev/null
 }
 
+cmake_version() {
+  [ -n "$1" ] || { cat >/dev/null 2>/dev/null; return; }
+  printf "$1=(%s)" "$(sed -nEe \
+    '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(-(.+))?$&\"\2\" \"\4\" \"\6\" \"\8\"&p')"
+}
+
 # Program name.
 prog=${0##*/}
 
@@ -22,8 +28,7 @@ prog=${0##*/}
 libexec=$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)
 
 # CMake version.
-cmake_version=($(cmake --version | sed -nEe \
-  '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(\.([[:digit:]]+))?.*$&\2 \4 \6 \8&p'))
+eval $(cmake --version | cmake_version running_cmake_version)
 
 # Usage.
 usage() {
@@ -421,7 +426,7 @@ fatal_error() {
 }
 internal_error() {
   if [[ $1 =~ ^[[:digit:]]+$ ]]; then exitval=$1; shift; else exitval=1; fi
-  writeToErr "INTERNAL ERROR: $*"; exit $exitval
+  writeToErr "INTERNAL ERROR: $*"; unset TMP; exit $exitval
 }
 maybe_redirect() {
   if log_no_tee; then
@@ -430,6 +435,8 @@ maybe_redirect() {
     info "buildtool log started at $(date)"
     (( redirected = 1 ))
     trap "restore_output_streams; cleanup" EXIT
+  else
+    trap "cleanup" EXIT
   fi
 }
 restore_output_streams() {
@@ -560,7 +567,10 @@ calculate_ops_dir() {
   fi
 }
 
-cleanup() { [ -d "$TMP" ] && rm -rf "$TMP"; }
+cleanup() {
+  [ -d "$TMP" ] && rm -rf "$TMP"
+  rm -f ${lock_files[*]:+"${lock_files[@]}"}
+}
 
 declare -a deleted_headers
 
@@ -797,6 +807,45 @@ ${tred:+| tred} > \"$gfile\""
   fi
 }
 
+timeout_i=30
+sleep_time=5
+# NFS locking using hard links, which are atomic (yes, even on NFS).
+lock_install() {
+  # Don't try to execute an install if there's one in progress for this
+  # install destination already.
+  local stat_cmd=(stat) timeout=$timeout_i
+  if [[ "$OSTYPE" == *darwin* ]]; then
+    stat_cmd+=(-f '%l')
+  else
+    stat_cmd+=(-c '%h')
+  fi
+  lock_files=("$(mktemp -p "$install_prefix" -t .${prog:-buildtool}-install.XXXXXX.lock || fatal_error "unable to create lock file for installation in $install_prefix")")
+  trap "eval rm -f \${lock_files[*]:+\"\${lock_files[@]}\"}; unset lock_files" RETURN
+  cat > "$lock_files" <<EOF
+$BASH_SOURCE
+$$
+EOF
+  local lock_link="$install_prefix/.${prog:-buildtool}-install-$CETPKG_NAME-$CETPKG_VERSION.lock"
+  local complained=0
+  while ! { ln "$lock_files" "$lock_link" || \
+    (( $("$stat_cmd[@]" "$lock_files") == 2 )); } 2>/dev/null; do
+    IFS=$'\n' read -r -d '' -a locked_by <"$lock_link" >/dev/null 2>&1
+    if ! (( complained )); then
+      complained=1
+      info "installation of $CETPKG_NAME $CETPKG_VERSION currently locked by ${locked_by[0]##*/} (PID ${locked_by[1]:-<unknown>})..."
+    fi
+    (( timeout -= sleep_time ))
+    if (( timeout > 0 )); then
+      sleep $sleep_time
+    else
+      fatal_error "install lock timeout (${timeout_i}s) exceeded: lock still held by PID ${locked_by[1]:-<unknown>}\n" \
+        "rm -f \"$lock_link\" if known stale"
+    fi
+  done
+  lock_files+=("$lock_link")
+  ${*:+"$@"}
+}
+
 stage_ip() {
   stage="$1"
   local s="${1:0:1}"
@@ -820,7 +869,7 @@ stage_ip() {
   if { "${cmd_args[@]}" -t help "${cmd_postargs[@]}" | \
     grep -Ee "${stage_regex}" >/dev/null 2>&1; }; then
     announce_stage
-    cmd -d "$stage"  \
+    lock_install cmd -d "$stage" \
       "${cmd_args[@]}" -t "$stage" "${cmd_postargs[@]}"
     check_status
   else
@@ -843,14 +892,13 @@ require_tests() {
 }
 
 require_cmake() {
-  local req_cmake_version=($(echo "$1" | sed -nEe \
-  '1 s&^(cmake version )?([[:digit:]]+)(\.([[:digit:]]+))?(\.([[:digit:]]+))?(\.([[:digit:]]+))?.*$&\2 \4 \6 \8&p'))
-  (( ${cmake_version[0]:-0} < ${req_cmake_version[0]:-0} )) || \
-    (( ${cmake_version[1]:-0} < ${req_cmake_version[1]:-0} )) || \
-    (( ${cmake_version[2]:-0} < ${req_cmake_version[2]:-0} )) || \
-    (( ${cmake_version[3]:-0} < ${req_cmake_version[3]:-0} )) || return 0
+  eval local $(echo "$1" | cmake_version req_cmake_version)
+  (( ${running_cmake_version[0]:-0} < ${req_cmake_version[0]:-0} )) || \
+    (( ${running_cmake_version[1]:-0} < ${req_cmake_version[1]:-0} )) || \
+    (( ${running_cmake_version[2]:-0} < ${req_cmake_version[2]:-0} )) || \
+    (( ${running_cmake_version[3]:-0} < ${req_cmake_version[3]:-0} )) || return 0
   local OIFS="$IFS" IFS='.'
-  local msg="${2:-buildtool} requires CMake >= $1 (found ${cmake_version[*]}) - setup issues?"
+  local msg="${2:-buildtool} requires CMake >= $1 (found ${running_cmake_version[*]}) - setup issues?"
   IFS="$OIFS"
   fatal_error "$msg"
   return 1
@@ -1141,7 +1189,7 @@ if (( clean )); then
   if [ -r "$setup_files_backup" ]; then
     tar -C "$CETPKG_BUILD" -f "$setup_files_backup" -x >/dev/null 2>&1 || \
       { unset TMP
-      error_exit "unable to restore setup files from $setup_files_backup after clean"
+      fatal_error "unable to restore setup files from $setup_files_backup after clean"
     }
   fi
   popd >/dev/null || cd "$CETPKG_BUILD" # 2>&1

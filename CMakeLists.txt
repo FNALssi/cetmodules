@@ -31,14 +31,11 @@
 cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.17.03 LANGUAGES NONE)
+project(cetmodules VERSION 2.18.00 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
-
-# No tests of cetmodules.
-set(BUILD_TESTING OFF)
 
 # Other configuration.
 set(${PROJECT_NAME}_NOARCH TRUE)
@@ -65,6 +62,10 @@ add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
+include(CTest)
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()
 add_subdirectory(doc)
 ####################################
 

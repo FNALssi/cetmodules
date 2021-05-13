@@ -3,29 +3,45 @@ X
 =
 #]================================================================]
 ########################################################################
-# parse_version_string(VERSION [SEP <separator>] VAR [VAR]...)
+# parse_version_string(<version> [SEP <sep>] <var> [<var>]...)
 #
-#   Parse a generic version string into the specified form:
+#   Parse a version string of the form:
 #
-#   1. If SEP is specified, set VAR to
-#      "MAJOR${SEP}MINOR${SEP}PATCH[${SEP}]TWEAK"
+#      [v]<major>(<sep><minor>(<sep><patch>)?)?(<tweak-sep>?<tweak>)?
 #
-#      (a) If PATCH is all numbers and TWEAK starts with a letter, then
-#          PATCH and TWEAK are not separated.
+#   where <sep> and <tweak-sep> are any of the usual version component
+#   separators: "-" "_" or "."
 #
-#      (b) If multiple VARs are specified, all but the first are ignored
-#          and a warning is generated.
+# Notes
+##################
 #
-#   2. If a single VAR is specified, it will be set to a list consisting
-#      of MAJOR, MINOR, PATCH, and TWEAK.
+#   1. Per CMake convention: <major>, <minor>, and <patch> must be
+#      non-negative integers (with optional leading zeros), so <tweak>
+#      starts from the first non-separator, non-numeric character.
 #
-#   3. Otherwise, the values of MAJOR, MINOR, PATCH, and TWEAK will be
-#      mapped to VAR..., with extra values being discarded.
+#   2. If <sep> is specified, set <var> to
+#      "<major><sep><minor><sep><patch><tweak-sep><tweak>"
+#
+#      (a) If <sep> is "." then <tweak-sep> is set to "-" per CMake
+#          convention; otherwise, <tweak-sep> is empty.
+#
+#      (b) If multiple <var> are specified, all but the first are
+#          ignored and a warning is generated.
+#
+#      (C) If an intermediate component is empty, it will be shown as
+#          "0" in the string version.
+#
+#   3. If a single <var> is specified, it will be set to a list
+#      consisting of <major>, <minor>, <patch>, and <tweak>.
+#
+#   4. Otherwise, the values of <major>, <minor>, <patch>, and <tweak>
+#      will be mapped to <var>..., with extra values being discarded.
 #
 ####################################
 # to_dot_version(VERSION VAR)
 #
-#   to_dot_version() is provided as a convenience, wrapping a single call to parse_version_string().
+#   to_dot_version() is provided as a convenience, wrapping a single
+#   call to parse_version_string().
 #
 ####################################
 # See also to_ups_version() in Compatibility.cmake.
@@ -43,44 +59,68 @@ function (parse_version_string VERSION)
   if (NOT VAR)
     message(FATAL_ERROR "missing required non-option argument VAR")
   endif()
-  if (PVS_SEP AND PVS_UNPARSED_ARGUMENTS)
-    message(WARNING "parse_version_string(): ignoring unexpected extra"
-      " non-option arguments ${PVS_UNPARSED_ARGUMENTS} when SEP specified")
+  if (DEFINED PVS_SEP AND NOT SEP IN_LIST PVS_KEYWORDS_MISSING_VALUES)
+    if (PVS_UNPARSED_ARGUMENTS)
+      message(WARNING "parse_version_string(): ignoring unexpected extra"
+        " non-option arguments ${PVS_UNPARSED_ARGUMENTS} when SEP specified")
+    endif()
+    set(want_string TRUE)
+  else()
+    set(want_string)
   endif()
-  if (VERSION MATCHES "^v?([^-_.]+)[-_.]?(.*)$")
-    set(major "${CMAKE_MATCH_1}")
-    if ("${CMAKE_MATCH_2}" MATCHES "^([^-_.]+)[-_.]?(.*)$")
+  unset(major)
+  unset(minor)
+  unset(patch)
+  unset(tweak)
+  if (VERSION MATCHES "^([-_.]+|v)?([0-9]*)([-_.]?)(.*)$")
+    set(major "${CMAKE_MATCH_2}")
+    set(sep "${CMAKE_MATCH_3}")
+    if ("${CMAKE_MATCH_4}" MATCHES "^([0-9]*)${sep}?(.*)$")
       set(minor "${CMAKE_MATCH_1}")
-      if ("${CMAKE_MATCH_2}" MATCHES "^([^-_.]+)([-_.])?(.*)$")
+      if ("${CMAKE_MATCH_2}" MATCHES "^([0-9]*)([-_.]?(.*))?$")
         set(patch "${CMAKE_MATCH_1}")
-        if (CMAKE_MATCH_3)
+        if (CMAKE_MATCH_2 STREQUAL "")
+          unset(tweak)
+        else()
           set(tweak "${CMAKE_MATCH_3}")
-        elseif (patch MATCHES "^([0-9]+)(.*)$")
-          set(patch "${CMAKE_MATCH_1}")
-          set(tweak "${CMAKE_MATCH_2}")
         endif()
       endif()
     endif()
+  else()
+    message(FATAL_ERROR "parse_version_string() cannot parse a version from \"$VERSION\"")
   endif()
-  set(tmp_bits)
-  foreach (tmp_element IN LISTS major minor patch)
-    if (tmp_element STREQUAL "")
-      break()
+  if (DEFINED tweak AND PVS_SEP STREQUAL ".")
+    set(tweak_sep "-")
+  else()
+    set(tweak_sep)
+  endif()
+  foreach (tmp_element IN ITEMS patch minor major)
+    if (${tmp_element} STREQUAL "")
+      if (DEFINED tmp_bits AND tmp_bits MATCHES "[^;]")
+        if (want_string)
+          list(PREPEND tmp_bits 0)
+        else()
+          list(PREPEND tmp_bits -)
+        endif()
+      endif()
     else()
-      list(APPEND tmp_bits "${tmp_element}")
+      list(PREPEND tmp_bits "${${tmp_element}}")
     endif()
   endforeach()
+  list(TRANSFORM tmp_bits REPLACE "^-$" "")
   if (PVS_SEP)
     list(JOIN tmp_bits "${PVS_SEP}" tmp_string)
-    if (tweak MATCHES "^[A-Za-z].*$" AND patch MATCHES "^[0-9]+$")
-      set(${VAR} "${tmp_string}${tweak}" PARENT_SCOPE)
-    else()
-      string(JOIN "${PVS_SEP}" tmp_string ${tmp_string} ${tweak})
-      set(${VAR} ${tmp_string} PARENT_SCOPE)
-    endif()
+    set(${VAR} "${tmp_string}${tweak_sep}${tweak}" PARENT_SCOPE)
   else()
-    if (NOT tweak STREQUAL "")
-      list(APPEND tmp_bits "${tweak}")
+    if (DEFINED tweak)
+      list(LENGTH tmp_bits sz)
+      if (sz EQUAL 0)
+        set(tmp_bits ";;;${tweak}")
+      else()
+        math(EXPR sz "4 - ${sz}")
+        string(REPEAT ";" ${sz} bits_pad)
+        set(tmp_bits "${tmp_bits}${bits_pad}${tweak}")
+      endif()
     endif()
     if (PVS_UNPARSED_ARGUMENTS)
       foreach (v IN LISTS VAR PVS_UNPARSED_ARGUMENTS)
@@ -93,9 +133,8 @@ function (parse_version_string VERSION)
   endif()
 endfunction()
 
-function(to_dot_version VERSION VAR)
-  parse_version_string("${VERSION}" SEP . tmp)
-  set(${VAR} "${tmp}" PARENT_SCOPE)
-endfunction()
+macro(to_dot_version VERSION VAR)
+  parse_version_string("${VERSION}" SEP . ${VAR})
+endmacro()
 
 cmake_policy(POP)

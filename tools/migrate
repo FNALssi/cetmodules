@@ -478,7 +478,7 @@ EOF
               # prevent an issue:
               if ($arg =~ m&^(v)?(?:\d+[_.]?)+&) {
                 warning(sprintf("unexpected project() argument $arg looks like a \%sversion without the required VERSION keyword: mitigating", ($1 ? "UPS " : "")));
-                $arg = to_dot_version($arg);
+                $arg = to_cmake_version($arg);
                 unshift @$arg_group, "VERSION";
                 $VERSION_next = 1;
               } elsif (grep { $arg eq $_; } qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM)) {
@@ -499,7 +499,7 @@ EOF
           }
         }
         if ($pi->{version}) {
-          my $piversion = to_dot_version($pi->{version});
+          my $piversion = to_cmake_version($pi->{version});
           if ($seen_version) {
             if ($piversion and $version_info->{v} ne $piversion) {
               my $msg = <<EOF;
