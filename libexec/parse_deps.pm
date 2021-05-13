@@ -612,7 +612,7 @@ EOD
 
 sub classify_deps {
   my ($pi, $dep_info) = @_;
-  foreach my $dep (sort keys $dep_info) {
+  foreach my $dep (sort keys %{$dep_info}) {
     $pi->{($dep_info->{$dep}->{only_for_build}) ?
           'build_only_deps' : 'use_time_deps'}->{$dep} = 1;
   }
@@ -920,7 +920,7 @@ sub get_cmake_project_info {
               my $endmatch = pos();
               while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
                 last if ($endmatch // 0) == pos();
-                push $tmp, sprintf("$+{arg}%s", $+{nl} // '');
+                push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
                 $endmatch = pos();
               }
               error_exit("Leftovers: >", substr($_, $endmatch // 0), "<")
