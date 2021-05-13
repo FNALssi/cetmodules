@@ -35,10 +35,24 @@ EOF
 
 [ -n "${CETPKG_INSTALL}" ] || install_args=(-I "<ups-topdir>")
 
-cat <<EOF
-Please use "buildtool" to configure and build $CETPKG_NAME, e.g.:
+if [[ "$CETPKG_NAME" == *_MRB ]]; then
+  [ "$CETPKG_NAME" = "${MRB_PROJECT}_MRB" ] || \
+    { cat 1>&2 <<EOF
+ERROR: mismatch between CETPKG_NAME ($CETPKG_NAME) and MRB_PROJECT ($MRB_PROJECT)
+       Bad environment?
+EOF
+    exit 1
+  }
+  _mrb_alt=" (or \"mrb b\")"
+  _to_build="MRB project \"$MRB_PROJECT\""
+else
+  _to_build="$CETPKG_NAME"
+fi
 
-  buildtool ${install_args[*]} -vTl [-jN]
+cat <<EOF
+Please use "buildtool"$_mrb_alt to configure and build $_to_build, e.g.:
+
+  buildtool ${install_args[*]:+${install_args[*]} }-vTl [-jN]
 
 See "buildtool --usage" (short usage help) or "buildtool -h|--help"
 (full help) for more details.
