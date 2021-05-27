@@ -670,7 +670,7 @@ sub to_string {
   my $initial_indent = ($options->{full_indent}) ? ' ' x $options->{full_indent} : '';
   $indent += $options->{full_indent} if $options->{full_indent};
   my $result;
-  if (not $type) {
+  if (not $type or $type eq "CODE") {
     $result = "$initial_indent$item";
   } elsif ($type eq "SCALAR") {
     $result = "$initial_indent$$item";
