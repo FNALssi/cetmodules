@@ -207,6 +207,7 @@ ${CMAKE_MINOR_VERSION}/manual/cmake-modules.7.html#find-modules) or \
 from cetmodules (see ${CMAKE_CURRENT_FUNCTION_DIR}{,/compat}/Find*.cmake)\
 ")
   find_library(${ARGV})
+  _cet_add_transitive_dependency(cet_find_library "${ARGV}")
 endfunction(cet_find_library)
 
 macro(parse_ups_version UPS_VERSION)
