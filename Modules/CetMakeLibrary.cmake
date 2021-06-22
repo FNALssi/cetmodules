@@ -70,8 +70,6 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   else()
     unset(CML_EXPORT_NAME)
   endif()
-  # Get appropriate list of libraries to which to link.
-  cet_process_liblist(liblist ${CML_LIBRARIES})
   ##################
   # Make sure we have access to Boost's unit test library if we need it.
   if (CML_USE_BOOST_UNIT)
@@ -82,12 +80,14 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   if (CML2_INTERFACE)
     set(link_scope INTERFACE)
     set(include_scope INTERFACE)
-    list(PREPEND liblist ${link_scope})
+    set(lib_scope INTERFACE)
   else()
     set(link_scope PRIVATE)
     set(include_scope PUBLIC)
-    list(PREPEND liblist PUBLIC)
+    set(lib_scope PUBLIC)
   endif()
+  # Get appropriate list of libraries to which to link.
+  cet_process_liblist(liblist ${lib_scope} ${CML_LIBRARIES})
   if (CETMODULES_MODULE_PLUGINS)
     set(CML_MODULE)
   endif()
