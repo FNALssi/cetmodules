@@ -394,10 +394,16 @@ function(_generate_target_imports FRAG_LIST)
         install(EXPORT ${export_set}
           DESTINATION "${distdir}"
           FILE "${export_file}.cmake"
-          ${namespace}::
-          EXPORT_LINK_INTERFACE_LIBRARIES)
+          ${namespace}::)
+        install(CODE "\
+# Handle placeholders in target definitions.
+  file(READ \"\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake\" _targetFileData)
+  string(REPLACE \"@CET_DOLLAR@\" \"\$\" _targetFileData_new \"\${_targetFileData}\")
+  if (NOT _targetFileData_new STREQUAL _targetFileData)
+    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake\" \"\${_targetFileData_new}\")
+  endif()\
+")
         _verify_cross_dependent_exports(${export_set}
-          "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${export_file}.cmake"
           "\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
           )
         list(APPEND exports "\

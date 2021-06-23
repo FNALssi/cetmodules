@@ -77,6 +77,8 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 option(CET_FIND_QUIETLY "All cet_find_package() calls will be quiet." OFF)
 
+include(private/CetAddTransitiveDependency)
+
 macro(cet_find_package)
   cmake_parse_arguments(_CFP "BUILD_ONLY;INTERFACE;PRIVATE;PUBLIC"
     "" "REQUIRED_BY" "${ARGN}")
@@ -100,44 +102,13 @@ macro(cet_find_package)
     # dependency:
     if (_CFP_REQUIRED_BY)
       foreach (component IN LISTS _CFP_REQUIRED_BY)
-        _add_transitive_dependency(COMPONENT ${component}
+        _cet_add_transitive_dependency(cet_find_package COMPONENT ${component}
           "${_CFP_UNPARSED_ARGUMENTS}")
       endforeach()
     else()
-      _add_transitive_dependency("${_CFP_UNPARSED_ARGUMENTS}")
+      _cet_add_transitive_dependency(cet_find_package "${_CFP_UNPARSED_ARGUMENTS}")
     endif()
   endif()
 endmacro()
-
-# Add a find_dependency() call to the appropriate tracking variable.
-function(_add_transitive_dependency FIRST_ARG)
-  # Deal with optional leading COMPONENT <component> ourselves, as with
-  # cmake_parse_arguments() we'd have to worry about what we might have
-  # passed to find_package().
-  if (FIRST_ARG STREQUAL "COMPONENT")
-    list(POP_FRONT ARGN COMPONENT DEP)
-    set(cache_var
-      CETMODULES_FIND_DEPS_COMPONENT_${COMPONENT}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    set(docstring_extra " component ${COMPONENT}")
-  else()
-    set(DEP "${FIRST_ARG}")
-    set(cache_var CETMODULES_FIND_DEPS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    unset(docstring_extra)
-  endif()
-  # Set up the beginning of the call.
-  list(APPEND DEP ${ARGN})
-  list(JOIN DEP " " tmp)
-  set(find_dep_string "find_dependency(${tmp})")
-  list(APPEND ${cache_var} "${find_dep_string}")
-  if (NOT DEFINED CACHE{${cache_var}})
-    set(${cache_var} "${${cache_var}}" CACHE INTERNAL
-      "Transitive dependency directives for ${CETMODULES_CURRENT_PROJECT_NAME}\
-${docstring_extra}\
-")
-  else()
-    set_property(CACHE ${cache_var}
-      PROPERTY VALUE "${${cache_var}}")
-  endif()
-endfunction()
 
 cmake_policy(POP)

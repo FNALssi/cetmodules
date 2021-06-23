@@ -52,6 +52,7 @@ my @known_keywords =
      no_fq_dir
      noarch
      parent
+     old_style_config_vars
      product
      qualifier
      table_fragment_begin
@@ -162,7 +163,11 @@ sub get_parent_info {
     } elsif ($keyword eq "defaultqual") {
       $result->{default_qual} = sort_qual(@pars);
       $result->{default_qual} =~ m&^-nq-?$& and $result->{default_qual} = "";
-    } elsif (grep { $_ eq $keyword; } qw(no_fq_dir noarch define_pythonpath)) {
+    } elsif (grep { $_ eq $keyword; }
+             qw(define_pythonpath
+                no_fq_dir
+                noarch
+                old_style_config_vars)) {
       scalar @pars and
         warning(sprintf("unexpected garbage following $keyword: %s",
                         join(" ", @pars)));
@@ -665,7 +670,7 @@ sub to_string {
   my $initial_indent = ($options->{full_indent}) ? ' ' x $options->{full_indent} : '';
   $indent += $options->{full_indent} if $options->{full_indent};
   my $result;
-  if (not $type) {
+  if (not $type or $type eq "CODE") {
     $result = "$initial_indent$item";
   } elsif ($type eq "SCALAR") {
     $result = "$initial_indent$$item";
@@ -1064,6 +1069,9 @@ sub ups_to_cmake {
   push @cmake_args,
     sprintf("-D$pi->{cmake_project}_DEFINE_PYTHONPATH_INIT:BOOL=ON")
       if $pi->{define_pythonpath};
+  push @cmake_args,
+    sprintf("-D$pi->{cmake_project}_OLD_STYLE_CONFIG_VARS:BOOL=ON")
+      if $pi->{old_style_config_vars};
 
   ##################
   # Pathspec-related CMake configuration.

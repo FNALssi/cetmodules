@@ -16,24 +16,34 @@ endfunction()
 
 function(cet_convert_target_args RESULT_VAR)
   set(RESULTS)
+  set(scope PRIVATE)
   foreach (arg IN LISTS ARGN)
-    if (NOT (TARGET "${arg}" OR arg MATCHES
-          "(/|::|^((-|\\$<)|(INTERFACE|PRIVATE|PUBLIC|debug|general|optimized)$))"))
+    if (arg MATCHES "^(INTERFACE|PRIVATE|PUBLIC)$")
+      set(scope "${arg}")
+    elseif (NOT (TARGET "${arg}" OR arg MATCHES
+          "(/|::|^((-|\\$<)|(debug|general|optimized)$))"))
       _cet_convert_target_arg("${arg}" arg)
     endif()
-    # Pass through as-is.
     list(APPEND RESULTS "${arg}")
   endforeach()
   set(${RESULT_VAR} "${RESULTS}" PARENT_SCOPE)
 endfunction()
 
 function(_cet_convert_target_arg ARG RESULT_VAR)
+  set(DOLLAR "@CET_DOLLAR@")
   # Can we convert it to an uppercase variable we can substitute?
   string(TOUPPER "${ARG}" ${ARG}_UC)
   if (DEFINED ${${ARG}_UC} AND ${${ARG}_UC})
-	  list(APPEND RESULT "${${${ARG}_UC}}")
+    # Delay expansion for variables resolving to paths
+    if (${${ARG}_UC} MATCHES "/")
+	    set(RESULT "PRIVATE" "${${${ARG}_UC}}" "INTERFACE"
+        "$<BUILD_INTERFACE:${${${ARG}_UC}}>"
+        "$<INSTALL_INTERFACE:${DOLLAR}{${${ARG}_UC}}>" ${scope})
+    else()
+      set(RESULT "${${${ARG}_UC}}")
+    endif()
   else()
-	  list(APPEND RESULT "${ARG}")
+	  set(RESULT "${ARG}")
   endif()
   set(${RESULT_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
