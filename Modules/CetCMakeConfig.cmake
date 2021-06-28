@@ -394,6 +394,7 @@ function(_generate_target_imports FRAG_LIST)
         install(EXPORT ${export_set}
           DESTINATION "${distdir}"
           FILE "${export_file}.cmake"
+          EXPORT_LINK_INTERFACE_LIBRARIES
           ${namespace}::)
         install(CODE "\
 # Handle placeholders in target definitions.
