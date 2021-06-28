@@ -120,24 +120,38 @@ transitive dependencies.\
     # Set include directories for backward compatibility, if we can.
     if (NOT ${_FUP_PROJECT}_IN_TREE)
       set(_fup_include_candidates)
-      if (TARGET "${${_FUP_PRODUCT_UC}}") # Maybe the target can tell us.
-        get_property(_fup_include_candidates TARGET ${${_FUP_PRODUCT_UC}}
-          PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+      if (${_FUP_PRODUCT_UC} MATCHES "^([^;]+)(;|$)")
+        if (TARGET "${CMAKE_MATCH_1}") # Maybe the target can tell us.
+          get_property(_fup_include_candidates TARGET "${CMAKE_MATCH_1}"
+            PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+        endif()
       endif()
+      foreach (_fup_varstub IN ITEMS FQ_DIR DIR)
+        if (DEFINED ENV{${_FUP_PRODUCT_UC}_${_fup_varstub}})
+          foreach (_fup_incdir IN ITEMS inc include src LISTS _FUP_PROJECT _FUP_PROJECT_LC _FUP_PROJECT_UC)
+            if (IS_DIRECTORY "$ENV{${_FUP_PRODUCT_UC}_${_fup_varstub}}/${_fup_incdir}")
+              list(APPEND _fup_include_candidates "$ENV{${_FUP_PRODUCT_UC}_${_fup_varstub}}/${_fup_incdir}")
+            endif()
+          endforeach()
+        endif()
+      endforeach()
+      unset(_fup_varstub)
       list(APPEND _fup_include_candidates ${${_FUP_PRODUCT}_INCLUDE_DIRS}
         ${${_FUP_PRODUCT}_INCLUDE_DIR}
         ${${_FUP_PROJECT}_INCLUDE_DIRS}
         ${${_FUP_PROJECT}_INCLUDE_DIR}
         $ENV{${_FUP_PRODUCT_UC}_INC}
         $ENV{${_FUP_PRODUCT_UC}_INCLUDE})
+      set(_fup_include_dirs)
       foreach (_fup_incdir IN LISTS _fup_include_candidates)
         if (IS_DIRECTORY "${_fup_incdir}")
-          list(APPEND _fup_include_candidates "${_fup_incdir}")
+          list(APPEND _fup_include_dirs "${_fup_incdir}")
         endif()
       endforeach()
-      list(REMOVE_DUPLICATES _fup_include_candidates)
-      if (_fup_include_candidates)
-        include_directories(${_fup_include_candidates})
+      list(REMOVE_DUPLICATES _fup_include_dirs)
+      list(POP_FRONT _fup_include_dirs _fup_incdir)
+      if (_fup_incdir)
+        include_directories(${_fup_incdir})
       endif()
     endif()
     # Set other expected variables (again, if we can).
