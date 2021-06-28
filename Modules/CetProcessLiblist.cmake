@@ -33,7 +33,7 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
   set(DOLLAR "@CET_DOLLAR@")
   # Can we convert it to an uppercase variable we can substitute?
   string(TOUPPER "${ARG}" ${ARG}_UC)
-  if (DEFINED ${${ARG}_UC} AND ${${ARG}_UC})
+  if (${${ARG}_UC})
     # Delay expansion for variables resolving to paths
     if (${${ARG}_UC} MATCHES "/")
 	    set(RESULT "PRIVATE" "${${${ARG}_UC}}" "INTERFACE"

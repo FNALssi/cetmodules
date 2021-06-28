@@ -45,7 +45,7 @@ macro(find_ups_boost)
     # Non-option arguments were always ignored in the historical
     # implementation of find_ups_boost(), so we do this here also.
     cet_find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION}
-      COMPONENTS ${_FUB_liblist})
+      COMPONENTS ${_FUB_liblist} REQUIRED)
     if (${_FUP_PROJECT}_FOUND)
       include_directories(SYSTEM $ENV{BOOST_INC})
       set(_FUB_INCLUDED TRUE)
