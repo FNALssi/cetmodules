@@ -160,7 +160,7 @@ function(basic_plugin NAME SUFFIX)
   if (BP_UNPARSED_ARGUMENTS)
     warn_deprecated("use of non-option arguments (${BP_UNPARSED_ARGUMENTS})"
       NEW "LIBRARIES")
-    list(APPEND BP_LIBRARIES ${BP_UNPARSED_ARGUMENTS})
+    list(APPEND BP_LIBRARIES NOP ${BP_UNPARSED_ARGUMENTS})
   endif()
   if (BP_BASENAME_ONLY AND BP_USE_PRODUCT_NAME)
     message(FATAL_ERROR "BASENAME_ONLY AND USE_PRODUCT_NAME are mutually exclusive")
@@ -211,7 +211,7 @@ function(basic_plugin NAME SUFFIX)
   endforeach()
   ##################
   set(target_thunk)
-  cmake_parse_arguments(BPL "" ""
+  cmake_parse_arguments(BPL "NOP" ""
     "CONDITIONAL;INTERFACE;PRIVATE;PUBLIC;REG" ${BP_LIBRARIES})
   list(APPEND BPL_PUBLIC ${BPL_UNPARSED_ARGUMENTS})
   if (NOT BP_IMPL_SOURCE) # See if we can find one.
