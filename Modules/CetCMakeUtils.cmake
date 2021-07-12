@@ -477,7 +477,7 @@ endfunction()
 .. cmake:command:: cet_localize_pv
 
    Ensure that specified path-type :cmake:manual:`project variables
-   <cetmodules-project-variables.7>` are absolute in the current
+   <cetmodules-project-variables(7)>` are absolute in the current
    directory scope for in-tree project ``<project>``.
 
    **Synopsis:**

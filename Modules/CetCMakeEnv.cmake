@@ -95,7 +95,7 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
        :cmake:command:`project() <cmake-ref-current:command:project>`
 
      * Any initial or override values for
-       :cmake:manual:`cetmodules-project-variables.7` should be set.
+       :cmake:manual:`project variables <cetmodules-project-variables(7)>` should be set.
 
   **Variables controlling behavior**
     * :cmake:variable:`WANT_UPS`
