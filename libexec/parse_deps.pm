@@ -200,6 +200,12 @@ sub get_CMakeLists_hash {
 sub get_derived_parent_data {
   my ($pi, $sourcedir, @qualstrings) = @_;
 
+  # Checksum the absolute filename of the CMakeLists.txt file to
+  # identify initial values for project variables when we're not
+  # guaranteed to know the CMake project name by reading CMakeLists.txt
+  # (conditionals, variables, etc.):
+  $pi->{project_variable_prefix} = get_CMakeLists_hash($sourcedir);
+
   # CMake info.
   my $cpi = get_cmake_project_info($sourcedir,
                                    ($pi->{version}) ?
@@ -939,7 +945,8 @@ sub cmake_project_var_for_pathspec {
   return () unless ($pathspec and $pathspec->{key});
   my $var_stem = $pathspec->{var_stem} || var_stem_for_dirkey($dirkey);
   $pathspec->{var_stem} = $var_stem;
-  return ("-D$pi->{cmake_project}_${var_stem}_INIT=")
+  my $pv_prefix="CET_PV_$pi->{project_variable_prefix}";
+  return ("-D${pv_prefix}_${var_stem}=")
     unless exists $pathspec->{path};
   my @result_elements = ();
   if (ref $pathspec->{key}) {   # PATH-like.
@@ -969,7 +976,7 @@ sub cmake_project_var_for_pathspec {
     push @result_elements, $pathspec->{path};
   }
   return (scalar @result_elements ne 1 or $result_elements[0]) ?
-    sprintf("-D$pi->{cmake_project}_${var_stem}_INIT=%s",
+    sprintf("-D${pv_prefix}_${var_stem}=%s",
             join(';', @result_elements)) : undef;
 }
 
@@ -1132,19 +1139,6 @@ sub ups_to_cmake {
   my @cmake_args=();
 
   ##################
-  # Build system bootstrap.
-  if ($pi->{build_only_deps} and
-      scalar @{$pi->{build_only_deps}} and
-      grep { $_ eq 'cetbuildtools'; } @{$pi->{build_only_deps}}) {
-    push @cmake_args, @{cmake_cetb_compat_defs()};
-    $pi->{bootstrap_cetbuildtools} = 1
-  } elsif ($pi->{cmake_project} ne "cetmodules" and not
-           ($ENV{MRB_SOURCE} and
-            $ENV{CETPKG_SOURCE} eq $ENV{MRB_SOURCE})) {
-    $pi->{bootstrap_cetmodules} = 1
-  }
-
-  ##################
   # UPS-specific CMake configuration.
 
   push @cmake_args, '-DWANT_UPS:BOOL=ON';
@@ -1156,38 +1150,29 @@ sub ups_to_cmake {
             "-DUPS_Fortran_COMPILER_ID:STRING=$fc_id",
               "-DUPS_Fortran_COMPILER_VERSION:STRING=$fc_version"
                 if $compiler_id;
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_NAME:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{name}) if $pi->{name};
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_VERSION:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{version}) if $pi->{version};
-  push @cmake_args, sprintf('-D%s_UPS_QUALIFIER_STRING:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{qualspec}) if $pi->{qualspec};
-  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_NAME:STRING=%s',
-                            $pi->{name}, $pi->{cmake_project});
-  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_VERSION:STRING=%s',
-                            $pi->{name}, $pi->{cmake_project_version});
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_FLAVOR:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{flavor});
-  push @cmake_args, sprintf('-D%s_UPS_BUILD_ONLY_DEPENDENCIES=%s',
-                            $pi->{cmake_project},
+
+  my $pv_prefix = "CET_PV_$pi->{project_variable_prefix}";
+  push @cmake_args,
+    "-D${pv_prefix}_UPS_PRODUCT_NAME:STRING=$pi->{name}" if $pi->{name};
+  push @cmake_args, "-D${pv_prefix}_UPS_PRODUCT_VERSION:STRING=$pi->{version}"
+    if $pi->{version};
+  push @cmake_args, "-D${pv_prefix}_UPS_QUALIFIER_STRING:STRING=$pi->{qualspec}"
+    if $pi->{qualspec};
+  push @cmake_args, "-D${pv_prefix}_UPS_PRODUCT_FLAVOR:STRING=$pi->{flavor}";
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_BUILD_ONLY_DEPENDENCIES=%s",
                             join(';', @{$pi->{build_only_deps}}))
     if $pi->{build_only_deps};
-  push @cmake_args, sprintf('-D%s_UPS_USE_TIME_DEPENDENCIES=%s',
-                            $pi->{cmake_project},
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_USE_TIME_DEPENDENCIES=%s",
                             join(';', @{$pi->{use_time_deps}}))
     if $pi->{use_time_deps};
 
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_CHAINS=%s',
-                            $pi->{cmake_project},
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_PRODUCT_CHAINS=%s",
                             join(';', (sort @{$pi->{chains}})))
     if $pi->{chains};
 
   ##################
   # General CMake configuration.
+  push @cmake_args, "-DCET_PV_PREFIX:STRING=$pi->{project_variable_prefix}";
   push @cmake_args, "-DCMAKE_BUILD_TYPE:STRING=$pi->{cmake_build_type}"
     if $pi->{cmake_build_type};
   push @cmake_args,
@@ -1198,17 +1183,13 @@ sub ups_to_cmake {
             "-DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON",
               "-DCMAKE_CXX_EXTENSIONS:BOOL=OFF"
                 if $compiler_id;
-  push @cmake_args, sprintf('-D%s_EXEC_PREFIX_INIT:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{fq_dir}) if $pi->{fq_dir};
-  push @cmake_args, sprintf('-D%s_NOARCH:BOOL=ON',
-                            $pi->{cmake_project}) if $pi->{noarch};
-  push @cmake_args,
-    sprintf("-D$pi->{cmake_project}_DEFINE_PYTHONPATH_INIT:BOOL=ON")
-      if $pi->{define_pythonpath};
-  push @cmake_args,
-    sprintf("-D$pi->{cmake_project}_OLD_STYLE_CONFIG_VARS:BOOL=ON")
-      if $pi->{old_style_config_vars};
+  push @cmake_args, "-D${pv_prefix}_EXEC_PREFIX:STRING=$pi->{fq_dir}"
+    if $pi->{fq_dir};
+  push @cmake_args, "-D${pv_prefix}_NOARCH:BOOL=ON" if $pi->{noarch};
+  push @cmake_args, "-D${pv_prefix}_DEFINE_PYTHONPATH:BOOL=ON"
+    if $pi->{define_pythonpath};
+  push @cmake_args, "-D${pv_prefix}_OLD_STYLE_CONFIG_VARS:BOOL=ON"
+    if $pi->{old_style_config_vars};
 
   ##################
   # Pathspec-related CMake configuration.
@@ -1229,12 +1210,12 @@ sub ups_to_cmake {
     }
   }
   push @cmake_args,
-    sprintf('-D%s_ADD_ARCH_DIRS:STRING=%s',
-            $pi->{cmake_project}, join(';', @arch_pathspecs))
+    sprintf("-D${pv_prefix}_ADD_ARCH_DIRS:INTERNAL=%s",
+            join(';', @arch_pathspecs))
       if scalar @arch_pathspecs;
   push @cmake_args,
-    sprintf('-D%s_ADD_NOARCH_DIRS:STRING=%s',
-            $pi->{cmake_project}, join(';', @noarch_pathspecs))
+    sprintf("-D${pv_prefix}_ADD_NOARCH_DIRS:INTERNAL=%s",
+            join(';', @noarch_pathspecs))
       if scalar @noarch_pathspecs;
 
   ##################

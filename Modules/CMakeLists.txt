@@ -1,11 +1,14 @@
-configure_file(BootstrapCetmodules.cmake.in
-  BootstrapCetmodules.cmake
-  @ONLY
-)
-configure_file(BootstrapCetbuildtools.cmake.in
-  BootstrapCetbuildtools.cmake
-  @ONLY
-)
+set(cetmodules_bootstrap_version ${cetmodules_VERSION})
+set(cetbuildtools_bootstrap_version ${cetmodules_MIN_CETBUILDTOOLS_VERSION})
+foreach(pkg IN ITEMS modules buildtools)
+  set(bootstrap_package cet${pkg})
+  set(bootstrap_version ${${bootstrap_package}_bootstrap_version})
+  configure_file(private/Bootstrap.cmake.in
+    private/BootstrapCet${pkg}.cmake
+    @ONLY)
+  list(APPEND generated_private_modules
+    "${CMAKE_CURRENT_BINARY_DIR}/private/BootstrapCet${pkg}.cmake")
+endforeach()
 
 file(READ "${CMAKE_ROOT}/Modules/WriteBasicConfigVersionFile.cmake" content)
 string(REPLACE "WRITE_BASIC_CONFIG_VERSION_FILE"
@@ -19,9 +22,6 @@ list(APPEND generated_private_modules
 
 install(DIRECTORY ./ DESTINATION Modules
   FILES_MATCHING PATTERN "*.cmake" PATTERN "[.#]*.cmake" EXCLUDE)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/BootstrapCetmodules.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/BootstrapCetbuildtools.cmake
-  DESTINATION Modules)
 
 install(FILES ${generated_private_modules}
   DESTINATION Modules/private)

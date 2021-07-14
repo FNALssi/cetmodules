@@ -15,7 +15,7 @@ X
 # should add your own COMPONENTS... option (after VERSION or any --
 # separator).
 #
-# N.B. This macro is DEPRECATED: please use cet_find_package(Boost ...)
+# N.B. This macro is DEPRECATED: please use find_package(Boost ...)
 # and target notation instead.
 ########################################################################
 include_guard(DIRECTORY)
@@ -23,7 +23,6 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-include(CetFindPackage)
 include(Compatibility)
 include(ParseVersionString)
 
@@ -34,7 +33,7 @@ set(_FUB_liblist
 
 macro(find_ups_boost)
   warn_deprecated("find_ups_boost()" NEW
-    "cet_find_package(Boost ...) and standard target notation")
+    "find_package(Boost ...) and standard target notation")
   _parse_fup_arguments(boost ${ARGN} PROJECT Boost)
   if (NOT _FUB_INCLUDED)
     set(BOOST_ROOT $ENV{BOOST_DIR})
@@ -44,7 +43,7 @@ macro(find_ups_boost)
     set(${_FUP_PROJECT}_NO_SYSTEM_PATHS ON)
     # Non-option arguments were always ignored in the historical
     # implementation of find_ups_boost(), so we do this here also.
-    cet_find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION}
+    find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION}
       COMPONENTS ${_FUB_liblist} REQUIRED)
     if (${_FUP_PROJECT}_FOUND)
       include_directories(SYSTEM $ENV{BOOST_INC})

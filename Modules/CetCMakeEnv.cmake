@@ -17,6 +17,9 @@ cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 # initializations.
 include(private/CetOverrideFindPackage)
 
+# Handle setting of versions with a non-numeric component:
+include(private/CetHandleExtendedVersion)
+
 # Escape characters for literal use in regular expressions.
 include(CetRegexEscape)
 
@@ -114,6 +117,18 @@ macro(cet_cmake_env)
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
   set(CETMODULES_CURRENT_PROJECT_NAME ${PROJECT_NAME})
+  get_filename_component(CETMODULES_CURRENT_PROJECT_LIST_FILE "${CMAKE_CURRENT_LIST_FILE}" REALPATH)
+  string(SHA256 CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX "${CETMODULES_CURRENT_PROJECT_LIST_FILE}")
+  set(CET_PV_PREFIX CACHE STRING "List of initial project variable project identifier prefixes")
+  mark_as_advanced(CET_PV_PREFIX)
+  if (NOT CET_PV_PREFIX STREQUAL "")
+    foreach (_cce_pvp_candidate IN LISTS CET_PV_PREFIX)
+      if (CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX MATCHES "^${_cce_pvp_candidate}")
+        set(CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX "CET_PV_${_cce_pvp_candidate}")
+        break()
+      endif()
+    endforeach()
+  endif()
 
   # Required to ensure correct installation location with
   # cetbuildtools-compatible installations.
@@ -149,16 +164,45 @@ used by CMake code ported from cetbuildtools")
   # If this project is expecting to use cetbuildtools.
   _cetbuildtools_compatibility_early()
 
-  # We need to know this, one way or the other.
-  if (NOT PROJECT_VERSION)
-    message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ[-<patch-level>] to project() call")
+  ####################################
+  # Enable projects to specify an extended version with a non-numeric
+  # trailing component (e.g. -rc1, or -alpha, or -p03), and deal with it
+  # in the right places.
+  project_variable(CMAKE_PROJECT_VERSION_STRING ${PROJECT_VERSION}
+    TYPE STRING DOCSTRING
+    "Extended project version, with optional non-numeric trailing \
+component(M[.m[.p[.t]]][-X])\
+")
+
+  # Ensure we have version settings.
+  _cet_handle_extended_version()
+
+  if ("${PROJECT_VERSION_EXTRA}" STREQUAL "")
+    set(_cce_ext_v_def FALSE)
+  else()
+    set(_cce_ext_v_def TRUE)
   endif()
+
+  project_variable(EXTENDED_VERSION_SEMANTICS
+    ${_cce_ext_v_def} TYPE BOOL DOCSTRING
+    "Use extended version semantics permitting a non-numeric trailing \
+component, with sensible comparison semantics for alpha, rc and other \
+recognized version formats\
+")
+
+  if (_cce_ext_v_def AND
+      NOT ${CETMODULES_CURRENT_PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS)
+    message(SEND_ERROR "Extended semantics for CMAKE_PROJECT_VERSION (${PROJECT_VERSION}) for project ${CETMODULES_CURRENT_PROJECT_NAME} prohibited by ${CETMODULES_CURRENT_PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS")
+  endif()
+  unset(_cce_ext_v_def)
+  ####################################
 
   # Avoid confusion with nested subprojects.
   foreach (_cce_v IN ITEMS
       BINARY_DIR DESCRIPTION HOMEPAGE_URL SOURCE_DIR
       VERSION VERSION_MAJOR VERSION_MINOR VERSION_PATCH VERSION_TWEAK
-    )
+      VERSION_EXTRA VERSION_EXTRA_TYPE VERSION_EXTRA_TEXT VERSION_EXTRA_NUM
+      )
     set(CETMODULES_CURRENT_PROJECT_${_cce_v} ${PROJECT_${_cce_v}})
   endforeach()
   unset(_cce_v)

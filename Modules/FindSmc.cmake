@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH "${_cet_smc_cmake_module_path}")
 unset(_cet_smc_cmake_module_path)
 
 if (NOT Smc_FOUND)
-  cet_find_package(Java REQUIRED PRIVATE)
+  find_package(Java REQUIRED PRIVATE)
   include(UseJava)
   set(_cet_smc_search_paths)
   if (DEFINED SMC_HOME)

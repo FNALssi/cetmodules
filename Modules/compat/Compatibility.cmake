@@ -108,7 +108,7 @@ endfunction()
 
 function(cet_find_library VAR)
   warn_deprecated(cet_find_library
-    "\nNOTE: prefer cet_find_package() with a custom Findxxx.cmake \
+    "\nNOTE: prefer find_package() with a custom Findxxx.cmake \
 from CMake (see ${CMAKE_ROOT}/Modules or \
 https://cmake.org/cmake/help/v${CMAKE_MAJOR_VERSION}.\
 ${CMAKE_MINOR_VERSION}/manual/cmake-modules.7.html#find-modules) or \
@@ -172,7 +172,7 @@ function(_parse_fup_arguments _FUP_PRODUCT)
         DEFINED ENV{${_FUP_PRODUCT_UC}_DIR}))
     if (_FUP_OPTIONAL)
       # If WANT_UPS is set, we don't want to accidentally pick up a
-      # non-UPS version, but we will want to call cet_find_package
+      # non-UPS version, but we will want to call find_package
       # anyway to make sure e.g. ${_FUP_PRODUCT}_FOUND is set and
       # other variables are cleared.
       set(_FUP_DISABLED)

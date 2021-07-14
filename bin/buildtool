@@ -1120,18 +1120,9 @@ fi
 ##################
 # Bootstrapping
 cmake_bootstrap_defs=()
-if (( CETPKG_BOOTSTRAP_CETBUILDTOOLS )); then
-  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
-elif (( CETPKG_BOOTSTRAP_CETMODULES )); then
-  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
-else
-  for pkg in ${CETPKG_BOOTSTRAP_CETBUILDTOOLS[*]:+"${CETPKG_BOOTSTRAP_CETBUILDTOOLS[@]}"}; do
-    cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
-  done
-  for pkg in ${CETPKG_BOOTSTRAP_CETMODULES[*]:+"${CETPKG_BOOTSTRAP_CETMODULES[@]}"}; do
-    cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
-  done
-fi
+[ -n "$CETMODULES_DIR" ] && \
+  ! [ "${CETPKG_SOURCE}" = "${MRB_SOURCE}" ] && \
+  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/private/BootstrapCetmodules.cmake")
 ##################
 
 # If desired, print current build information and quit.

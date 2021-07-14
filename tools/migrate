@@ -434,10 +434,10 @@ EOF
         # over multiple lines if necessary - separating arguments and
         # end-of line comments and storing them. Double-quoted arguments
         # (even multi-line ones) are handled correctly. Note that the
-        # "++" in the clause matching double-quoted strings is *not* a
-        # benign typo: it is responsible for preventing backtracking
-        # within that clause (e.g.) in the case of a dangling
-        # double-quote, so we don't wander off into alternate clauses.
+        # use of extra "+" symbols following "+," "*," or "?" indicates
+        # a "greedy" clause to prevent backtracking (e.g. in the case of
+        # a dangling double-quote), so we match extra clauses
+        # inappropriately.
         my $count = 0;
         while (1) {
           if ($line =~ s&^(?P<args>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?P<comments>[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {

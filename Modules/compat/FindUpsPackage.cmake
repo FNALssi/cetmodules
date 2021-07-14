@@ -8,7 +8,6 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-include(CetFindPackage)
 include(Compatibility)
 include(ParseVersionString)
 
@@ -26,7 +25,7 @@ set(UPS_artg4tk_CMAKE_PROJECT_NAME artg4tk-NOTFOUND)
 
 macro(find_ups_product)
   warn_deprecated("find_ups_product(${ARGV0})"
-    " - use cet_find_package() and standard target notation to track \
+    " - use find_package() and standard target notation to track \
 transitive dependencies.\
 ")
   _parse_fup_arguments(${ARGN})
@@ -54,7 +53,7 @@ transitive dependencies.\
       # targets.
       set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS TRUE)
       # Find the package.
-      cet_find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION} ${_FUP_UNPARSED_ARGUMENTS})
+      find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION} ${_FUP_UNPARSED_ARGUMENTS})
       # Reset to cached value.
       set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS
         $CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS})
@@ -165,7 +164,7 @@ transitive dependencies.\
       endif()
     endif()
     if (NOT ${_FUP_PROJECT}_VERSION)
-      to_dot_version(${${_FUP_PRODUCT_UC}_UPS_VERSION} ${_FUP_PROJECT}_VERSION)
+      to_version_string(${${_FUP_PRODUCT_UC}_UPS_VERSION} ${_FUP_PROJECT}_VERSION)
     endif()
     if (${_FUP_PROJECT}_VERSION AND NOT _FUP_PROJECT STREQUAL _FUP_PRODUCT_UC)
       to_ups_version(${${_FUP_PROJECT}_VERSION} ${_FUP_PRODUCT_UC}_VERSION)

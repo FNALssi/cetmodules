@@ -79,10 +79,10 @@ X
 #        variable.
 #
 #     3. The value of a CMake or cached variable
-#        ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT.
+#        ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_<var-name>.
 #
-#     4. The value of an existing cached variable
-#        ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>.
+#     4. The value of a CMake or cached variable
+#        ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT.
 #
 #     5. <initial-value>.
 #
@@ -215,8 +215,6 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-include(CetRegexEscape)
-
 # Default architecture-specific install directory types.
 set(CETMODULES_DEFAULT_ARCH_DIRS BIN_DIR LIBEXEC_DIR LIBRARY_DIR)
 
@@ -259,11 +257,11 @@ function(project_variable VAR_NAME)
   if (NOT (CPV_CONFIG OR CPV_NO_WARN_REDUNDANT))
     foreach (var IN ITEMS MISSING_OK OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL)
       if (CPV_${var})
-        list(APPEND redundant_vars ${var})
+        list(APPEND redundant_opts ${var})
       endif()
     endforeach()
-    if (redundant_vars)
-      message(WARNING "project_variable(${VAR_NAME}...): these options are redundant if CONFIG not specified: ${redundant_vars}")
+    if (redundant_opts)
+      message(WARNING "project_variable(${VAR_NAME}...): these options are redundant if CONFIG not specified: ${redundant_opts}")
     endif()
   endif()
   set_property(CACHE CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} APPEND
@@ -283,13 +281,7 @@ function(project_variable VAR_NAME)
   endif()
   set(ORIGIN)
   # Enforce precedence rules as described above:
-  cet_regex_escape("${CETMODULES_CURRENT_PROJECT_NAME}" e_proj)
-  cet_regex_escape("${VAR_NAME}" e_var)
-  get_property(cmake_vars DIRECTORY PROPERTY VARIABLES)
-  list(FILTER cmake_vars INCLUDE REGEX "^(${e_proj}_${e_var}(_INIT)?|${e_var})$")
-  get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  list(FILTER cache_vars INCLUDE REGEX "^(${e_proj}_${e_var}(_INIT)?|${e_var})$")
-  if ("${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}" IN_LIST cmake_vars AND
+  if (DEFINED ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} AND
       NOT (DEFINED CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}} AND
         "$CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}}" STREQUAL
         ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}))
@@ -302,12 +294,17 @@ function(project_variable VAR_NAME)
     set(DEFAULT_VAL "${${VAR_NAME}}")
     set(FORCE FORCE)
     set(ORIGIN "${VAR_NAME}")
-  elseif (DEFINED ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
+  elseif (CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX AND DEFINED
+      ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME})
     # 3.
+    set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}}")
+    set(FORCE FORCE)
+    set(ORIGIN "${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}")
+  elseif (DEFINED ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
+    # 4.
     set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT}")
     set(FORCE FORCE)
     set(ORIGIN "${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT")
-    unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
   else()
     unset(FORCE)
     set(DEFAULT_VAL "${CPV_UNPARSED_ARGUMENTS}")
@@ -324,8 +321,13 @@ function(project_variable VAR_NAME)
   endif()
   ##################
   # Avoid hysteresis.
-  unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT CACHE)
-  unset(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT PARENT_SCOPE)
+  set(prefixes CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX CETMODULES_CURRENT_PROJECT_NAME)
+  set(suffixes "" _INIT)
+  foreach (prefix suffix IN ZIP_LISTS prefixes suffixes)
+    foreach (vtype IN ITEMS "" CACHE PARENT_SCOPE)
+      unset(${${prefix}}_${VAR_NAME}${suffix} ${vtype})
+    endforeach()
+  endforeach()
   ##################
   # Make the project variable known to the CMake cache.
   message(DEBUG "set(${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} ${DEFAULT_VAL} CACHE ${VAR_TYPE} ${CPV_DOCSTRING} ${FORCE})")
@@ -347,8 +349,14 @@ function(project_variable VAR_NAME)
   elseif (CPV_TYPE IN_LIST _CPV_SPECIAL_PATH_TYPES AND
       ${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX AND current_val AND
       (VAR_NAME IN_LIST CETMODULES_DEFAULT_ARCH_DIRS OR
-        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS) AND
-      NOT VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS)
+        VAR_NAME IN_LIST ADD_ARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_ADD_ARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS_INIT) AND
+      NOT (VAR_NAME IN_LIST ADD_NOARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_ADD_NOARCH_DIRS OR
+        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS_INIT))
     list(TRANSFORM current_val
       REPLACE [[^([^/].*)$]] "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/\\1")
     set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE ${current_val})

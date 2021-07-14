@@ -52,8 +52,9 @@ cmake_minimum_required(VERSION 3.19.6 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetPackagePath)
-include(Compatibility)
+include(compat/Compatibility)
 include(GenerateFromFragments)
+include(ParseVersionString)
 
 function(cet_cmake_config)
   # Delay the call until we're (almost) done with the project.
@@ -140,7 +141,11 @@ macro(_configure_cpack)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CETMODULES_CURRENT_PROJECT_SOURCE_DIR)
     if (CMAKE_PROJECT_NAME STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
       if (CETMODULES_CONFIG_CPACK_MACRO)
+        # Make sure we include non-numeric version components.
+        set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+        # Configure everything else.
         cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
+        # invoke CPack.
         include(CPack)
       else()
         message(WARNING "automatic configuration of CPack is supported only for WANT_UPS builds at this time")
@@ -152,7 +157,7 @@ this time ($(CMAKE_PROJECT_NAME) -> ${CETMODULES_CURRENT_PROJECT_NAME}\
 ")
     endif()
   else()
-    message(WARNING "Invocation of UseCPack.cmake is supported from top-level project CMakeLists.txt ONLY")
+    message(WARNING "configuration of CPack packaging is supported from top-level project CMakeLists.txt ONLY at this time")
   endif()
 endmacro()
 
@@ -618,13 +623,26 @@ function(_install_package_config_files)
   set(configVersion "${configStem}Version.cmake")
   file(MAKE_DIRECTORY "${CCC_WORKDIR}")
 
-  write_basic_package_version_file(
+  cet_localize_pv(cetmodules CONFIG_DIR)
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS)
+    include(private/CetWritePackageVersionFile)
+    set(WRITE_PACKAGE_VERSION_FILE cet_write_package_version_file)
+    # Needed by our templates.
+    set(CVF_VERSION_INFO "${${CETMODULES_CURRENT_PROJECT_NAME}_VERSION_INFO}")
+    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
+      ParseVersionString.cmake COPYONLY)
+    install(FILES "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
+      DESTINATION "${distdir}")
+  else()
+    set(WRITE_PACKAGE_VERSION_FILE write_basic_package_version_file)
+  endif()
+
+  cmake_language(CALL ${WRITE_PACKAGE_VERSION_FILE}
     "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${configVersion}"
 	  VERSION "${CETMODULES_CURRENT_PROJECT_VERSION}"
 	  COMPATIBILITY "${CCC_COMPATIBILITY}"
     ${ARCH_INDEPENDENT})
 
-  cet_localize_pv(cetmodules CONFIG_DIR)
   set(frag_list "${cetmodules_CONFIG_DIR}/package-config.cmake.preamble.in"
     ${CCC_CONFIG_PRE_INIT}
     "${cetmodules_CONFIG_DIR}/package-config.cmake.init.in"
