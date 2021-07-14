@@ -63,6 +63,55 @@ X
 #     parse_version_string(<version> SEP . EXTRA_SEP - <var>)
 #
 ####################################
+# cet_compare_versions(<result-var> <version> <pred> <ref-version>)
+#
+#   Compare <version> with <ref-version> according to predicate <pred>,
+#   respecting any trailing non-numeric version components <extra>, and
+#   placing the answer in <result-var>.
+#
+#   <pred> is valid if there exists a CMake if() predicate
+#   VERSION_<pred>.
+#
+#   Comparison order for (<version>-?)?(<extra-text>(-?<extra-num>)?)?:
+#
+#     (A) <version>-?alpha(-?[0-9]+)? <
+#
+#     (B) <version>-?beta(-?[0-9]+)? <
+#
+#     (C) <version>-?gamma(-?[0-9]+)? <
+#
+#     (D) <version>-?(rc|pre)(-?[0-9]+)? <
+#
+#     (E) <version>-? <
+#
+#     (F) <version>-?(patch-?[0-9]*|p-?[0-9]+) <
+#
+#     (G) <version>-?.+
+#
+#     (H) <extra>
+#
+#
+#   Notes:
+#
+#     1. Non-numeric component prefixes such as alpha, beta, etc. are
+#        case-insensitive, and equivalent prefixes (Alpha-1 and a01,
+#        say, or pre and rc) will compare equal.
+#
+#     2. A version string - after the stripping of a single leading "v,"
+#        if present - beginning with a separator or non-numeric
+#        character will always compare greater than a similarly stripped
+#        version string beginning with a numeric component, and equal to
+#        every other such version string regardless of any numeric
+#        suffix.
+#
+#     3. A non-numeric component with no numeric suffix will compare
+#        equal to an equivalent non-numeric component with a numeric
+#        suffix comparing equal to 0 numerically.
+#
+#     4. Numeric version components - including any numeric suffix to a
+#        trailing non-numeric component - will always be compared
+#        numerically i.e. without regard to leading zeros.
+#
 #
 # See also to_ups_version() in compat/Compatibility.cmake and
 # check_prod_version() in compat/CheckProdVersion.cmake.
@@ -225,6 +274,28 @@ macro(to_version_string _TDV_VERSION _TDV_VAR)
   parse_version_string(${_TDV_VERSION} SEP . EXTRA_SEP - ${_TDV_VAR})
 endmacro()
 
+function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
+  string(TOUPPER "${_CMPV_PRED}" _CMPV_PRED)
+  set(_cmpv_result FALSE)
+  cet_version_cmp(_cmpv_cmp "${_CMPV_VERSION}" "${_CMPV_REF}")
+  if (_CMPV_PRED MATCHES "^VERSION_LESS(_EQUAL)?$")
+    if (_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+      set(_cmpv_result TRUE)
+    endif()
+  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)$")
+    if (_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+      set(_cmpv_result TRUE)
+    endif()
+  elseif (_CMPV_PRED STREQUAL "VERSION_EQUAL")
+    if (NOT _cmpv_cmp)
+      set(_cmpv_result TRUE)
+    endif()
+  else()
+    message(FATAL_ERROR "predicate \"${_CMPV_PRED}\" not recognized")
+  endif()
+  set(${_CMPV_RESULT_VAR} ${_cmpv_result} PARENT_SCOPE)
+endfunction()
+
 function(_cet_parse_version_extra)
   if ("${_pvs_extra}" MATCHES "[0-9]+(\\.?[0-9]*)?$")
     set(_pe_num "${CMAKE_MATCH_0}")
@@ -265,6 +336,97 @@ function(_cet_parse_version_extra)
     set(_pe_text "${_pe_text_l}") # Standardize for comparison.
   endif()
   set(_pvs_extra_bits ${_pe_type} "${_pe_text}" ${_pe_num} PARENT_SCOPE)
+endfunction()
+
+function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
+  parse_version_string(${_CVC_VERSION} _CVC_VERSION_MAJOR _CVC_VERSION_MINOR _CVC_VERSION_PATCH _CVC_VERSION_TWEAK
+    _CVC_VERSION_EXTRA _CVC_VERSION_EXTRA_TYPE _CVC_VERSION_EXTRA_TEXT _CVC_VERSION_EXTRA_NUM)
+  parse_version_string(${_CVC_REF} _CVC_REF_MAJOR _CVC_REF_MINOR _CVC_REF_PATCH _CVC_REF_TWEAK
+    _CVC_REF_EXTRA _CVC_REF_EXTRA_TYPE _CVC_REF_EXTRA_TEXT _CVC_REF_EXTRA_NUM)
+  set(_cvc_result 0)
+  if (NOT (_CVC_VERSION_EXTRA_TYPE GREATER 100 OR _CVC_REF_EXTRA_TYPE GREATER 100))
+    if ("${_CVC_VERSION_MAJOR}.${_CVC_VERSION_MINOR}.${_CVC_VERSION_PATCH}.${_CVC_VERSION_TWEAK}"
+        VERSION_LESS "${_CVC_REF_MAJOR}.${_CVC_REF_MINOR}.${_CVC_REF_PATCH}.${_CVC_REF_TWEAK}")
+      set(_cvc_result -1)
+    elseif ("${_CVC_REF_MAJOR}.${_CVC_REF_MINOR}.${_CVC_REF_PATCH}.${_CVC_REF_TWEAK}" VERSION_LESS
+        "${_CVC_VERSION_MAJOR}.${_CVC_VERSION_MINOR}.${_CVC_VERSION_PATCH}.${_CVC_VERSION_TWEAK}")
+      set(_cvc_result 1)
+    endif()
+  endif()
+  if (NOT _cvc_result)
+    # Type codes are ordered.
+    if (_CVC_VERSION_EXTRA_TYPE GREATER _CVC_REF_EXTRA_TYPE)
+      set(_cvc_result 1)
+    elseif (_CVC_REF_EXTRA_TYPE GREATER _CVC_VERSION_EXTRA_TYPE)
+      set(_cvc_result -1)
+    elseif (_CVC_VERSION_EXTRA_TYPE EQUAL 2) # Non-special suffix.
+      if (_CVC_VERSION_EXTRA_TEXT STRLESS _CVC_REF_EXTRA_TEXT)
+        set(_cvc_result -1)
+      elseif (_CVC_REF_EXTRA_TEXT STRLESS _CVC_VERSION_EXTRA_TEXT)
+        set(_cvc_result 1)
+      endif()
+    elseif (_CVC_VERSION_EXTRA_TYPE EQUAL 3 OR _CVC_VERSION_EXTRA_TYPE GREATER 100)
+      # Look for a timestamp-ish
+      foreach (v IN ITEMS VERSION REF)
+        set(_CVC_${v}_DATE)
+        set(_CVC_${v}_HH "00")
+        set(_CVC_${v}_mm "00")
+        set(_CVC_${v}_SS 0)
+        if (_CVC_${v}_EXTRA_NUM MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
+          set(_CVC_${v}_DATE "${CMAKE_MATCH_1}")
+          if (NOT "${CMAKE_MATCH_3}" STREQUAL "")
+            set(_CVC_${v}_HH "${CMAKE_MATCH_3}")
+            if (NOT "${CMAKE_MATCH_5}" STREQUAL "")
+              set(_CVC_${v}_mm "${CMAKE_MATCH_5}")
+              if (NOT "${CMAKE_MATCH_7}" STREQUAL "")
+                set(_CVC_${v}_SS "${CMAKE_MATCH_7}")
+                if (NOT "${CMAKE_MATCH_8}" STREQUAL "")
+                  string(APPEND _CVC_${v}_SS ".${CMAKE_MATCH_8}")
+                endif()
+              endif()
+            endif()
+          endif()
+        endif()
+      endforeach()
+      if (_CVC_VERSION_DATE)
+        if (_CVC_VERSION_DATE VERSION_LESS _CVC_REF_DATE)
+          set(_cvc_result -1)
+        elseif (_CVC_VERSION_DATE VERSION_GREATER _CVC_REF_DATE)
+          set(_cvc_result -1)
+        elseif ("${_CVC_VERSION_HH}.${_CVC_VERSION_mm}" VERSION_LESS
+            "${_CVC_REF_HH}.${_CVC_REF_mm}")
+          set(_cvc_result -1)
+        elseif ("${_CVC_VERSION_HH}.${_CVC_VERSION_mm}" VERSION_GREATER
+            "${_CVC_REF_HH}.${_CVC_REF_mm}")
+          set(_cvc_result 1)
+        elseif (_CVC_VERSION_SS LESS _CVC_REF_SS)
+          set(_cvc_result -1)
+        elseif (_CVC_VERSION_SS GREATER _CVC_REF_SS)
+          set(_cvc_result 1)
+        endif()
+      elseif (_CVC_REF_DATE)
+        if (_CVC_VERSION_DATE VERSION_GREATER _CVC_REF_DATE)
+          set(_cvc_result 1)
+        elseif (NOT _CVC_VERSION_DATE VERSION_EQUAL _CVC_REF_DATE)
+          set(_cvc_result -1)
+        endif()
+      endif()
+    endif()
+    if (NOT (_cvc_result OR _CVC_VERSION_DATE OR _CVC_REF_DATE))
+      if ("${_CVC_VERSION_EXTRA_NUM}" STREQUAL "")
+        set(_CVC_VERSION_EXTRA_NUM 0)
+      endif()
+      if ("${_CVC_REF_EXTRA_NUM}" STREQUAL "")
+        set(_CVC_REF_EXTRA_NUM 0)
+      endif()
+      if (_CVC_VERSION_EXTRA_NUM LESS _CVC_REF_EXTRA_NUM)
+        set(_cvc_result -1)
+      elseif (_CVC_REF_EXTRA_NUM LESS _CVC_VERSION_EXTRA_NUM)
+        set(_cvc_result 1)
+      endif()
+    endif()
+  endif()
+  set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
 endfunction()
 
 cmake_policy(POP)
