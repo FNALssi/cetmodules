@@ -1,0 +1,130 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL =>
+  qw(io regexp severe syntax uninitialized void);
+
+use Cwd qw(abs_path);
+use File::Basename;
+use File::Spec;
+use List::Util qw(shuffle);
+
+use vars qw ($_pmdir);
+
+BEGIN {
+  my $_me = readlink($0);
+  if (not $_me) {
+    $_me = $0;
+  } elsif ($_me !~ m&^/&) {
+    $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
+  }
+  $_pmdir =
+    abs_path(File::Spec->catfile(dirname($_me), '..', '..', 'libexec'));
+}
+
+use lib $_pmdir;
+
+use parse_deps qw(shortest_unique_prefix);
+use warnings FATAL => 'parse_deps';
+
+use Test::More;
+
+sub compare_or_show {
+  my $test = shift;
+  my $expected = shift;
+  is_deeply($test, $expected, @_) or
+    diag(explain($test), " != ", explain($expected));
+}
+
+my $ntests = 0;
+sub more_tests {
+  $ntests += shift // 1;
+}
+
+sub verify_prefixes {
+  my $ref = shift;
+  compare_or_show(shortest_unique_prefix(keys %{$ref}), $ref, @_);
+}
+
+my $safe_min = $parse_deps::prefix_min_length;
+
+diag('Basic word tests');
+more_tests(2);
+$parse_deps::prefix_min_length = 1;
+verify_prefixes({ alphabet => 'alph',
+                  book => 'b',
+                  carpet => 'car',
+                  cadmium => 'cadm',
+                  cadeau => 'cade',
+                  alpine => 'alpi' });
+
+$parse_deps::prefix_min_length = 5;
+verify_prefixes({ alphabet => 'alpha',
+                  book => 'book',
+                  carpet => 'carpe',
+                  cadmium => 'cadmi',
+                  cadeau => 'cadea',
+                  alpine => 'alpin' });
+
+diag('Checksum-like tests');
+$parse_deps::prefix_min_length = 1;
+more_tests(2);
+my $ref =
+  { qw(
+        00a080565ebcc752d55b47f711b69ee7edcb2e0da81d0a4690f8f5c522dcb11a 00a
+        00ce3c66e4cf67c01f7e03f60dbdc920bc97509a7138e035c9b5b9a8428c7f16 00c
+        00ff26c48d0b310f343ac1ba70f3eee1bb3c3fd5dc7c0e7ac245991775810ebd 00f
+        011b9d468cccc6796a3e40508cc8765dba99ed050cfe8999a9cc33897e1157ab 011
+        012b43c27c48bac3b2a49394d849396ad259825649cd448f8094136650362e6b 012
+        0167a35c8e2146ac4bf82a81d8d0154403b7924d85404a394a4a847cdd4b1a39 0167
+        016bf45cacfde054889bbfe942ba183b7ff96dca15294e0d35ff4c80012f29f0 016b
+        01a6791fbe48d2ea055b21b1879a138f423bd60c8f54b5a05c68bccbef0f1fdf 01a
+        01b970b554a5f75d275b59a0e22e7e621010a1b725c875b710aa53886d0e5842 01b
+        01c19421280eb5f2e68145c034c7b707996f96bb420473104d99d04041ec66aa 01c
+        01d1a32b1de21357594fbe7a7c80258ca83c921aa44e34cda71fd65bbadeca1f 01d
+        01e807eea8a1755baff41f9d8134b3f61b6a16d4b1a0b822c4d9f876e5ca11b7 01e
+        02104d31c2081fb682c87ee72c9c8b38a352fcc675b8b98efdbb7da02415df29 0210
+        0217f263fda6bc1894f77ceab0fa530347603b3ff5add8d9f18639cc51f03ec3 0217
+        022694c886343c0f946b2a6038ff4f23c534c4a40302e852e8b1614372b213e3 022
+        026230ef298415dc6b8a0248d27b2c2a99ff262bf2c7debb18b8e289b5878ee8 0262
+        02693d95b104977d43ba531671aa3641a8bb2a78d41ffa7ec7d4ce715e472e7e 0269
+        0296c1ae9406340e2adba6246b30352dbee365621f4c4aeb90a6bb1ab0230086 029
+        02cb9d2789a406edb5ea724d0f393c43e910ab06463194fdac289cda35253368 02c
+        0326f93dca3ed22039eb723927c04e6dd4435bbfa227dad06dad0496112dca6c 032
+        0359029c9127ecf17930c55fd215f5efdefcf57e95b58920cd65cd53f8703ce0 035
+        036d16a69e1e16861fd2702dbd4a6ad86c257418b00159503079383238fb762a 036d
+        036e3c0fffc6ff024a09a2954b86c616c294de1bc8550553c2082fcd2cce01d7 036e
+        03cb1660bac7c8c27703f86b64ec2dfc99033609a56df6ecd524075c9f66f7d1 03c
+        040da0f07244a1c2884c808fccd533c73b15cc5287e72f83311d6e8725a06718 040
+        041760daaacd16eaa60076783b4f69639236db88945f35bcfc4217184253c9cb 041
+        047cfb42287b83010f427aca42c5be8569f94f9ec19a0ba32457d13c1144c08c 047
+        0482b342513de136a3c89569a4d84e22c6991fd7d0d377b746d44de6e87055f2 048
+        04af02baaa985c895df12a1b4fa3ad08799576c1cce815d865f388ba9ab76dc7 04a
+        04e6c0ae76637bb36ff01c08482e944016eb282565c841d890473c164f53b41c 04e
+        054005ae02ca2bdeb99a7f63e9f6cc5e9d69f4544440959fe722b286b0d5705f 054
+        05a2e4c83902e9acdb0c7c35cb7d351a9c4acca3f155b99b23c08b166323b75b 05a
+        05c5b43488161bbf427167b249f3aa0b8e1acd1080ef7a9159f9c951858bf2e5 05c
+        05f3483c1e39c67f86b7f8d34cabf01ed8ca91f2ba5de3bfbc3cba04ff7ff4e2 05f
+        065df402bc9182376874a3a52eff392417c3ee4ac7e6d9067b581803c61f1bda 065
+        06757c573ba7f657d7d892d1102f70772b61aecbe3343b9687ba52c4339a8768 0675
+        06795471350906771ba64b12976fad640109f6b33f6e52fb2215311c1954b4a2 0679
+        068effd9b3295e1073a7e37f28db566b5a0e061ee10b7b1f51e63d391206c0f7 068
+        0733519281838351c5ca7604c8df0968e9236791e49ea44a8d01f27eb93af353 073
+        077fc99d60a0bad81f8e126ac895c4f8beb04cbc97abc9bc5d1044b1fe827753 077
+        07a6b0f3cb847a98d2340f50e09703c87a69ef4dbdfb56993689bc18d557b999 07a
+        07c13d3421d210047992b15ee84e524de539c8f39cc7e3c79fd78137e36e2bc0 07c
+        07db521190a3108335669191856724508d8819a9f6fef7ab734c5246179aebbf 07d
+        07e7ef89dd051d1c001d8516d58249afe42b8ff78b84fe523f04330141dbfb77 07e
+        080aebb47266c07be1fdb406f4442dce349a91082da9ee19f5fcfff3a798a2b8 080
+        08951033aed1f7538345626450bbaa9042044a43231b7aa055ca327b976decf6 089
+        08af0cc7af0acb5b7f83d45f307c7e42b3ff02789b80a2bacff3b901305d377b 08a
+        08bb56d636ead60b7122eef09b84d94eb9b1313312fd1525e32489a733d335d4 08b
+        092b6530a7de10665d29915570f5eb898166e234947092b31e3b25e883c5a44a 092
+        095b46eb399d3cb7a89a3ffb9ed23b0c93a3f894e28ac6d564274d5f4aace0c3 095
+     )
+  };
+verify_prefixes($ref);
+$parse_deps::prefix_min_length = $safe_min;
+my $ref2 = { map { ("$_" => substr($_, 0, $safe_min)); } keys %$ref };
+verify_prefixes($ref2);
+done_testing($ntests);

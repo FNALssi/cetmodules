@@ -15,6 +15,7 @@ use warnings;
 use warnings::register;
 
 use Cwd qw(abs_path);
+use Digest::SHA;
 use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 use FindBin;
@@ -81,6 +82,7 @@ $btype_table = { debug => 'Debug',
       compiler_for_quals
       deps_for_quals
       error_exit
+      get_CMakeLists_hash
       get_cmake_project_info
       get_derived_parent_data
       get_parent_info
@@ -93,6 +95,7 @@ $btype_table = { debug => 'Debug',
       print_dep_setup
       print_dep_setup_one
       print_dev_setup
+      shortest_unique_prefix
       sort_qual
       table_dep_setup
       to_cmake_version
@@ -183,6 +186,10 @@ sub get_parent_info {
                         keys %$chains ]
     if scalar keys %$chains;
   return $result;
+}
+
+sub get_CMakeLists_hash {
+  return Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift, 'CMakeLists.txt')));
 }
 
 sub get_derived_parent_data {
@@ -1372,6 +1379,43 @@ sub cmake_cetb_compat_defs {
                  my $dirkey_ish = $_; $dirkey_ish =~ s&([^_])dir$&${1}_dir&;
                  "-DCETB_COMPAT_${dirkey_ish}:STRING=${var_stem}";
                } sort keys %$pathspec_info ];
+}
+
+# Adapted from
+# http://blogs.perl.org/users/laurent_r/2020/04/perl-weekly-challenge-57-tree-inversion-and-shortest-unique-prefix.html
+# to support minimum number of characters in substring, and to retain
+# original->prefix correspondence.
+use vars qw($prefix_min_length);
+$parse_deps::prefix_min_length = 6;
+sub shortest_unique_prefix {
+  my (@words) = @_;
+  my $result = {};
+  my %letters;
+  for my $word (@words) {
+    push @{$letters{substr $word, 0, 1}}, $word;
+  }
+  for my $letter (keys %letters) {
+    $result->{$letters{$letter}->[0]} =
+      substr($letters{$letter}->[0], 0, $parse_deps::prefix_min_length) and next
+        if @{$letters{$letter}} == 1;
+    my $candidate;
+    for my $word1 (@{$letters{$letter}}) {
+      my $prefix_length = 0;
+      for my $word2 (@{$letters{$letter}}) {
+        next if $word1 eq $word2;
+        my $i = 1;
+        while (substr($word1, $i, 1) eq substr($word2, $i, 1)) { ++$i; }
+        if ($i > $prefix_length) {
+          $candidate = substr($word1, 0,
+                              (($i + 1) > $parse_deps::prefix_min_length) ? $i + 1 :
+                              $parse_deps::prefix_min_length);
+          $prefix_length = $i;
+        }
+      }
+      $result->{$word1} = $candidate // $word1;
+    }
+  }
+  return $result;
 }
 
 1;
