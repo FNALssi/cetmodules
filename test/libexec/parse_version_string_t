@@ -7,8 +7,10 @@ use warnings FATAL =>
 use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec;
+use List::Util qw(shuffle);
 
 use vars qw ($_pmdir);
+
 BEGIN {
   my $_me = readlink($0);
   if (not $_me) {
@@ -22,7 +24,14 @@ BEGIN {
 
 use lib $_pmdir;
 
-use parse_deps qw(parse_version_string to_cmake_version to_string to_ups_version to_dot_version);
+use parse_deps
+  qw(parse_version_string
+     to_cmake_version
+     to_dot_version
+     to_string
+     to_ups_version
+     to_version_string
+     version_cmp);
 use warnings FATAL => 'parse_deps';
 
 use Test::More;
@@ -31,113 +40,212 @@ sub compare_or_show {
   my $test = shift;
   my $expected = shift;
   is_deeply($test, $expected, @_) or
-    diag(to_string($test), " !=\n", to_string($expected), "\n");
+    diag(explain($test), " != ", explain($expected));
 }
 
-my $develop_ref = { qw(tweak develop tweak_text develop tweak_type -5) };
+my $ntests = 0;
+sub more_tests {
+  $ntests += shift // 1;
+}
+
+my $develop_ref = { qw(extra develop extra_text develop extra_type 101) };
 
 diag('develop');
+more_tests(5);
 compare_or_show(parse_version_string('develop'), $develop_ref);
 is(to_ups_version('develop'), 'vdevelop');
 is(to_dot_version('develop'), 'develop');
-is(to_cmake_version('develop'), 'develop');
+is(to_cmake_version('develop'), '');
+is(to_version_string('develop'), 'develop');
 
 diag('vdevelop');
+more_tests();
 compare_or_show(parse_version_string('vdevelop'), $develop_ref);
 
 diag('.develop');
+more_tests();
 compare_or_show(parse_version_string('.develop'), $develop_ref);
 
 diag('.versatility');
+more_tests(5);
 compare_or_show(parse_version_string('.versatility'),
-                { qw(tweak versatility tweak_text versatility tweak_type -5) });
+                { qw(extra versatility extra_text versatility extra_type 101) });
 is(to_ups_version('.versatility'), 'vversatility');
 is(to_dot_version('.versatility'), 'versatility');
-is(to_cmake_version('.versatility'), 'versatility');
+is(to_cmake_version('.versatility'), '');
+is(to_version_string('.versatility'), 'versatility');
 
 diag('1.5.rc7');
+more_tests();
 compare_or_show(parse_version_string('1.5.rc7'),
-                { qw(major 1 minor 5 tweak_type -1 tweak rc7 tweak_text rc tweak_num 7),
+                { qw(major 1 minor 5 extra_type -1 extra rc7 extra_text rc extra_num 7),
                   bits => [ 1, 5 ] });
 
+
 diag('v1_5_rc7');
+more_tests(4);
 is(to_ups_version('v1_5_rc7'), 'v1_5rc7');
 is(to_dot_version('v1_5_rc7'), '1.5rc7');
-is(to_cmake_version('v1_5_rc7'), '1.5-rc7');
+is(to_cmake_version('v1_5_rc7'), '1.5');
+is(to_version_string('v1_5_rc7'), '1.5-rc7');
 
 diag('1..5.');
+more_tests(5);
 compare_or_show(parse_version_string('1..5.'),
                 { qw(major 1 minor 0 patch 5),
                   bits => [1, 0, 5] });
 is(to_ups_version('1..5.'), 'v1_0_5');
 is(to_dot_version('1..5.'), '1.0.5');
 is(to_cmake_version('1..5.'), '1.0.5');
+is(to_version_string('1..5.'), '1.0.5');
 
-my $rc_ref = { qw(major 1 tweak_type -1 tweak pre7 tweak_text rc tweak_num 7),
+my $rc_ref = { qw(major 1 extra_type -1 extra pre7 extra_text pre extra_num 7),
                bits => [1] };
 
 diag('1pre7');
+more_tests();
 compare_or_show(parse_version_string('1pre7'), $rc_ref);
 
 diag('1.pre7');
+more_tests();
 compare_or_show(parse_version_string('1.pre7'), $rc_ref);
 
 diag('1..pre7');
+more_tests();
 compare_or_show(parse_version_string('1..pre7'), $rc_ref);
 
 diag('1..-pre7');
+more_tests();
 compare_or_show(parse_version_string('1..-pre7'), $rc_ref);
 
 diag('1pre7');
+more_tests(4);
 is(to_ups_version('1pre7'), 'v1pre7');
 is(to_dot_version('1pre7'), '1pre7');
-is(to_cmake_version('1pre7'), '1-pre7');
+is(to_cmake_version('1pre7'), '1');
+is(to_version_string('1pre7'), '1-pre7');
 
 diag('1.-pre7');
+more_tests(4);
 is(to_ups_version('1.-pre7'), 'v1pre7');
 is(to_dot_version('1.-pre7'), '1pre7');
-is(to_cmake_version('1.-pre7'), '1-pre7');
+is(to_cmake_version('1.-pre7'), '1');
+is(to_version_string('1.-pre7'), '1-pre7');
 
 diag('02.04.03');
+more_tests(5);
 compare_or_show(parse_version_string('02.04.03'),
                 { qw(major 02 minor 04 patch 03),
                   bits => [ qw( 02 04 03 ) ] });
 is(to_ups_version('02.04.03'), 'v02_04_03');
 is(to_dot_version('02.04.03'), '02.04.03');
 is(to_cmake_version('02.04.03'), '02.04.03');
+is(to_version_string('02.04.03'), '02.04.03');
 
 my $rc_ref = { qw(major 02 minor 04 patch 03
-                  tweak rc07 tweak_type -1 tweak_num 07 tweak_text rc),
+                  extra rc07 extra_type -1 extra_num 07 extra_text rc),
                bits => [ qw( 02 04 03 ) ] };
 
 diag('02.04.03.rc07');
+more_tests(5);
 compare_or_show(parse_version_string('02.04.03.rc07'), $rc_ref);
 is(to_ups_version('02.04.03.rc07'), 'v02_04_03rc07');
 is(to_dot_version('02.04.03.rc07'), '02.04.03rc07');
-is(to_cmake_version('02.04.03.rc07'), '02.04.03-rc07');
+is(to_cmake_version('02.04.03.rc07'), '02.04.03');
+is(to_version_string('02.04.03.rc07'), '02.04.03-rc07');
 
 diag('02.04.03rc07');
+more_tests(5);
 compare_or_show(parse_version_string('02.04.03rc07'), $rc_ref);
 is(to_ups_version('02.04.03rc07'), 'v02_04_03rc07');
 is(to_dot_version('02.04.03rc07'), '02.04.03rc07');
-is(to_cmake_version('02.04.03rc07'), '02.04.03-rc07');
+is(to_cmake_version('02.04.03rc07'), '02.04.03');
+is(to_version_string('02.04.03rc07'), '02.04.03-rc07');
 
 diag('02.04.03-rc07');
+more_tests(5);
 compare_or_show(parse_version_string('02.04.03-rc07'), $rc_ref);
 is(to_ups_version('02.04.03-rc07'), 'v02_04_03rc07');
 is(to_dot_version('02.04.03-rc07'), '02.04.03rc07');
-is(to_cmake_version('02.04.03-rc07'), '02.04.03-rc07');
+is(to_cmake_version('02.04.03-rc07'), '02.04.03');
+is(to_version_string('02.04.03-rc07'), '02.04.03-rc07');
 
 diag('v02_04_03rc07');
+more_tests(5);
 compare_or_show(parse_version_string('v02_04_03rc07'), $rc_ref);
 is(to_ups_version('v02_04_03rc07'), 'v02_04_03rc07');
 is(to_dot_version('v02_04_03rc07'), '02.04.03rc07');
-is(to_cmake_version('v02_04_03rc07'), '02.04.03-rc07');
+is(to_cmake_version('v02_04_03rc07'), '02.04.03');
+is(to_version_string('v02_04_03rc07'), '02.04.03-rc07');
 
 diag('v02_04_03_rc07');
+more_tests(5);
 compare_or_show(parse_version_string('v02_04_03_rc07'), $rc_ref);
 is(to_ups_version('v02_04_03_rc07'), 'v02_04_03rc07');
 is(to_dot_version('v02_04_03_rc07'), '02.04.03rc07');
-is(to_cmake_version('v02_04_03_rc07'), '02.04.03-rc07');
+is(to_cmake_version('v02_04_03_rc07'), '02.04.03');
+is(to_version_string('v02_04_03_rc07'), '02.04.03-rc07');
 
-done_testing();
+diag('vart-develop-nightly-2021152663');
+more_tests();
+compare_or_show(parse_version_string('vart-develop-nightly-2021152663'),
+                { qw(extra_type 103 extra art-develop-nightly-2021152663
+                     extra_text art-develop-nightly extra_num 2021152663) });
+
+diag('2.3.0-snapshot-20210615');
+more_tests();
+compare_or_show(parse_version_string('2.3.0-snapshot-20210615'),
+                { qw(extra_type 3 extra snapshot-20210615
+                     major 2 minor 3 patch 0
+                     extra_text snapshot extra_num 20210615),
+                bits => [ 2, 3, 0 ] });
+
+diag('2.3-snapshot-20210615000000.20003');
+more_tests();
+compare_or_show(parse_version_string('2.3-snapshot-20210615000000.20003'),
+                { qw(extra_type 3 extra snapshot-20210615000000.20003
+                     major 2 minor 3
+                     extra_text snapshot extra_num 20210615000000.20003),
+                bits => [ 2, 3 ] });
+
+diag('Version comparisons');
+
+my $ans_cache = { };
+sub perl_version_cmp {
+  my $ans;
+  if (exists $ans_cache->{$a} and exists $ans_cache->{$a}->{$b}) {
+    $ans = $ans_cache->{$a}->{$b};
+  } elsif (exists $ans_cache->{$b} and exists $ans_cache->{$b}->{$a}) {
+    $ans = -1 * $ans_cache->{$b}->{$a};
+    $ans_cache->{$a}->{$b} = $ans;
+  } else {
+    $ans = version_cmp($a, $b);
+    $ans_cache->{$a}->{$b} = $ans;
+  }
+  return $ans;
+}
+
+my @v_ref_list =
+  qw(
+      1
+      1.2
+      1.2.0.0p1
+      v1_2_0_1pre6
+      2.3.0-snapshot-20210615
+      2.3-snapshot-20210615000000.2
+      2.3-snapshot-20210615000000.200025
+      2.3-snapshot-20210615000000.20003
+      nightly-276
+      snapshot-29100
+   );
+
+my $nshuffles = 10000;
+my $nfigs = length $nshuffles;
+my $idx = 0;
+more_tests($nshuffles);
+
+while ($idx < $nshuffles and
+       compare_or_show([sort perl_version_cmp List::Util::shuffle(@v_ref_list)],
+                       \@v_ref_list, sprintf("perl_version_cmp-%0-${nfigs}d", ++$idx))) { }
+
+done_testing($ntests);
