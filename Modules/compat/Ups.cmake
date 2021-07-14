@@ -65,6 +65,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 include(CetRegexEscape)
 include(Compatibility)
 include(GenerateFromFragments)
+include(ParseUpsVersion)
 include(ProjectVariable)
 
 # These should be the same for all projects being compiled together.

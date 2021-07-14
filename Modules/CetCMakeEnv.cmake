@@ -203,7 +203,7 @@ old-style variables for library targets\
   # If we're dealing with UPS.
   if (WANT_UPS)
     # Incorporate configuration information from product_deps.
-    include(Ups)
+    include(compat/Ups)
     _ups_init()
     if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR
         NOT DEFINED CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG})
@@ -235,12 +235,9 @@ old-style variables for library targets\
   include(CTest)
   include(CetCMakeConfig)
   include(CetCMakeUtils)
-  include(CetMakeLibrary)
+  include(CetFindPackage)
   include(CetMake)
-  include(Compatibility)
-  include(FindUpsBoost)
-  include(FindUpsGeant4)
-  include(FindUpsRoot)
+  include(CetMakeLibrary)
   include(InstallFW)
   include(InstallFhicl)
   include(InstallGdml)
@@ -251,6 +248,15 @@ old-style variables for library targets\
   include(InstallSource)
   include(InstallWP)
   include(SetCompilerFlags)
+  include(compat/CetHaveQual)
+  include(compat/CetParseArgs)
+  include(compat/CheckProdVersion)
+  include(compat/CheckUpsVersion)
+  include(compat/Compatibility)
+  include(compat/FindUpsBoost)
+  include(compat/FindUpsGeant4)
+  include(compat/FindUpsRoot)
+  include(compat/ParseUpsVersion)
 
   _cetbuildtools_compatibility_late()
 
