@@ -16,14 +16,6 @@ X
 # invocation automatically.
 #
 ####################################
-# Variables available to dependents via find_package()):
-#
-#   UPS_<product_name>_CMAKE_PROJECT_NAME:STRING=<cmake_project_name>
-#
-#     Provide the correspondence between the UPS product name and the
-#     CMake project name.
-#
-####################################
 # Command-line (cached) CMake variables:
 #
 #   <cmake_project_name>_UPS_PRODUCT_NAME:STRING=<product_name>
@@ -66,6 +58,7 @@ include(CetRegexEscape)
 include(Compatibility)
 include(GenerateFromFragments)
 include(ParseUpsVersion)
+include(ParseVersionString)
 include(ProjectVariable)
 
 # These should be the same for all projects being compiled together.
@@ -92,7 +85,7 @@ if (NOT WANT_UPS)
 endif()
 
 function(process_ups_files)
-  if (NOT UPS_TAR_DIR)
+  if (NOT ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_TAR_DIR)
     message(FATAL_ERROR "Set the CMake variable WANT_UPS prior to including"
       " CetCMakeEnv.cmake to activate UPS table file and tarball generation."
       "\nUps.cmake should not be included directly.")
@@ -100,7 +93,7 @@ function(process_ups_files)
 
   # Calculate the path for the table and version files.
   set(table_file
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}.table")
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}.table")
 
   if (EXISTS "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/${table_file}")
     message(VERBOSE "Installing package-provided UPS table file ${table_file}")
@@ -113,14 +106,14 @@ function(process_ups_files)
 
   # Install it.
   install(FILES "${tf_src_dir}/${table_file}"
-    DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR})
+    DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR})
 
   ##################
   # Generate the UPS version and chain files.
 
   # Required temporary variables for substitution.
   foreach (v IN ITEMS UPS_PRODUCT_FLAVOR UPS_PRODUCT_NAME UPS_PRODUCT_VERSION UPS_PRODUCT_SUBDIR
-      UPS_QUALIFIER_STRING UPS_PRODUCT_UPS_DIR)
+      UPS_QUALIFIER_STRING UPS_PRODUCT_TABLE_SUBDIR)
     set(${v} ${${CETMODULES_CURRENT_PROJECT_NAME}_${v}})
   endforeach()
   cet_timestamp(UPS_DECLARE_DATE)
@@ -128,22 +121,22 @@ function(process_ups_files)
 
   cet_localize_pv(cetmodules CONFIG_DIR)
   configure_file("${cetmodules_CONFIG_DIR}/ups/product-version-file.in"
-    "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+    "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
     @ONLY)
   # Install it.
   install(FILES
-    "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+    "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
     DESTINATION ../${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}.version)
   # Generate and install any requested chain files.
   foreach (UPS_PRODUCT_CHAIN IN LISTS ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_CHAINS)
     # Generate with chain name prepended to avoid conflicts or the need
     # for a deeper hierarchy in the build area.
     configure_file("${cetmodules_CONFIG_DIR}/ups/product-chain-file.in"
-      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${UPS_PRODUCT_CHAIN}.${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR}/${UPS_PRODUCT_CHAIN}.${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
       @ONLY)
     # Install.
     install(FILES
-      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR}/${UPS_PRODUCT_CHAIN}.${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_TABLE_SUBDIR}/${UPS_PRODUCT_CHAIN}.${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}"
       DESTINATION "../${UPS_PRODUCT_CHAIN}.chain"
       RENAME "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE}")
   endforeach()
@@ -309,12 +302,9 @@ endfunction()
 
 function(_ups_use_maybe_unused)
   get_property(vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  set(lang_vars ${vars})
-  list(FILTER lang_vars INCLUDE REGEX
+  list(FILTER vars INCLUDE REGEX
     [[^CMAKE_[^_]+_(COMPILER|STANDARD(_REQUIRED)?|EXTENSIONS|FLAGS)$]])
-  cet_regex_escape("${CETMODULES_CURRENT_PROJECT_NAME}" e_proj)
-  list(FILTER vars INCLUDE REGEX "^(UPS_${e_proj}|${e_proj}_UPS)_")
-  foreach (var IN LISTS vars lang_vars ITEMS UPS_${${CMAKE_PROJECT_NAME}_UPS_PRODUCT_NAME}_CMAKE_PROJECT_NAME)
+  foreach (var IN LISTS vars)
     if (${var})
     endif()
   endforeach()
@@ -347,80 +337,75 @@ endfunction()
 
 function(_ups_set_variables)
   ##################
-  # UPS product name (project-specific, cached).
+  # UPS product name.
   string(TOLOWER "${CETMODULES_CURRENT_PROJECT_NAME}" default_product_name)
   string(REGEX REPLACE [=[[^a-z0-9]]=] "_" default_product_name
     "${default_product_name}")
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME "${default_product_name}"
-    CACHE STRING "The UPS product name for CMake project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  project_variable(UPS_PRODUCT_NAME "${default_product_name}" TYPE STRING DOCSTRING
+    "UPS product name for CMake project ${CETMODULES_CURRENT_PROJECT_NAME}")
   ##################
 
   ##################
-  # Version consistency check.
-  ##################
-  if (CETPKG_CMAKE_PROJECT_VERSION AND
-      NOT CETPKG_CMAKE_PROJECT_VERSION STREQUAL CETMODULES_CURRENT_PROJECT_VERSION)
-    message(FATAL_ERROR "consistency error! Mismatch between version \
-project(${CETMODULES_CURRENT_PROJECT_NAME} VERSION ${CETPKG_CMAKE_PROJECT_VERSION}...) \
-and CETMODULES_CURRENT_PROJECT_VERSION as-set (${CETMODULES_CURRENT_PROJECT_VERSION}). Verify \
-cmake_minimum_required(VERSION X) or \
-cmake_minimum_required(VERSION X...Y) with X >=3.16 and CMake policy \
-CMP0096 NEW *PRIOR* to project() call to preserve leading \
-zeros in project versions.\
-")
-  endif()
+  # UPS product version.
+  to_ups_version("${CETMODULES_CURRENT_PROJECT_VERSION}" default_ups_version)
+  project_variable(UPS_PRODUCT_VERSION "${default_ups_version}" TYPE STRING DOCSTRING
+    "Version for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # UPS product version (project-specific).
-  to_ups_version("${CETMODULES_CURRENT_PROJECT_VERSION}" UPS_PRODUCT_VERSION)
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION ${UPS_PRODUCT_VERSION} CACHE STRING
-    "Project's UPS version")
+  # UPS chains.
+  project_variable(UPS_PRODUCT_CHAINS TYPE STRING DOCSTRING
+    "Chains for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # Qualifiers (project-specific, cached).
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING CACHE STRING
-    "The `:'-delimited list of UPS qualifers")
+  # UPS Qualifiers.
+  project_variable(UPS_QUALIFIER_STRING TYPE STRING DOCSTRING
+    "Qualifer string for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # UPS flavor (project-specific, cached)
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR CACHE STRING
-    "The appropriate UPS flavor for CMake project ${CETMODULES_CURRENT_PROJECT_NAME}")
-
-  mark_as_advanced(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME
-    ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION
-    ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING
-    ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR)
+  # UPS flavor.
+  project_variable(UPS_PRODUCT_FLAVOR TYPE STRING DOCSTRING
+    "Flavor for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # UPS product installation directory (project-specific).
-  set(UPS_PRODUCT_SUBDIR
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${UPS_PRODUCT_VERSION}")
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_SUBDIR "${UPS_PRODUCT_SUBDIR}" PARENT_SCOPE)
+  # UPS product installation directory.
+  project_variable(UPS_PRODUCT_SUBDIR
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}"
+    DOCSTRING
+    "Product installation subdirectory for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # UPS table file directory (project-specific).
-  set(UPS_PRODUCT_UPS_DIR ups)
+  # UPS table file directory.
+  set(default_table_subdir ups)
   if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
-    string(PREPEND UPS_PRODUCT_UPS_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/")
+    string(PREPEND default_table_subdir "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/")
   endif()
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_UPS_DIR "${UPS_PRODUCT_UPS_DIR}" PARENT_SCOPE)
+  project_variable(UPS_PRODUCT_TABLE_SUBDIR "${default_table_subdir}" DOCSTRING
+    "Table file subdirectory for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
-  # UPS version file name and installation location (project-specific).
-  string(REPLACE ":" "_" UPS_PRODUCT_VERSION_FILE
+  # UPS version file name.
+  string(REPLACE ":" "_" default_version_file
     "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING}")
-  string(PREPEND UPS_PRODUCT_VERSION_FILE "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR}_")
-  set(${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION_FILE ${UPS_PRODUCT_VERSION_FILE}
-    PARENT_SCOPE)
+  string(PREPEND default_version_file "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR}_")
+  project_variable(UPS_PRODUCT_VERSION_FILE ${default_version_file} TYPE STRING DOCSTRING
+    "Version file name for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
   # UPS binary archive destination directory.
-  set(UPS_TAR_DIR "${CMAKE_BINARY_DIR}"
-    CACHE PATH "The output directory for all generated UPS product archives.")
+  project_variable(UPS_TAR_DIR "${CMAKE_BINARY_DIR}" TYPE PATH DOCSTRING
+    "Product archive destination for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
   # Should we configure PYTHONPATH in the table file?
-  project_variable(DEFINE_PYTHONPATH TYPE BOOL)
+  project_variable(DEFINE_PYTHONPATH TYPE BOOL DOCSTRING
+    "Define PYTHONPATH in table file for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+
+  ##################
+  # UPS dependency management.
+  project_variable(UPS_BUILD_ONLY_DEPENDENCIES TYPE STRING DOCSTRING
+    "UPS products required only at build time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+  project_variable(UPS_USE_TIME_DEPENDENCIES TYPE STRING DOCSTRING
+    "UPS products required at use-time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   ##################
   # CPack configuration
@@ -488,8 +473,9 @@ function(_ups_verify_compilers)
       endif()
     endif()
     if (CMAKE_${lang}_COMPILER_VERSION AND UPS_${lang}_COMPILER_VERSION)
-      if (NOT CMAKE_${lang}_COMPILER_VERSION VERSION_EQUAL
-          UPS_${lang}_COMPILER_VERSION)
+      cet_compare_versions(version_ok "${CMAKE_${lang}_COMPILER_VERSION}"
+        VERSION_EQUAL "${UPS_${lang}_COMPILER_VERSION}")
+      if (NOT version_ok)
         message(ERROR "Enabled ${CMAKE_COMPILER_ID} ${lang} compiler version"
           " ${CMAKE_${lang}_COMPILER_VERSION} does not match expected"
           " ${UPS_${lang}_COMPILER_VERSION}")

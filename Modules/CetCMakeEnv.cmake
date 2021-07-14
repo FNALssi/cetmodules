@@ -13,15 +13,15 @@ include_guard(DIRECTORY)
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
 
-# Watch for changes to CMAKE_MODULE_PATH that could break
-# forward/backward compatibility.
-include(CetCMPCleaner)
-
 # Override find package to deal with IN_TREE projects and reduce repeat
-# intiializations.
+# initializations.
 include(private/CetOverrideFindPackage)
 
+# Escape characters for literal use in regular expressions.
 include(CetRegexEscape)
+
+# Project variables.
+include(ProjectVariable)
 
 ##################
 # OPTIONS
@@ -111,11 +111,40 @@ macro(cet_cmake_env)
       "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file.")
   endif()
 
+  cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
+
   set(CETMODULES_CURRENT_PROJECT_NAME ${PROJECT_NAME})
 
   # Required to ensure correct installation location with
   # cetbuildtools-compatible installations.
   cmake_policy(SET CMP0082 NEW)
+
+  # Remove unwanted information from any previous run.
+  _clean_internal_cache_entries()
+
+  ##################
+  # Project variables - see ProjectVariable.cmake. See especially the
+  # explanation of initialization and default semantics.
+  ##################
+
+  # Enable our config file to detect whether we're being built and
+  # imported in the same run. Note that this variable is *not* exported
+  # to external dependents.
+  project_variable(IN_TREE TRUE TYPE BOOL DOCSTRING
+    "Signifies whether ${CETMODULES_CURRENT_PROJECT_NAME} is currently being built")
+
+  # Defined first, as PATH_FRAGMENT and FILEPATH_FRAGMENT project
+  # variables take this into account.
+  project_variable(EXEC_PREFIX TYPE STRING)
+
+  project_variable(OLD_STYLE_CONFIG_VARS FALSE TYPE BOOL
+    DOCSTRING
+    "Define configuration variables and accommodate (anti-)patterns \
+used by CMake code ported from cetbuildtools")
+
+  # Watch for changes to CMAKE_MODULE_PATH that could break
+  # forward/backward compatibility.
+  include(private/CetCMPCleaner)
 
   # If this project is expecting to use cetbuildtools.
   _cetbuildtools_compatibility_early()
@@ -124,23 +153,21 @@ macro(cet_cmake_env)
   if (NOT PROJECT_VERSION)
     message(FATAL_ERROR "unable to ascertain CMake Project Version: add VERSION XX.YY.ZZ[-<patch-level>] to project() call")
   endif()
+
+  # Avoid confusion with nested subprojects.
   foreach (_cce_v IN ITEMS
-      BINARY_DIR DESCRIPTION HOMEPAGE_URL NAME SOURCE_DIR
+      BINARY_DIR DESCRIPTION HOMEPAGE_URL SOURCE_DIR
       VERSION VERSION_MAJOR VERSION_MINOR VERSION_PATCH VERSION_TWEAK
     )
     set(CETMODULES_CURRENT_PROJECT_${_cce_v} ${PROJECT_${_cce_v}})
   endforeach()
   unset(_cce_v)
 
-  cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
-
+  # Check for obsolete arguments.
   if (_CCE_UNPARSED_ARGUMENTS)
     warn_deprecated("cet_cmake_env(${ARGV})"
       " - remove unneeded legacy arguments ${_CCE_UNPARSED_ARGUMENTS}")
   endif()
-
-  # Remove unwanted information from any previous run.
-  _clean_internal_cache_entries()
 
   # Disable package registry use as confusing and not best practice.
   set(CMAKE_EXPORT_PACKAGE_REGISTRY FALSE)
@@ -152,29 +179,7 @@ macro(cet_cmake_env)
   # files in an absolute location.
   set(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION TRUE)
 
-  ##################
-  # Project variables - see ProjectVariable.cmake. See especially the
-  # explanation of initialization and default semantics.
-  ##################
-  include(ProjectVariable)
-
-  # Enable our config file to detect whether we're being built and
-  # imported in the same run. Note that this variable is *not* exported
-  # to external dependents.
-  project_variable(IN_TREE TRUE TYPE BOOL DOCSTRING
-    "Signifies whether ${PROJECT_NAME} is currently being built")
-
-  # Defined first, as PATH_FRAGMENT and FILEPATH_FRAGMENT project
-  # variables take this into account.
-  project_variable(EXEC_PREFIX TYPE STRING)
-
-  # Other generally-useful project variables. More may be defined where
-  # they are relevant.
-  project_variable(OLD_STYLE_CONFIG_VARS FALSE TYPE BOOL
-    DOCSTRING "Tell cetmodules config files for dependencies to define \
-old-style variables for library targets\
-")
-  project_variable(NAMESPACE "${PROJECT_NAME}"
+  project_variable(NAMESPACE "${CETMODULES_CURRENT_PROJECT_NAME}"
     TYPE STRING CONFIG OMIT_IF_NULL
     DOCSTRING "Top-level prefix for targets and aliases when imported")
   project_variable(INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CONFIG
@@ -186,7 +191,7 @@ old-style variables for library targets\
   project_variable(BIN_DIR "${CMAKE_INSTALL_BINDIR}" CONFIG
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Directory below prefix to install executables")
-  project_variable(SCRIPTS_DIR ${${PROJECT_NAME}_BIN_DIR}
+  project_variable(SCRIPTS_DIR ${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR}
     NO_WARN_REDUNDANT
     BACKUP_DEFAULT scripts
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
@@ -217,12 +222,14 @@ old-style variables for library targets\
     install(CODE "\
 # Tweak the value of CMAKE_INSTALL_PREFIX used by the project's
   # cmake_install.cmake files per UPS conventions.
-  string(APPEND CMAKE_INSTALL_PREFIX \"/${${PROJECT_NAME}_UPS_PRODUCT_SUBDIR}\")\
+  string(APPEND CMAKE_INSTALL_PREFIX \"/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_SUBDIR}\")\
 ")
-    # Install a delayed installation of a delayed function call to fix
-    # legacy installations.
-    cmake_language(DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL
-      cmake_language DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL _restore_install_prefix)
+    if (NOT "${product}" STREQUAL "")
+      # Install a delayed installation of a delayed function call to fix
+      # legacy installations.
+      cmake_language(DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL
+        cmake_language DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL _restore_install_prefix)
+    endif()
   else()
     # Define a fallback macro in case of layer 8 issues.
     macro(process_ups_files)
@@ -267,11 +274,11 @@ old-style variables for library targets\
   # Override on a per-target, per config or per-scope basis if necessary
   # (should be rare).
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR})
+    ${PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_LIBRARY_DIR})
+    ${PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
-    ${PROJECT_BINARY_DIR}/${${PROJECT_NAME}_BIN_DIR})
+    ${PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR})
 
   ##################
   # Automatic installation of LICENSE, README, etc. unless disabled by
@@ -288,69 +295,63 @@ endmacro(cet_cmake_env)
 
 function(_clean_internal_cache_entries)
   get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  cet_regex_escape("${PROJECT_NAME}" e_proj)
+  cet_regex_escape("${CETMODULES_CURRENT_PROJECT_NAME}" e_proj)
   list(FILTER cache_vars INCLUDE
     REGEX "^_?CETMODULES(_[^_]+)*_PROJECT_${e_proj}$")
   foreach (entry IN LISTS cache_vars)
     get_property(type CACHE "${entry}" PROPERTY TYPE)
-    if (type STREQUAL INTERNAL)
+    if (type STREQUAL "INTERNAL")
       unset("${entry}" CACHE)
     endif()
   endforeach()
 endfunction()
 
 macro(_cetbuildtools_compatibility_early)
-  set(product "${${PROJECT_NAME}_UPS_PRODUCT_NAME}")
-  if (UPS_${product}_CMAKE_PROJECT_VERSION AND
-      PROJECT_VERSION AND
-      NOT UPS_${product}_CMAKE_PROJECT_VERSION STREQUAL PROJECT_VERSION)
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR
+      "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
     if (COMMAND mrb_check_subdir_order) # Using mrb.
-      set(_cce_since "mrbsetenv was run")
       set(_cce_action "re-run mrbsetenv")
     else()
-      set(_cce_since "setup_for_development was sourced")
       set(_cce_action "re-source setup_for_development")
     endif()
-    message(FATAL_ERROR "Version of ${PROJECT_NAME} in CMakeLists.txt has changed since ${_cce_since} - ${_cce_action}
-  -> \"${UPS_${product}_CMAKE_PROJECT_VERSION}\" (from setup) != \"${PROJECT_VERSION}\" (in CMakeLists.txt)")
-  endif()
-  set(version "${${PROJECT_NAME}_UPS_PRODUCT_VERSION}")
-  if ("cetbuildtools"
-      IN_LIST ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES AND
-      NOT PROJECT_VERSION)
-    set(PROJECT_VERSION ${UPS_${product}_CMAKE_PROJECT_VERSION})
-    parse_version_string("${PROJECT_VERSION}" PROJECT_VERSION_MAJOR PROJECT_VERSION_MINOR PROJECT_VERSION_PATCH PROJECT_VERSION_TWEAK)
-    if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
-      foreach (_cce_v IN ITEMS "" _MAJOR _MINOR _PATCH _TWEAK)
-        set(CMAKE_PROJECT_VERSION${_cce_v} ${PROJECT_VERSION${_cce_v}})
-      endforeach()
-      unset(_cce_v)
+    if (${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME)
+      set(product "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+    else()
+      message(FATAL_ERROR "\
+Using cetbuildtools compatibility but cannot find UPS product name from \
+${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME - ${_cce_action}\
+")
     endif()
+    set(version "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}")
+    set(UPSFLAVOR "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
+    set(flavorqual "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}")
+    set(full_qualifier "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING}")
+    string(REPLACE ":" ";" qualifier "${full_qualifier}")
+    list(REMOVE_ITEM qualifier debug opt prof)
+    string(REPLACE ";" ":" qualifier "${qualifier}")
+    set(${product}_full_qualifier "${full_qualifier}")
+    set(flavorqual_dir "${product}/${version}/${flavorqual}")
+    unset(_cce_action)
   endif()
-  set(UPSFLAVOR "${${PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
-  set(flavorqual "${${PROJECT_NAME}_EXEC_PREFIX}")
-  set(full_qualifier "${${PROJECT_NAME}_UPS_QUALIFIER_STRING}")
-  string(REPLACE ":" ";" qualifier "${full_qualifier}")
-  list(REMOVE_ITEM qualifier debug opt prof)
-  string(REPLACE ";" ":" qualifier "${qualifier}")
-  set(${product}_full_qualifier "${full_qualifier}")
-  set(flavorqual_dir "${product}/${version}/${flavorqual}")
 endmacro()
 
 function(_cetbuildtools_compatibility_late)
-  if (NOT "cetbuildtools" IN_LIST ${PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
+  if (NOT "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
     return()
   endif()
   get_property(cetb_translate_vars DIRECTORY PROPERTY CACHE_VARIABLES)
   list(FILTER cetb_translate_vars INCLUDE REGEX "^CETB_COMPAT_")
+  if (cetb_translate_vars)
+    mark_as_advanced(${cetb_translate_vars})
+  endif()
   list(TRANSFORM cetb_translate_vars REPLACE "^CETB_COMPAT_(.*)$" "\\1"
     OUTPUT_VARIABLE cetb_var_stems)
   foreach (var_stem translate_var IN ZIP_LISTS
       cetb_var_stems cetb_translate_vars)
-    if (${translate_var} IN_LIST CETMODULES_VARS_PROJECT_${PROJECT_NAME})
-      set(val "${${PROJECT_NAME}_${${translate_var}}}")
+    if (${translate_var} IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+      set(val "${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
     else() # Too early: need placeholder.
-      set(val "\${${PROJECT_NAME}_${${translate_var}}}")
+      set(val "\${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
     endif()
     set(${product}_${var_stem} "${val}" CACHE INTERNAL
       "Compatibility variable for packages expecting cetbuildtools")
@@ -359,8 +360,7 @@ endfunction()
 
 function(_use_maybe_unused)
   get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  cet_regex_escape("${PROJECT_NAME}" e_proj)
-  list(FILTER cache_vars INCLUDE REGEX "^${e_proj}.*_INIT")
+  list(FILTER cache_vars INCLUDE REGEX "(^CET_PV_|^${CMAKE_CURRENT_PROJECT_VARIABLE_PREFIX}_|_INIT$)")
   foreach (var IN LISTS cache_vars ITEMS CMAKE_WARN_DEPRECATED)
     if (${var})
     endif()
