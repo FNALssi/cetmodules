@@ -343,6 +343,10 @@ function(_ups_set_variables)
     "${default_product_name}")
   project_variable(UPS_PRODUCT_NAME "${default_product_name}" TYPE STRING DOCSTRING
     "UPS product name for CMake project ${CETMODULES_CURRENT_PROJECT_NAME}")
+
+  set(UPS_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_CMAKE_PROJECT_NAME
+    ${CETMODULES_CURRENT_PROJECT_NAME} CACHE STRING
+    "CMake project name for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
   ##################
 
   ##################

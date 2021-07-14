@@ -1198,14 +1198,17 @@ else # Check consistency.
   (( $? == 0 )) && \
     [ "$check_build_type" != "$CETPKG_CMAKE_BUILD_TYPE" ] && \
     fatal_error "build type has changed from $check_build_type to $CETPKG_TYPE: need clean build"
-  check_fq_dir="$(cmake_var ${CETPKG_CMAKE_PROJECT}_EXEC_PREFIX)"
-  (( $? == 0 )) && \
-    [ "$check_fq_dir" != "$CETPKG_FQ_DIR" ] && \
-    fatal_error "FQ_DIR has changed from $check_fq_dir to $CETPKG_FQ_DIR: need clean build"
-  check_qual="$(cmake_var ${CETPKG_CMAKE_PROJECT}_UPS_QUALIFIER_STRING)"
-  (( $? == 0 )) && \
-    [ "$check_qual" != "$CETPKG_QUALSPEC" ] && \
-    fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUALSPEC\": need clean build"
+  CETPKG_CMAKE_PROJECT_NAME=$(cmake_var "UPS_${CETPKG_NAME}_CMAKE_PROJECT_NAME")
+  if (( $? == 0 )); then
+    check_fq_dir="$(cmake_var ${CETPKG_CMAKE_PROJECT_NAME}_EXEC_PREFIX)"
+    (( $? == 0 )) && \
+      [ "$check_fq_dir" != "$CETPKG_FQ_DIR" ] && \
+      fatal_error "FQ_DIR has changed from $check_fq_dir to $CETPKG_FQ_DIR: need clean build"
+    check_qual="$(cmake_var ${CETPKG_CMAKE_PROJECT_NAME}_UPS_QUALIFIER_STRING)"
+    (( $? == 0 )) && \
+      [ "$check_qual" != "$CETPKG_QUALSPEC" ] && \
+      fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUALSPEC\": need clean build"
+  fi
 fi
 
 if (( clean_logs )); then
