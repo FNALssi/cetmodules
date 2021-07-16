@@ -1043,10 +1043,11 @@ sub process_cmakelists {
                     push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
                     $endmatch = pos();
                   }
-                  error_exit(sprintf("Unexpected leftovers at $cmakelists:%s - > %s <",
+                  error_exit(sprintf("unexpected leftovers at $cmakelists:%s - > %s <",
                                      $current_line,
                                      substr($_, $endmatch // 0)))
-                    unless length() == ($endmatch // 0);
+                    unless length() == ($endmatch // 0) or
+                      substr($_, $endmatch // 0) =~ m&^\s*$&;
                   ++$current_line;
                   $tmp;
                 } @{$call_info->{arg_lines}} ];
