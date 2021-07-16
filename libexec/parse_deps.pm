@@ -15,6 +15,7 @@ use warnings;
 use warnings::register;
 
 use Cwd qw(abs_path);
+use Digest::SHA;
 use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 use FindBin;
@@ -81,6 +82,7 @@ $btype_table = { debug => 'Debug',
       compiler_for_quals
       deps_for_quals
       error_exit
+      get_CMakeLists_hash
       get_cmake_project_info
       get_derived_parent_data
       get_parent_info
@@ -93,15 +95,18 @@ $btype_table = { debug => 'Debug',
       print_dep_setup
       print_dep_setup_one
       print_dev_setup
+      shortest_unique_prefix
       sort_qual
       table_dep_setup
       to_cmake_version
       to_dot_version
       to_string
       to_ups_version
+      to_version_string
       ups_to_cmake
       var_stem_for_dirkey
       verbose
+      version_sort
       version_cmp
       warning
       write_table_deps
@@ -152,8 +157,11 @@ sub get_parent_info {
     my ($keyword, @pars) = split;
     if ($keyword eq "parent") {
       warning("multi-argument version of \"parent\" in $pfile",
-              "is deprecated: VERSION defined in CMakeLists.txt:project() governs.",
-              "Use \"chain[s] [current|test|new|old|<chain>]...\" in $pfile to specify chains.")
+              "is deprecated: VERSION defined via project() or",
+              "via <project>_CMAKE_PROJECT_VERSION_STRING in",
+              "CMakeLists.txt governs.",
+              "Use \"chain[s] [current|test|new|old|<chain>] ...\" in",
+              "$pfile to specify chains.")
         if ($pars[1] and not $options{quiet_warnings});
       $result->{name} = shift @pars;
       $result->{version} = shift @pars if $pars[0];
@@ -185,30 +193,64 @@ sub get_parent_info {
   return $result;
 }
 
+sub get_CMakeLists_hash {
+  return Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift, 'CMakeLists.txt')));
+}
+
 sub get_derived_parent_data {
   my ($pi, $sourcedir, @qualstrings) = @_;
 
-  # CMake info.
-  my ($cmake_project, $cmake_project_version) =
-    get_cmake_project_info($sourcedir,
-                           ($pi->{version}) ?
-                           (quiet_warnings => 1) : ())
-      unless $pi->{cmake_project} && $pi->{cmake_project_version};
+  # Checksum the absolute filename of the CMakeLists.txt file to
+  # identify initial values for project variables when we're not
+  # guaranteed to know the CMake project name by reading CMakeLists.txt
+  # (conditionals, variables, etc.):
+  $pi->{project_variable_prefix} = get_CMakeLists_hash($sourcedir);
 
-  if ($cmake_project) {
-    $pi->{cmake_project} = $cmake_project;
-    $pi->{name} = to_product_name($cmake_project)
-      unless exists $pi->{name};
-  } else {
-    $pi->{cmake_project} = $pi->{name};
+  # CMake info.
+  my $cpi = get_cmake_project_info($sourcedir,
+                                   ($pi->{version}) ?
+                                   (quiet_warnings => 1) : ());
+
+  unless (defined $pi->{name}) {
+    if ($cpi->{cmake_project_name} and not
+        $cpi->{cmake_project_name} =~ m&\$&) {
+      $pi->{name} = to_product_name($cpi->{cmake_project_name});
+    } else {
+      error_exit(<<EOF);
+UPS product name not specified in product_deps and could not identify an
+unambiguous project name in CMakeLists.txt
+EOF
+    }
   }
 
-  if ($cmake_project_version) {
-    $pi->{cmake_project_version} = $cmake_project_version;
-    $pi->{version} = to_ups_version($cmake_project_version)
-      unless exists $pi->{version};
+  if (exists $cpi->{version_info} and $cpi->{version_info}->{extra}) {
+    error_exit(sprintf(<<EOF, $cpi->{cmake_project_version}, $cpi->{version_info}->{extra}, $cpi->{cmake_project_version}));
+VERSION as specified in CMakeLists.txt:project() (%s) has an
+impermissible non-numeric component "%s": remove from project()
+and set \${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING to %s
+before calling cet_cmake_env()
+EOF
+  }
+
+  if ($cpi->{CMAKE_PROJECT_VERSION_STRING}) {
+    my $cmake_version_info = parse_version_string($cpi->{CMAKE_PROJECT_VERSION_STRING});
+    if ($pi->{version} and $pi->{version} ne to_ups_version($cmake_version_info)) {
+      warning("UPS product version $pi->{version} from product_deps overridden by project variable $cpi->{CMAKE_PROJECT_VERSION_STRING} from CMakeLists.txt");
+    }
+    $pi->{version} = to_ups_version($cmake_version_info);
+    $pi->{cmake_project_version} = to_version_string($cmake_version_info);
+  } elsif ($cpi->{version_info}) {
+    if ($pi->{version} and to_cmake_version($pi->{version}) ne $cpi->{cmake_project_version}) {
+      warning("UPS product version $pi->{version} from product_deps overridden by VERSION $cpi->{cmake_project_version} from project() in CMakeLists.txt");
+    }
+    $pi->{version} = to_ups_version($cpi->{version_info});
+  } elsif ($pi->{version}) {
+    my $version_info = parse_version_string($pi->{version});
+    if ($version_info->{extra}) {
+      $pi->{cmake_project_version} = to_version_string($version_info);
+    }
   } else {
-    $pi->{cmake_project_version} = to_cmake_version($pi->{version});
+    warning("could not identify a product/project version from product_deps or CMakeLists.txt. Ensure version is set in product_deps or with project() or CMAKE_PROJECT_VERSION_STRING project variable in CMakeLists.txt.");
   }
 
   my @sorted;
@@ -549,9 +591,11 @@ sub output_info {
 # Output information for buildtool.
 sub cetpkg_info_file {
   my (%info) = @_;
+
   my @expected_keys =
-    qw(source build name version chains qualspec cqual build_type extqual use_time_deps
-       build_only_deps cmake_project cmake_project_version cmake_args);
+    qw(source build name version cmake_project_version
+       chains qualspec cqual build_type extqual use_time_deps
+       build_only_deps cmake_args);
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
   open(my $fh, ">", "$cetpkgfile") or
@@ -710,48 +754,51 @@ sub offset_annotated_items {
 # rc[[-_]NN] or pre[[-_]NN] (release candidates);
 # <empty>;
 # p[-_]NN or patch[[-_]NN] (patch releases);
+# nightly[[-_][NN|YYYYMMDD[HHmmSS[.s]]] or
+#   snapshot[[-_][NN|YYYYMMDD[HHmmSS[.s]]] (snapshot releases)
 # Anything else.
-sub _parse_tweak {
-  my $vInfo = shift or die "INTERNAL ERROR in _parse_tweak()";
-  return $vInfo unless $vInfo->{tweak};
-  my ($etext, $enum) =
-    ($vInfo->{tweak} =~ m&(\D*?)[-_.,]?(\d+)?$&);
-  if (not $etext) {
-    $vInfo->{tweak_type} = 0;
-  } elsif ($etext eq "patch" or
-           (defined $enum and $enum >= 0 and $etext eq "p")) {
-    $vInfo->{tweak_type} = 1;
-    $etext = "patch";
-  } elsif ("\L$etext\E" eq "rc" or
-           "\L$etext\E" eq "pre") {
-    $vInfo->{tweak_type} = -1;
-    $etext = "rc";
-  } elsif ("\L$etext\E" eq "gamma") {
-    $vInfo->{tweak_type} = -2;
-  } elsif ("\L$etext\E" eq "beta") {
-    $vInfo->{tweak_type} = -3;
-  } elsif ("\L$etext\E" eq "alpha") {
-    $vInfo->{tweak_type} = -4;
+sub _parse_extra {
+  my $vInfo = shift or die "INTERNAL ERROR in _parse_extra()";
+  return $vInfo unless exists $vInfo->{extra} and $vInfo->{extra} ne '';
+  my ($enum) = ($vInfo->{extra} =~ m&(\d+(?:\.\d*)?)$&);
+  my ($etext) = (defined $enum ? ($vInfo->{extra} =~ m&^(.*?)[_.-]?\Q$enum\E$&) : $vInfo->{extra});
+  my $etext_l = lc $etext;
+  if ($etext eq '') {
+    $vInfo->{extra_type} = 0;
+  } elsif ($etext =~ m&(?:^|.+-)(?:nightly|snapshot)$&) {
+    $vInfo->{extra_type} = 3 + ((exists $vInfo->{bits}) ? 0 : 100);
   } elsif (not exists $vInfo->{bits}) {
-    $vInfo->{tweak_type} = -5;
+    $vInfo->{extra_type} = 101;
+    undef $enum;
+    $etext = $vInfo->{extra};
+  } elsif ($etext_l eq "patch" or
+           ($enum // '' ne '' and $etext_l eq "p")) {
+    $vInfo->{extra_type} = 1;
+  } elsif ($etext_l eq "rc" or $etext_l eq "pre") {
+    $vInfo->{extra_type} = -1;
+  } elsif ($etext_l eq "gamma") {
+    $vInfo->{extra_type} = -2;
+  } elsif ($etext_l eq "beta") {
+    $vInfo->{extra_type} = -3;
+  } elsif ($etext_l eq "alpha") {
+    $vInfo->{extra_type} = -4;
   } else {
-    $vInfo->{tweak_type} = 2;
+    $vInfo->{extra_type} = 2;
+    $vInfo->{extra_text} = $etext_l
   }
-  $vInfo->{tweak_text} = ($vInfo->{tweak_type} < 1) ? "\L$etext\E" : "$etext";
-  if ($vInfo->{tweak_type} > -5 or defined $enum) {
-    $vInfo->{tweak_num} = $enum // 0;
-  }
+  $vInfo->{extra_text} = $etext unless exists $vInfo->{extra_text};
+  $vInfo->{extra_num} = $enum if defined $enum;
   return $vInfo;
 }
 
 sub parse_version_string {
   my $dv = shift // "";
   $dv =~ s&^v&&o;
-  my $result = {};
+  my $result = { };
   my $def_ps = '[-_.,]';
   my ($ps, $es);
   my @bits;
-  foreach my $key (qw(major minor patch)) {
+  foreach my $key (qw(major minor patch tweak)) {
     my $sep = (defined $ps) ? $ps : $def_ps;
     if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?&&) {
       $ps = "[$2]" if defined $2 and not defined $ps;
@@ -761,16 +808,16 @@ sub parse_version_string {
     }
   }
   $dv =~ s&^$def_ps&& unless $2;
-  $result->{tweak} = $dv if $dv ne '';
+  $result->{extra} = $dv if $dv ne '';
   # Make sure we insert placeholders in the array only if we need them
-  foreach my $key (qw(patch minor major)) {
+  foreach my $key (qw(tweak patch minor major)) {
     if (exists $result->{$key} or scalar @bits) {
       $result->{$key} = 0 unless defined $result->{$key};
       unshift @bits, $result->{$key};
     }
   }
   $result->{bits} = [ @bits ] if scalar @bits;
-  return _parse_tweak($result);
+  return _parse_extra($result);
 }
 
 sub _format_version {
@@ -779,20 +826,26 @@ sub _format_version {
   my $separator = shift // '.';
   my $keyword_args = { @_ };
   my $main_v_string = join($separator, @{$v->{bits} // []});
-  return sprintf("%s%s%s", $keyword_args->{preamble} // '',
-                 $main_v_string,
-                 ($v->{tweak}) ?
-                 sprintf("%s%s",
-                         ($main_v_string) ? $keyword_args->{pre_tweak_sep} // '' : '',
-                         $v->{tweak}) : '');
+  if ($keyword_args->{want_extra} // 1) {
+    $main_v_string =
+      sprintf("%s%s%s", $keyword_args->{preamble} // '',
+              $main_v_string,
+              ($v->{extra}) ?
+              sprintf("%s%s",
+                      ($main_v_string) ? $keyword_args->{pre_extra_sep} // '' : '',
+                      $v->{extra}) : '');
+  } elsif (wantarray) {
+    return ($main_v_string, $v->{extra} // '');
+  }
+  return $main_v_string;
 }
 
 sub to_cmake_version {
-  return _format_version(shift, '.', pre_tweak_sep => '-');
+  return _format_version(shift, '.', want_extra => 0)
 }
 
 sub to_dot_version {
-  return _format_version(shift);
+  return _format_version(shift, '.');
 }
 
 sub to_ups_version {
@@ -805,16 +858,58 @@ sub to_product_name {
   return $name;
 }
 
-sub version_cmp($$) {
+sub to_version_string {
+  return _format_version(shift, '.', pre_extra_sep => '-');
+}
+
+
+# Stable sorting algorithm for versions.
+sub version_sort($$) {
   # Use slower prototype method due to package scope issues for $a, $b;
-  my ($vInfoA, $vInfoB) = map { parse_version_string($_); } @_;
-  return
-    ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
-      ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
-        ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0) ||
-            ($vInfoA->{tweak_type} // 0) <=> ($vInfoB->{tweak_type} // 0) ||
-              ($vInfoA->{tweak_text} // '') cmp ($vInfoB->{tweak_text} // '') ||
-                ($vInfoA->{tweak_num} // -1) <=> ($vInfoB->{tweak_num} // -1);
+  my ($vInfoA, $vInfoB) = map { (ref $_) ? $_ : parse_version_string($_); } @_;
+  my $ans = version_cmp($vInfoA, $vInfoB);
+  unless ($ans) {
+    my ($etextA, $enumA, $etextB, $enumB) =
+      map { ($_->{extra} // '' =~ m&^(.*?)[_.-]?(\d+(?:\.\d*)?)?$&); }
+        ($vInfoA, $vInfoB);
+    $ans = (lc ($etextA // '') eq lc ($etextB // '')) ?
+      (($enumA // 0) <=> ($enumB // 0)) || (($etextA // '') cmp ($etextB // '')) :
+        (($vInfoA->{extra} // '') cmp ($vInfoB->{extra} // ''));
+  }
+  return $ans;
+}
+
+# Comparison algorithm for versions. cf cet_version_cmp() in
+# ParseVersionString.cmake.
+#
+# Not stable as a sorting method: use version_sort() instead.
+sub version_cmp {
+  @_ or error_exit("tried to use version_cmp() as a sorting algorithm: use version_sort() instead");
+  my ($vInfoA, $vInfoB) = map { (ref $_) ? $_ : parse_version_string($_); } @_;
+  my $ans =
+    ((($vInfoA->{extra_type} // 0) > 100 or ($vInfoB->{extra_type} // 0) > 100) ? 0 :
+     ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
+     ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
+     ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0) ||
+     ($vInfoA->{tweak} // 0) <=> ($vInfoB->{tweak} // 0)) ||
+       ($vInfoA->{extra_type} // 0) <=> ($vInfoB->{extra_type} // 0);
+  $ans or ($vInfoA->{extra_type} // 0) != 2 or
+    $ans = ($vInfoA->{extra_text} // '') cmp ($vInfoB->{extra_text} // '');
+  $ans or $ans = ($vInfoA->{extra_type} // 0 == 3) ?
+    _date_cmp($vInfoA->{extra_num} // 0, $vInfoB->{extra_num} // 0) :
+      ($vInfoA->{extra_num} // 0) <=> ($vInfoB->{extra_num} // 0);
+  return $ans;
+}
+
+sub _date_cmp {
+  my ($a, $b) = @_;
+  my $aInfo = ($a =~ m&^(?P<date>\d{4}[0-1]\d[0-3]\d)((?P<HH>[0-2]\d)((?P<mm>[0-5]\d)((?P<SS>[0-5]\d)\.?(?P<ss>\d+)?)?)?)?$&) ? { %+ } : {};
+  my $bInfo = ($b =~ m&^(?P<date>\d{4}[0-1]\d[0-3]\d)((?P<HH>[0-2]\d)((?P<mm>[0-5]\d)((?P<SS>[0-5]\d)\.?(?P<ss>\d+)?)?)?)?$&) ? { %+ } : {};
+  return $aInfo->{date} ?
+    $aInfo->{date} <=> ($bInfo->{date} // 0) ||
+      sprintf("%s%s%s.%s", $aInfo->{HH} || "00", $aInfo->{mm} || "00", $aInfo->{SS} || "00", $aInfo->{ss} || "00") <=>
+        sprintf("%s%s%s.%s", $bInfo->{HH} || "00", $bInfo->{mm} || "00", $bInfo->{SS} || "00", $bInfo->{ss} || "00") :
+          $bInfo->{date} ? ($aInfo->{date} // 0) <=> $bInfo->{date} : $a <=> $b;
 }
 
 my $cqual_table =
@@ -831,17 +926,17 @@ my $cqual_table =
     e17 => ['gcc', 'g++', 'GNU', '7.3.0', '17', 'gfortran', 'GNU', '7.3.0'],
     e19 => ['gcc', 'g++', 'GNU', '8.2.0', '17', 'gfortran', 'GNU', '8.2.0'],
     e20 => ['gcc', 'g++', 'GNU', '9.3.0', '17', 'gfortran', 'GNU', '9.3.0'],
-    e21 => ['gcc', 'g++', 'GNU', '10.1.0', '17', 'gfortran', 'GNU', '10.1.0'],
+    e21 => ['gcc', 'g++', 'GNU', '10.1.0', '20', 'gfortran', 'GNU', '10.1.0'],
+    e22 => ['gcc', 'g++', 'GNU', '11.1.0', '17', 'gfortran', 'GNU', '11.1.0'],
     c1 => ['clang', 'clang++', 'Clang', '5.0.0', '17', 'gfortran', 'GNU', '7.2.0'],
     c2 => ['clang', 'clang++', 'Clang', '5.0.1', '17', 'gfortran', 'GNU', '6.4.0'],
     c3 => ['clang', 'clang++', 'Clang', '5.0.1', '17', 'gfortran', 'GNU', '7.3.0'],
     c4 => ['clang', 'clang++', 'Clang', '6.0.0', '17', 'gfortran', 'GNU', '6.4.0'],
     c5 => ['clang', 'clang++', 'Clang', '6.0.1', '17', 'gfortran', 'GNU', '8.2.0'],
-    # Technically c6 referred to LLVM/Clang 7.0.0rc3, but CMake can't
-    # tell the difference.
-    c6 => ['clang', 'clang++', 'Clang', '7.0.0', '17', 'gfortran', 'GNU', '8.2.0'],
+    c6 => ['clang', 'clang++', 'Clang', '7.0.0-rc3', '17', 'gfortran', 'GNU', '8.2.0'],
     c7 => ['clang', 'clang++', 'Clang', '7.0.0', '17', 'gfortran', 'GNU', '8.2.0'],
-    c8 => ['clang', 'clang++', 'Clang', '10.0.0', '20', 'gfortran', 'GNU', '10.1.0']
+    c8 => ['clang', 'clang++', 'Clang', '10.0.0', '20', 'gfortran', 'GNU', '10.1.0'],
+    c9 => ['clang', 'clang++', 'Clang', '12.0.0', '17', 'gfortran', 'GNU', '11.1.0'],
   };
 
 sub cmake_project_var_for_pathspec {
@@ -850,7 +945,8 @@ sub cmake_project_var_for_pathspec {
   return () unless ($pathspec and $pathspec->{key});
   my $var_stem = $pathspec->{var_stem} || var_stem_for_dirkey($dirkey);
   $pathspec->{var_stem} = $var_stem;
-  return ("-D$pi->{cmake_project}_${var_stem}_INIT=")
+  my $pv_prefix="CET_PV_$pi->{project_variable_prefix}";
+  return ("-D${pv_prefix}_${var_stem}=")
     unless exists $pathspec->{path};
   my @result_elements = ();
   if (ref $pathspec->{key}) {   # PATH-like.
@@ -880,111 +976,160 @@ sub cmake_project_var_for_pathspec {
     push @result_elements, $pathspec->{path};
   }
   return (scalar @result_elements ne 1 or $result_elements[0]) ?
-    sprintf("-D$pi->{cmake_project}_${var_stem}_INIT=%s",
+    sprintf("-D${pv_prefix}_${var_stem}=%s",
             join(';', @result_elements)) : undef;
 }
 
-sub get_cmake_project_info {
-  my ($pkgtop, %options) = @_;
-  my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  open(CML, "<", "$cmakelists") or error_exit("missing CMakeLists.txt from ${pkgtop}");
+sub process_cmakelists {
+  my ($cmakelists, %options) = @_;
+  my $result = {};
+  open(CML, "<", "$cmakelists") or error_exit("missing file $cmakelists");
   my @buffer = <CML>;
   close(CML);
-  my ($proj_info, $version_info);
+  my @func_info = ();
   my $line = '';
+  my $line_no = 0;
   # Try our best to be thorough.
  lines:  while (scalar @buffer) {
     $line = join('', $line, shift @buffer);
-    if ($line =~ s&^\s*(?i:project)\s*\(\s*(?P<name>[^\s)]+)\s*&&s) {
-      # Enough of a project() call to start processing it.
-      $proj_info = { %+ };
-      # This loop will go over the remains of the project() call - over
-      # multiple lines if necessary - separating arguments and end-of
-      # line comments and storing them. Double-quoted arguments (even
-      # multi-line ones) are handled correctly. Note that the "++" in
-      # the clause matching double-quoted strings is *not* a benign
-      # typo: it is a "greedy" modifier responsible for preventing
-      # backtracking within that clause (e.g.) in the case of a dangling
-      # double-quote, so we don't wander off into alternate clauses.
-      while (1) {
-        if ($line =~ s&^(?P<args>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?:[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
-          push @{$proj_info->{args}}, join('', $+{args} // (), $+{nl} // ());
+    my $func_line = ++$line_no;
+    { # BLOCK necessary to contain the scope of ${^MATCH}, etc.
+      $line =~ m&^\s*(?P<func>(?i)cet_cmake_env|project|set)\b(?:\s*(?:#[^\n]*)\n?)*\s*(?P<open_paren>\()&p and
+        not $+{open_paren} and do {
+          # Identified an interesting CMake function call, but we still need
+          # to find the open parenthesis.
+          error_exit("runaway trying to parse $+{func}() call at $cmakelists:$func_line")
+            unless scalar @buffer;
+          $line = join('', $line, shift @buffer);
+          ++$line_no;
+        };
+      if (${^MATCH}) {
+        my $call_info = { pre => ${^MATCH}, start_line => $func_line, %+ };
+        $line = ${^POSTMATCH} // '';
+        # Now we loop over multiple lines if necessary, separating
+        # arguments and end-of-line comments and storing them, until we
+        # find the closing parenthesis.
+        #
+        # Double-quoted arguments (even multi-line ones) are handled
+        # correctly. Note that the use of an extra "+" symbol following
+        # "+," "*," or "?" indicates a "greedy" clause to prevent
+        # backtracking (e.g. in the case of a dangling double-quote), so
+        # we don't match extra clauses inappropriately.
+        while ($line =~ s&^(?P<arg_group>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?P<comments>[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
+          push @{$call_info->{arg_lines}}, sprintf("%s%s", $+{arg_group} // '', $+{nl} // '');
+          push @{$call_info->{comments}}, $+{comments} // '' unless $line ne '';
+          last if $line =~ m&^\s*\)&;
+          error_exit("runaway trying to parse $call_info->{func} call at $cmakelists:$func_line")
+            unless scalar @buffer;
+          $line = join('', $line, shift @buffer);
+          ++$line_no;
         }
-        last if ($line =~ m&^\s*\)& or not scalar @buffer);
-        $line = join('', $line, shift @buffer);
-      }
-      error_exit("runaway trying to parse project() line in $cmakelists?")
-        unless $line =~ m&^\s*\)&;
-      $line = ''; # Clear for next loop, if there is one.
-      # Now separate multiple arguments on each line. We process the
-      # arguments in two passes like this for historical reasons and
-      # clarity.
-      my @all_args =
-        map { my $tmp = [];
-              pos() = undef;
-              my $endmatch = pos();
-              while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
-                last if ($endmatch // 0) == pos();
-                push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
-                $endmatch = pos();
-              }
-              error_exit("Leftovers: >", substr($_, $endmatch // 0), "<")
-                unless length() == ($endmatch // 0);
-              $tmp;
-            } @{$proj_info->{args}};
-      my $VERSION_next;
-    all_args: foreach my $arg_group (@all_args) {
-        foreach my $arg (@$arg_group) {
-          if (not
-              $arg =~ m&^(?P<q>"?+)(?P<v>.*?)\k{q}(?P<nl>[\n]++)?+$&s) {
-            error_exit("argh");
-          }
-          if ($VERSION_next) {
-            $version_info = { %+ };
-            last lines;
-          } elsif ($+{v} eq "VERSION") {
-            $VERSION_next = 1;
-            next;
-          }
+        $call_info->{end_line} = $line_no;
+        if ($line ne '') {
+          $call_info->{post} = $line;
+          $line = ''; # Clear for next loop, if there is one.
         }
-      }
-    } elsif ($line =~ m&^(\s*(?i:project)\s*(?:\(\s*)?)(?:#[^\n]*)?$&s) {
-      # Possibly the beginnings of a project call.
-      $line = ${1};
-    } else { # Not interesting.
-      $line = '';
-    } # Analysis of $line.
+        # Now separate multiple arguments on each line. We process the
+        # arguments in two passes like this to retain correspondence
+        # between arguments and comments on the same line.
+        my $current_line = $func_line + scalar split("\n", $call_info->{pre}) - 1;
+        $call_info->{arg_start_line} = $current_line if scalar @{$call_info->{arg_lines}};
+        $call_info->{arg_groups} =
+          [ map { my $tmp = [];
+                  pos() = undef;
+                  my $endmatch = pos();
+                  while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
+                    last if ($endmatch // 0) == pos();
+                    push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
+                    $endmatch = pos();
+                  }
+                  error_exit(sprintf("unexpected leftovers at $cmakelists:%s - > %s <",
+                                     $current_line,
+                                     substr($_, $endmatch // 0)))
+                    unless length() == ($endmatch // 0) or
+                      substr($_, $endmatch // 0) =~ m&^\s*$&;
+                  ++$current_line;
+                  $tmp;
+                } @{$call_info->{arg_lines}} ];
+        $call_info->{arg_end_line} = $current_line - 1
+          if $call_info->{arg_start_line};
+        if (my $func = $options{"$call_info->{func}_callback"}) {
+          %{$result} = (%{$result}, %{&$func($call_info)});
+        }
+      } else { # Not interesting.
+        $line = '';
+      } # Analysis of $line.
+    }
   } # Buffer entries.
   if ($line) {
-    error_exit("failure parsing $cmakelists for project() call: unparse-able text:\n$line\n");
-  } elsif (not $proj_info) {
-    error_exit("unable to find suitable CMake project() declaration in $cmakelists")
-  } elsif (not $options{quiet_warnings}) {
-    if (not exists $version_info->{v}) {
-      warning("no VERSION keyword found in project() call in $cmakelists");
-    } elsif (not $version_info->{v}) {
-      warning("vacuous VERSION keyword found in project() call in $cmakelists");
+    error_exit("unparse-able text at $cmakelists:$line_no -\n$line\n");
+  } elsif (not keys %{$result}) {
+    error_exit("unable to obtain useful information from $cmakelists");
+  }
+  return $result;
+}
+
+sub _get_info_from_project_call {
+  my $call_info = shift;
+  my $result = {};
+  my $version_next;
+  for my $arg_group (@{$call_info->{arg_groups}}) {
+    for my $arg (@$arg_group) {
+      unless (exists $result->{cmake_project_name}) {
+        $result->{cmake_project_name} = $arg;
+      }
+      if ($version_next) {
+        %$result = (%$result,
+                    cmake_project_version => $arg,
+                    version_info => parse_version_string($arg));
+        last;
+      } elsif ($arg eq 'VERSION') {
+        $version_next = 1;
+      }
     }
   }
-  return ($proj_info->{name} || undef, $version_info->{v} || undef);
+  return $result;
+}
+
+sub _set_seen_cet_cmake_env {
+  $parse_deps::seen_cet_cmake_env = 1;
+  return {};
+}
+
+sub _get_info_from_set_calls {
+  my $call_info = shift;
+  my $result = {};
+  return $result if $parse_deps::seen_cet_cmake_env;
+  my $var;
+  for my $arg_group (@{$call_info->{arg_groups}}) {
+    for my $arg (@$arg_group) {
+      if ($var) {
+        $result->{$var} = $arg;
+        undef $var;
+      } else {
+        ($var) = ($arg =~ m&_(CMAKE_PROJECT_VERSION_STRING)$&);
+      }
+    }
+  }
+  return $result;
+}
+
+sub get_cmake_project_info {
+  undef $parse_deps::seen_cet_cmake_env;
+  my ($pkgtop, %options) = @_;
+  my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
+  my $proj_info = process_cmakelists($cmakelists,
+                                     project_callback => \&_get_info_from_project_call,
+                                     set_callback => \&_get_info_from_set_calls,
+                                     cet_cmake_env_callback => \&_set_seen_cet_cmake_env);
+  if (not $proj_info or not scalar keys %{$proj_info}) {
+    error_exit("unable to obtain information from $cmakelists");
+  }
+  return $proj_info;
 }
 
 sub ups_to_cmake {
   my ($pi) = @_;
-  if ($pi->{cmake_project} and
-      $pi->{name} and
-      $pi->{cmake_project} ne
-      $pi->{name}) {
-    warning("UPS product name is $pi->{name}.",
-            "CMake project name is $pi->{cmake_project}.");
-    if ($pi->{cmake_project} =~ m&\$& ) {
-      warning("CMake variable names will be based on UPS product name ($pi->{name}).",
-              "Please verify project() for $pi->{name} manually.");
-      $pi->{cmake_project} = $pi->{name};
-    } else {
-      warning("CMake variable names will be based on CMake project name.");
-    }
-  }
 
   (not $pi->{cqual}) or
     (exists $cqual_table->{$pi->{cqual}} and
@@ -993,19 +1138,6 @@ sub ups_to_cmake {
      error_exit("unrecognized compiler qualifier $pi->{cqual}"));
 
   my @cmake_args=();
-
-  ##################
-  # Build system bootstrap.
-  if ($pi->{build_only_deps} and
-      scalar @{$pi->{build_only_deps}} and
-      grep { $_ eq 'cetbuildtools'; } @{$pi->{build_only_deps}}) {
-    push @cmake_args, @{cmake_cetb_compat_defs()};
-    $pi->{bootstrap_cetbuildtools} = 1
-  } elsif ($pi->{cmake_project} ne "cetmodules" and not
-           ($ENV{MRB_SOURCE} and
-            $ENV{CETPKG_SOURCE} eq $ENV{MRB_SOURCE})) {
-    $pi->{bootstrap_cetmodules} = 1
-  }
 
   ##################
   # UPS-specific CMake configuration.
@@ -1019,38 +1151,29 @@ sub ups_to_cmake {
             "-DUPS_Fortran_COMPILER_ID:STRING=$fc_id",
               "-DUPS_Fortran_COMPILER_VERSION:STRING=$fc_version"
                 if $compiler_id;
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_NAME:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{name}) if $pi->{name};
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_VERSION:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{version}) if $pi->{version};
-  push @cmake_args, sprintf('-D%s_UPS_QUALIFIER_STRING:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{qualspec}) if $pi->{qualspec};
-  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_NAME:STRING=%s',
-                            $pi->{name}, $pi->{cmake_project});
-  push @cmake_args, sprintf('-DUPS_%s_CMAKE_PROJECT_VERSION:STRING=%s',
-                            $pi->{name}, $pi->{cmake_project_version});
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_FLAVOR:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{flavor});
-  push @cmake_args, sprintf('-D%s_UPS_BUILD_ONLY_DEPENDENCIES=%s',
-                            $pi->{cmake_project},
+
+  my $pv_prefix = "CET_PV_$pi->{project_variable_prefix}";
+  push @cmake_args,
+    "-D${pv_prefix}_UPS_PRODUCT_NAME:STRING=$pi->{name}" if $pi->{name};
+  push @cmake_args, "-D${pv_prefix}_UPS_PRODUCT_VERSION:STRING=$pi->{version}"
+    if $pi->{version};
+  push @cmake_args, "-D${pv_prefix}_UPS_QUALIFIER_STRING:STRING=$pi->{qualspec}"
+    if $pi->{qualspec};
+  push @cmake_args, "-D${pv_prefix}_UPS_PRODUCT_FLAVOR:STRING=$pi->{flavor}";
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_BUILD_ONLY_DEPENDENCIES=%s",
                             join(';', @{$pi->{build_only_deps}}))
     if $pi->{build_only_deps};
-  push @cmake_args, sprintf('-D%s_UPS_USE_TIME_DEPENDENCIES=%s',
-                            $pi->{cmake_project},
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_USE_TIME_DEPENDENCIES=%s",
                             join(';', @{$pi->{use_time_deps}}))
     if $pi->{use_time_deps};
 
-  push @cmake_args, sprintf('-D%s_UPS_PRODUCT_CHAINS=%s',
-                            $pi->{cmake_project},
+  push @cmake_args, sprintf("-D${pv_prefix}_UPS_PRODUCT_CHAINS=%s",
                             join(';', (sort @{$pi->{chains}})))
     if $pi->{chains};
 
   ##################
   # General CMake configuration.
+  push @cmake_args, "-DCET_PV_PREFIX:STRING=$pi->{project_variable_prefix}";
   push @cmake_args, "-DCMAKE_BUILD_TYPE:STRING=$pi->{cmake_build_type}"
     if $pi->{cmake_build_type};
   push @cmake_args,
@@ -1061,17 +1184,13 @@ sub ups_to_cmake {
             "-DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON",
               "-DCMAKE_CXX_EXTENSIONS:BOOL=OFF"
                 if $compiler_id;
-  push @cmake_args, sprintf('-D%s_EXEC_PREFIX_INIT:STRING=%s',
-                            $pi->{cmake_project},
-                            $pi->{fq_dir}) if $pi->{fq_dir};
-  push @cmake_args, sprintf('-D%s_NOARCH:BOOL=ON',
-                            $pi->{cmake_project}) if $pi->{noarch};
-  push @cmake_args,
-    sprintf("-D$pi->{cmake_project}_DEFINE_PYTHONPATH_INIT:BOOL=ON")
-      if $pi->{define_pythonpath};
-  push @cmake_args,
-    sprintf("-D$pi->{cmake_project}_OLD_STYLE_CONFIG_VARS:BOOL=ON")
-      if $pi->{old_style_config_vars};
+  push @cmake_args, "-D${pv_prefix}_EXEC_PREFIX:STRING=$pi->{fq_dir}"
+    if $pi->{fq_dir};
+  push @cmake_args, "-D${pv_prefix}_NOARCH:BOOL=ON" if $pi->{noarch};
+  push @cmake_args, "-D${pv_prefix}_DEFINE_PYTHONPATH:BOOL=ON"
+    if $pi->{define_pythonpath};
+  push @cmake_args, "-D${pv_prefix}_OLD_STYLE_CONFIG_VARS:BOOL=ON"
+    if $pi->{old_style_config_vars};
 
   ##################
   # Pathspec-related CMake configuration.
@@ -1092,12 +1211,12 @@ sub ups_to_cmake {
     }
   }
   push @cmake_args,
-    sprintf('-D%s_ADD_ARCH_DIRS:STRING=%s',
-            $pi->{cmake_project}, join(';', @arch_pathspecs))
+    sprintf("-D${pv_prefix}_ADD_ARCH_DIRS:INTERNAL=%s",
+            join(';', @arch_pathspecs))
       if scalar @arch_pathspecs;
   push @cmake_args,
-    sprintf('-D%s_ADD_NOARCH_DIRS:STRING=%s',
-            $pi->{cmake_project}, join(';', @noarch_pathspecs))
+    sprintf("-D${pv_prefix}_ADD_NOARCH_DIRS:INTERNAL=%s",
+            join(';', @noarch_pathspecs))
       if scalar @noarch_pathspecs;
 
   ##################
@@ -1372,6 +1491,43 @@ sub cmake_cetb_compat_defs {
                  my $dirkey_ish = $_; $dirkey_ish =~ s&([^_])dir$&${1}_dir&;
                  "-DCETB_COMPAT_${dirkey_ish}:STRING=${var_stem}";
                } sort keys %$pathspec_info ];
+}
+
+# Adapted from
+# http://blogs.perl.org/users/laurent_r/2020/04/perl-weekly-challenge-57-tree-inversion-and-shortest-unique-prefix.html
+# to support minimum number of characters in substring, and to retain
+# original->prefix correspondence.
+use vars qw($prefix_min_length);
+$parse_deps::prefix_min_length = 6;
+sub shortest_unique_prefix {
+  my (@words) = @_;
+  my $result = {};
+  my %letters;
+  for my $word (@words) {
+    push @{$letters{substr $word, 0, 1}}, $word;
+  }
+  for my $letter (keys %letters) {
+    $result->{$letters{$letter}->[0]} =
+      substr($letters{$letter}->[0], 0, $parse_deps::prefix_min_length) and next
+        if @{$letters{$letter}} == 1;
+    my $candidate;
+    for my $word1 (@{$letters{$letter}}) {
+      my $prefix_length = 0;
+      for my $word2 (@{$letters{$letter}}) {
+        next if $word1 eq $word2;
+        my $i = 1;
+        while (substr($word1, $i, 1) eq substr($word2, $i, 1)) { ++$i; }
+        if ($i > $prefix_length) {
+          $candidate = substr($word1, 0,
+                              (($i + 1) > $parse_deps::prefix_min_length) ? $i + 1 :
+                              $parse_deps::prefix_min_length);
+          $prefix_length = $i;
+        }
+      }
+      $result->{$word1} = $candidate // $word1;
+    }
+  }
+  return $result;
 }
 
 1;

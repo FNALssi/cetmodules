@@ -66,7 +66,7 @@ function(install_perllib)
 endfunction( install_perllib )
 
 function(_cet_perl_plugin_version PLUGINVERSIONINFO_VAR)
-  cet_find_package(cetlib PRIVATE REQUIRED)
+  find_package(cetlib PRIVATE REQUIRED)
   if (cetlib_PLUGINVERSIONINFO_PM_IN)
     cet_localize_pv(cetlib PLUGINVERSIONINFO_PM_IN)
   elseif (cetlib_SOURCE_DIR) # Old cetlib via MRB.

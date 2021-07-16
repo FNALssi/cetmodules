@@ -195,6 +195,9 @@ get_derived_parent_data($pi, $sourcedir,
                         (scalar keys %$input_quals) ? keys %$input_quals : @default_quals,
                         $build_type || ());
 
+$pi->{project_variable_prefix} =
+  shortest_unique_prefix($pi->{project_variable_prefix})->{$pi->{project_variable_prefix}};
+
 # Check for compiler.
 my $compiler;
 $compiler = compiler_for_quals($qhash->{compiler}, $pi->{qualspec})

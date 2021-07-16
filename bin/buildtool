@@ -683,7 +683,7 @@ do_work() {
     [ -z "${c_postargs[*]}" ] || \
       error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
     cmd -d "execute CMake" \
-      cmake -DCMAKE_INSTALL_PREFIX="$install_prefix" \
+      cmake ${install_prefix:+-DCMAKE_INSTALL_PREFIX="$install_prefix"} \
       ${garg[*]:+"${garg[@]}"} \
       ${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"} \
       ${cmake_options[*]:+"${cmake_options[@]}"} \
@@ -811,28 +811,28 @@ timeout_i=30
 sleep_time=5
 # NFS locking using hard links, which are atomic (yes, even on NFS).
 lock_install() {
-  # Don't try to execute an install if there's one in progress for this
-  # install destination already.
+  # Don't try to execute an install or package operation if there's one
+  # in progress for this install destination already.
   local stat_cmd=(stat) timeout=$timeout_i
   if [[ "$OSTYPE" == *darwin* ]]; then
     stat_cmd+=(-f '%l')
   else
     stat_cmd+=(-c '%h')
   fi
-  lock_files=("$(mktemp -p "$install_prefix" -t .${prog:-buildtool}-install.XXXXXX.lock || fatal_error "unable to create lock file for installation in $install_prefix")")
+  lock_files=("$(mktemp ${install_prefix:+-p "${install_prefix}"} -t .${prog:-buildtool}-install.XXXXXX.lock || fatal_error "unable to create lock file for installation in $install_prefix")")
   trap "eval rm -f \${lock_files[*]:+\"\${lock_files[@]}\"}; unset lock_files" RETURN
   cat > "$lock_files" <<EOF
 $BASH_SOURCE
 $$
 EOF
-  local lock_link="$install_prefix/.${prog:-buildtool}-install-$CETPKG_NAME-$CETPKG_VERSION.lock"
+  local lock_link="${lock_files%/*}/.${prog:-buildtool}-install-$CETPKG_NAME-$CETPKG_VERSION.lock"
   local complained=0
   while ! { ln "$lock_files" "$lock_link" || \
     (( $("$stat_cmd[@]" "$lock_files") == 2 )); } 2>/dev/null; do
     IFS=$'\n' read -r -d '' -a locked_by <"$lock_link" >/dev/null 2>&1
     if ! (( complained )); then
       complained=1
-      info "installation of $CETPKG_NAME $CETPKG_VERSION currently locked by ${locked_by[0]##*/} (PID ${locked_by[1]:-<unknown>})..."
+      info "stage $stage of $CETPKG_NAME $CETPKG_VERSION currently locked by ${locked_by[0]##*/} (PID ${locked_by[1]:-<unknown>})..."
     fi
     (( timeout -= sleep_time ))
     if (( timeout > 0 )); then
@@ -1120,18 +1120,9 @@ fi
 ##################
 # Bootstrapping
 cmake_bootstrap_defs=()
-if (( CETPKG_BOOTSTRAP_CETBUILDTOOLS )); then
-  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
-elif (( CETPKG_BOOTSTRAP_CETMODULES )); then
-  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${CETPKG_CMAKE_PROJECT}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
-else
-  for pkg in ${CETPKG_BOOTSTRAP_CETBUILDTOOLS[*]:+"${CETPKG_BOOTSTRAP_CETBUILDTOOLS[@]}"}; do
-    cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetbuildtools.cmake")
-  done
-  for pkg in ${CETPKG_BOOTSTRAP_CETMODULES[*]:+"${CETPKG_BOOTSTRAP_CETMODULES[@]}"}; do
-    cmake_bootstrap_defs+=("-DCMAKE_PROJECT_${pkg}_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
-  done
-fi
+[ -n "$CETMODULES_DIR" ] && \
+  ! [ "${CETPKG_SOURCE}" = "${MRB_SOURCE}" ] && \
+  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
 ##################
 
 # If desired, print current build information and quit.
@@ -1207,14 +1198,17 @@ else # Check consistency.
   (( $? == 0 )) && \
     [ "$check_build_type" != "$CETPKG_CMAKE_BUILD_TYPE" ] && \
     fatal_error "build type has changed from $check_build_type to $CETPKG_TYPE: need clean build"
-  check_fq_dir="$(cmake_var ${CETPKG_CMAKE_PROJECT}_EXEC_PREFIX)"
-  (( $? == 0 )) && \
-    [ "$check_fq_dir" != "$CETPKG_FQ_DIR" ] && \
-    fatal_error "FQ_DIR has changed from $check_fq_dir to $CETPKG_FQ_DIR: need clean build"
-  check_qual="$(cmake_var ${CETPKG_CMAKE_PROJECT}_UPS_QUALIFIER_STRING)"
-  (( $? == 0 )) && \
-    [ "$check_qual" != "$CETPKG_QUALSPEC" ] && \
-    fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUALSPEC\": need clean build"
+  CETPKG_CMAKE_PROJECT_NAME=$(cmake_var "UPS_${CETPKG_NAME}_CMAKE_PROJECT_NAME")
+  if (( $? == 0 )); then
+    check_fq_dir="$(cmake_var ${CETPKG_CMAKE_PROJECT_NAME}_EXEC_PREFIX)"
+    (( $? == 0 )) && \
+      [ "$check_fq_dir" != "$CETPKG_FQ_DIR" ] && \
+      fatal_error "FQ_DIR has changed from $check_fq_dir to $CETPKG_FQ_DIR: need clean build"
+    check_qual="$(cmake_var ${CETPKG_CMAKE_PROJECT_NAME}_UPS_QUALIFIER_STRING)"
+    (( $? == 0 )) && \
+      [ "$check_qual" != "$CETPKG_QUALSPEC" ] && \
+      fatal_error "qualifier has changed from \"$check_qual\" to \"$CETPKG_QUALSPEC\": need clean build"
+  fi
 fi
 
 if (( clean_logs )); then

@@ -30,7 +30,7 @@ function(cet_generate_sphinxdocs)
     project_variable(SPHINX_DOC_FORMATS html
       DOCSTRING "Output formats in which Sphinx should generate documentation")
   endif()
-  cet_find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
+  find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
   list(TRANSFORM ARGV REPLACE "\\<NO_" "" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX
     "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$")

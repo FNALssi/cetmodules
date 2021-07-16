@@ -2,126 +2,209 @@
 X
 =
 #]================================================================]
+
+# find_package(<find_package-args>...
+#                  [PUBLIC|PRIVATE]
+#                  [REQUIRED_BY <components>...])
+#
+#   External dependencies specified using find_package() will be
+#   automatically collated and added to ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake as
+#   approriate (see OPTIONS).
+#
+# ################
+# OPTIONS
+#
+#   BUILD_ONLY
+#   PRIVATE
+#   INTERFACE
+#   PUBLIC
+#
+#     If PUBLIC or INTERFACE is specified (or we are maintaining
+#     compatibility with the older cetbduiltools), an appropriate
+#     find_dependency() call will be added to this package's
+#     Config.cmake file to ensure that the required package will be
+#     found when necessary for dependent packages; BUILD_ONLY or PRIVATE
+#     will not add such a call.
+#
+#   REQUIRED_BY <components>
+#
+#     If this dependency is not universally required by all the
+#     components your package provides, this option will ensure that it
+#     will only be loaded when a dependent package requests the relevant
+#     component(s).
+#
+# ################
+# NOTES
+#
+# * Minimize unwanted dependencies downstream by using PUBLIC or
+#   PRIVATE/BUILD_ONLY as necessary to match their use in cet_make(),
+#   cet_make_library(), cet_make_exec() and their CMake equivalents,
+#   add_library(), and add_executable().
+#
+# * find_package() will NOT invoke CMake directives with global
+#   effect such as include_directories(). Use target_link_libraries()
+#   instead with target (package::lib_name) rather than variable
+#   (PACKAGE_...) to ensure that all PUBLIC headers associated with a
+#   library will be found.
+#
+# * Works best when combined with appropriate use of PUBLIC, INTERFACE
+#   and PRIVATE (or BUILD_ONLY) with cet_make_library() - or
+#   alternatively, target_link_libraries() and
+#   target_include_directories() - minimizing unwanted transitive
+#   dependencies downstream.
+#
+# * Multiple distinct find_package() directives (perhaps with different
+#   requirement levels or component settings) will be propagated for
+#   execution in the order they were encountered. find_package() will
+#   minimize duplication of effort internally.
+#
+# * From the point of view of find_package(), INTERFACE AND PUBLIC
+#   are identical: a find_package() call will be executed either way in
+#   order to ensure that targets, etc., are known to CMake at the
+#   appropriate time.
+
+
 # Once only!
 include_guard(GLOBAL)
 
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
 
-set(_cet_find_package_version_supported 3.20)
-if ("${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}" VERSION_GREATER
-    _cet_find_package_version_supported)
-  message(WARNING "unsupported CMake version ${CMAKE_VERSION}.
-Contact cetmodules developers to request updated find_package() support")
-endif()
-
-include(Compatibility)
+include(compat/Compatibility)
 include(ParseVersionString)
+include(private/CetAddTransitiveDependency)
 
 include(CMakeFindDependencyMacro)
-set(_cet_find_package_flags REQUIRED QUIET EXACT)
-set(_cet_find_package_flag_vars REQUIRED QUIETLY VERSION_EXACT)
-
-set(_cet_find_package_flags CMAKE_FIND_ROOT_PATH_BOTH CONFIG EXACT QUIET
-  MODULE NO_CMAKE_BUILDS_PATH NO_CMAKE_FIND_ROOT_PATH
-  NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PACKAGE_REGISTRY NO_CMAKE_PATH
-  NO_CMAKE_SYSTEM_PACKAGE_REGISTRY NO_CMAKE_SYSTEM_PATH NO_DEFAULT_PATH
-  NO_PACKAGE_ROOT_PATH NO_MODULE NO_POLICY_SCOPE
-  NO_SYSTEM_ENVIRONMENT_PATH ONLY_CMAKE_FIND_ROOT_PATH REQUIRED)
-set(_cet_find_package_one_arg_opts)
-set(_cet_find_package_args COMPONENTS CONFIGS HINTS NAMES
-  OPTIONAL_COMPONENTS PATH_SUFFIXES PATHS)
 
 if (COMMAND _find_package)
   message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
 endif()
 
+option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
+
+execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
+  COMMAND sed -E -n -e "/(Basic Signature and Module Mode|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  OUTPUT_VARIABLE _cet_fp_keywords
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  COMMAND_ERROR_IS_FATAL ANY)
+string(REPLACE "\n" ";" _cet_fp_keywords ${_cet_fp_keywords})
+list(REMOVE_DUPLICATES _cet_fp_keywords)
+set(_cet_fp_new_flags BUILD_ONLY INTERFACE NOP PRIVATE PUBLIC)
+set(_cet_fp_new_options REQUIRED_BY)
+set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options})
+set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords})
+
 # Intercept calls to find_package() for IN_TREE packages and make them
 # do the right thing.
 macro(find_package PKG)
-  cmake_policy(PUSH)
-  cmake_minimum_required(VERSION 3.18.2...3.20)
-  # Must match accepted argument list of find_package() for latest
-  # supported version of CMake.
-  cmake_parse_arguments(_cet_fp
-    "${_cet_find_package_flags}"
-    "${_cet_find_package_one_arg_opts}"
-    "${_cet_find_package_args}"
-    ${ARGN})
-
-  if (${PKG}_IN_TREE)
+  # Due to the high likelihood that find_package() calls will be nested,
+  # we need to be extremely careful to reset variables to avoid
+  # hysteresis.
+  _cet_fp_reset_variables()
+  _cet_fp_parse_args(${ARGV})
+  math(EXPR _fp_finding_${PKG} "${_fp_finding_${PKG}} + 1")
+  if (_fp_finding_${PKG} EQUAL 1)
+    # Handle nested calls (e.g. FindXXXX.cmake -> XXXConfig.cmake...)
+    if ((CET_CETBUILDTOOLS_COMPAT OR _fp_INTERFACE OR _fp_PUBLIC) AND NOT
+        (_fp_BUILD_ONLY OR _fp_PRIVATE))
+      set(_fp_${PKG}_REQUIRED_BY ${_fp_REQUIRED_BY})
+      set(_fp_${PKG}_transitive_args ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS})
+    endif()
+  endif()
+  if (${PKG}_IN_TREE) # Package we need is being built with us.
     if (NOT CMAKE_DISABLE_FIND_PACKAGE_${PKG} OR
-          "${ARGN}" MATCHES "(^|;)REQUIRED(;|$)")
+        _fp_UNPARSED_ARGUMENTS MATCHES "(^|;)REQUIRED(;|$)")
       string(TOUPPER "${PKG}" _fp_PKG_UC)
       # May be modified by transitive dependency searches.
       set(${PKG}_FOUND TRUE)
       if (CETMODULES_TRANSITIVE_DEPS_PROJECT_${PKG})
-        if (_cet_fp_QUIET)
-          set(_cet_fp_QUIET QUIET)
-        endif()
-        if (_cet_fp_REQUIRED)
-          set(_cet_fp_REQUIRED REQUIRED)
-        endif()
         # Save the current value of CMAKE_FIND_PACKAGE_NAME.
-        set(_fp_CMAKE_FIND_PACKAGE_NAME ${CMAKE_FIND_PACKAGE_NAME})
+        set(_fp_CMAKE_FIND_PACKAGE_NAME_${PKG} ${CMAKE_FIND_PACKAGE_NAME})
+        # Update CMAKE_FIND_PACKAGE_NAME to keep the books straight for
+        # find_dependency().
         set(CMAKE_FIND_PACKAGE_NAME ${PKG})
-        if (NOT _fp_TRANSITIVE_DEPS_PROJECT_${PKG})
-          string(REPLACE "find_dependency" "_cet_find_dependency"
-            _fp_TRANSITIVE_DEPS_PROJECT_${PKG}
-            "${CETMODULES_TRANSITIVE_DEPS_PROJECT_${PKG}}")
-        endif()
-        foreach (_cet_dep IN LISTS _fp_TRANSITIVE_DEPS_PROJECT_${PKG})
-          cmake_language(EVAL CODE "${_fp_TRANSITIVE_DEPS_PROJECT_${PKG}}")
+        foreach (_cet_dep IN LISTS CETMODULES_TRANSITIVE_DEPS_PROJECT_${PKG})
+          cmake_language(EVAL CODE "${_cet_dep}")
           if (NOT ${PKG}_FOUND)
             break()
           endif()
         endforeach()
-        set(CMAKE_FIND_PACKAGE_NAME ${_fp_CMAKE_FIND_PACKAGE_NAME})
-        unset(_fp_TRANSITIVE_DEPS_PROJECT_${PKG})
+        # Restore CMAKE_FIND_PACKAGE_NAME.
+        set(CMAKE_FIND_PACKAGE_NAME ${_fp_CMAKE_FIND_PACKAGE_NAME_${PKG}})
       endif()
       if (CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG})
         list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
           PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path)
-        list(PREPEND CMAKE_MODULE_PATH "${_fp_module_path}")
+        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path})
         unset(_fp_module_path)
       endif()
     endif()
     set(${_fp_PKG_UC}_FOUND ${PKG}_FOUND)
     unset(_fp_PKG_UC)
   else()
-    _cet_check_find_package_needed(${PKG} _cet_find_package_needed)
+    _cet_fp_check_find_package_needed(${PKG} _cet_find_package_needed)
     if (_cet_find_package_needed)
-      _find_package(${ARGV})
+      # Global quiet setting.
+      if (CET_FIND_QUIETLY)
+        set(_fp_QUIET QUIET)
+      else()
+        set(_fp_QUIET)
+      endif()
+      # Underlying built-in find_package() call.
+      _find_package(${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS} ${_fp_QUIET})
+      if (DEFINED CACHE{${PKG}_DIR})
+        mark_as_advanced(${PKG}_DIR) # Generally don't need to configure this.
+      endif()
+      # Package-specific fixup if necessary.
       if (COMMAND _cet_${PKG}_post_find_package)
-        # Package-specific fixup if necessary.
         cmake_language(CALL _cet_${PKG}_post_find_package)
       endif()
+      # Cleanup.
     endif()
     unset(_cet_find_package_needed)
   endif()
-  cmake_policy(POP)
-endmacro()
-
-macro(_cet_find_dependency dep)
-  get_property(_cet_fd_alreadyTransitive GLOBAL PROPERTY
-    _CMAKE_${dep}_TRANSITIVE_DEPENDENCY)
-  find_package(${dep} ${ARGN} ${_cet_fp_QUIET} ${_cet_fp_REQUIRED})
-  if (NOT DEFINED _cet_fd_alreadyTransitive OR _cet_fd_alreadyTransitive)
-    set_property(GLOBAL PROPERTY _CMAKE_${dep}_TRANSITIVE_DEPENDENCY TRUE)
+  if (_fp_finding_${PKG} EQUAL 1)
+    # Determine whether we need to add ${PKG} as a transitive dependency
+    # of the package currently being built.
+    if (${PKG}_FOUND AND NOT
+        "${_fp_${PKG}_transitive_args}" STREQUAL "")
+      foreach (_fp_component IN LISTS _fp_${PKG}_REQUIRED_BY)
+        _cet_add_transitive_dependency(find_package
+          COMPONENT ${_fp_component} ${_fp_${PKG}_transitive_args})
+      endforeach()
+      _cet_add_transitive_dependency(find_package
+        ${_fp_${PKG}_transitive_args})
+    endif()
+    unset(_fp_${PKG}_REQUIRED_BY)
+    unset(_fp_${PKG}_transitive_args)
+    unset(_fp_finding_${PKG})
+  else()
+    math(EXPR _fp_finding_${PKG} "${_fp_finding_${PKG}} - 1")
   endif()
-  message(NOTIFY
-    "${CMAKE_FIND_PACKAGE_NAME} could not be found because dependency ${dep} could not be found.")
-  set(${CMAKE_FIND_PACKAGE_NAME}_FOUND FALSE)
+  unset(_fp_minver_${PKG})
+  unset(_fp_COMPONENTS)
+  unset(_fp_OPTIONAL_COMPONENTS)
+  unset(${PKG}_FIND_VERSION_MIN_EXTRA)
+  unset(${PKG}_FIND_VERSION_MAX_EXTRA)
 endmacro()
 
-function(_cet_check_find_package_needed PKG RESULT_VAR)
+macro(_cet_fp_reset_variables)
+  foreach (_fp_keyword IN LISTS _cet_fp_new_keywords
+      ITEMS COMPONENTS OPTIONAL_COMPONENTS UNPARSED_ARGUMENTS)
+    unset(_fp_${_fp_keyword})
+  endforeach()
+  unset(_fp_keyword)
+endmacro()
+
+function(_cet_fp_check_find_package_needed PKG RESULT_VAR)
   set(${RESULT_VAR} TRUE PARENT_SCOPE)
+  unset(${PKG}_FOUND CACHE) # So we will (e.g.) redefine targets if necessary.
   if (NOT ${PKG}_FOUND)
     return()
   endif()
   foreach (component IN LISTS
-      _cet_fp_COMPONENTS
-      _cet_fp_OPTIONAL_COMPONENTS
+      _fp_COMPONENTS
+      _fp_OPTIONAL_COMPONENTS
       ${PKG}_FIND_COMPONENTS)
     if (NOT ${PKG}_${component}_FOUND)
       return()
@@ -130,12 +213,107 @@ function(_cet_check_find_package_needed PKG RESULT_VAR)
   set(${RESULT_VAR} FALSE PARENT_SCOPE)
 endfunction()
 
+function(_cet_fp_parse_args PKG)
+  set(_fp_args "${ARGN}")
+  if ("${PKG}" STREQUAL "" OR "${_fp_args}" STREQUAL "")
+    return()
+  endif()
+  ####################################
+  # Make sure options and arguments not understood by CMake's
+  # find_package() are filtered out before it sees them. Also separate
+  # COMPONENTS and OPTIONAL_COMPONENTS, adding them back in later.
+  foreach(_fp_arg IN ITEMS REQUIRED_BY COMPONENTS OPTIONAL_COMPONENTS)
+    list(FIND _fp_args "${_fp_arg}" _fp_idx)
+    set(_fp_${_fp_arg})
+    if (_fp_idx GREATER -1)
+      list(REMOVE_AT _fp_args _fp_idx)
+      list(LENGTH _fp_args _fp_req_len)
+      while (_fp_idx LESS _fp_req_len)
+        list(GET _fp_args ${_fp_idx} _fp_req_item)
+        if (_fp_req_item IN_LIST _cet_fp_all_keywords)
+          break()
+        endif()
+        list(REMOVE_AT _fp_args ${_fp_idx})
+        list(APPEND _fp_${_fp_arg} "${_fp_req_item}")
+        math(EXPR _fp_req_len "${_fp_req_len} - 1")
+      endwhile()
+      list(SORT _fp_${_fp_arg})
+      set(_fp_${_fp_arg} ${_fp_${_fp_arg}} PARENT_SCOPE)
+    endif()
+  endforeach()
+  # Add these arguments back in for find_package() proper after sorting.
+  foreach (_fp_arg COMPONENTS OPTIONAL_COMPONENTS)
+    if (NOT "${_fp_${_fp_arg}}" STREQUAL "")
+      list(APPEND _fp_args ${_fp_arg} ${_fp_${_fp_arg}})
+    endif()
+  endforeach()
+  # Check flags
+  foreach (_fp_arg IN LISTS _cet_fp_new_flags)
+    list(FIND _fp_args "${_fp_arg}" _fp_idx)
+    if (_fp_idx GREATER -1)
+      set(_fp_${_fp_arg} TRUE PARENT_SCOPE)
+      list(REMOVE_AT _fp_args ${_fp_idx})
+    else()
+      unset(_fp_${_fp_arg} PARENT_SCOPE)
+    endif()
+  endforeach()
+  unset(_fp_idx)
+  unset(_fp_arg)
+  ####################################
+
+  ####################################
+  # Sanitize the minimum and/or maximum version specification(s) in case
+  # someone is using extended version semantics not supported by CMake.
+  if ("${_fp_args}" STREQUAL "")
+    set(_fp_first_arg)
+  else()
+    list(GET _fp_args 0 _fp_first_arg)
+  endif()
+  if ("${_fp_first_arg}" STREQUAL "" OR
+      _fp_first_arg IN_LIST _cet_fp_keywords)
+    unset(_fp_minver_${PKG} PARENT_SCOPE)
+  elseif (_fp_first_arg MATCHES "^[0-9.]+$")
+    # Standard case, or ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA were already set.
+    list(POP_FRONT _fp_args _fp_minver_${PKG})
+    set(_fp_minver_${PKG} ${_fp_minver_${PKG}} PARENT_SCOPE)
+  elseif (_fp_first_arg MATCHES "([.]{3}[^.]*){2,}")
+    # Unable to parse unambiguously.
+    message(FATAL_ERROR "cannot parse ambiguous extended version (range?) ${_fp_first_arg}—use 0 for numeric version placeholders.")
+  elseif (_fp_first_arg MATCHES "^(.*)([.]{3}(.+))?$") # Extended version semantics for MIN and/or MAX.
+    # PKG_FIND_VERSION_(MIN|MAX)_EXTRA might be set already.
+    string(JOIN "-" _fp_minver_${PKG} ${CMAKE_MATCH_1} ${${PKG_FIND_VERSION_MIN_EXTRA}})
+    string(JOIN "-" _fp_maxver_${PKG} ${CMAKE_MATCH_3} ${${PKG_FIND_VERSION_MAX_EXTRA}})
+    # Run everything through.
+    parse_version_string("${_fp_minver_${PKG}}" _fp_minver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MIN_EXTRA)
+    parse_version_string("${_fp_maxver_${PKG}}" _fp_maxver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MAX_EXTRA)
+    string(JOIN "..." _fp_minver_${PKG} "${_fp_minver_${PKG}}" ${_fp_maxver_${PKG}})
+    # Propagate relevant results upward.
+    set(_fp_minver_${PKG} "${_fp_minver_${PKG}}" PARENT_SCOPE)
+    set(${PKG}_FIND_VERSION_MIN_EXTRA ${${PKG}_FIND_VERSION_MIN_EXTRA} PARENT_SCOPE)
+    set(${PKG}_FIND_VERSION_MAX_EXTRA ${${PKG}_FIND_VERSION_MAX_EXTRA} PARENT_SCOPE)
+    # Some cleanup.
+    unset(_fp_maxver_${PKG})
+    list(REMOVE_AT _fp_args 0)
+  else()
+    # Should never get here.
+    message(FATAL_ERROR "internal error parsing find_package(${PKG} ${ARGV})")
+  endif()
+  ####################################
+
+  # Propagate remaining arguments upward to pass to find_package() proper.
+  set(_fp_UNPARSED_ARGUMENTS ${_fp_args} PARENT_SCOPE)
+
+  # More cleanup.
+  unset(_fp_args)
+  unset(_fp_first_arg)
+endfunction()
+
 macro(_cet_ROOT_post_find_package)
   # ROOT doesn't set ROOT_<component>_FOUND according to convention.
   foreach (component IN LISTS
       _cet_fp_COMPONENTS
       _cet_fp_OPTIONAL_COMPONENTS
-      ${PKG}_FIND_COMPONENTS)
+      ROOT_FIND_COMPONENTS)
     if (ROOT_${component}_LIBRARY AND TARGET ROOT::${component})
       set(ROOT_${component}_FOUND TRUE)
     endif()

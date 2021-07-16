@@ -1,0 +1,75 @@
+########################################################################
+# This version file is capable of comparing versions with a trailing
+# non-numeric component (cf
+# ${CMAKE_ROOT}/Modules/BasicConfigVersion-ExactVersion.cmake.in).
+#
+# We set PACKAGE_VERSION_EXACT if the current version and the requested
+# version compare equal, and PACKAGE_VERSION_COMPATIBLE if the current
+# version and the requested version compare equal ignoring tweaks and
+# suffixes.
+#
+# Per the corresponding BasicConfigVersion-ExactVersion.cmake.in,
+# pre-release versions (alpha, rc, etc.) are considered compatible with
+# post-release ones.
+########################################################################
+
+if (PACKAGE_FIND_VERSION_RANGE)
+  message(AUTHOR_WARNING
+    "`find_package()` specifies a version range but the version strategy "
+    "(ExactVersion) of the module `${PACKAGE_FIND_NAME}` is incompatible "
+    "with this request. Only the lower endpoint of the range will be used.")
+endif()
+
+set(PACKAGE_VERSION "@CVF_VERSION@")
+set(PACKAGE_VERSION_INFO "@CVF_VERSION_INFO@")
+
+if ((PACKAGE_VERSION VERSION_EQUAL 0 AND PACKAGE_VERSION MATCHES "[^0-9._-]") OR
+    (PACKAGE_FIND_VERSION VERSION_EQUAL 0 AND NOT "${${PACKAGE_FIND_NAME}_FIND_VERSION_MIN_EXTRA}" STREQUAL ""))
+  # Non-numeric versions are always compatible.
+  set(PACKAGE_VERSION_COMPATIBLE TRUE)
+else()
+  # Make sure we have access to a suitably recent version comparator.
+  set(_CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION "@CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION@")
+  if (NOT (cetmodules_FOUND OR cetmodules_IN_TREE OR PACKAGE_FIND_NAME STREQUAL "cetmodules"))
+    find_package(cetmodules ${_CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION} QUIET)
+  endif()
+  if (NOT (cetmodules_FOUND OR cetmodules_IN_TREE) OR
+      cetmodules_VERSION VERSION_LESS _CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION)
+    include(${CMAKE_CURRENT_LIST_DIR}/ParseVersionString.cmake)
+  elseif (NOT COMMAND cet_compare_versions)
+    include(ParseVersionString)
+  endif()
+  unset(_CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION)
+
+  if ("${PACKAGE_VERSION_INFO}" STREQUAL "")
+    # Parse this version into a list of components for re-use.
+    parse_version_string("${PACKAGE_VERSION}" PACKAGE_VERSION_INFO)
+  endif()
+
+  list(SUBLIST PACKAGE_VERSION_INFO_ 0 3 PACKAGE_VERSION_SHORT)
+  cet_compare_versions(PACKAGE_VERSION_COMPATIBLE PACKAGE_VERSION_SHORT VERSION_EQUAL PACKAGE_FIND_VERSION)
+  unset(PACKAGE_VERSION_SHORT)
+endif()
+if (PACKAGE_VERSION_COMPATIBLE)
+  string(JOIN "-" PACKAGE_FIND_VERSION_FULL ${PACKAGE_FIND_VERSION} ${${PACKAGE_FIND_NAME}_FIND_VERSION_MIN_EXTRA})
+  cet_compare_versions(PACKAGE_VERSION_EXACT PACKAGE_VERSION_INFO VERSION_EQUAL PACKAGE_FIND_VERSION_FULL)
+  unset(PACKAGE_FIND_VERSION_FULL)
+endif()
+
+# If the installed project requested no architecture check (or the
+# current or installation platform doesn't have CMAKE_SIZEOF_VOID_P set,
+# don't check.
+if ("@CVF_ARCH_INDEPENDENT@" OR
+    "${CMAKE_SIZEOF_VOID_P}" STREQUAL "" OR "@CMAKE_SIZEOF_VOID_P@" STREQUAL "")
+  return()
+endif()
+
+# Check that the installed version has the same 32/64bit-ness as the one
+# which is currently searching:
+if (NOT CMAKE_SIZEOF_VOID_P STREQUAL "@CMAKE_SIZEOF_VOID_P@")
+  math(EXPR _cet_installedBits "@CMAKE_SIZEOF_VOID_P@ * 8")
+  set(PACKAGE_VERSION "${PACKAGE_VERSION} (${_cet_installedBits}bit)")
+  set(PACKAGE_VERSION_UNSUITABLE TRUE)
+  unset(_cet_installedBits)
+endif()
+unset(PACKAGE_VERSION_INFO)

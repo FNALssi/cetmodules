@@ -220,7 +220,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     PRIVATE ${CME_LOCAL_INCLUDE_DIRS})
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
-    cet_find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
     if (TARGET Boost::unit_test_framework AND Boost_VERSION VERSION_GREATER_EQUAL 1.70.0)
       target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
       # Belt and braces (cf historical bug in fhiclcpp tests).
@@ -234,7 +234,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   endif()
   # Handle request for Catch2 main.
   if (CME_USE_CATCH2_MAIN)
-    cet_find_package(Catch2 PRIVATE QUIET REQUIRED)
+    find_package(Catch2 PRIVATE QUIET REQUIRED)
     if (NOT TARGET Catch2_main)
       cet_localize_pv(cetmodules CATCH2_MAIN)
       get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
@@ -281,7 +281,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
 endfunction()
 
 function(cet_script)
-  cmake_parse_arguments(PARSE_ARGV 0 CS "GENERATED;NO_EXPORT;NO_INSTALL;NOP;REMOVE_EXTENSIONS"
+  cmake_parse_arguments(PARSE_ARGV 0 CS "ALWAYS_COPY;GENERATED;NO_EXPORT;NO_INSTALL;NOP;REMOVE_EXTENSIONS"
     "DESTINATION;EXPORT_SET" "DEPENDENCIES")
   if (CS_GENERATED)
     warn_deprecated("cet_script(GENERATED)"
@@ -303,8 +303,12 @@ function(cet_script)
       if (NOT EXISTS "${script_source}")
         message(FATAL_ERROR "${script} is not accessible: correct location or set GENERATED source property")
       endif()
-      execute_process(COMMAND test -x "${script_source}"
-        OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE need_copy)
+      if (CS_ALWAYS_COPY)
+        set(need_copy TRUE)
+      else()
+        execute_process(COMMAND test -x "${script_source}"
+          OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE need_copy)
+      endif()
     endif()
     if (CS_REMOVE_EXTENSIONS)
       get_filename_component(target "${script_source}" NAME_WE)
@@ -314,7 +318,9 @@ function(cet_script)
     endif()
     cet_register_export_set(SET_NAME ${CS_EXPORT_SET} SET_VAR CS_EXPORT_SET NAMESPACE_VAR ns)
     if (need_copy)
-      message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
+      if (NOT CS_ALWAYS_COPY)
+        message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
+      endif()
       cet_copy("${script_source}" PROGRAMS
         NAME ${target} NAME_AS_TARGET
         DEPENDENCIES ${CS_DEPENDENCIES}

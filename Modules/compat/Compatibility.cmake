@@ -16,7 +16,6 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetCMakeUtils)
 include(CetRegexEscape)
-include(ParseVersionString)
 
 set(CET_WARN_DEPRECATED TRUE)
 
@@ -30,63 +29,6 @@ function(warn_deprecated OLD)
   endif()
   message(DEPRECATION "${OLD} is deprecated in cetmodules 2.10+"
     ${msg} ${WD_UNPARSED_ARGUMENTS})
-endfunction()
-
-function(cet_have_qual QUAL)
-  warn_deprecated("cet_have_qual()" NEW "option() or CMake Cache variables")
-  cmake_parse_arguments(PARSE_ARGV 1 CHQ "REGEX" "" "")
-  list(POP_FRONT CHQ_UNPARSED_ARGUMENTS OUT_VAR)
-  if (NOT OUT_VAR)
-    set(OUT_VAR CET_HAVE_QUAL)
-  endif()
-  if (NOT CHQ_REGEX)
-    cet_regex_escape("${QUAL}" QUAL)
-  endif()
-  if (${CETMODULES_CURRENT_PROJECT_NAME}_QUALIFIER_STRING MATCHES "(^|:)${QUAL}(:|$)")
-    set(${OUT_VAR} TRUE PARENT_SCOPE)
-  else ()
-    set(${OUT_VAR} FALSE PARENT_SCOPE)
-  endif()
-endfunction()
-
-function(cet_parse_args PREFIX ARGS FLAGS)
-  warn_deprecated("cet_parse_args()" NEW "cmake_parse_arguments()")
-  cmake_parse_arguments(PARSE_ARGV 3 "${PREFIX}" "${FLAGS}" "" "${ARGS}")
-  get_property(vars DIRECTORY PROPERTY VARIABLES)
-  list(FILTER vars INCLUDE REGEX "^${PREFIX}_")
-  foreach (var IN LISTS vars)
-    set(${var} "${${var}}" PARENT_SCOPE)
-  endforeach()
-  if (${PREFIX}_UNPARSED_ARGUMENTS)
-    set(${PREFIX}_DEFAULT_ARGS "${PREFIX}_UNPARSED_ARGUMENTS}" PARENT_SCOPE)
-    unset(${PREFIX}_UNPARSED_ARGUMENTS PARENT_SCOPE)
-  endif()
-endfunction()
-
-function(set_version_from_ups UPS_VERSION)
-  warn_deprecated("set_version_from_ups()" NEW "project(<project-name> VERSION <dot-version>)")
-  if (PROJECT_VERSION)
-    message(WARNING "specified version ${UPS_VERSION} ignored in favor of CMake-configured ${PROJECT_VERSION}")
-  elseif (PROJECT_NAME)
-    to_dot_version(${UPS_VERSION} dot_version)
-    project(${PROJECT_NAME} VERSION ${dot_version}
-      DESCRIPTION ${PROJECT_DESCRIPTION}
-      HOMEPAGE_URL ${PROJECT_HOMEPAGE_URL})
-  else()
-    message(SEND_ERROR "no current project() call to update")
-  endif()
-endfunction()
-
-function(set_dot_version PRODUCTNAME UPS_VERSION)
-  warn_deprecated("set_dot_version()" " - refer to \${PROJECT_NAME}_VERSION instead")
-  string(TOUPPER ${PRODUCTNAME} PRODUCTNAME_UC)
-  to_dot_version(${UPS_VERSION} tmp)
-  # Remove FNAL-specific version trailer.
-  string(REGEX REPLACE [=[[a-z]+[0-9]*$]=] "" tmp "${tmp}")
-  if (${PRODUCTNAME_UC}_DOT_VERSION)
-    message(WARNING "replacing existing value of ${PRODUCTNAME_UC}_DOT_VERSION (${${PRODUCTNAME_UC}_DOT_VERSION}) with ${tmp}")
-  endif()
-  set(${PRODUCTNAME_UC}_DOT_VERSION ${tmp} PARENT_SCOPE)
 endfunction()
 
 foreach (_cet_stem IN ITEMS inc lib build)
@@ -153,43 +95,9 @@ function(cet_process_did)
   cet_checkpoint_did()
 endfunction()
 
-function(check_ups_version PRODUCT VERSION MINIMUM)
-  warn_deprecated("check_ups_version()" NEW "if (X VERSION_cmp Y)...")
-  cmake_parse_arguments(PARSE_ARGV 3 CUV "" "PRODUCT_OLDER_VAR;PRODUCT_MATCHES_VAR" "")
-  if (NOT (CUV_PRODUCT_OLDER_VAR OR CUV_PRODUCT_MATCHES_VAR))
-    message(FATAL_ERROR "at least one of PRODUCT_OLDER_VAR and PRODUCT_MATCHES_VAR is required")
-  endif()
-  to_dot_version(${VERSION} pv)
-  to_dot_version(${MINIMUM} mv)
-  if (mv VERSION_GREATER pv)
-    if (CUV_PRODUCT_OLDER_VAR)
-      set(${CUV_PRODUCT_OLDER_VAR} TRUE PARENT_SCOPE)
-    endif()
-    if (CUV_PRODUCT_MATCHES_VAR)
-      set(${CUV_PRODUCT_MATCHES_VAR} FALSE PARENT_SCOPE)
-    endif()
-  else()
-    if (CUV_PRODUCT_MATCHES_VAR)
-      set(${CUV_PRODUCT_MATCHES_VAR} TRUE PARENT_SCOPE)
-    endif()
-    if (CUV_PRODUCT_OLDER_VAR)
-      set(${CUV_PRODUCT_OLDER_VAR} FALSE PARENT_SCOPE)
-    endif()
-  endif()
-endfunction()
-
-function(to_ups_version UPS_VERSION VAR)
-  parse_version_string("${UPS_VERSION}" SEP _ tmp)
-  set(${VAR} "v${tmp}" PARENT_SCOPE)
-endfunction()
-
-function(add_to_library_list)
-  warn_deprecated("add_to_library_version()" " - remove call.")
-endfunction()
-
 function(cet_lib_alias LIB_TARGET)
   warn_deprecated(cet_lib_alias NEW "namespaced target nomenclature for linking to ${LIB_TARGET}")
-  foreach(alias IN LISTS ARGN)
+  foreach (alias IN LISTS ARGN)
     add_custom_command(TARGET ${LIB_TARGET} POST_BUILD
       COMMAND ln -sf $<TARGET_LINKER_FILE_NAME:${LIB_TARGET}>
       $<TARGET_PROPERTY:${LIB_TARGET},LIBRARY_OUTPUT_DIRECTORY>/${CMAKE_SHARED_LIBRARY_PREFIX}${alias}${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -200,7 +108,7 @@ endfunction()
 
 function(cet_find_library VAR)
   warn_deprecated(cet_find_library
-    "\nNOTE: prefer cet_find_package() with a custom Findxxx.cmake \
+    "\nNOTE: prefer find_package() with a custom Findxxx.cmake \
 from CMake (see ${CMAKE_ROOT}/Modules or \
 https://cmake.org/cmake/help/v${CMAKE_MAJOR_VERSION}.\
 ${CMAKE_MINOR_VERSION}/manual/cmake-modules.7.html#find-modules) or \
@@ -211,11 +119,6 @@ from cetmodules (see ${CMAKE_CURRENT_FUNCTION_DIR}{,/compat}/Find*.cmake)\
     _cet_add_transitive_dependency(cet_find_library "${ARGV}")
   endif()
 endfunction(cet_find_library)
-
-macro(parse_ups_version UPS_VERSION)
-  warn_deprecated("parse_ups_version()" NEW "parse_version_string(${UPS_VERSION} VMAJ VMIN VPRJ VPT)")
-  parse_version_string(${UPS_VERSION} VMAJ VMIN VPRJ VPT)
-endmacro()
 
 macro(set_install_root)
   warn_deprecated("set_install_root()" " and should be removed as redundant")
@@ -254,7 +157,7 @@ function(_parse_fup_arguments _FUP_PRODUCT)
   list(APPEND _FUP_-- ${_FUP_REQUIRED} ${_FUP_INTERFACE} ${_FUP_PRIVATE} ${_FUP_PUBLIC})
   if (_FUP_UNPARSED_ARGUMENTS AND "${_FUP_UNPARSED_ARGUMENTS}" MATCHES "^v[^ \t\n]+")
     list(POP_FRONT _FUP_UNPARSED_ARGUMENTS _FUP_VERSION)
-    to_dot_version(${_FUP_VERSION} _FUP_DOT_VERSION)
+    to_cmake_version(${_FUP_VERSION} _FUP_DOT_VERSION)
     to_ups_version(${_FUP_VERSION} _FUP_UPS_VERSION)
   endif()
   if (_FUP_--)
@@ -269,7 +172,7 @@ function(_parse_fup_arguments _FUP_PRODUCT)
         DEFINED ENV{${_FUP_PRODUCT_UC}_DIR}))
     if (_FUP_OPTIONAL)
       # If WANT_UPS is set, we don't want to accidentally pick up a
-      # non-UPS version, but we will want to call cet_find_package
+      # non-UPS version, but we will want to call find_package
       # anyway to make sure e.g. ${_FUP_PRODUCT}_FOUND is set and
       # other variables are cleared.
       set(_FUP_DISABLED)
