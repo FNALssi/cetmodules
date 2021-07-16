@@ -157,9 +157,6 @@ macro(cet_cmake_env)
     "Define configuration variables and accommodate (anti-)patterns \
 used by CMake code ported from cetbuildtools")
 
-  # If this project is expecting to use cetbuildtools.
-  _cetbuildtools_compatibility_early()
-
   ####################################
   # Enable projects to specify an extended version with a non-numeric
   # trailing component (e.g. -rc1, or -alpha, or -p03), and deal with it
@@ -172,6 +169,33 @@ component(M[.m[.p[.t]]][-X])\
 
   # Ensure we have version settings.
   _cet_handle_extended_version()
+
+  # Early indicators that we're dealing with UPS in some way:
+  project_variable(UPS_BUILD_ONLY_DEPENDENCIES TYPE STRING DOCSTRING
+    "UPS products required only at build time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+  project_variable(UPS_USE_TIME_DEPENDENCIES TYPE STRING DOCSTRING
+    "UPS products required at use-time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR
+      _cetbuildtools_FOUND OR
+      "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
+    set(_cet_need_cetbuildtools_compat TRUE)
+  else()
+    unset(_cet_need_cetbuildtools_compat)
+  endif()
+
+  # If we're dealing with UPS.
+  if (WANT_UPS OR _cet_need_cetbuildtools_compat)
+    # Incorporate configuration information from product_deps.
+    include(compat/Ups)
+    _ups_init()
+  else()
+    # Define a fallback macro in case of layer 8 issues.
+    macro(process_ups_files)
+      message(FATAL_ERROR
+        "Set the CMake variable WANT_UPS prior to including CetCMakeEnv.cmake to activate UPS table file and tarball generation.")
+    endmacro()
+  endif()
 
   if ("${PROJECT_VERSION_EXTRA}" STREQUAL "")
     set(_cce_ext_v_def FALSE)
@@ -245,37 +269,9 @@ recognized version formats\
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Architecture-independent data directory")
 
-  # If we're dealing with UPS.
-  if (WANT_UPS)
-    # Incorporate configuration information from product_deps.
-    include(compat/Ups)
-    _ups_init()
-    if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR
-        NOT DEFINED CACHE{CETMODULES_CMAKE_INSTALL_PREFIX_ORIG})
-      set(CETMODULES_CMAKE_INSTALL_PREFIX_ORIG "${CMAKE_INSTALL_PREFIX}"
-        CACHE INTERNAL "Original value of CMAKE_INSTALL_PREFIX")
-    else()
-      set(CMAKE_INSTALL_PREFIX "${CETMODULES_CMAKE_INSTALL_PREFIX_ORIG}")
-    endif()
-    # Tweak the value of CMAKE_INSTALL_PREFIX used by the project's
-    # cmake_install.cmake files per UPS conventions.
-    install(CODE "\
-# Tweak the value of CMAKE_INSTALL_PREFIX used by the project's
-  # cmake_install.cmake files per UPS conventions.
-  string(APPEND CMAKE_INSTALL_PREFIX \"/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_SUBDIR}\")\
-")
-    if (NOT "${product}" STREQUAL "")
-      # Install a delayed installation of a delayed function call to fix
-      # legacy installations.
-      cmake_language(DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL
-        cmake_language DEFER DIRECTORY "${PROJECT_SOURCE_DIR}" CALL _restore_install_prefix)
-    endif()
-  else()
-    # Define a fallback macro in case of layer 8 issues.
-    macro(process_ups_files)
-      message(FATAL_ERROR
-        "Set the CMake variable WANT_UPS prior to including CetCMakeEnv.cmake to activate UPS table file and tarball generation.")
-    endmacro()
+  if (_cet_need_cetbuildtools_compat)
+    _cetbuildtools_compatibility()
+    unset(_cet_need_cetbuildtools_compat)
   endif()
 
   # Useful includes.
@@ -304,8 +300,6 @@ recognized version formats\
   include(compat/FindUpsGeant4)
   include(compat/FindUpsRoot)
   include(compat/ParseUpsVersion)
-
-  _cetbuildtools_compatibility_late()
 
   ##################
   # Default locations for libraries and executables.
@@ -351,102 +345,60 @@ function(_clean_internal_cache_entries)
   endforeach()
 endfunction()
 
-macro(_cetbuildtools_compatibility_early)
-  if (${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR
-      "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
+macro(_cetbuildtools_compatibility)
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME)
+    set(product "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
+  else()
     if (COMMAND mrb_check_subdir_order) # Using mrb.
       set(_cce_action "re-run mrbsetenv")
     else()
       set(_cce_action "re-source setup_for_development")
     endif()
-    if (${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME)
-      set(product "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
-    else()
-      message(FATAL_ERROR "\
+    message(FATAL_ERROR "\
 Using cetbuildtools compatibility but cannot find UPS product name from \
 ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME - ${_cce_action}\
 ")
-    endif()
-    set(version "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}")
-    set(UPSFLAVOR "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
-    set(flavorqual "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}")
-    set(full_qualifier "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING}")
-    string(REPLACE ":" ";" qualifier "${full_qualifier}")
-    list(REMOVE_ITEM qualifier debug opt prof)
-    string(REPLACE ";" ":" qualifier "${qualifier}")
-    set(${product}_full_qualifier "${full_qualifier}")
-    set(flavorqual_dir "${product}/${version}/${flavorqual}")
-    unset(_cce_action)
   endif()
+  set(version "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}")
+  set(UPSFLAVOR "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_FLAVOR}")
+  set(flavorqual "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}")
+  set(full_qualifier "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_QUALIFIER_STRING}")
+  string(REPLACE ":" ";" qualifier "${full_qualifier}")
+  list(REMOVE_ITEM qualifier debug opt prof)
+  string(REPLACE ";" ":" qualifier "${qualifier}")
+  set(${product}_full_qualifier "${full_qualifier}")
+  set(flavorqual_dir "${product}/${version}/${flavorqual}")
+  unset(_cce_action)
+  _cet_translate_cetb_variables()
 endmacro()
 
-function(_cetbuildtools_compatibility_late)
-  if (NOT "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
-    return()
-  endif()
+function(_cet_translate_cetb_variables)
   get_property(cetb_translate_vars DIRECTORY PROPERTY CACHE_VARIABLES)
   list(FILTER cetb_translate_vars INCLUDE REGEX "^CETB_COMPAT_")
   if (cetb_translate_vars)
     mark_as_advanced(${cetb_translate_vars})
+    list(TRANSFORM cetb_translate_vars REPLACE "^CETB_COMPAT_(.*)$" "\\1"
+      OUTPUT_VARIABLE cetb_var_stems)
+    foreach (var_stem translate_var IN ZIP_LISTS
+        cetb_var_stems cetb_translate_vars)
+      if (${translate_var} IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+        set(val "${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
+      else() # Too early: need placeholder.
+        set(val "\${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
+      endif()
+      set(${product}_${var_stem} "${val}" CACHE INTERNAL
+        "Compatibility variable for packages expecting cetbuildtools")
+    endforeach()
   endif()
-  list(TRANSFORM cetb_translate_vars REPLACE "^CETB_COMPAT_(.*)$" "\\1"
-    OUTPUT_VARIABLE cetb_var_stems)
-  foreach (var_stem translate_var IN ZIP_LISTS
-      cetb_var_stems cetb_translate_vars)
-    if (${translate_var} IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-      set(val "${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
-    else() # Too early: need placeholder.
-      set(val "\${${CETMODULES_CURRENT_PROJECT_NAME}_${${translate_var}}}")
-    endif()
-    set(${product}_${var_stem} "${val}" CACHE INTERNAL
-      "Compatibility variable for packages expecting cetbuildtools")
-  endforeach()
 endfunction()
 
 function(_use_maybe_unused)
   get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  list(FILTER cache_vars INCLUDE REGEX "(^CET_PV_|^${CMAKE_CURRENT_PROJECT_VARIABLE_PREFIX}_|_INIT$)")
+  list(FILTER cache_vars INCLUDE REGEX "(^CET_PV_|^${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_|_INIT$)")
   foreach (var IN LISTS cache_vars ITEMS CMAKE_WARN_DEPRECATED)
     if (${var})
     endif()
   endforeach()
-endfunction()
-
-function(_restore_install_prefix)
-  message(VERBOSE "Executing delayed install(CODE...)")
-  # With older CMakeLists.txt files, deal with low level install()
-  # invocations with an extra "${project}/${version}"
-  install(CODE "\
-# Detect misplaced installs from older, cetbuildtools-using packages.
-  if (IS_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\")
-    message(VERBOSE \"tidying legacy installations: relocate ${product}/${version}/*\")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar c \"../../${product}_${version}-tmpinstall.tar\" .
-                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\"
-                    COMMAND_ERROR_IS_FATAL ANY)
-    file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}/${product}/${version}\")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xv \"${product}_${version}-tmpinstall.tar\"
-                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
-                    OUTPUT_VARIABLE _cet_install_${product}_legacy
-                    OUTPUT_STRIP_TRAILING_WHITESPACE
-                    COMMAND_ERROR_IS_FATAL ANY)
-    message(VERBOSE \"\${_cet_install_${product}_legacy}\")
-    unset(_cet_install_${product}_legacy)
-    file(REMOVE \"\${CMAKE_INSTALL_PREFIX}/${product}_${version}-tmpinstall.tar\")
-  endif()
-
-  # We need to reset CMAKE_INSTALL_PREFIX to its original value at this
-  # time.
-  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)
-  get_filename_component(CMAKE_INSTALL_PREFIX \"\${CMAKE_INSTALL_PREFIX}\" DIRECTORY)\
-")
-  cet_regex_escape("/${product}/${version}" e_pv 1)
-  # Fix the install manifest at the top level.
-  cmake_language(EVAL CODE "\
-cmake_language(DEFER DIRECTORY \"${CMAKE_SOURCE_DIR}\" CALL
-  install CODE \"\
-list(TRANSFORM CMAKE_INSTALL_MANIFEST_FILES REPLACE \\\"${e_pv}${e_pv}\\\" \\\"/${product}/${version}\\\")\
-\")\
-")
 endfunction()
 
 cmake_policy(POP)
