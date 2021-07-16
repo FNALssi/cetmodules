@@ -42,25 +42,25 @@ X
 #      discarded.
 #
 ####################################
-# to_cmake_version(<version> <var>)
+# to_cmake_version(<version> <var>...)
 #
 #   to_cmake_version() is provided as a convenience, equivalent to:
 #
-#     parse_version_string(<version> SEP . NO_EXTRA)
+#     parse_version_string(<version> SEP . NO_EXTRA...)
 #
 ####################################
-# to_dot_version(<version> <var>)
+# to_dot_version(<version> <var>...)
 #
 #   to_dot_version() is provided as a convenience, equivalent to:
 #
-#     parse_version_string(<version> SEP . <var>)
+#     parse_version_string(<version> SEP . <var>...)
 #
 ####################################
-# to_version_string(<version> <var>)
+# to_version_string(<version> <var>...)
 #
 #   to_version_string() is provided as a convenience, equivalent to:
 #
-#     parse_version_string(<version> SEP . EXTRA_SEP - <var>)
+#     parse_version_string(<version> SEP . EXTRA_SEP - <var>...)
 #
 ####################################
 # cet_compare_versions(<result-var> <version> <pred> <ref-version>)
@@ -167,7 +167,9 @@ function (parse_version_string _PVS_VERSION)
   if (_pvs_sz GREATER 1) # We have a pre-parsed list.
     if (_pvs_sz GREATER 4) # We have a trailing non-numeric version component.
       list(GET _PVS_VERSION 4 _pvs_extra)
-      list(SUBLIST _PVS_VERSION 5 -1 _pvs_extra_bits)
+      if (_pvs_sz GREATER 5)
+        list(SUBLIST _PVS_VERSION 5 -1 _pvs_extra_bits)
+      endif()
     endif()
     list(SUBLIST _PVS_VERSION 0 4 _pvs_tmp_bits)
   elseif (NOT "${_PVS_VERSION}" STREQUAL "")
@@ -224,14 +226,22 @@ function (parse_version_string _PVS_VERSION)
   endif()
   if (PVS_SEP)
     # Generating a string.
-    list(JOIN _pvs_tmp_bits "${PVS_SEP}" _pvs_tmp_string)
-    if (NOT _pvs_extra STREQUAL "" AND NOT PVS_NO_EXTRA)
-      string(APPEND _pvs_tmp_string "${PVS_EXTRA_SEP}${_pvs_extra}")
+    string(JOIN "${PVS_SEP}" _pvs_tmp_string ${_pvs_tmp_bits})
+    if (NOT PVS_NO_EXTRA)
+      if (NOT ("${_pvs_tmp_string}" STREQUAL "" OR
+            "${PVS_EXTRA_SEP}" STREQUAL "" OR
+            "${_pvs_extra}" STREQUAL ""))
+        string(APPEND _pvs_tmp_string "${PVS_EXTRA_SEP}")
+      endif()
+      string(APPEND _pvs_tmp_string ${_pvs_extra})
     endif()
     if (NOT "${PVS_EXTRA_VAR}" STREQUAL "")
-      set(${PVS_EXTRA_VAR} "${_pvs_extra}" PARENT_SCOPE)
+      set(${PVS_EXTRA_VAR} ${_pvs_extra} PARENT_SCOPE)
     endif()
-    set(${_PVS_VAR} "${PVS_PREAMBLE}${_pvs_tmp_string}" PARENT_SCOPE)
+    if (NOT "${_pvs_tmp_string}" STREQUAL "")
+      string(PREPEND _pvs_tmp_string ${_PVS_PREAMBLE})
+    endif()
+    set(${_PVS_VAR} ${_pvs_tmp_string} PARENT_SCOPE)
   else()
     if (DEFINED _pvs_extra)
       # Make sure the bits array is padded appropriately.
@@ -263,15 +273,15 @@ function (parse_version_string _PVS_VERSION)
 endfunction()
 
 macro(to_cmake_version _TCV_VERSION _TCV_VAR)
-  parse_version_string(${_TCV_VERSION} SEP . NO_EXTRA ${_TCV_VAR})
+  parse_version_string("${_TCV_VERSION}" SEP . NO_EXTRA ${_TCV_VAR} ${ARGN})
 endmacro()
 
 macro(to_dot_version _TDV_VERSION _TDV_VAR)
-  parse_version_string(${_TDV_VERSION} SEP . ${_TDV_VAR})
+  parse_version_string("${_TDV_VERSION}" SEP . ${_TDV_VAR} ${ARGN})
 endmacro()
 
 macro(to_version_string _TDV_VERSION _TDV_VAR)
-  parse_version_string(${_TDV_VERSION} SEP . EXTRA_SEP - ${_TDV_VAR})
+  parse_version_string("${_TDV_VERSION}" SEP . EXTRA_SEP - ${_TDV_VAR} ${ARGN})
 endmacro()
 
 function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
@@ -339,89 +349,100 @@ function(_cet_parse_version_extra)
 endfunction()
 
 function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
-  parse_version_string(${_CVC_VERSION} _CVC_VERSION_MAJOR _CVC_VERSION_MINOR _CVC_VERSION_PATCH _CVC_VERSION_TWEAK
-    _CVC_VERSION_EXTRA _CVC_VERSION_EXTRA_TYPE _CVC_VERSION_EXTRA_TEXT _CVC_VERSION_EXTRA_NUM)
-  parse_version_string(${_CVC_REF} _CVC_REF_MAJOR _CVC_REF_MINOR _CVC_REF_PATCH _CVC_REF_TWEAK
-    _CVC_REF_EXTRA _CVC_REF_EXTRA_TYPE _CVC_REF_EXTRA_TEXT _CVC_REF_EXTRA_NUM)
+  parse_version_string("${_CVC_VERSION}" _cvc_version_info)
+  parse_version_string("${_CVC_REF}" _cvc_ref_info)
   set(_cvc_result 0)
-  if (NOT (_CVC_VERSION_EXTRA_TYPE GREATER 100 OR _CVC_REF_EXTRA_TYPE GREATER 100))
-    if ("${_CVC_VERSION_MAJOR}.${_CVC_VERSION_MINOR}.${_CVC_VERSION_PATCH}.${_CVC_VERSION_TWEAK}"
-        VERSION_LESS "${_CVC_REF_MAJOR}.${_CVC_REF_MINOR}.${_CVC_REF_PATCH}.${_CVC_REF_TWEAK}")
+  to_cmake_version(_cvc_version_info _cvc_version_short EXTRA_VAR _cvc_version_extra)
+  to_cmake_version(_cvc_ref_info _cvc_ref_short EXTRA_VAR _cvc_ref_extra)
+  if (NOT ("${_cvc_version_short}" STREQUAL "" OR
+        "${_cvc_ref_short}" STREQUAL ""))
+    if (_cvc_version_short VERSION_LESS _cvc_ref_short)
       set(_cvc_result -1)
-    elseif ("${_CVC_REF_MAJOR}.${_CVC_REF_MINOR}.${_CVC_REF_PATCH}.${_CVC_REF_TWEAK}" VERSION_LESS
-        "${_CVC_VERSION_MAJOR}.${_CVC_VERSION_MINOR}.${_CVC_VERSION_PATCH}.${_CVC_VERSION_TWEAK}")
+    elseif (_cvc_ref_short VERSION_LESS _cvc_version_short)
       set(_cvc_result 1)
     endif()
   endif()
   if (NOT _cvc_result)
+    parse_version_string(_cvc_version_info
+      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
+      _cvc_version_extra_type _cvc_version_extra_text _cvc_version_extra_num)
+    if (NOT _cvc_version_extra_type)
+      set(_cvc_version_extra_type 0)
+    endif()
+    parse_version_string(_cvc_ref_info
+      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
+      _cvc_ref_extra_type _cvc_ref_extra_text _cvc_ref_extra_num)
+    if (NOT _cvc_ref_extra_type)
+      set(_cvc_ref_extra_type 0)
+    endif()
     # Type codes are ordered.
-    if (_CVC_VERSION_EXTRA_TYPE GREATER _CVC_REF_EXTRA_TYPE)
+    if (${_cvc_version_extra_type} GREATER ${_cvc_ref_extra_type})
       set(_cvc_result 1)
-    elseif (_CVC_REF_EXTRA_TYPE GREATER _CVC_VERSION_EXTRA_TYPE)
+    elseif (${_cvc_ref_extra_type} GREATER ${_cvc_version_extra_type})
       set(_cvc_result -1)
-    elseif (_CVC_VERSION_EXTRA_TYPE EQUAL 2) # Non-special suffix.
-      if (_CVC_VERSION_EXTRA_TEXT STRLESS _CVC_REF_EXTRA_TEXT)
+    elseif (${_cvc_version_extra_type} EQUAL 2) # Non-special suffix.
+      if ("${_cvc_version_extra_text}" STRLESS "${_cvc_ref_extra_text}")
         set(_cvc_result -1)
-      elseif (_CVC_REF_EXTRA_TEXT STRLESS _CVC_VERSION_EXTRA_TEXT)
+      elseif ("${_cvc_ref_extra_text}" STRLESS "${_cvc_version_extra_text}")
         set(_cvc_result 1)
       endif()
-    elseif (_CVC_VERSION_EXTRA_TYPE EQUAL 3 OR _CVC_VERSION_EXTRA_TYPE GREATER 100)
+    elseif (${_cvc_version_extra_type} EQUAL 3 OR ${_cvc_version_extra_type} GREATER 100)
       # Look for a timestamp-ish
-      foreach (v IN ITEMS VERSION REF)
-        set(_CVC_${v}_DATE)
-        set(_CVC_${v}_HH "00")
-        set(_CVC_${v}_mm "00")
-        set(_CVC_${v}_SS 0)
-        if (_CVC_${v}_EXTRA_NUM MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
-          set(_CVC_${v}_DATE "${CMAKE_MATCH_1}")
+      foreach (v IN ITEMS version ref)
+        set(_cvc_${v}_date)
+        set(_cvc_${v}_hh "00")
+        set(_cvc_${v}_mm "00")
+        set(_cvc_${v}_ss 0)
+        if (_cvc_${v}_extra_num MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
+          set(_cvc_${v}_date "${CMAKE_MATCH_1}")
           if (NOT "${CMAKE_MATCH_3}" STREQUAL "")
-            set(_CVC_${v}_HH "${CMAKE_MATCH_3}")
+            set(_cvc_${v}_hh "${CMAKE_MATCH_3}")
             if (NOT "${CMAKE_MATCH_5}" STREQUAL "")
-              set(_CVC_${v}_mm "${CMAKE_MATCH_5}")
+              set(_cvc_${v}_mm "${CMAKE_MATCH_5}")
               if (NOT "${CMAKE_MATCH_7}" STREQUAL "")
-                set(_CVC_${v}_SS "${CMAKE_MATCH_7}")
+                set(_cvc_${v}_ss "${CMAKE_MATCH_7}")
                 if (NOT "${CMAKE_MATCH_8}" STREQUAL "")
-                  string(APPEND _CVC_${v}_SS ".${CMAKE_MATCH_8}")
+                  string(APPEND _cvc_${v}_ss ".${CMAKE_MATCH_8}")
                 endif()
               endif()
             endif()
           endif()
         endif()
       endforeach()
-      if (_CVC_VERSION_DATE)
-        if (_CVC_VERSION_DATE VERSION_LESS _CVC_REF_DATE)
+      if (_cvc_version_date)
+        if (_cvc_version_date VERSION_LESS _cvc_ref_date)
           set(_cvc_result -1)
-        elseif (_CVC_VERSION_DATE VERSION_GREATER _CVC_REF_DATE)
+        elseif (_cvc_version_date VERSION_GREATER _cvc_ref_date)
           set(_cvc_result -1)
-        elseif ("${_CVC_VERSION_HH}.${_CVC_VERSION_mm}" VERSION_LESS
-            "${_CVC_REF_HH}.${_CVC_REF_mm}")
+        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_LESS
+            "${_cvc_ref_hh}.${_cvc_ref_mm}")
           set(_cvc_result -1)
-        elseif ("${_CVC_VERSION_HH}.${_CVC_VERSION_mm}" VERSION_GREATER
-            "${_CVC_REF_HH}.${_CVC_REF_mm}")
+        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_GREATER
+            "${_cvc_ref_hh}.${_cvc_ref_mm}")
           set(_cvc_result 1)
-        elseif (_CVC_VERSION_SS LESS _CVC_REF_SS)
+        elseif (_cvc_version_ss LESS _cvc_ref_ss)
           set(_cvc_result -1)
-        elseif (_CVC_VERSION_SS GREATER _CVC_REF_SS)
+        elseif (_cvc_version_ss GREATER _cvc_ref_ss)
           set(_cvc_result 1)
         endif()
-      elseif (_CVC_REF_DATE)
-        if (_CVC_VERSION_DATE VERSION_GREATER _CVC_REF_DATE)
+      elseif (_cvc_ref_date)
+        if (_cvc_version_date VERSION_GREATER _cvc_ref_date)
           set(_cvc_result 1)
-        elseif (NOT _CVC_VERSION_DATE VERSION_EQUAL _CVC_REF_DATE)
+        elseif (NOT _cvc_version_date VERSION_EQUAL _cvc_ref_date)
           set(_cvc_result -1)
         endif()
       endif()
     endif()
-    if (NOT (_cvc_result OR _CVC_VERSION_DATE OR _CVC_REF_DATE))
-      if ("${_CVC_VERSION_EXTRA_NUM}" STREQUAL "")
-        set(_CVC_VERSION_EXTRA_NUM 0)
+    if (NOT (_cvc_result OR _cvc_version_date OR _cvc_ref_date))
+      if ("${_cvc_version_extra_num}" STREQUAL "")
+        set(_cvc_version_extra_num 0)
       endif()
-      if ("${_CVC_REF_EXTRA_NUM}" STREQUAL "")
-        set(_CVC_REF_EXTRA_NUM 0)
+      if ("${_cvc_ref_extra_num}" STREQUAL "")
+        set(_cvc_ref_extra_num 0)
       endif()
-      if (_CVC_VERSION_EXTRA_NUM LESS _CVC_REF_EXTRA_NUM)
+      if (_cvc_version_extra_num LESS _cvc_ref_extra_num)
         set(_cvc_result -1)
-      elseif (_CVC_REF_EXTRA_NUM LESS _CVC_VERSION_EXTRA_NUM)
+      elseif (_cvc_ref_extra_num LESS _cvc_version_extra_num)
         set(_cvc_result 1)
       endif()
     endif()
