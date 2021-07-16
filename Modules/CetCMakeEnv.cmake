@@ -157,10 +157,6 @@ macro(cet_cmake_env)
     "Define configuration variables and accommodate (anti-)patterns \
 used by CMake code ported from cetbuildtools")
 
-  # Watch for changes to CMAKE_MODULE_PATH that could break
-  # forward/backward compatibility.
-  include(private/CetCMPCleaner)
-
   # If this project is expecting to use cetbuildtools.
   _cetbuildtools_compatibility_early()
 
@@ -335,6 +331,11 @@ recognized version formats\
   # Avoid warnings about some variables that are likely to have been set
   # on the command line but that may not be used.
   _use_maybe_unused()
+
+  ##################
+  # Initiate watch for changes to CMAKE_MODULE_PATH that could break
+  # forward/backward compatibility.
+  include(compat/art/CetCMPCleaner)
 endmacro(cet_cmake_env)
 
 function(_clean_internal_cache_entries)

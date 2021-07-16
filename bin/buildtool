@@ -1122,7 +1122,7 @@ fi
 cmake_bootstrap_defs=()
 [ -n "$CETMODULES_DIR" ] && \
   ! [ "${CETPKG_SOURCE}" = "${MRB_SOURCE}" ] && \
-  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/private/BootstrapCetmodules.cmake")
+  cmake_bootstrap_defs+=("-DCMAKE_PROJECT_INCLUDE_BEFORE=${CETMODULES_DIR}/Modules/BootstrapCetmodules.cmake")
 ##################
 
 # If desired, print current build information and quit.

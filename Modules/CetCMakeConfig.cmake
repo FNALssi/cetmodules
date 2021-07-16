@@ -625,7 +625,7 @@ function(_install_package_config_files)
 
   cet_localize_pv(cetmodules CONFIG_DIR)
   if (${CETMODULES_CURRENT_PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS)
-    include(private/CetWritePackageVersionFile)
+    include(CetWritePackageVersionFile)
     set(WRITE_PACKAGE_VERSION_FILE cet_write_package_version_file)
     # Needed by our templates.
     set(CVF_VERSION_INFO "${${CETMODULES_CURRENT_PROJECT_NAME}_VERSION_INFO}")
