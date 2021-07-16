@@ -4,56 +4,51 @@ X
 #]================================================================]
 include_guard(GLOBAL)
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
+
+set(_cet_cmp_compat_dir "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "art suite compatibility modules location")
+set(_cet_cmp_compat_art_version 3.09.02 CACHE INTERNAL "art suite compatibility modules version")
+set(_cet_cmp_compat_canvas_root_io_version 1.09.00 CACHE INTERNAL "canvas_root_io compatibility modules version")
+set(_cet_cmp_compat_messagefacility_version 2.08.03 CACHE INTERNAL "messagefacility compatibility modules version")
+
+if (COMMAND _include)
+  message(WARNING "include() has already been overridden: compatibility with art suites < ${_cet_cmp_compat_art_version} cannot be assured")
+endif()
 
 include(ParseVersionString)
 
-set(_cet_cmp_ourselves "${CMAKE_CURRENT_LIST_FILE}")
-set(_cet_cmp_compat_dir "${CMAKE_CURRENT_LIST_DIR}/compat/art")
-set(_cet_cmp_compat_art_version 3.08.01)
-set(_cet_cmp_compat_canvas_root_io_version 1.09.00)
-
-function(_cet_cmp_cleaner WATCHED_VAR ACCESS VALUE CURRENT_LIST_FILE INCLUDE_STACK)
-  if (NOT ACCESS STREQUAL "MODIFIED_ACCESS" OR CURRENT_LIST_FILE STREQUAL _cet_cmp_ourselves)
-    return() # Not relevant.
-  endif()
-  list(POP_FRONT VALUE _cet_cmp_first)
-  if (_cet_cmp_first STREQUAL _cet_cmp_compat_dir)
-    return() # Our preferred first value is first: nothing to do.
-  elseif (canvas_root_io_VERSION)
-    cet_compare_versions(maybe_need_compat "${canvas_root_io_VERSION}" VERSION_LESS
-      "${_cet_cmp_compat_canvas_root_io_version}")
-  elseif (art_VERSION)
-    cet_compare_versions(maybe_need_compat "${art_VERSION}" VERSION_LESS
-      "${_cet_cmp_compat_art_version}")
-  endif()
-  if (NOT maybe_need_compat)
-    return()
-  endif()
-  # We need to check for anti-pattern use of CMAKE_MODULE_PATH instead
-  # of (cet_)?find_package().
-  foreach (_cet_cmp_put IN LISTS _cet_cmp_first VALUE)
-    # Check each path entry.
-    if (_cet_cmp_put STREQUAL _cet_cmp_compat_dir)
-      set(maybe_need_compat) # We know we don't need it.
-    elseif (EXISTS "${_cet_cmp_put}/ArtMake.cmake")
-      message(WARNING "anti-pattern use of CMAKE_MODULE_PATH for art: use find_package() instead.")
-    elseif (EXISTS "${_cet_cmp_put}/ArtDictionary.cmake")
-      message(WARNING "anti-pattern use of CMAKE_MODULE_PATH for canvas_root_io: use find_package() instead.")
-    else()
-      continue() # Keep checking.
+macro(include _cmp_FILE)
+  if (NOT IS_ABSOLUTE "${_cmp_FILE}" AND
+      "${_cmp_FILE}" MATCHES "(^|/)(Art(Dictionary|Make)|BuildPlugins|(mf|mfStats|module|plugin|service|source|tool)Plugin)(.cmake)?$" AND
+      NOT "${CMAKE_MODULE_PATH}" STREQUAL "")
+    set(_cmp_art_module "${CMAKE_MATCH_2}")
+    list(GET CMAKE_MODULE_PATH 0 _cet_cmp_first)
+    set(_cmp_need_compat)
+    if (NOT _cet_cmp_first STREQUAL _cet_cmp_compat_dir)
+      if (_cmp_art_module STREQUAL "ArtDictionary")
+        set(_cmp_art_pkg canvas_root_io)
+      elseif (_cmp_art_module MATCHES "^mf(Stats)?Plugin$" )
+        set(_cmp_art_pkg messagefacility)
+      else()
+        set(_cmp_art_pkg art)
+      endif()
+      if (${_cmp_art_pkg}_FOUND)
+        cet_compare_versions(_cmp_need_compat "${${_cmp_art_pkg}_VERSION}" VERSION_LESS
+          "${_cet_cmp_compat_${_cmp_art_pkg}_version}")
+      elseif (NOT ${_cmp_art_pkg}_IN_TREE)
+        set(_cmp_need_compat TRUE)
+        message(AUTHOR_WARNING "anti-pattern use of CMAKE_MODULE_PATH for package ${_cmp_art_pkg}: use find_package() instead.")
+      endif()
+      if (_cmp_need_compat)
+        list(REMOVE_ITEM CMAKE_MODULE_PATH "${_cet_cmp_compat_dir}")
+        list(PREPEND CMAKE_MODULE_PATH "${_cet_cmp_compat_dir}")
+      endif()
     endif()
-    break() # We have our answer, one way or the other
-  endforeach()
-  if (maybe_need_compat)
-    list(REMOVE_ITEM VALUE "${_cet_cmp_compat_dir}")
-    list(PREPEND VALUE "${_cet_cmp_compat_dir}" "${_cet_cmp_first}")
-    set(CMAKE_MODULE_PATH "${VALUE}" PARENT_SCOPE)
   endif()
-endfunction()
-
-# Watch for changes to CMAKE_MODULE_PATH that could break
-# forward/backward compatibility.
-variable_watch(CMAKE_MODULE_PATH _cet_cmp_cleaner)
+  _include(${ARGV})
+  unset(_cmp_need_compat)
+  unset(_cmp_art_module)
+  unset(_cmp_art_pkg)
+endmacro()
 
 cmake_policy(POP)
