@@ -28,11 +28,11 @@
 ########################################################################
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
 
 # Project information.
 project(cetmodules LANGUAGES NONE)
-set(cetmodules_CMAKE_PROJECT_VERSION_STRING 2.21.00-rc1)
+set(cetmodules_CMAKE_PROJECT_VERSION_STRING 2.21.00)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
