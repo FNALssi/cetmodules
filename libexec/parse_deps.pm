@@ -140,7 +140,7 @@ sub info {
 
 sub verbose {
   return unless $parse_deps::VERBOSE;
-  my (@msg) = @_;
+  my @msg = @_;
   chomp @msg;
   print map { "VERBOSE: $_\n"; } map { split("\n") } @msg;
 }
@@ -194,7 +194,9 @@ sub get_parent_info {
 }
 
 sub get_CMakeLists_hash {
-  return Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift, 'CMakeLists.txt')));
+  return
+    Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift // '',
+                                                         'CMakeLists.txt')));
 }
 
 sub get_derived_parent_data {
@@ -694,7 +696,7 @@ sub offset_annotated_items;
 sub to_string {
   my $incremental_indent = 2;
   my $hash_indent = length('{ ');
-  my $max_incremental_indent = 10;
+  my $max_incremental_indent = 14;
   my $options = ((scalar @_ == 2) and (ref $_[1] eq 'HASH')) ? pop : {};
   my $indent = delete $options->{indent};
   $indent = (ref $_[0] and $#_ > 0 and not ref $_[$#_]) ? pop : 0
@@ -800,14 +802,14 @@ sub parse_version_string {
   my @bits;
   foreach my $key (qw(major minor patch tweak)) {
     my $sep = (defined $ps) ? $ps : $def_ps;
-    if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?&&) {
-      $ps = "[$2]" if defined $2 and not defined $ps;
-      $result->{$key} = $1 if defined $1;
+    if ($dv ne '' and $dv =~ s&^(?<num>\d+)?(?<sep>$sep)?&&) {
+      $ps = "[$+{sep}]" if $+{sep} and not $ps;
+      $result->{$key} = $+{num} if defined $+{num};
     } else {
       last;
     }
   }
-  $dv =~ s&^$def_ps&& unless $2;
+  $dv =~ s&^$def_ps&& unless $+{sep};
   $result->{extra} = $dv if $dv ne '';
   # Make sure we insert placeholders in the array only if we need them
   foreach my $key (qw(tweak patch minor major)) {
