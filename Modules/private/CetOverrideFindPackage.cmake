@@ -105,7 +105,7 @@ macro(find_package PKG)
   math(EXPR _fp_finding_${PKG} "${_fp_finding_${PKG}} + 1")
   if (_fp_finding_${PKG} EQUAL 1)
     # Handle nested calls (e.g. FindXXXX.cmake -> XXXConfig.cmake...)
-    if ((CET_CETBUILDTOOLS_COMPAT OR _fp_INTERFACE OR _fp_PUBLIC) AND NOT
+    if ((_fp_INTERFACE OR _fp_PUBLIC) AND NOT
         (_fp_BUILD_ONLY OR _fp_PRIVATE))
       set(_fp_${PKG}_REQUIRED_BY ${_fp_REQUIRED_BY})
       set(_fp_${PKG}_transitive_args ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS})
