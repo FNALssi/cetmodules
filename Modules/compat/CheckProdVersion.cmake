@@ -5,14 +5,5 @@ macro(check_prod_version PRODUCT VERSION MINIMUM)
     "cet_compare_versions(RESULT_VAR VERSION VERSION_<cmp> MINIMUM), \
 cet_version_cmp(RESULT_VAR VERSION MINIMUM), if (X VERSION_cmp Y)...\
 ")
-  if (CET_WARN_DEPRECATED)
-    set(_cpv_deprecations_disabled TRUE)
-    unset(CET_WARN_DEPRECATED)
-  endif()
-  check_ups_version(${ARGV})
-  if (_cpv_deprecations_disabled)
-    set(CET_WARN_DEPRECATED TRUE)
-    unset(_cpv_deprecations_disabled)
-  endif()
+  cet_without_deprecation_warnings(check_ups_version ${ARGV})
 endmacro()
-
