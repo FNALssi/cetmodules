@@ -53,7 +53,8 @@ transitive dependencies.\
       # targets.
       set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS TRUE)
       # Find the package.
-      find_package(${_FUP_PROJECT} ${_FUP_DOT_VERSION} ${_FUP_UNPARSED_ARGUMENTS})
+      cet_without_deprecation_warnings(cet_find_package
+        ${_FUP_PROJECT} ${_FUP_DOT_VERSION} ${_FUP_UNPARSED_ARGUMENTS})
       # Reset to cached value.
       set(${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS
         $CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS})
