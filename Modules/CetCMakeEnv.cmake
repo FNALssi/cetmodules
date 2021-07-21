@@ -177,7 +177,7 @@ component(M[.m[.p[.t]]][-X])\
     "UPS products required at use-time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   if (${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR
-      _cetbuildtools_FOUND OR
+      cetbuildtools_FOUND OR
       "cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
     set(_cet_need_cetbuildtools_compat TRUE)
   else()

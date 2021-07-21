@@ -1171,6 +1171,10 @@ sub ups_to_cmake {
                             join(';', (sort @{$pi->{chains}})))
     if $pi->{chains};
 
+  push @cmake_args, @{cmake_cetb_compat_defs()}
+    if ($pi->{build_only_deps} and scalar @{$pi->{build_only_deps}} and
+        grep { $_ eq 'cetbuildtools' } @{$pi->{build_only_deps}});
+
   ##################
   # General CMake configuration.
   push @cmake_args, "-DCET_PV_PREFIX:STRING=$pi->{project_variable_prefix}";
