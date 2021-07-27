@@ -16,9 +16,11 @@ use warnings::register;
 
 use Cwd qw(abs_path);
 use Digest::SHA;
+use Fcntl qw(:seek);
 use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 use FindBin;
+use IO qw(Handle File);
 
 use Exporter 'import';
 our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS);
@@ -189,7 +191,8 @@ sub verbose {
 
 sub get_parent_info {
   my ($pfile, %options) = @_;
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<")
+    or error_exit("couldn't open $pfile");
   my $result = { pfile => $pfile };
   my $chains;
   while (<$fh>) {
@@ -225,7 +228,7 @@ sub get_parent_info {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   # Make the chain list, translating -c... ups declare options to their
   # corresponding chain names.
   $result->{chains} = [ sort map { exists $chain_option_table->{$_} ?
@@ -328,7 +331,7 @@ sub get_table_fragment {
   my $pfile = shift;
   my $reading_frag;
   my @fraglines = ();
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
     next if (m&^\s*#& and not $reading_frag);
@@ -336,7 +339,7 @@ sub get_table_fragment {
     push @fraglines, $_ if $reading_frag;
     m&^\s*table_fragment_begin& and $reading_frag = 1;
   }
-  close($fh);
+  $fh->close();
   return (scalar @fraglines) ? \@fraglines : undef;
 }
 
@@ -360,9 +363,10 @@ sub get_pathspec {
   my $pathspec_cache = $pi->{pathspec_cache};
   unless ($pathspec_cache->{$dirkey}) {
     my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} || 0;
-    open(PD, "<", "$pi->{pfile}") or error_exit("couldn't open $pi->{pfile}");
+    my $fh = IO::File->new("$pi->{pfile}", "<")
+      or error_exit("couldn't open $pi->{pfile} for read");
     my ($seen_dirkey, $pathkeys, $dirnames) = (undef, [], []);
-    while (<PD>) {
+    while (<$fh>) {
       chomp;
       # Skip full-line comments and whitespace-only lines.
       next if m&^\s*#&o or !m&\S&o;
@@ -391,7 +395,7 @@ sub get_pathspec {
       }
       push @$dirnames, $dirname;
     }
-    close(PD);
+    $fh->close();
     $pathspec_cache->{$dirkey} =
       { key => (scalar @$pathkeys > 1) ? $pathkeys : $pathkeys->[0],
         (defined $dirnames) ?
@@ -403,7 +407,7 @@ sub get_pathspec {
 
 sub get_product_list {
   my ($pfile) = @_;
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   my $get_phash;
   my $pv="";
   my $dqiter=-1;
@@ -459,7 +463,7 @@ sub get_product_list {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   return $phash;
 }
 
@@ -532,7 +536,7 @@ sub get_qualifier_list {
   my $qlen = 0;
   my @qlist = ();
   my @notes = ();
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
     s&\s*\#.*$&&;
@@ -558,7 +562,7 @@ sub get_qualifier_list {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   return ($qlen, \@qlist, \@notes);
 }
 
@@ -617,13 +621,13 @@ sub output_info {
     my $var = "CETPKG_\U$key";
     $var="export $var" if grep { $var eq $_; } @$for_export;
     my $val = $info->{$key} || "";
-    print $fh "$var=";
+    $fh->print("$var=");
     if (not ref $val) {
-      print $fh "\Q$val\E\n";
+      $fh->print("\Q$val\E\n");
     } elsif (ref $val eq "SCALAR") {
-      print $fh "\Q$$val\E\n";
+      $fh->print("\Q$$val\E\n");
     } elsif (ref $val eq "ARRAY") {
-      printf $fh "(%s)\n", join(" ", map { "\Q$_\E" } @$val);
+      $fh->printf("(%s)\n", join(" ", map { "\Q$_\E" } @$val));
     } else {
       verbose(sprintf("ignoring unexpected info $key of type %s", ref $val));
     }
@@ -642,9 +646,9 @@ sub cetpkg_info_file {
        build_only_deps cmake_args);
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
-  open(my $fh, ">", "$cetpkgfile") or
+  my $fh = IO::File->new("$cetpkgfile", ">") or
     error_exit("couldn't open $cetpkgfile for write");
-  print $fh <<'EOD';
+  $fh->print(<<'EOD');
 #!/bin/bash
 ########################################################################
 # cetpkg_info.sh
@@ -674,7 +678,8 @@ sub cetpkg_info_file {
 eval "${_cetpkg_catit[@]}"$'\n'\
 EOD
   my $var_data;
-  open(my $tmp_fh, ">", \$var_data);
+  my $tmp_fh = IO::File->new(\$var_data, ">") or
+    error_exit("could not open memory stream to variable \$tmp_fh");
   # Output known info in expected order, followed by any remainder in
   # lexical order.
   my @output_items =
@@ -685,20 +690,21 @@ EOD
               (map { my $key = $_;
                      (grep { $key eq $_ } @expected_keys) ? () : ($key) }
                sort keys %info));
-  close($tmp_fh);
-  open($tmp_fh, "<", \$var_data);
+  $tmp_fh->close();
+  $tmp_fh->open(\$var_data, "<")
+    or error_exit("unable to open memory stream from variable \$tmp_fh");
   while (<$tmp_fh>) {
     chomp;
-    print $fh "\Q$_\E\$'\\n'\\\n";
+    $fh->print("\Q$_\E\$'\\n'\\\n");
   }
-  close($tmp_fh);
-  print $fh <<'EOD';
+  $tmp_fh->close();
+  $fh->print(<<'EOD');
 $'\n'\
 __EOF__
 ( return 0 2>/dev/null ) && unset __EOF__ \
 EOD
-  print $fh "  || true\n";
-  close($fh);
+  $fh->print("  || true\n");
+  $fh->close();
   chmod 0755, $cetpkgfile;
   return $cetpkgfile;
 }
@@ -719,7 +725,6 @@ sub compiler_for_quals {
   my $compiler;
   my @quals = split /:/o, $qualspec;
   if ($compilers->{$qualspec} and $compilers->{$qualspec} ne '-') {
-    #print $dfile "product_setup_loop debug info: compiler entry for $qualspec is $compilers->{$qualspec}\n";
     $compiler = $compilers->{$qualspec};
   } elsif (grep /^(?:e13|c(?:lang)?\d+)$/o, @quals) {
     $compiler = "clang";
@@ -1278,12 +1283,12 @@ sub print_dep_setup {
   my ($setup_cmds, $only_for_build_cmds);
 
   # Temporary variable connected as a filehandle.
-  open(my $setup_cmds_fh, ">", \$setup_cmds) or
-    die "could not open memory stream to variable \$setup_cmds";
+  my $setup_cmds_fh = IO::File->new(\$setup_cmds, ">") or
+    error_exit("could not open memory stream to variable \$setup_cmds");
 
   # Second temporary variable connected as a filehandle.
-  open(my $only_cmds_fh, ">", \$only_for_build_cmds) or
-    die "could not open memory stream to variable \$only_for_build_cmds";
+  my $only_cmds_fh = IO::File->new(\$only_for_build_cmds, ">") or
+    error_exit("could not open memory stream to variable \$only_for_build_cmds");
 
   my $onlyForBuild="";
   foreach my $dep (keys %$deps) {
@@ -1297,17 +1302,17 @@ sub print_dep_setup {
     }
     print_dep_setup_one($dep, $dep_info, $fh);
   }
-  close($setup_cmds_fh);
-  close($only_cmds_fh);
+  $setup_cmds_fh->close();
+  $only_cmds_fh->close();
 
-  print $out <<'EOF';
+  $out->print(<<'EOF');
 # Add '-B' to UPS_OVERRIDE for safety.
 tnotnull UPS_OVERRIDE || setenv UPS_OVERRIDE ''
 expr "x $UPS_OVERRIDE" : '.* -[^- 	]*B' >/dev/null || setenv UPS_OVERRIDE "$UPS_OVERRIDE -B"
 EOF
 
   # Build-time dependencies first.
-  print $out <<'EOF', $only_for_build_cmds if $only_for_build_cmds;
+  $out->print(<<'EOF', $only_for_build_cmds) if $only_for_build_cmds;
 
 ####################################
 # Build-time dependencies.
@@ -1315,14 +1320,13 @@ EOF
 EOF
 
   # Now use-time dependencies.
-  if ( $setup_cmds ) {
-    print $out <<'EOF', $setup_cmds if $setup_cmds;
+  $out->print(<<'EOF', $setup_cmds) if $setup_cmds;
 
 ####################################
 # Use-time dependencies.
 ####################################
 EOF
-  }
+
 }
 
 sub print_dep_setup_one {
@@ -1337,16 +1341,16 @@ sub print_dep_setup_one {
     ("$dep", "$thisver");
   my $qualstring = join(":+", split(':', $dep_info-> {qualspec} || ''));
   push @prodspec, '-q', $qualstring if $qualstring;
-  print $out "# > $dep <\n";
+  $out->print("# > $dep <\n");
   if ($dep_info->{optional}) {
     my $prodspec_string = join(' ', @prodspec);
-    printf $out <<"EOF";
+    $out->print(<<"EOF");
 # Setup of $dep is optional.
 ups exist $prodspec_string
 test "\$?" != 0 && \\
   echo \QINFO: skipping missing optional product $prodspec_string\E || \\
 EOF
-    print $out "  ";
+    $out->print("  ");
   }
   my $setup_cmd = join(' ', qw(setup -B), @prodspec, @setup_options);
   if (scalar @setup_options) {
@@ -1354,18 +1358,18 @@ EOF
     $setup_cmd=sprintf('%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
                        "$setup_cmd", ("SETUP_\U$dep\E") x 2);
   }
-  print $out "$setup_cmd; ";
+  $out->print("$setup_cmd; ");
   setup_err($out, "$setup_cmd failed");
 }
 
 sub setup_err {
   my $out = shift;
-  print $out 'test "$?" != 0 && \\', "\n";
+  $out->print('test "$?" != 0 && \\', "\n");
   foreach my $msg_line (@_) {
     chomp $msg_line;
-    print $out "  echo \QERROR: $msg_line\E && \\\n";
+    $out->print("  echo \QERROR: $msg_line\E && \\\n");
   }
-  print $out "  return 1 || true\n";
+  $out->print("  return 1 || true\n");
 }
 
 sub fq_path_for {
@@ -1393,27 +1397,27 @@ sub print_dev_setup_var {
     @vals=($val || ());
   }
   my $result;
-  open(my $out, ">", \$result) or
-    die "could not open memory stream to variable \$out";
+  my $out = IO::File->new(\$result, ">") or
+    error_exit("could not open memory stream to variable \$out");
   if (scalar @vals) {
-    print $out "# $var\n",
-      "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
-    print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
+    $out->print("# $var\n",
+                "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ');
+    $out->print(join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"');
     if ($no_errclause) {
-      print $out "\n";
+      $out->print("\n");
     } else {
-      print $out "; ";
+      $out->print("; ");
       setup_err($out, "failure to prepend to $var");
     }
   }
-  close($out);
+  $out->close();
   return $result // '';
 }
 
 sub print_dev_setup {
   my ($pi, $out) = @_;
   my $fqdir;
-  print $out <<"EOF";
+  $out->print(<<"EOF");
 
 ####################################
 # Development environment.
@@ -1422,10 +1426,11 @@ EOF
   my $libdir = fq_path_for($pi, 'libdir', 'lib');
   if ($libdir) {
     # (DY)LD_LIBRARY_PATH.
-    print $out
-      print_dev_setup_var(sprintf("%sLD_LIBRARY_PATH",
-                                  ($pi->{flavor} =~ m&\bDarwin\b&) ? "DY" : ""),
-                          File::Spec->catfile('${CETPKG_BUILD}', $libdir));
+    $out->
+      print(print_dev_setup_var(sprintf("%sLD_LIBRARY_PATH",
+                                        ($pi->{flavor} =~ m&\bDarwin\b&) ? "DY" : ""),
+                                File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
+
     # CET_PLUGIN_PATH. We only want to add to this if it's already set
     # or we're cetlib, which is the package that makes use of it.
     my ($head, @output) =
@@ -1433,23 +1438,23 @@ EOF
             print_dev_setup_var("CET_PLUGIN_PATH",
                                 File::Spec->catfile('${CETPKG_BUILD}',
                                                     $libdir)));
-    print $out "$head\n",
-      ($pi->{name} ne 'cetlib') ?
-        "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
-          join("\n", @output), "\n";
+    $out->print("$head\n",
+                ($pi->{name} ne 'cetlib') ?
+                "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
+                join("\n", @output), "\n");
   }
   # ROOT_INCLUDE_PATH.
-  print $out
-    print_dev_setup_var("ROOT_INCLUDE_PATH",
-                        [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]);
+  $out->print(print_dev_setup_var("ROOT_INCLUDE_PATH",
+                                  [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]));
+
   # CMAKE_PREFIX_PATH.
-  print $out
-    print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1);
+  $out->print(print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1));
+
   # FHICL_FILE_PATH.
   $fqdir = fq_path_for($pi, 'fcldir') and
-    print $out
-      print_dev_setup_var("FHICL_FILE_PATH",
-                          File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
+    $out->print
+      (print_dev_setup_var("FHICL_FILE_PATH",
+                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir)));
 
   # FW_SEARCH_PATH.
   my $fw_pathspec = get_pathspec($pi, 'set_fwdir') || {};
@@ -1461,7 +1466,7 @@ EOF
        fq_path_for($pi, 'fwdir') || ());
   push @fqdirs, map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
     @{$fw_pathspec->{fq_path} || []};
-  print $out print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs);
+  $out->print(print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs));
 
   # WIRECELL_PATH.
   my $wp_pathspec = get_pathspec($pi, 'set_wpdir') || {};
@@ -1470,23 +1475,24 @@ EOF
   @fqdirs =
     map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
       @{$wp_pathspec->{fq_path} || []};
-  print $out print_dev_setup_var("WIRECELL_PATH", \@fqdirs);
+  $out->print(print_dev_setup_var("WIRECELL_PATH", \@fqdirs));
 
   # PYTHONPATH.
   if ($pi->{define_pythonpath}) {
-    print $out
-      print_dev_setup_var("PYTHONPATH",
-                          File::Spec->catfile('${CETPKG_BUILD}',
-                                              $libdir ||
-                                              ($pi->{fq_dir} || (), 'lib')));
-
+    $out->
+      print(print_dev_setup_var("PYTHONPATH",
+                                File::Spec->
+                                catfile('${CETPKG_BUILD}',
+                                        $libdir ||
+                                        ($pi->{fq_dir} || (), 'lib'))));
   }
+
   # PATH.
   $fqdir = fq_path_for($pi, 'bindir', 'bin') and
-    print $out
-      print_dev_setup_var("PATH",
-                          [ File::Spec->catfile('${CETPKG_BUILD}', $fqdir),
-                            File::Spec->catfile('${CETPKG_SOURCE}', $fqdir) ]);
+    $out->
+      print(print_dev_setup_var("PATH",
+                                [ File::Spec->catfile('${CETPKG_BUILD}', $fqdir),
+                                  File::Spec->catfile('${CETPKG_SOURCE}', $fqdir) ]));
 }
 
 sub table_dep_setup {
@@ -1497,9 +1503,9 @@ sub table_dep_setup {
      $dep_info->{qualspec} ?
      ('-q', sprintf("+%s", join(":+", split(':', $dep_info->{qualspec} || '')))) :
      ());
-  printf $fh "setup%s(%s)\n",
-    ($dep_info->{optional}) ? "Optional" : "Required",
-      join(' ', @setup_cmd_args);
+  $fh->printf("setup%s(%s)\n",
+              ($dep_info->{optional}) ? "Optional" : "Required",
+              join(' ', @setup_cmd_args));
 }
 
 sub var_stem_for_dirkey {
@@ -1511,23 +1517,24 @@ sub var_stem_for_dirkey {
 
 sub write_table_deps {
   my ($parent, $deps) = @_;
-  open(my $fh, ">", "table_deps_$parent") or return;
+  my $fh = IO::File->new("table_deps_$parent", ">")
+    or error_exit("Unable to open table_deps_$parent for write");
   foreach my $dep (sort keys %{$deps}) {
     my $dep_info = $deps->{$dep};
     table_dep_setup($dep, $dep_info, $fh)
       unless $dep_info->{only_for_build};
   }
-  close($fh);
-  1;
+  $fh->close();
 }
 
 sub write_table_frag {
   my ($parent, $pfile) = @_;
   my $fraglines = get_table_fragment($pfile);
   if ($fraglines and scalar @$fraglines) {
-    open(my $fh, ">", "table_frag_$parent") or return;
-    print $fh join("\n", @$fraglines), "\n";
-    close($fh);
+    my $fh = IO::File->new("table_frag_$parent", ">")
+      or error_exit("Unable to open table_frag_$parent for write");
+    $fh->print(join("\n", @$fraglines), "\n");
+    $fh->close();
   } else {
     unlink("table_frag_$parent");
     1;

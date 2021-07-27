@@ -17,7 +17,7 @@ use warnings FATAL =>
 use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec;
-use FileHandle;
+use IO qw(File Handle);
 use Getopt::Long;
 
 use vars qw ($_mydir $_failscript);
@@ -42,15 +42,16 @@ END { print "$_failscript\n" if ($?); }
 
 sub check_for_old_product_deps {
   my $pfile = shift;
-  open(PIN, "<$pfile") or die "Couldn't open $pfile";
+  my $fh = IO::File->new("$pfile", "<") or
+    error_exit("couldn't open $pfile for read");
   my $retval = 1;
-  while (<PIN>) {
+  while (<$fh>) {
     if (m&^\s*end_(?:product|qualifier)_list\b&) {
       $retval = 0;
       last;
     }
   }
-  close(PIN);
+  $fh->close();
   return $retval;
 }
 
@@ -215,8 +216,8 @@ my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
 classify_deps($pi, $deps);
 
 my $tmpfl = "$builddir/setup_$pi->{name}";
-open(my $tset_fh, "> $tmpfl") or
-  error_exit("couldn't open $tmpfl for write");
+my $tset_fh = IO::File->new("$tmpfl", ">")
+  or error_exit("couldn't open $tmpfl for write");
 
 print_dep_setup($deps, $tset_fh);
 
