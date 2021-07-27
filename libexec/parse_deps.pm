@@ -21,7 +21,7 @@ use File::Spec; # For catfile;
 use FindBin;
 
 use Exporter 'import';
-our (@EXPORT, @EXPORT_OK);
+our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
 
@@ -106,14 +106,56 @@ $btype_table = { debug => 'Debug',
       ups_to_cmake
       var_stem_for_dirkey
       verbose
-      version_sort
       version_cmp
+      version_sort
       warning
       write_table_deps
       write_table_frag
    );
 
-@EXPORT_OK = qw($btype_table $pathspec_info parse_version_string setup_err);
+@EXPORT_OK =
+  qw(
+      $btype_table
+      $pathspec_info
+      parse_version_string
+      setup_err
+   );
+
+my $export_DIAG =
+   [qw(
+       error_exit
+       info
+       notify
+       to_string
+       verbose
+       warning
+    )];
+
+my $export_VERSION =
+   [qw(
+       parse_version_string
+       to_cmake_version
+       to_ups_version
+       to_version_string
+       version_cmp
+       version_sort
+    )];
+
+my $export_CMAKE =
+  [ @$export_DIAG,
+    @$export_VERSION,
+    qw(
+        get_CMakeLists_hash
+        get_cmake_project_info
+        get_parent_info
+     )];
+
+%EXPORT_TAGS =
+  (
+   CMAKE => $export_CMAKE,
+   DIAG => $export_DIAG,
+   VERSION => $export_VERSION
+  );
 
 sub error_exit {
   my (@msg) = @_;
