@@ -119,7 +119,11 @@ $btype_table = { debug => 'Debug',
   qw(
       $btype_table
       $pathspec_info
+      add_cmake_args_after
       parse_version_string
+      process_cmakelists
+      reconstitute_cmake_calls
+      replace_cmake_arg
       setup_err
    );
 
@@ -147,9 +151,13 @@ my $export_CMAKE =
   [ @$export_DIAG,
     @$export_VERSION,
     qw(
+        add_cmake_args_after
         get_CMakeLists_hash
         get_cmake_project_info
         get_parent_info
+        process_cmakelists
+        reconstitute_cmake_calls
+        replace_cmake_arg
      )];
 
 %EXPORT_TAGS =
@@ -1032,102 +1040,114 @@ sub cmake_project_var_for_pathspec {
 sub process_cmakelists {
   my ($cmakelists, %options) = @_;
   my $result = {};
-  open(CML, "<", "$cmakelists") or error_exit("missing file $cmakelists");
-  my @buffer = <CML>;
-  close(CML);
-  my @func_info = ();
+  my $cml_in;
+  if (ref $cmakelists) {
+    $cml_in = $cmakelists;
+    error_exit("input filehandle provided for CMakeLists.txt file must be open and rewindable")
+      unless $cml_in->opened() and $cml_in->seek(0, Fcntl::SEEK_SET);
+  } else {
+    $cml_in = IO::File->new("$cmakelists", "<")
+      or error_exit("unable to open $cmakelists for read");
+  }
+  my @buffer = <$cml_in>;
+  $cml_in->close();
+  my @lines = ();
   my $line = '';
   my $line_no = 0;
-  # Try our best to be thorough.
- lines:  while (scalar @buffer) {
-    $line = join('', $line, shift @buffer);
-    my $func_line = ++$line_no;
-    { # BLOCK necessary to contain the scope of ${^MATCH}, etc.
-      $line =~ m&^\s*(?P<func>(?i)cet_cmake_env|project|set)\b(?:\s*(?:#[^\n]*)\n?)*\s*(?P<open_paren>\()&p and
-        not $+{open_paren} and do {
-          # Identified an interesting CMake function call, but we still need
-          # to find the open parenthesis.
-          error_exit("runaway trying to parse $+{func}() call at $cmakelists:$func_line")
-            unless scalar @buffer;
-          $line = join('', $line, shift @buffer);
-          ++$line_no;
-        };
-      if (${^MATCH}) {
-        my $call_info = { pre => ${^MATCH}, start_line => $func_line, %+ };
-        $line = ${^POSTMATCH} // '';
-        # Now we loop over multiple lines if necessary, separating
-        # arguments and end-of-line comments and storing them, until we
-        # find the closing parenthesis.
-        #
-        # Double-quoted arguments (even multi-line ones) are handled
-        # correctly. Note that the use of an extra "+" symbol following
-        # "+," "*," or "?" indicates a "greedy" clause to prevent
-        # backtracking (e.g. in the case of a dangling double-quote), so
-        # we don't match extra clauses inappropriately.
-        while ($line =~ s&^(?P<arg_group>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?P<comments>[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
-          push @{$call_info->{arg_lines}}, sprintf("%s%s", $+{arg_group} // '', $+{nl} // '');
-          push @{$call_info->{comments}}, $+{comments} // '' unless $line ne '';
-          last if $line =~ m&^\s*\)&;
-          error_exit("runaway trying to parse $call_info->{func} call at $cmakelists:$func_line")
-            unless scalar @buffer;
-          $line = join('', $line, shift @buffer);
-          ++$line_no;
-        }
-        $call_info->{end_line} = $line_no;
-        if ($line ne '') {
-          $call_info->{post} = $line;
-          $line = ''; # Clear for next loop, if there is one.
-        }
-        # Now separate multiple arguments on each line. We process the
-        # arguments in two passes like this to retain correspondence
-        # between arguments and comments on the same line.
-        my $current_line = $func_line + scalar split("\n", $call_info->{pre}) - 1;
-        $call_info->{arg_start_line} = $current_line if scalar @{$call_info->{arg_lines}};
-        $call_info->{arg_groups} =
-          [ map { my $tmp = [];
-                  pos() = undef;
-                  my $endmatch = pos();
-                  while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
-                    last if ($endmatch // 0) == pos();
-                    push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
-                    $endmatch = pos();
-                  }
-                  error_exit(sprintf("unexpected leftovers at $cmakelists:%s - > %s <",
-                                     $current_line,
-                                     substr($_, $endmatch // 0)))
-                    unless length() == ($endmatch // 0) or
-                      substr($_, $endmatch // 0) =~ m&^\s*$&;
-                  ++$current_line;
-                  $tmp;
-                } @{$call_info->{arg_lines}} ];
-        $call_info->{arg_end_line} = $current_line - 1
-          if $call_info->{arg_start_line};
-        if (my $func = $options{"$call_info->{func}_callback"}) {
-          %{$result} = (%{$result}, %{&$func($call_info)});
-        }
-      } else { # Not interesting.
-        $line = '';
-      } # Analysis of $line.
+  my $callbacks = { map { m&^(.*)_callback$& ?
+                            ((lc $1) => $options{$_}) :
+                              (); } keys %options };
+  my $callback_regex = join("|", map { quotemeta(sprintf('%s', $_)); } keys %$callbacks);
+  my $cml_out;
+  if ($options{output}) {
+    if (ref $options{output}) {
+      $cml_out = $options{output};
+      error_exit("filehandle provided by \"output\" option must be already open for write")
+        unless $cml_out->opened;
+    } else {
+      $cml_out = IO::File->new(">$options{output}") or
+        error_exit("failure to open \"$options{output}\" for write");
     }
-  } # Buffer entries.
+  }
+  # Try our best to be thorough.
+  while (scalar @buffer) {
+    $line = shift @buffer;
+    my $func_line = ++$line_no;
+    if ($line =~ s&^(?<pre>\s*(?P<func>(?i)$callback_regex)\s*[(])&&) {
+      # We've found an interesting call.
+      my $call_info = { %+, start_line => $func_line, func => lc $+{func} };
+      my $call_infos = [ $call_info ];
+      # Now we loop over multiple lines if necessary, separating
+      # arguments and end-of-line comments and storing them, until we
+      # find the closing parenthesis.
+      #
+      # Double-quoted arguments (even multi-line ones) are handled
+      # correctly. Note that the use of an extra "+" symbol following
+      # "+," "*," or "?" indicates a "greedy" clause to prevent
+      # backtracking (e.g. in the case of a dangling double-quote), so
+      # we don't match extra clauses inappropriately.
+      do {
+        while ($line =~ s&^(?P<chunk>\s++|"(?P<quoted>(?:[^"\\]++|\\.)*+)"|(?<unquoted>[^\s)#]++)|#[^\n]*+)&&s) {
+          if ($+{quoted}) {
+            push @{$call_info->{chunks}}, '"', $+{quoted}, '"';
+            push @{$call_info->{arg_indexes}}, $#{$call_info->{chunks}} - 1;
+          } else {
+            push @{$call_info->{chunks}}, $+{chunk};
+            push @{$call_info->{arg_indexes}}, $#{$call_info->{chunks}} if defined $+{unquoted};
+          }
+        }
+        while ($line =~ m&^\s*$&s) {
+          $line = join('', $line, shift @buffer);
+          ++$line_no;
+        }
+      } until ($line =~ m&^\s*\)&);
+      $call_info->{end_line} = $line_no;
+      $call_info->{post} = $line;
+      if (my $func = $callbacks->{"$call_info->{func}"}) {
+        my $tmp_result = &$func($call_infos);
+        $result->{$func_line} = $tmp_result
+          if defined $tmp_result;
+      }
+      # Reconstitute the call information.
+      if ($cml_out) {
+        my @tmp_lines = reconstitute_cmake_calls(@$call_infos);
+        $cml_out->print(@tmp_lines) if @tmp_lines;
+      }
+    } else { # Not interesting.
+      $cml_out->print($line) if $cml_out;
+      $line = '';
+    } # Line analysis.
+  } # All buffer entries.
+  $cml_out->close() if ($cml_out and not ref $options{output});
   if ($line) {
     error_exit("unparse-able text at $cmakelists:$line_no -\n$line\n");
-  } elsif (not keys %{$result}) {
-    error_exit("unable to obtain useful information from $cmakelists");
   }
   return $result;
 }
 
+sub reconstitute_cmake_calls {
+  return join('', map
+              { sprintf('%s%s%s',
+                        $_->{pre},
+                        join('', @{$_->{chunks} // []}),
+                        $_->{post}); } @_);
+}
+
 sub _get_info_from_project_call {
-  my $call_info = shift;
-  my $result = {};
-  my $version_next;
-  for my $arg_group (@{$call_info->{arg_groups}}) {
-    for my $arg (@$arg_group) {
+  my $result;
+  my $call_info = $_[0]->[0];
+  if ($parse_deps::seen_cet_cmake_env) {
+    warning("Ignoring project() call at line $call_info->{start_line} following previous call to cet_cmake_env() at line $parse_deps::seen_cet_cmake_env")
+  } elsif ($parse_deps::seen_project) {
+    info("Ignoring superfluous project() call at line $call_info->{start_line} following previous call on line $parse_deps::seen_project");
+  } else {
+    $parse_deps::seen_project = $call_info->{start_line};
+    my $version_next;
+    for my $arg_index (@{$call_info->{arg_indexes}}) {
+      my $arg = $call_info->{chunks}->[$arg_index];
       unless (exists $result->{cmake_project_name}) {
         $result->{cmake_project_name} = $arg;
-      }
-      if ($version_next) {
+      } elsif ($version_next) {
         %$result = (%$result,
                     cmake_project_version => $arg,
                     version_info => parse_version_string($arg));
@@ -1141,23 +1161,34 @@ sub _get_info_from_project_call {
 }
 
 sub _set_seen_cet_cmake_env {
-  $parse_deps::seen_cet_cmake_env = 1;
-  return {};
+  my $call_info = $_[0]->[0];
+  my $call_line = $call_info->{start_line};
+  unless ($parse_deps::seen_project) {
+    error_exit("$call_info->{func}() call at line $call_line MUST follow a project() call");
+  } elsif ($parse_deps::seen_cet_cmake_env) {
+    error_exit("prohibited call to $call_info->{func}() at line $call_line after previous call at line $parse_deps::seen_cet_cmake_env");
+  } else {
+    $parse_deps::seen_cet_cmake_env = $call_line;
+  }
+  return;
 }
 
 sub _get_info_from_set_calls {
-  my $call_info = shift;
-  my $result = {};
-  return $result if $parse_deps::seen_cet_cmake_env;
+  my $result;
+  my $call_info = $_[0]->[0];
   my $var;
-  for my $arg_group (@{$call_info->{arg_groups}}) {
-    for my $arg (@$arg_group) {
-      if ($var) {
-        $result->{$var} = $arg;
-        undef $var;
+  for my $arg_index (@{$call_info->{arg_indexes}}) {
+    my $arg = $call_info->{chunks}->[$arg_index];
+    if ($var) {
+      $result->{$var} = $arg;
+      undef $var;
+    } elsif ($arg =~ m&_(CMAKE_PROJECT_VERSION_STRING)$&) {
+      if ($parse_deps::seen_cet_cmake_env) {
+        warning("$call_info->{func}($arg) ignored at line $call_info->{start_line} due to previous call to cet_cmake_env() at line $parse_deps::seen_cet_cmake_env");
       } else {
-        ($var) = ($arg =~ m&_(CMAKE_PROJECT_VERSION_STRING)$&);
+        $var = $1;
       }
+    } else { # Nothing to do.
     }
   }
   return $result;
@@ -1165,14 +1196,17 @@ sub _get_info_from_set_calls {
 
 sub get_cmake_project_info {
   undef $parse_deps::seen_cet_cmake_env;
+  undef $parse_deps::seen_project;
   my ($pkgtop, %options) = @_;
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  my $proj_info = process_cmakelists($cmakelists,
-                                     project_callback => \&_get_info_from_project_call,
-                                     set_callback => \&_get_info_from_set_calls,
-                                     cet_cmake_env_callback => \&_set_seen_cet_cmake_env);
+  my $proj_info =
+    { map { %$_; }
+      values %{process_cmakelists($cmakelists,
+                                  project_callback => \&_get_info_from_project_call,
+                                  set_callback => \&_get_info_from_set_calls,
+                                  cet_cmake_env_callback => \&_set_seen_cet_cmake_env)} };
   if (not $proj_info or not scalar keys %{$proj_info}) {
-    error_exit("unable to obtain information from $cmakelists");
+    error_exit("unable to obtain useful information from $cmakelists");
   }
   return $proj_info;
 }
@@ -1583,6 +1617,64 @@ sub shortest_unique_prefix {
     }
   }
   return $result;
+}
+
+sub _separate_quotes {
+  my $item = shift;
+  return ($item =~ m&^(?<quote>["]?)(.*)(\g{quote})$&);
+}
+
+sub add_cmake_args_after {
+  my ($call_info, $index_index, @to_add) = @_;
+  return unless scalar @to_add;
+  my $index = (defined $index_index) ?
+    $call_info->{arg_indexes}->[$index_index++] + 1: 0;
+  ++$index
+    if ($index < $#{$call_info->{chunks}} and
+        $call_info->{chunks}->[$index] eq '"');
+  @to_add = (($index > 0) ? ' ' : (),
+             (map { (_separate_quotes($_), ' '); } @to_add[0..$#to_add-1]),
+             _separate_quotes($to_add[-1]));
+  my $offset = 0;
+  for my $item (@to_add) {
+    grep { $call_info->{arg_indexes}->[$_] += $offset; }
+      ($index_index)..$#{$call_info->{arg_indexes}}
+        if ($offset and $index_index < $#{$call_info->{arg_indexes}});
+    if ($item =~ m&^(?:"|\s*)$&s) {
+      splice(@{$call_info->{arg_indexes}}, $index_index++, 0, $index + $offset);
+    }
+    ++$offset;
+  }
+  splice(@{$call_info->{chunks}}, $index, 0, @to_add);
+}
+
+sub replace_cmake_arg {
+  my ($call_info, $index_index, @replacements) = @_;
+  if (scalar @replacements) {
+    add_cmake_args_after($call_info,
+                         ($index_index) ? $index_index : undef,
+                         @replacements);
+  }
+  my $index = (defined $index_index) ?
+    $call_info->{arg_indexes}->[$index_index] : 0;
+  my ($remove_index, $to_remove) =
+    ($call_info->{chunks}->[$index - 1] eq '"' and
+     $index < $#{$call_info->{chunks}} and
+     $call_info->{chunks}->[$index + 1] eq '"') ?
+       ($index - 1, 3) :
+         ($index, 1);
+  if ($remove_index > 0) {
+    # Remove unwanted preceding whitespace.
+    --$remove_index, ++$to_remove;
+  } elsif (($remove_index + $to_remove) < $#{$call_info->{chunks}}) {
+    # Remove trailing whitespace.
+    ++$to_remove;
+  } else { # No need to adjust.
+  }
+  splice(@{$call_info->{chunks}}, $remove_index, $to_remove);
+  splice(@{$call_info->{arg_indexes}}, $index_index, 1);
+  grep { $call_info->{arg_indexes}->[$_] -= $to_remove; }
+    $index_index..$#{$call_info->{arg_indexes}} if $to_remove;
 }
 
 1;
