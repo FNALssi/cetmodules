@@ -16,12 +16,14 @@ use warnings::register;
 
 use Cwd qw(abs_path);
 use Digest::SHA;
+use Fcntl qw(:seek);
 use File::Basename qw(basename dirname);
 use File::Spec; # For catfile;
 use FindBin;
+use IO qw(Handle File);
 
 use Exporter 'import';
-our (@EXPORT, @EXPORT_OK);
+our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 use vars qw($btype_table $pathspec_info $VERBOSE $QUIET);
 
@@ -106,14 +108,64 @@ $btype_table = { debug => 'Debug',
       ups_to_cmake
       var_stem_for_dirkey
       verbose
-      version_sort
       version_cmp
+      version_sort
       warning
       write_table_deps
       write_table_frag
    );
 
-@EXPORT_OK = qw($btype_table $pathspec_info parse_version_string setup_err);
+@EXPORT_OK =
+  qw(
+      $btype_table
+      $pathspec_info
+      add_cmake_args_after
+      parse_version_string
+      process_cmakelists
+      reconstitute_cmake_calls
+      replace_cmake_arg
+      setup_err
+   );
+
+my $export_DIAG =
+   [qw(
+       error_exit
+       info
+       notify
+       to_string
+       verbose
+       warning
+    )];
+
+my $export_VERSION =
+   [qw(
+       parse_version_string
+       to_cmake_version
+       to_ups_version
+       to_version_string
+       version_cmp
+       version_sort
+    )];
+
+my $export_CMAKE =
+  [ @$export_DIAG,
+    @$export_VERSION,
+    qw(
+        add_cmake_args_after
+        get_CMakeLists_hash
+        get_cmake_project_info
+        get_parent_info
+        process_cmakelists
+        reconstitute_cmake_calls
+        replace_cmake_arg
+     )];
+
+%EXPORT_TAGS =
+  (
+   CMAKE => $export_CMAKE,
+   DIAG => $export_DIAG,
+   VERSION => $export_VERSION
+  );
 
 sub error_exit {
   my (@msg) = @_;
@@ -140,14 +192,15 @@ sub info {
 
 sub verbose {
   return unless $parse_deps::VERBOSE;
-  my (@msg) = @_;
+  my @msg = @_;
   chomp @msg;
   print map { "VERBOSE: $_\n"; } map { split("\n") } @msg;
 }
 
 sub get_parent_info {
   my ($pfile, %options) = @_;
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<")
+    or error_exit("couldn't open $pfile");
   my $result = { pfile => $pfile };
   my $chains;
   while (<$fh>) {
@@ -183,7 +236,7 @@ sub get_parent_info {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   # Make the chain list, translating -c... ups declare options to their
   # corresponding chain names.
   $result->{chains} = [ sort map { exists $chain_option_table->{$_} ?
@@ -194,7 +247,9 @@ sub get_parent_info {
 }
 
 sub get_CMakeLists_hash {
-  return Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift, 'CMakeLists.txt')));
+  return
+    Digest::SHA::sha256_hex(abs_path(File::Spec->catfile(shift // '',
+                                                         'CMakeLists.txt')));
 }
 
 sub get_derived_parent_data {
@@ -284,7 +339,7 @@ sub get_table_fragment {
   my $pfile = shift;
   my $reading_frag;
   my @fraglines = ();
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
     next if (m&^\s*#& and not $reading_frag);
@@ -292,7 +347,7 @@ sub get_table_fragment {
     push @fraglines, $_ if $reading_frag;
     m&^\s*table_fragment_begin& and $reading_frag = 1;
   }
-  close($fh);
+  $fh->close();
   return (scalar @fraglines) ? \@fraglines : undef;
 }
 
@@ -316,9 +371,10 @@ sub get_pathspec {
   my $pathspec_cache = $pi->{pathspec_cache};
   unless ($pathspec_cache->{$dirkey}) {
     my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} || 0;
-    open(PD, "<", "$pi->{pfile}") or error_exit("couldn't open $pi->{pfile}");
+    my $fh = IO::File->new("$pi->{pfile}", "<")
+      or error_exit("couldn't open $pi->{pfile} for read");
     my ($seen_dirkey, $pathkeys, $dirnames) = (undef, [], []);
-    while (<PD>) {
+    while (<$fh>) {
       chomp;
       # Skip full-line comments and whitespace-only lines.
       next if m&^\s*#&o or !m&\S&o;
@@ -347,7 +403,7 @@ sub get_pathspec {
       }
       push @$dirnames, $dirname;
     }
-    close(PD);
+    $fh->close();
     $pathspec_cache->{$dirkey} =
       { key => (scalar @$pathkeys > 1) ? $pathkeys : $pathkeys->[0],
         (defined $dirnames) ?
@@ -359,7 +415,7 @@ sub get_pathspec {
 
 sub get_product_list {
   my ($pfile) = @_;
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   my $get_phash;
   my $pv="";
   my $dqiter=-1;
@@ -415,7 +471,7 @@ sub get_product_list {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   return $phash;
 }
 
@@ -488,7 +544,7 @@ sub get_qualifier_list {
   my $qlen = 0;
   my @qlist = ();
   my @notes = ();
-  open(my $fh, "<", "$pfile") or error_exit("couldn't open $pfile");
+  my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   while (<$fh>) {
     chomp;
     s&\s*\#.*$&&;
@@ -514,7 +570,7 @@ sub get_qualifier_list {
     } else {
     }
   }
-  close($fh);
+  $fh->close();
   return ($qlen, \@qlist, \@notes);
 }
 
@@ -573,13 +629,13 @@ sub output_info {
     my $var = "CETPKG_\U$key";
     $var="export $var" if grep { $var eq $_; } @$for_export;
     my $val = $info->{$key} || "";
-    print $fh "$var=";
+    $fh->print("$var=");
     if (not ref $val) {
-      print $fh "\Q$val\E\n";
+      $fh->print("\Q$val\E\n");
     } elsif (ref $val eq "SCALAR") {
-      print $fh "\Q$$val\E\n";
+      $fh->print("\Q$$val\E\n");
     } elsif (ref $val eq "ARRAY") {
-      printf $fh "(%s)\n", join(" ", map { "\Q$_\E" } @$val);
+      $fh->printf("(%s)\n", join(" ", map { "\Q$_\E" } @$val));
     } else {
       verbose(sprintf("ignoring unexpected info $key of type %s", ref $val));
     }
@@ -598,9 +654,9 @@ sub cetpkg_info_file {
        build_only_deps cmake_args);
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile = File::Spec->catfile($info{build} || ".", "cetpkg_info.sh");
-  open(my $fh, ">", "$cetpkgfile") or
+  my $fh = IO::File->new("$cetpkgfile", ">") or
     error_exit("couldn't open $cetpkgfile for write");
-  print $fh <<'EOD';
+  $fh->print(<<'EOD');
 #!/bin/bash
 ########################################################################
 # cetpkg_info.sh
@@ -630,7 +686,8 @@ sub cetpkg_info_file {
 eval "${_cetpkg_catit[@]}"$'\n'\
 EOD
   my $var_data;
-  open(my $tmp_fh, ">", \$var_data);
+  my $tmp_fh = IO::File->new(\$var_data, ">") or
+    error_exit("could not open memory stream to variable \$tmp_fh");
   # Output known info in expected order, followed by any remainder in
   # lexical order.
   my @output_items =
@@ -641,20 +698,21 @@ EOD
               (map { my $key = $_;
                      (grep { $key eq $_ } @expected_keys) ? () : ($key) }
                sort keys %info));
-  close($tmp_fh);
-  open($tmp_fh, "<", \$var_data);
+  $tmp_fh->close();
+  $tmp_fh->open(\$var_data, "<")
+    or error_exit("unable to open memory stream from variable \$tmp_fh");
   while (<$tmp_fh>) {
     chomp;
-    print $fh "\Q$_\E\$'\\n'\\\n";
+    $fh->print("\Q$_\E\$'\\n'\\\n");
   }
-  close($tmp_fh);
-  print $fh <<'EOD';
+  $tmp_fh->close();
+  $fh->print(<<'EOD');
 $'\n'\
 __EOF__
 ( return 0 2>/dev/null ) && unset __EOF__ \
 EOD
-  print $fh "  || true\n";
-  close($fh);
+  $fh->print("  || true\n");
+  $fh->close();
   chmod 0755, $cetpkgfile;
   return $cetpkgfile;
 }
@@ -675,7 +733,6 @@ sub compiler_for_quals {
   my $compiler;
   my @quals = split /:/o, $qualspec;
   if ($compilers->{$qualspec} and $compilers->{$qualspec} ne '-') {
-    #print $dfile "product_setup_loop debug info: compiler entry for $qualspec is $compilers->{$qualspec}\n";
     $compiler = $compilers->{$qualspec};
   } elsif (grep /^(?:e13|c(?:lang)?\d+)$/o, @quals) {
     $compiler = "clang";
@@ -694,7 +751,7 @@ sub offset_annotated_items;
 sub to_string {
   my $incremental_indent = 2;
   my $hash_indent = length('{ ');
-  my $max_incremental_indent = 10;
+  my $max_incremental_indent = 14;
   my $options = ((scalar @_ == 2) and (ref $_[1] eq 'HASH')) ? pop : {};
   my $indent = delete $options->{indent};
   $indent = (ref $_[0] and $#_ > 0 and not ref $_[$#_]) ? pop : 0
@@ -800,14 +857,14 @@ sub parse_version_string {
   my @bits;
   foreach my $key (qw(major minor patch tweak)) {
     my $sep = (defined $ps) ? $ps : $def_ps;
-    if ($dv ne '' and $dv =~ s&^(\d+)?($sep)?&&) {
-      $ps = "[$2]" if defined $2 and not defined $ps;
-      $result->{$key} = $1 if defined $1;
+    if ($dv ne '' and $dv =~ s&^(?<num>\d+)?(?<sep>$sep)?&&) {
+      $ps = "[$+{sep}]" if $+{sep} and not $ps;
+      $result->{$key} = $+{num} if defined $+{num};
     } else {
       last;
     }
   }
-  $dv =~ s&^$def_ps&& unless $2;
+  $dv =~ s&^$def_ps&& unless $+{sep};
   $result->{extra} = $dv if $dv ne '';
   # Make sure we insert placeholders in the array only if we need them
   foreach my $key (qw(tweak patch minor major)) {
@@ -983,102 +1040,114 @@ sub cmake_project_var_for_pathspec {
 sub process_cmakelists {
   my ($cmakelists, %options) = @_;
   my $result = {};
-  open(CML, "<", "$cmakelists") or error_exit("missing file $cmakelists");
-  my @buffer = <CML>;
-  close(CML);
-  my @func_info = ();
+  my $cml_in;
+  if (ref $cmakelists) {
+    $cml_in = $cmakelists;
+    error_exit("input filehandle provided for CMakeLists.txt file must be open and rewindable")
+      unless $cml_in->opened() and $cml_in->seek(0, Fcntl::SEEK_SET);
+  } else {
+    $cml_in = IO::File->new("$cmakelists", "<")
+      or error_exit("unable to open $cmakelists for read");
+  }
+  my @buffer = <$cml_in>;
+  $cml_in->close();
+  my @lines = ();
   my $line = '';
   my $line_no = 0;
-  # Try our best to be thorough.
- lines:  while (scalar @buffer) {
-    $line = join('', $line, shift @buffer);
-    my $func_line = ++$line_no;
-    { # BLOCK necessary to contain the scope of ${^MATCH}, etc.
-      $line =~ m&^\s*(?P<func>(?i)cet_cmake_env|project|set)\b(?:\s*(?:#[^\n]*)\n?)*\s*(?P<open_paren>\()&p and
-        not $+{open_paren} and do {
-          # Identified an interesting CMake function call, but we still need
-          # to find the open parenthesis.
-          error_exit("runaway trying to parse $+{func}() call at $cmakelists:$func_line")
-            unless scalar @buffer;
-          $line = join('', $line, shift @buffer);
-          ++$line_no;
-        };
-      if (${^MATCH}) {
-        my $call_info = { pre => ${^MATCH}, start_line => $func_line, %+ };
-        $line = ${^POSTMATCH} // '';
-        # Now we loop over multiple lines if necessary, separating
-        # arguments and end-of-line comments and storing them, until we
-        # find the closing parenthesis.
-        #
-        # Double-quoted arguments (even multi-line ones) are handled
-        # correctly. Note that the use of an extra "+" symbol following
-        # "+," "*," or "?" indicates a "greedy" clause to prevent
-        # backtracking (e.g. in the case of a dangling double-quote), so
-        # we don't match extra clauses inappropriately.
-        while ($line =~ s&^(?P<arg_group>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?P<comments>[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
-          push @{$call_info->{arg_lines}}, sprintf("%s%s", $+{arg_group} // '', $+{nl} // '');
-          push @{$call_info->{comments}}, $+{comments} // '' unless $line ne '';
-          last if $line =~ m&^\s*\)&;
-          error_exit("runaway trying to parse $call_info->{func} call at $cmakelists:$func_line")
-            unless scalar @buffer;
-          $line = join('', $line, shift @buffer);
-          ++$line_no;
-        }
-        $call_info->{end_line} = $line_no;
-        if ($line ne '') {
-          $call_info->{post} = $line;
-          $line = ''; # Clear for next loop, if there is one.
-        }
-        # Now separate multiple arguments on each line. We process the
-        # arguments in two passes like this to retain correspondence
-        # between arguments and comments on the same line.
-        my $current_line = $func_line + scalar split("\n", $call_info->{pre}) - 1;
-        $call_info->{arg_start_line} = $current_line if scalar @{$call_info->{arg_lines}};
-        $call_info->{arg_groups} =
-          [ map { my $tmp = [];
-                  pos() = undef;
-                  my $endmatch = pos();
-                  while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
-                    last if ($endmatch // 0) == pos();
-                    push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
-                    $endmatch = pos();
-                  }
-                  error_exit(sprintf("unexpected leftovers at $cmakelists:%s - > %s <",
-                                     $current_line,
-                                     substr($_, $endmatch // 0)))
-                    unless length() == ($endmatch // 0) or
-                      substr($_, $endmatch // 0) =~ m&^\s*$&;
-                  ++$current_line;
-                  $tmp;
-                } @{$call_info->{arg_lines}} ];
-        $call_info->{arg_end_line} = $current_line - 1
-          if $call_info->{arg_start_line};
-        if (my $func = $options{"$call_info->{func}_callback"}) {
-          %{$result} = (%{$result}, %{&$func($call_info)});
-        }
-      } else { # Not interesting.
-        $line = '';
-      } # Analysis of $line.
+  my $callbacks = { map { m&^(.*)_callback$& ?
+                            ((lc $1) => $options{$_}) :
+                              (); } keys %options };
+  my $callback_regex = join("|", map { quotemeta(sprintf('%s', $_)); } keys %$callbacks);
+  my $cml_out;
+  if ($options{output}) {
+    if (ref $options{output}) {
+      $cml_out = $options{output};
+      error_exit("filehandle provided by \"output\" option must be already open for write")
+        unless $cml_out->opened;
+    } else {
+      $cml_out = IO::File->new(">$options{output}") or
+        error_exit("failure to open \"$options{output}\" for write");
     }
-  } # Buffer entries.
+  }
+  # Try our best to be thorough.
+  while (scalar @buffer) {
+    $line = shift @buffer;
+    my $func_line = ++$line_no;
+    if ($line =~ s&^(?<pre>\s*(?P<func>(?i)$callback_regex)\s*[(])&&) {
+      # We've found an interesting call.
+      my $call_info = { %+, start_line => $func_line, func => lc $+{func} };
+      my $call_infos = [ $call_info ];
+      # Now we loop over multiple lines if necessary, separating
+      # arguments and end-of-line comments and storing them, until we
+      # find the closing parenthesis.
+      #
+      # Double-quoted arguments (even multi-line ones) are handled
+      # correctly. Note that the use of an extra "+" symbol following
+      # "+," "*," or "?" indicates a "greedy" clause to prevent
+      # backtracking (e.g. in the case of a dangling double-quote), so
+      # we don't match extra clauses inappropriately.
+      do {
+        while ($line =~ s&^(?P<chunk>\s++|"(?P<quoted>(?:[^"\\]++|\\.)*+)"|(?<unquoted>[^\s)#]++)|#[^\n]*+)&&s) {
+          if ($+{quoted}) {
+            push @{$call_info->{chunks}}, '"', $+{quoted}, '"';
+            push @{$call_info->{arg_indexes}}, $#{$call_info->{chunks}} - 1;
+          } else {
+            push @{$call_info->{chunks}}, $+{chunk};
+            push @{$call_info->{arg_indexes}}, $#{$call_info->{chunks}} if defined $+{unquoted};
+          }
+        }
+        while ($line =~ m&^\s*$&s) {
+          $line = join('', $line, shift @buffer);
+          ++$line_no;
+        }
+      } until ($line =~ m&^\s*\)&);
+      $call_info->{end_line} = $line_no;
+      $call_info->{post} = $line;
+      if (my $func = $callbacks->{"$call_info->{func}"}) {
+        my $tmp_result = &$func($call_infos);
+        $result->{$func_line} = $tmp_result
+          if defined $tmp_result;
+      }
+      # Reconstitute the call information.
+      if ($cml_out) {
+        my @tmp_lines = reconstitute_cmake_calls(@$call_infos);
+        $cml_out->print(@tmp_lines) if @tmp_lines;
+      }
+    } else { # Not interesting.
+      $cml_out->print($line) if $cml_out;
+      $line = '';
+    } # Line analysis.
+  } # All buffer entries.
+  $cml_out->close() if ($cml_out and not ref $options{output});
   if ($line) {
     error_exit("unparse-able text at $cmakelists:$line_no -\n$line\n");
-  } elsif (not keys %{$result}) {
-    error_exit("unable to obtain useful information from $cmakelists");
   }
   return $result;
 }
 
+sub reconstitute_cmake_calls {
+  return join('', map
+              { sprintf('%s%s%s',
+                        $_->{pre},
+                        join('', @{$_->{chunks} // []}),
+                        $_->{post}); } @_);
+}
+
 sub _get_info_from_project_call {
-  my $call_info = shift;
-  my $result = {};
-  my $version_next;
-  for my $arg_group (@{$call_info->{arg_groups}}) {
-    for my $arg (@$arg_group) {
+  my $result;
+  my $call_info = $_[0]->[0];
+  if ($parse_deps::seen_cet_cmake_env) {
+    warning("Ignoring project() call at line $call_info->{start_line} following previous call to cet_cmake_env() at line $parse_deps::seen_cet_cmake_env")
+  } elsif ($parse_deps::seen_project) {
+    info("Ignoring superfluous project() call at line $call_info->{start_line} following previous call on line $parse_deps::seen_project");
+  } else {
+    $parse_deps::seen_project = $call_info->{start_line};
+    my $version_next;
+    for my $arg_index (@{$call_info->{arg_indexes}}) {
+      my $arg = $call_info->{chunks}->[$arg_index];
       unless (exists $result->{cmake_project_name}) {
         $result->{cmake_project_name} = $arg;
-      }
-      if ($version_next) {
+      } elsif ($version_next) {
         %$result = (%$result,
                     cmake_project_version => $arg,
                     version_info => parse_version_string($arg));
@@ -1092,23 +1161,34 @@ sub _get_info_from_project_call {
 }
 
 sub _set_seen_cet_cmake_env {
-  $parse_deps::seen_cet_cmake_env = 1;
-  return {};
+  my $call_info = $_[0]->[0];
+  my $call_line = $call_info->{start_line};
+  unless ($parse_deps::seen_project) {
+    error_exit("$call_info->{func}() call at line $call_line MUST follow a project() call");
+  } elsif ($parse_deps::seen_cet_cmake_env) {
+    error_exit("prohibited call to $call_info->{func}() at line $call_line after previous call at line $parse_deps::seen_cet_cmake_env");
+  } else {
+    $parse_deps::seen_cet_cmake_env = $call_line;
+  }
+  return;
 }
 
 sub _get_info_from_set_calls {
-  my $call_info = shift;
-  my $result = {};
-  return $result if $parse_deps::seen_cet_cmake_env;
+  my $result;
+  my $call_info = $_[0]->[0];
   my $var;
-  for my $arg_group (@{$call_info->{arg_groups}}) {
-    for my $arg (@$arg_group) {
-      if ($var) {
-        $result->{$var} = $arg;
-        undef $var;
+  for my $arg_index (@{$call_info->{arg_indexes}}) {
+    my $arg = $call_info->{chunks}->[$arg_index];
+    if ($var) {
+      $result->{$var} = $arg;
+      undef $var;
+    } elsif ($arg =~ m&_(CMAKE_PROJECT_VERSION_STRING)$&) {
+      if ($parse_deps::seen_cet_cmake_env) {
+        warning("$call_info->{func}($arg) ignored at line $call_info->{start_line} due to previous call to cet_cmake_env() at line $parse_deps::seen_cet_cmake_env");
       } else {
-        ($var) = ($arg =~ m&_(CMAKE_PROJECT_VERSION_STRING)$&);
+        $var = $1;
       }
+    } else { # Nothing to do.
     }
   }
   return $result;
@@ -1116,14 +1196,17 @@ sub _get_info_from_set_calls {
 
 sub get_cmake_project_info {
   undef $parse_deps::seen_cet_cmake_env;
+  undef $parse_deps::seen_project;
   my ($pkgtop, %options) = @_;
   my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  my $proj_info = process_cmakelists($cmakelists,
-                                     project_callback => \&_get_info_from_project_call,
-                                     set_callback => \&_get_info_from_set_calls,
-                                     cet_cmake_env_callback => \&_set_seen_cet_cmake_env);
+  my $proj_info =
+    { map { %$_; }
+      values %{process_cmakelists($cmakelists,
+                                  project_callback => \&_get_info_from_project_call,
+                                  set_callback => \&_get_info_from_set_calls,
+                                  cet_cmake_env_callback => \&_set_seen_cet_cmake_env)} };
   if (not $proj_info or not scalar keys %{$proj_info}) {
-    error_exit("unable to obtain information from $cmakelists");
+    error_exit("unable to obtain useful information from $cmakelists");
   }
   return $proj_info;
 }
@@ -1234,12 +1317,12 @@ sub print_dep_setup {
   my ($setup_cmds, $only_for_build_cmds);
 
   # Temporary variable connected as a filehandle.
-  open(my $setup_cmds_fh, ">", \$setup_cmds) or
-    die "could not open memory stream to variable \$setup_cmds";
+  my $setup_cmds_fh = IO::File->new(\$setup_cmds, ">") or
+    error_exit("could not open memory stream to variable \$setup_cmds");
 
   # Second temporary variable connected as a filehandle.
-  open(my $only_cmds_fh, ">", \$only_for_build_cmds) or
-    die "could not open memory stream to variable \$only_for_build_cmds";
+  my $only_cmds_fh = IO::File->new(\$only_for_build_cmds, ">") or
+    error_exit("could not open memory stream to variable \$only_for_build_cmds");
 
   my $onlyForBuild="";
   foreach my $dep (keys %$deps) {
@@ -1253,17 +1336,17 @@ sub print_dep_setup {
     }
     print_dep_setup_one($dep, $dep_info, $fh);
   }
-  close($setup_cmds_fh);
-  close($only_cmds_fh);
+  $setup_cmds_fh->close();
+  $only_cmds_fh->close();
 
-  print $out <<'EOF';
+  $out->print(<<'EOF');
 # Add '-B' to UPS_OVERRIDE for safety.
 tnotnull UPS_OVERRIDE || setenv UPS_OVERRIDE ''
 expr "x $UPS_OVERRIDE" : '.* -[^- 	]*B' >/dev/null || setenv UPS_OVERRIDE "$UPS_OVERRIDE -B"
 EOF
 
   # Build-time dependencies first.
-  print $out <<'EOF', $only_for_build_cmds if $only_for_build_cmds;
+  $out->print(<<'EOF', $only_for_build_cmds) if $only_for_build_cmds;
 
 ####################################
 # Build-time dependencies.
@@ -1271,14 +1354,13 @@ EOF
 EOF
 
   # Now use-time dependencies.
-  if ( $setup_cmds ) {
-    print $out <<'EOF', $setup_cmds if $setup_cmds;
+  $out->print(<<'EOF', $setup_cmds) if $setup_cmds;
 
 ####################################
 # Use-time dependencies.
 ####################################
 EOF
-  }
+
 }
 
 sub print_dep_setup_one {
@@ -1293,16 +1375,16 @@ sub print_dep_setup_one {
     ("$dep", "$thisver");
   my $qualstring = join(":+", split(':', $dep_info-> {qualspec} || ''));
   push @prodspec, '-q', $qualstring if $qualstring;
-  print $out "# > $dep <\n";
+  $out->print("# > $dep <\n");
   if ($dep_info->{optional}) {
     my $prodspec_string = join(' ', @prodspec);
-    printf $out <<"EOF";
+    $out->print(<<"EOF");
 # Setup of $dep is optional.
 ups exist $prodspec_string
 test "\$?" != 0 && \\
   echo \QINFO: skipping missing optional product $prodspec_string\E || \\
 EOF
-    print $out "  ";
+    $out->print("  ");
   }
   my $setup_cmd = join(' ', qw(setup -B), @prodspec, @setup_options);
   if (scalar @setup_options) {
@@ -1310,18 +1392,18 @@ EOF
     $setup_cmd=sprintf('%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
                        "$setup_cmd", ("SETUP_\U$dep\E") x 2);
   }
-  print $out "$setup_cmd; ";
+  $out->print("$setup_cmd; ");
   setup_err($out, "$setup_cmd failed");
 }
 
 sub setup_err {
   my $out = shift;
-  print $out 'test "$?" != 0 && \\', "\n";
+  $out->print('test "$?" != 0 && \\', "\n");
   foreach my $msg_line (@_) {
     chomp $msg_line;
-    print $out "  echo \QERROR: $msg_line\E && \\\n";
+    $out->print("  echo \QERROR: $msg_line\E && \\\n");
   }
-  print $out "  return 1 || true\n";
+  $out->print("  return 1 || true\n");
 }
 
 sub fq_path_for {
@@ -1349,27 +1431,27 @@ sub print_dev_setup_var {
     @vals=($val || ());
   }
   my $result;
-  open(my $out, ">", \$result) or
-    die "could not open memory stream to variable \$out";
+  my $out = IO::File->new(\$result, ">") or
+    error_exit("could not open memory stream to variable \$out");
   if (scalar @vals) {
-    print $out "# $var\n",
-      "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ';
-    print $out join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"';
+    $out->print("# $var\n",
+                "setenv $var ", '"`dropit -p \\"${', "$var", '}\\" -sfe ');
+    $out->print(join(" ", map { sprintf('\\"%s\\"', $_); } @vals), '`"');
     if ($no_errclause) {
-      print $out "\n";
+      $out->print("\n");
     } else {
-      print $out "; ";
+      $out->print("; ");
       setup_err($out, "failure to prepend to $var");
     }
   }
-  close($out);
+  $out->close();
   return $result // '';
 }
 
 sub print_dev_setup {
   my ($pi, $out) = @_;
   my $fqdir;
-  print $out <<"EOF";
+  $out->print(<<"EOF");
 
 ####################################
 # Development environment.
@@ -1378,10 +1460,11 @@ EOF
   my $libdir = fq_path_for($pi, 'libdir', 'lib');
   if ($libdir) {
     # (DY)LD_LIBRARY_PATH.
-    print $out
-      print_dev_setup_var(sprintf("%sLD_LIBRARY_PATH",
-                                  ($pi->{flavor} =~ m&\bDarwin\b&) ? "DY" : ""),
-                          File::Spec->catfile('${CETPKG_BUILD}', $libdir));
+    $out->
+      print(print_dev_setup_var(sprintf("%sLD_LIBRARY_PATH",
+                                        ($pi->{flavor} =~ m&\bDarwin\b&) ? "DY" : ""),
+                                File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
+
     # CET_PLUGIN_PATH. We only want to add to this if it's already set
     # or we're cetlib, which is the package that makes use of it.
     my ($head, @output) =
@@ -1389,23 +1472,23 @@ EOF
             print_dev_setup_var("CET_PLUGIN_PATH",
                                 File::Spec->catfile('${CETPKG_BUILD}',
                                                     $libdir)));
-    print $out "$head\n",
-      ($pi->{name} ne 'cetlib') ?
-        "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
-          join("\n", @output), "\n";
+    $out->print("$head\n",
+                ($pi->{name} ne 'cetlib') ?
+                "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  " : '',
+                join("\n", @output), "\n");
   }
   # ROOT_INCLUDE_PATH.
-  print $out
-    print_dev_setup_var("ROOT_INCLUDE_PATH",
-                        [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]);
+  $out->print(print_dev_setup_var("ROOT_INCLUDE_PATH",
+                                  [ qw(${CETPKG_SOURCE} ${CETPKG_BUILD}) ]));
+
   # CMAKE_PREFIX_PATH.
-  print $out
-    print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1);
+  $out->print(print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1));
+
   # FHICL_FILE_PATH.
   $fqdir = fq_path_for($pi, 'fcldir') and
-    print $out
-      print_dev_setup_var("FHICL_FILE_PATH",
-                          File::Spec->catfile('${CETPKG_BUILD}', $fqdir));
+    $out->print
+      (print_dev_setup_var("FHICL_FILE_PATH",
+                           File::Spec->catfile('${CETPKG_BUILD}', $fqdir)));
 
   # FW_SEARCH_PATH.
   my $fw_pathspec = get_pathspec($pi, 'set_fwdir') || {};
@@ -1417,7 +1500,7 @@ EOF
        fq_path_for($pi, 'fwdir') || ());
   push @fqdirs, map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
     @{$fw_pathspec->{fq_path} || []};
-  print $out print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs);
+  $out->print(print_dev_setup_var("FW_SEARCH_PATH", \@fqdirs));
 
   # WIRECELL_PATH.
   my $wp_pathspec = get_pathspec($pi, 'set_wpdir') || {};
@@ -1426,23 +1509,24 @@ EOF
   @fqdirs =
     map { m&^/& ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
       @{$wp_pathspec->{fq_path} || []};
-  print $out print_dev_setup_var("WIRECELL_PATH", \@fqdirs);
+  $out->print(print_dev_setup_var("WIRECELL_PATH", \@fqdirs));
 
   # PYTHONPATH.
   if ($pi->{define_pythonpath}) {
-    print $out
-      print_dev_setup_var("PYTHONPATH",
-                          File::Spec->catfile('${CETPKG_BUILD}',
-                                              $libdir ||
-                                              ($pi->{fq_dir} || (), 'lib')));
-
+    $out->
+      print(print_dev_setup_var("PYTHONPATH",
+                                File::Spec->
+                                catfile('${CETPKG_BUILD}',
+                                        $libdir ||
+                                        ($pi->{fq_dir} || (), 'lib'))));
   }
+
   # PATH.
   $fqdir = fq_path_for($pi, 'bindir', 'bin') and
-    print $out
-      print_dev_setup_var("PATH",
-                          [ File::Spec->catfile('${CETPKG_BUILD}', $fqdir),
-                            File::Spec->catfile('${CETPKG_SOURCE}', $fqdir) ]);
+    $out->
+      print(print_dev_setup_var("PATH",
+                                [ File::Spec->catfile('${CETPKG_BUILD}', $fqdir),
+                                  File::Spec->catfile('${CETPKG_SOURCE}', $fqdir) ]));
 }
 
 sub table_dep_setup {
@@ -1453,9 +1537,9 @@ sub table_dep_setup {
      $dep_info->{qualspec} ?
      ('-q', sprintf("+%s", join(":+", split(':', $dep_info->{qualspec} || '')))) :
      ());
-  printf $fh "setup%s(%s)\n",
-    ($dep_info->{optional}) ? "Optional" : "Required",
-      join(' ', @setup_cmd_args);
+  $fh->printf("setup%s(%s)\n",
+              ($dep_info->{optional}) ? "Optional" : "Required",
+              join(' ', @setup_cmd_args));
 }
 
 sub var_stem_for_dirkey {
@@ -1467,23 +1551,24 @@ sub var_stem_for_dirkey {
 
 sub write_table_deps {
   my ($parent, $deps) = @_;
-  open(my $fh, ">", "table_deps_$parent") or return;
+  my $fh = IO::File->new("table_deps_$parent", ">")
+    or error_exit("Unable to open table_deps_$parent for write");
   foreach my $dep (sort keys %{$deps}) {
     my $dep_info = $deps->{$dep};
     table_dep_setup($dep, $dep_info, $fh)
       unless $dep_info->{only_for_build};
   }
-  close($fh);
-  1;
+  $fh->close();
 }
 
 sub write_table_frag {
   my ($parent, $pfile) = @_;
   my $fraglines = get_table_fragment($pfile);
   if ($fraglines and scalar @$fraglines) {
-    open(my $fh, ">", "table_frag_$parent") or return;
-    print $fh join("\n", @$fraglines), "\n";
-    close($fh);
+    my $fh = IO::File->new("table_frag_$parent", ">")
+      or error_exit("Unable to open table_frag_$parent for write");
+    $fh->print(join("\n", @$fraglines), "\n");
+    $fh->close();
   } else {
     unlink("table_frag_$parent");
     1;
@@ -1532,6 +1617,64 @@ sub shortest_unique_prefix {
     }
   }
   return $result;
+}
+
+sub _separate_quotes {
+  my $item = shift;
+  return ($item =~ m&^(?<quote>["]?)(.*)(\g{quote})$&);
+}
+
+sub add_cmake_args_after {
+  my ($call_info, $index_index, @to_add) = @_;
+  return unless scalar @to_add;
+  my $index = (defined $index_index) ?
+    $call_info->{arg_indexes}->[$index_index++] + 1: 0;
+  ++$index
+    if ($index < $#{$call_info->{chunks}} and
+        $call_info->{chunks}->[$index] eq '"');
+  @to_add = (($index > 0) ? ' ' : (),
+             (map { (_separate_quotes($_), ' '); } @to_add[0..$#to_add-1]),
+             _separate_quotes($to_add[-1]));
+  my $offset = 0;
+  for my $item (@to_add) {
+    grep { $call_info->{arg_indexes}->[$_] += $offset; }
+      ($index_index)..$#{$call_info->{arg_indexes}}
+        if ($offset and $index_index < $#{$call_info->{arg_indexes}});
+    if ($item =~ m&^(?:"|\s*)$&s) {
+      splice(@{$call_info->{arg_indexes}}, $index_index++, 0, $index + $offset);
+    }
+    ++$offset;
+  }
+  splice(@{$call_info->{chunks}}, $index, 0, @to_add);
+}
+
+sub replace_cmake_arg {
+  my ($call_info, $index_index, @replacements) = @_;
+  if (scalar @replacements) {
+    add_cmake_args_after($call_info,
+                         ($index_index) ? $index_index : undef,
+                         @replacements);
+  }
+  my $index = (defined $index_index) ?
+    $call_info->{arg_indexes}->[$index_index] : 0;
+  my ($remove_index, $to_remove) =
+    ($call_info->{chunks}->[$index - 1] eq '"' and
+     $index < $#{$call_info->{chunks}} and
+     $call_info->{chunks}->[$index + 1] eq '"') ?
+       ($index - 1, 3) :
+         ($index, 1);
+  if ($remove_index > 0) {
+    # Remove unwanted preceding whitespace.
+    --$remove_index, ++$to_remove;
+  } elsif (($remove_index + $to_remove) < $#{$call_info->{chunks}}) {
+    # Remove trailing whitespace.
+    ++$to_remove;
+  } else { # No need to adjust.
+  }
+  splice(@{$call_info->{chunks}}, $remove_index, $to_remove);
+  splice(@{$call_info->{arg_indexes}}, $index_index, 1);
+  grep { $call_info->{arg_indexes}->[$_] -= $to_remove; }
+    $index_index..$#{$call_info->{arg_indexes}} if $to_remove;
 }
 
 1;
