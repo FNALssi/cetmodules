@@ -239,7 +239,7 @@ function(cet_remove_compiler_flags)
   list(FILTER vars INCLUDE REGEX "^CMAKE_(${langs_regex})_FLAGS")
   foreach (arg IN LISTS CSCF_UNPARSED_ARGUMENTS)
     if (NOT CSCF_REGEX)
-      if (arg MATCHES [[^-[DU][A-Za-z_][A-Za-z_0-9]*]])
+      if (arg MATCHES "^-[DU]")
         remove_definitions(${arg})
       endif()
       cet_regex_escape("${arg}" arg)
@@ -303,12 +303,11 @@ macro(cet_set_compiler_flags)
   # Note that we no longer want the leading "-D", and -U... undefines
   # must be filtered out and handled via add_compile_options() instead.
   list(TRANSFORM CSCF_EXTRA_DEFINITIONS
-    REPLACE [[^(-D)?([A-Za-z_][A-Za-z_0-9]*)]] "\\1"
+    REPLACE "^-D([A-Za-z_][A-Za-z_0-9]*)$" "\\1"
     OUTPUT_VARIABLE compile_defs)
-  list(FILTER CSCF_EXTRA_DEFINITIONS INCLUDE REGEX
-    [[^-U[A-Za-z_][A-Za-z_0-9]*]])
-  list(FILTER compile_defs EXCLUDE REGEX
-    [[^-U[A-Za-z_][A-Za-z_0-9]*]])
+  list(FILTER CSCF_EXTRA_DEFINITIONS INCLUDE REGEX "^-U")
+  list(FILTER compile_defs EXCLUDE REGEX "^-U")
+
   add_compile_definitions(${compile_defs})
   add_compile_options(${CSCF_EXTRA_DEFINITIONS})
   
