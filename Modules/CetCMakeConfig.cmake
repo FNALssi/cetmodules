@@ -405,31 +405,7 @@ function(_generate_target_imports FRAG_LIST)
           FILE "${export_file}.cmake"
           EXPORT_LINK_INTERFACE_LIBRARIES
           ${namespace}::)
-        # Armor the user's regex against interpolation.
-        string(REGEX REPLACE "(\\\\|\\\")" "\\\\\\1" _cet_iadt_regex
-          "${${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES_REGEX}")
-        if (${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES)
-          # Needed to avoid policy warnings when conditional code is
-          # inserted in cmake_install.cmake.
-          set(_cet_iadt "x")
-        else()
-          set(_cet_iadt "")
-        endif()
-        install(CODE "\
-# Handle placeholders in target definitions.
-  file(READ \"\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake\" _targetFileData)
-  string(REPLACE \"@CET_DOLLAR@\" \"\$\" _targetFileData_new \"\${_targetFileData}\")
-  if (NOT _targetFileData_new STREQUAL _targetFileData)
-    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake\" \"\${_targetFileData_new}\")
-  endif()
-  if (NOT \"${_cet_iadt}\" STREQUAL \"x\")
-    # Check for unwanted absolute transitive dependencies.
-    include(\"${CMAKE_CURRENT_FUNCTION_LIST_DIR}/private/CetFindAbsoluteTransitiveDependencies.cmake\")
-    _cet_find_absolute_transitive_dependencies(\"\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake\"
-       \"\${_targetFileData_new}\"
-       \"${_cet_iadt_regex}\")
-  endif()\
-")
+        _verify_transitive_dependencies("\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake")
         _verify_cross_dependent_exports(${export_set}
           "\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
           )
@@ -486,6 +462,34 @@ unset(_expectedTargets)\
   endif()
   _write_stage(targets ${FRAG_LIST} "${exports}")
   set(${FRAG_LIST} "${${FRAG_LIST}}" PARENT_SCOPE)
+endfunction()
+
+function(_verify_transitive_dependencies _cet_target_file)
+  # Armor the user's regex against interpolation.
+  string(REGEX REPLACE "(\\\\|\\\")" "\\\\\\1" _cet_iadt_regex
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES_REGEX}")
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES)
+    # Needed to avoid policy warnings when conditional code is
+    # inserted in cmake_install.cmake.
+    set(_cet_iadt "x")
+  else()
+    set(_cet_iadt "")
+  endif()
+  install(CODE "\
+# Handle placeholders in target definitions.
+  file(READ \"${_cet_target_file}\" _targetFileData)
+  string(REPLACE \"@CET_DOLLAR@\" \"\$\" _targetFileData_new \"\${_targetFileData}\")
+  if (NOT _targetFileData_new STREQUAL _targetFileData)
+    file(WRITE \"${_cet_target_file}\" \"\${_targetFileData_new}\")
+  endif()
+  if (NOT \"${_cet_iadt}\" STREQUAL \"x\")
+    # Check for unwanted absolute transitive dependencies.
+    include(\"${CMAKE_CURRENT_FUNCTION_LIST_DIR}/private/CetFindAbsoluteTransitiveDependencies.cmake\")
+    _cet_find_absolute_transitive_dependencies(\"${_cet_target_file}\"
+       \"\${_targetFileData_new}\"
+       \"${_cet_iadt_regex}\")
+  endif()\
+")
 endfunction()
 
 # Generate old cetbuildtools-style variables for targets produced by
@@ -691,6 +695,9 @@ function(_install_package_config_files)
     "${CCC_WORKDIR}/${config}"
     "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${configVersion}"
     DESTINATION "${distdir}")
+
+  # Post-process manual target definitions in top-level Config file.
+  _verify_transitive_dependencies("\${CMAKE_INSTALL_PREFIX}/${distdir}/${config}")
 
   # Generate a top-level config file for the build tree directly at its
   # final location.

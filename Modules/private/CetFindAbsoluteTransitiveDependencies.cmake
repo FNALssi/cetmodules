@@ -12,15 +12,16 @@ function(_cet_find_absolute_transitive_dependencies
   # Check for unwanted absolute dependencies.
   string(REPLACE ";" "\\;" _absolute_transitive_dependencies_targets
     "${_cet_target_file_data}")
-  # Isolate targets with possibly-problematic transitive dependencies.
+  # Isolate target property-setting commands with possibly-problematic
+  # transitive dependencies.
   string(REGEX MATCHALL
-    "set_target_properties\\(([^ \t\r\n]+)[ \t\r\n]+PROPERTIES[^)]+INTERFACE_LINK_LIBRARIES[ \t\r\n]+\"([^\"]+;)?/[^)]+\\)"
+    "(set_target_properties[ \t]*\\(|set_property[ \t*\\([ \t\r\n]*TARGET)([^ \t\r\n]+)[ \t\r\n]+PROPERTIES[^)]+INTERFACE_LINK_LIBRARIES[ \t\r\n]+\"([^\"]+;)?/[^)]+\\)"
     _absolute_transitive_dependencies_targets "${_absolute_transitive_dependencies_targets}")
   if (NOT _absolute_transitive_dependencies_targets STREQUAL "")
     # Extract the information in a way that allows us to examine
     # possibly-problematic dependencies more closely.
     string(REGEX REPLACE
-      "(^|;)set_target_properties\\(([^ \t\r\n]+)[^)]+INTERFACE_LINK_LIBRARIES[ \t\r\n]+\"([^\"]+)\"[^)]+\\)[^;]*" "\\2\t\\3\n"
+      "(^|;)(set_target_properties[ \t]*\\(|set_property[ \t]*\\([ \t\r\n]*TARGET)[ \t\r\n]*([^ \t\r\n]+)[^)]+INTERFACE_LINK_LIBRARIES[ \t\r\n]+\"([^\"]+)\"[^)]+\\)[^;]*" "\\3\t\\4\n"
       _absolute_transitive_dependencies_targets
       "${_absolute_transitive_dependencies_targets}")
     foreach (_stp_call IN LISTS _absolute_transitive_dependencies_targets)
@@ -28,10 +29,10 @@ function(_cet_find_absolute_transitive_dependencies
         set(_stp_target "${CMAKE_MATCH_1}")
         set(_stp_libs "${CMAKE_MATCH_2}")
         # Anything that doesn't start with / is fine.
-        list(FILTER _stp_libs INCLUDE REGEX "^/")
-        # Assume anything under /usr/lib(32|64)? is expected to be found
+#        list(FILTER _stp_libs INCLUDE REGEX "^/")
+        # Assume anything under (/usr)?/lib(32|64)? is expected to be found
         # everywhere.
-        list(FILTER _stp_libs EXCLUDE REGEX "^/usr/lib(32|64)?/")
+        list(FILTER _stp_libs EXCLUDE REGEX "^(/usr)?/lib(32|64)?/")
         if (_ignore_regex) # User-provided ignore regex.
           list(FILTER _stp_libs EXCLUDE REGEX "${_ignore_regex}")
         endif()
