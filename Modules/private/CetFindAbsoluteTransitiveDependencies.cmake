@@ -29,7 +29,7 @@ function(_cet_find_absolute_transitive_dependencies
         set(_stp_target "${CMAKE_MATCH_1}")
         set(_stp_libs "${CMAKE_MATCH_2}")
         # Anything that doesn't start with / is fine.
-#        list(FILTER _stp_libs INCLUDE REGEX "^/")
+        list(FILTER _stp_libs INCLUDE REGEX "^/")
         # Assume anything under (/usr)?/lib(32|64)? is expected to be found
         # everywhere.
         list(FILTER _stp_libs EXCLUDE REGEX "^(/usr)?/lib(32|64)?/")
