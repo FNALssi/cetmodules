@@ -60,7 +60,7 @@ endfunction()
 if (CETMODULES_TEST_TARGET)
   # Handle placeholders in target definitions.
   file(READ "${CET_TEST_TARGET}" _targetFileData)
-  _cet_find_absolute_transitive_dependencies("${CET_TEST_TARGET}" "${_targetFileData}")
+  _cet_find_absolute_transitive_dependencies("${CET_TEST_TARGET}" "${_targetFileData}" "")
 endif()
 
 cmake_policy(POP)

@@ -7,7 +7,7 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
 
 set(_cet_cmp_compat_dir "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "art suite compatibility modules location")
-set(_cet_cmp_compat_art_version 3.09.02 CACHE INTERNAL "art suite compatibility modules version")
+set(_cet_cmp_compat_art_version 3.09.04 CACHE INTERNAL "art suite compatibility modules version")
 set(_cet_cmp_compat_canvas_root_io_version 1.09.00 CACHE INTERNAL "canvas_root_io compatibility modules version")
 set(_cet_cmp_compat_messagefacility_version 2.08.03 CACHE INTERNAL "messagefacility compatibility modules version")
 
