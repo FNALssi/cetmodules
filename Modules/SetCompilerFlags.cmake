@@ -218,17 +218,16 @@ function(_parse_flags_options)
   endforeach()
 endfunction()
 
-macro(cet_add_compiler_flags)
+function(cet_add_compiler_flags)
   _parse_flags_options(${ARGN})
   if ("${CSCF_ARGS}" MATCHES "(^| )-std=" AND
       ("C" IN_LIST CSCF_LANGUAGES OR "CXX" IN_LIST CSCF_LANGUAGES))
     message(FATAL_ERROR "cet_add_compiler_flags() called with -std=...for C and/or CXX:"
       "use CMAKE_<LANG>_STANDARD and CMAKE_<LANG>_EXTENSIONS instead")
   endif()
-  foreach(lang IN LISTS CSCF_LANGUAGES)
-    add_compile_options($<$<COMPILE_LANGUAGE:${lang}>:${CSCF_UNPARSED_ARGUMENTS}>)
-  endforeach()
-endmacro()
+  string(REPLACE ";" "," _cet_languages "${CSCF_LANGUAGES}")
+  add_compile_options("SHELL:$<$<COMPILE_LANGUAGE:${_cet_languages}>:${CSCF_UNPARSED_ARGUMENTS}>")
+endfunction()
 
 function(cet_remove_compiler_flags)
   _parse_flags_options(${ARGN})
