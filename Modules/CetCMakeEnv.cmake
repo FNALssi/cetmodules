@@ -268,6 +268,14 @@ recognized version formats\
     NO_WARN_REDUNDANT
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Architecture-independent data directory")
+  project_variable(FW_SEARCH_PATH TYPE PATH
+    NO_WARN_REDUNDANT
+    OMIT_IF_EMPTY OMIT_IF_NULL
+    DOCSTRING "Compatible setting for FW_SEARCH_PATH")
+  project_variable(WIRECELL_PATH TYPE PATH
+    NO_WARN_REDUNDANT
+    OMIT_IF_EMPTY OMIT_IF_NULL
+    DOCSTRING "Compatible setting for WIRECELL_PATH")
 
   if (_cet_need_cetbuildtools_compat)
     _cetbuildtools_compatibility()

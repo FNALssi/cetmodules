@@ -158,11 +158,25 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
   # FW_SEARCH_PATH.
   _table_var_clause(FW_SEARCH_PATH TABLE_VARS APPEND
     PVAR FW_SEARCH_PATH
+    IF_TEST [[test -n "@VAL@"]]
+    [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
+  _table_var_clause("GDML_DIR -> FW_SEARCH_PATH" TABLE_VARS APPEND
+    PVAR GDML_DIR
+    IF_TEST [[test -d "@VAL@"]]
+    [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
+  _table_var_clause("FW_DIR -> FW_SEARCH_PATH" TABLE_VARS APPEND
+    PVAR FW_DIR
+    IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
 
   # WIRECELL_PATH.
   _table_var_clause(WIRECELL_PATH TABLE_VARS APPEND
     PVAR WIRECELL_PATH
+    IF_TEST [[test -n "@VAL@"]]
+    [[pathPrepend(WIRECELL_PATH, "@VAL@")]])
+  _table_var_clause("WP_DIR -> WIRECELL_PATH" TABLE_VARS APPEND
+    PVAR WP_DIR
+    IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(WIRECELL_PATH, "@VAL@")]])
 
   # PERL5LIB.
@@ -237,20 +251,16 @@ function(_project_var_to_ups_path VAR_NAME RESULT_VAR)
     unset(${RESULT_VAR} PARENT_SCOPE)
     return()
   endif()
-  if (NOT TYPE MATCHES [[_FRAGMENT$]]) # Not eligible for tweak.
-    set(${RESULT_VAR} ${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}} PARENT_SCOPE)
-    return()
+  set(result "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}}")
+  if (TYPE MATCHES [[_FRAGMENT$]]) # Eligible for tweak.
+    if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
+      cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/" regex)
+      set(replacement [[${${UPS_PROD_NAME_UC}_FQ_DIR}/]])
+      list(TRANSFORM result REPLACE "^${regex}([^/].*)$" "${replacement}\\1")
+    endif()
+    set(replacement [[${UPS_PROD_DIR}/]])
+    list(TRANSFORM result REPLACE "^([^\$/].*)$" "${replacement}\\1")
   endif()
-  if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
-    cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/" regex)
-    set(replacement [[${${UPS_PROD_NAME_UC}_FQ_DIR}/]])
-    list(TRANSFORM ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} REPLACE
-      "^${regex}([^/].*)$" "${replacement}\\1" OUTPUT_VARIABLE result)
-  else()
-    set(result "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}}")
-  endif()
-  set(replacement [[${UPS_PROD_DIR}/]])
-  list(TRANSFORM result REPLACE "^([^\$/].*)$" "${replacement}\\1")
   list(JOIN result ":" result_string)
   set(${RESULT_VAR} "${result_string}" PARENT_SCOPE)
 endfunction()
