@@ -87,8 +87,8 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     set(lib_scope PUBLIC)
   endif()
   # Get appropriate list of libraries to which to link.
-  cet_process_liblist(liblist ${lib_scope} ${CML_LIBRARIES})
-  if (NOT CETMODULES_MODULE_PLUGINS)
+  cet_process_liblist(liblist ${CML_TARGET_NAME} ${lib_scope} ${CML_LIBRARIES})
+  if (NOT ${CETMODULES_CURRENT_PROJECT_NAME}_MODULE_PLUGINS)
     set(CML_MODULE)
   endif()
   cet_passthrough(FLAG IN_PLACE CML2_INTERFACE)
