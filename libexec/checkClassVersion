@@ -259,8 +259,6 @@ def main():
         else:
             raise RuntimeError("Failed to load ROOT's Cintex library")
 
-    print("INFO: Current value of ROOT_INCLUDE_PATH: " + os.environ['ROOT_INCLUDE_PATH'], file=sys.stderr)
-
     # All ROOT versions.
     if (options.library is not None) and (ROOT.gSystem.Load(options.library) < 0):
         raise RuntimeError("failed to load library '" + options.library + "'")
