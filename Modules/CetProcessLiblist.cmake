@@ -24,15 +24,16 @@ function(cet_convert_target_args RESULT_VAR DEP_TARGET)
       get_target_property(target_type "${arg}" TYPE)
       if (target_type STREQUAL "MODULE_LIBRARY")
         message(SEND_ERROR "
-cannot link to target ${arg} of CMake type \"${target_type}\".
+target ${DEP_TARGET} cannot link to target ${arg} of CMake type \"${target_type}\".
 Separate implementation from plugin registration code (e.g. X.cc vs \
 X_<plugin-suffix>.cc) (strongly recommended), specify PUBLIC dependencies to \
 basic_plugin() (temporary solution only), or set \
-${CETMODULES_CURRENT_PROJECT_NAME} _MODULE_PLUGINS to FALSE (not recommended)\
+${CETMODULES_CURRENT_PROJECT_NAME}_MODULE_PLUGINS to FALSE (not recommended)\
 ")
       endif()
-    elseif (NOT arg MATCHES
-        "(/|::|^((-|\\$<)|(debug|general|optimized)$))")
+    elseif (NOT arg MATCHES "(^((debug|general|optimized)$|-|\\$<))|/")
+      # Could be a target not yet defined, a variable or a literal
+      # library.
       _cet_convert_target_arg("${arg}" arg)
     endif()
     list(APPEND RESULTS "${arg}")
@@ -53,21 +54,24 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
     else()
       set(RESULT "${${${ARG}_UC}}")
     endif()
-  elseif (ARG MATCHES "/") # Definitely *not* a target.
-    set(RESULT "${ARG}")
   else ()
-    # Likely a target, which may or may not have been defined yet.
+    # Might be a target, which might or might not have been defined yet.
     #
     # Put mechanisms in place to catch link problems at link time if we
     # can't detect them earlier (see 'if (TARGET "${arg}") ...' in
     # cet_convert_target_args(), above).
     set(error_file "$<MAKE_C_IDENTIFIER:${DEP_TARGET}-${ARG}>-ERROR.txt")
-    set(gen_condition "$<AND:$<TARGET_EXISTS:${ARG}>,$<STREQUAL:MODULE_LIBRARY,$<TARGET_PROPERTY:$<IF:$<BOOL:$<TARGET_PROPERTY:${ARG},ALIASED_TARGET>>,$<TARGET_PROPERTY:${ARG},ALIASED_TARGET>,${ARG}>,TYPE>>>")
+    set(dollar "$<$<TARGET_EXISTS:${ARG}>:$>")
+    set(library_type "${dollar}<TARGET_PROPERTY:${dollar}<IF:${dollar}<BOOL:${dollar}<TARGET_PROPERTY:${ARG},ALIASED_TARGET$<ANGLE-R>$<ANGLE-R>,${dollar}<TARGET_PROPERTY:${ARG},ALIASED_TARGET$<ANGLE-R>,${ARG}$<ANGLE-R>,TYPE$<ANGLE-R>")
+    set(gen_condition "$<IF:$<TARGET_EXISTS:${ARG}>,$<GENEX_EVAL:${dollar}<STREQUAL:MODULE_LIBRARY,${library_type}$<ANGLE-R>>,0>")
 	  set(RESULT "$<IF:${gen_condition},UNLINKABLE-MODULE-LIBRARY-TARGET-SEE-${CMAKE_CURRENT_BINARY_DIR}/${error_file},${ARG}>")
+    file(GENERATE OUTPUT "$<MAKE_C_IDENTIFIER:${DEP_TARGET}-${ARG}>-type.txt"
+      CONTENT "${ARG}: $<IF:$<TARGET_EXISTS:${ARG}>,$<GENEX_EVAL:${library_type}>,<not a target$<ANGLE-R>>
+")
     file(GENERATE OUTPUT "${error_file}" CONTENT "\
 Target ${ARG} is of CMake type MODULE_LIBRARY, *not* SHARED_LIBRARY. This means that it cannot be a library dependency, but used only as a dynamically-loaded plugin module.
 
-${ARG} was not defined at the time CMake processed instructions for target ${DEP_TARGET}, so was not able to detect the error prior to ${DEP_TARGET}'s link operation. Please:
+${ARG} was not defined at the time CMake processed instructions for dependent target ${DEP_TARGET}, so was not able to detect the error prior to ${DEP_TARGET}'s link operation. Please:
 
 1. Define all targets *prior* to their use as dependencies to enable CMake to detect problems at configuration / generation time rather than at build time.
 
@@ -75,9 +79,9 @@ ${ARG} was not defined at the time CMake processed instructions for target ${DEP
 
 3. Use appropriate build system and/or linker mechanisms to ensure all dependencies for libraries and executables are resolved at link-time to avoid runtime failures which may be expensive in terms of wasted CPU cycles. With cetmodules, invoke set_compiler_flags(... NO_UNDEFINED ...).
 
-4. Check the build tree for other *-ERROR.txt files and resolve them similarly prior to attempting another build.\
-"
-      CONDITION ${gen_condition})
+4. Check the build tree for other *-ERROR.txt files and resolve them similarly prior to attempting another build.
+\
+" CONDITION ${gen_condition})
   endif()
   set(${RESULT_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
