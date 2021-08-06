@@ -44,12 +44,6 @@ option(BUILD_DOCS "Build documentation (all_projects)." ON)
 # RPATH management.
 option(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 mark_as_advanced(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-
-# Module libraries for plugins:
-if (NOT (DEFINED CACHE{CETMODULES_MODULE_PLUGINS} OR
-      CMAKE_SYSTEM_NAME MATCHES "Darwin"))
-    set(CETMODULES_MODULE_PLUGINS TRUE)
-endif()
 ##################
 
 ##################
@@ -197,6 +191,23 @@ component(M[.m[.p[.t]]][-X])\
     endmacro()
   endif()
 
+  # Should we generate plugin registration libraries of type
+  # MODULE_LIBRARY (recommended), or SHARED_LIBRARY (prone to ODR
+  # violations)?
+  if (NOT (_cet_need_cetbuildtools_compat OR
+        CMAKE_SYSTEM_NAME MATCHES "Darwin"))
+    set(_cet_default_MODULE_PLUGINS TRUE)
+  else()
+    unset(_cet_default_MODULE_PLUGINS)
+  endif()
+  project_variable(MODULE_PLUGINS ${_cet_default_MODULE_PLUGINS}
+    TYPE BOOL DOCSTRING "\
+Whether plugin registration libraries for project \
+${CETMODULES_CURRENT_PROJECT_NAME} should be of type MODULE_LIBRARY (TRUE) or \
+SHARED_LIBRARY (FALSE)")
+
+  # Determine whether we are attempting to support extended version
+  # semantics (non-numeric version components).
   if ("${PROJECT_VERSION_EXTRA}" STREQUAL "")
     set(_cce_ext_v_def FALSE)
   else()
