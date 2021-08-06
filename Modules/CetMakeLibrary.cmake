@@ -87,8 +87,8 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     set(lib_scope PUBLIC)
   endif()
   # Get appropriate list of libraries to which to link.
-  cet_process_liblist(liblist ${lib_scope} ${CML_LIBRARIES})
-  if (CETMODULES_MODULE_PLUGINS)
+  cet_process_liblist(liblist ${CML_TARGET_NAME} ${lib_scope} ${CML_LIBRARIES})
+  if (NOT ${CETMODULES_CURRENT_PROJECT_NAME}_MODULE_PLUGINS)
     set(CML_MODULE)
   endif()
   cet_passthrough(FLAG IN_PLACE CML2_INTERFACE)
@@ -118,6 +118,8 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     message(FATAL_ERROR "INSTALLED_PATH_BASE valid only for INTERFACE library types")
   elseif (CML2_INTERFACE AND num_libtypes GREATER 1)
     message(FATAL_ERROR "INTERFACE library is incompatible with any other library type: build separately")
+  elseif (CML_SHARED AND CML_MODULE)
+    message(FATAL_ERROR "SHARED and MODULE libraries are mutually exclusive")
   elseif (NOT CML_NO_OBJECT AND
       (num_libtypes GREATER 2 OR
         (CML_STATIC AND NOT USE_BOOST_UNIT AND (CML_MODULE OR CML_SHARED))))
@@ -154,7 +156,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   foreach (lib_type IN LISTS lib_types)
     set(target_suffix)
     # This condition is in approximate likely order of frequency.
-    if (lib_type STREQUAL "SHARED")
+    if (lib_type MATCHES "^(SHARED|MODULE)$")
       set(lib_sources PRIVATE "${lib_sources_def}")
     elseif (lib_type STREQUAL "INTERFACE")
       set(lib_sources INTERFACE)
@@ -171,9 +173,6 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
         # Add verbatim.
         list(APPEND lib_sources "${source}")
       endforeach()
-    elseif (lib_type STREQUAL "MODULE")
-      set(target_suffix M)
-      set(lib_sources PRIVATE "${lib_sources_def}")
     elseif (lib_type STREQUAL "STATIC")
       set(target_suffix S)
       if (USE_BOOST_UNIT)
@@ -189,23 +188,23 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       message(FATAL_ERROR "cet_make_library(): unknown library type ${lib_type}")
     endif()
     ##################
+    if (target_suffix AND num_libtypes EQUAL 1)
+      # This is the only library type for this name and source, so add
+      # an extra alias with the suffix and then drop it for everything
+      # else.
+      if (CML_EXPORT_NAME)
+        set(extra_alias "${CML_EXPORT_NAME}${target_suffix}")
+      else()
+        set(extra_alias "${CML_TARGET_NAME}${target_suffix}")
+      endif()
+      unset(target_suffix)
+    endif()
     set(lib_name "${CML_LIBRARY_NAME}${target_suffix}")
     set(lib_target "${CML_TARGET_NAME}${target_suffix}")
     if (CML_EXPORT_NAME)
       set(lib_export "${CML_EXPORT_NAME}${target_suffix}")
     else()
       unset(lib_export)
-    endif()
-    if (target_suffix AND
-        (num_libtypes EQUAL 1 OR NOT
-          CML_LIBRARY_NAME IN_LIST lib_targets))
-      if (lib_export)
-        set(extra_alias "${lib_export}")
-      else()
-        set(extra_alias "${lib_target}")
-      endif()
-      set(lib_target "${CML_TARGET_NAME}")
-      set(lib_name "${CML_LIBRARY_NAME}")
     endif()
     ##################
     list(APPEND lib_targets ${lib_target})

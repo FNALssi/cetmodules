@@ -257,7 +257,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     target_link_options(${CME_NAME} PRIVATE -rdynamic)
   endif()
   # Library links.
-  cet_process_liblist(liblist PRIVATE ${CME_LIBRARIES})
+  cet_process_liblist(liblist ${CME_NAME} PRIVATE ${CME_LIBRARIES})
   target_link_libraries(${CME_NAME} ${liblist})
   # For target aliases.
   cet_register_export_set(SET_NAME ${CME_EXPORT_SET} SET_VAR CME_EXPORT_SET NAMESPACE_VAR namespace)

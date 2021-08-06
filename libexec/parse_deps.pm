@@ -370,7 +370,7 @@ sub get_pathspec {
   $pi->{pathspec_cache} = {} unless exists $pi->{pathspec_cache};
   my $pathspec_cache = $pi->{pathspec_cache};
   unless ($pathspec_cache->{$dirkey}) {
-    my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} || 0;
+    my $multiple_ok = $pathspec_info->{$dirkey}->{multiple_ok} // 0;
     my $fh = IO::File->new("$pi->{pfile}", "<")
       or error_exit("couldn't open $pi->{pfile} for read");
     my ($seen_dirkey, $pathkeys, $dirnames) = (undef, [], []);
@@ -405,9 +405,9 @@ sub get_pathspec {
     }
     $fh->close();
     $pathspec_cache->{$dirkey} =
-      { key => (scalar @$pathkeys > 1) ? $pathkeys : $pathkeys->[0],
+      { key => ($multiple_ok) ? $pathkeys : $pathkeys->[0],
         (defined $dirnames) ?
-        (path => (scalar @$dirnames > 1) ? $dirnames : $dirnames->[0]) : () }
+        (path => ($multiple_ok) ? $dirnames : $dirnames->[0]) : () }
         if $seen_dirkey;
   }
   return $pathspec_cache->{$dirkey};
@@ -1491,7 +1491,7 @@ EOF
                            File::Spec->catfile('${CETPKG_BUILD}', $fqdir)));
 
   # FW_SEARCH_PATH.
-  my $fw_pathspec = get_pathspec($pi, 'set_fwdir') || {};
+  my $fw_pathspec = get_pathspec($pi, 'set_fwdir');
   die "INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called first"
     if ($fw_pathspec->{path} and not $fw_pathspec->{fq_path});
   my @fqdirs =
