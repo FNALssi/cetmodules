@@ -387,7 +387,19 @@ endfunction()
 
 function(_cet_exec_location LOC_VAR)
   list(POP_FRONT ARGN EXEC)
+  string(TOUPPER "${EXEC}" EXEC_UC)
+  if (DEFINED ${EXEC_UC})
+    set(EXEC "${${EXEC_UC}}")
+    if ("${EXEC}" STREQUAL "") # Empty.
+      set(${LOC_VAR} PARENT_SCOPE)
+      return()
+    endif()
+    unset(${EXEC_UC}) # Prevent cycles.
+    _cet_exec_location(EXEC "${EXEC}")
+  endif()
   if (TARGET "${EXEC}")
+    # FIXME: could load all this up as a generator expression if we
+    #        cared enough to deal with targets not being defined yet.
     get_property(target_type TARGET ${EXEC} PROPERTY TYPE)
     if (target_type STREQUAL "EXECUTABLE")
       set(EXEC "$<TARGET_FILE:${EXEC}>")
@@ -669,7 +681,6 @@ function(cet_test CET_TARGET)
       elseif (CET_OUTPUT_FILTERS)
         foreach (filter IN LISTS CET_OUTPUT_FILTERS)
           separate_arguments(args NATIVE_COMMAND "${filter}")
-          cet_convert_target_args(args "test target ${TEST_TARGET_NAME}" "${filter}")
           set(filter)
           foreach (arg IN LISTS args)
             _cet_exec_location(arg "${arg}")
