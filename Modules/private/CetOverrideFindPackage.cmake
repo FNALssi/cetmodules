@@ -141,6 +141,10 @@ macro(find_package PKG)
         unset(_fp_module_path_source)
         unset(_fp_module_path_binary)
       endif()
+      if (${PKG}_FOUND AND
+          NOT ("${${PKG}_CMAKE_PROJECT_VERSION_STRING}" STREQUAL "" OR
+            ${PKG}_CMAKE_PROJECT_VERSION_STRING STREQUAL PROJECT_VERSION))
+        set(${PKG}_VERSION ${${PKG}_CMAKE_PROJECT_VERSION_STRING})
       endif()
     endif()
     set(${_fp_PKG_UC}_FOUND ${PKG}_FOUND)
