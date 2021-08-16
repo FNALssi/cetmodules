@@ -289,4 +289,101 @@ function(basic_plugin NAME SUFFIX)
   endif()
 endfunction()
 
+macro(cet_build_plugin NAME BASE)
+  if ("${BASE}" STREQUAL "")
+    message(SEND_ERROR "vacuous BASE argument to cet_build_plugin()")
+  else()
+    foreach (_cbp_command IN ITEMS ${BASE} ${BASE}_plugin LISTS ${BASE}_builder)
+      list(POP_FRONT _cbp_command _cbp_cmd_name)
+      if (COMMAND ${_cbp_cmd_name})
+        list(PREPEND _cbp_cmd_names ${_cbp_cmd_name}) # Handle recursion.
+        cmake_language(CALL ${_cbp_cmd_name} ${NAME} ${_cbp_command} ${ARGN})
+        list(POP_FRONT _cbp_cmd_names _cbp_cmd_name)
+        break()
+      endif()
+      unset(_cbp_cmd_name)
+    endforeach()
+    unset(_cbp_command)
+    if (_cbp_cmd_name)
+      unset(_cbp_cmd_name)
+    elseif (DEFINED ${BASE}_LIBRARIES)
+      basic_plugin(${NAME} ${BASE} LIBRARIES ${ARGN} NOP ${${BASE}_LIBRARIES})
+    else()
+      message(SEND_ERROR "unable to find plugin builder for plugin type \"${BASE}\": missing include()?
+Need ${BASE}(), ${BASE}_plugin() or dependencies in \${${BASE}_LIBRARIES}, or use basic_plugin()")
+    endif()
+  endif()
+endmacro()
+
+# This macro will generate a CMake builder function for plugins of type
+# (e.g. inheriting from) TYPE.
+function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
+  # Allow a layered hierarchy while preventing looping.
+  if (TYPE STREQUAL BASE)
+    # Drop namespacing for final step.
+    string(REGEX REPLACE "^.*::" "" BASE_SUFFIX_ARG "${BASE}")
+    set(build basic)
+    set(extra_includes)
+  else()
+    set(build cet_build)
+    set(extra_includes "include(${BASE})\n")
+    set(BASE_SUFFIX_ARG ${BASE})
+  endif()
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
+    "\
+include_guard()
+cmake_minimum_required(VERSION 3.18...3.21 FATAL_ERROR)
+
+${extra_includes}include(BasicPlugin)
+
+# Generate a CMake plugin builder macro for tools of type ${TYPE} for
+# automatic invocation by build_plugin().
+macro(${TYPE} NAME)
+  ${build}_plugin(\${NAME} ${BASE_SUFFIX_ARG} \${ARGN} ${ARGN})
+endmacro()
+\
+")
+endfunction()
+
+function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
+  cet_write_plugin_builder(${ARGV})
+  if (NOT DEFINED
+      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      CACHE INTERNAL
+      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  endif()
+  set_property(CACHE
+    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    APPEND PROPERTY VALUE "${TYPE}")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+endfunction()
+
+function(cet_collect_plugin_builders DEST_SUBDIR)
+  list(POP_FRONT ARGN NAME_WE)
+  if ("${NAME_WE}" STREQUAL "")
+    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
+  endif()
+  list(SORT CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+  list(TRANSFORM CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
+  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    "\
+include_guard()
+
+${_ccpb_includes_content}
+\
+")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+  unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
+  unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
+endfunction()
+
 cmake_policy(POP)
