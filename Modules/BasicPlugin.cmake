@@ -7,7 +7,7 @@ plugin module.
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
@@ -238,8 +238,7 @@ function(basic_plugin NAME SUFFIX)
       # target name but have a different name for the implementation
       # library on disk.
       set_target_properties("${plugin_stem}_${SUFFIX}"
-        PROPERTIES OUTPUT_NAME "${plugin_stem}"
-      )
+        PROPERTIES OUTPUT_NAME "${plugin_stem}")
       if (BP_IMPL_TARGET_VAR)
         set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}" PARENT_SCOPE)
       endif()
@@ -266,15 +265,12 @@ function(basic_plugin NAME SUFFIX)
     endif()
   endif()
   ##################
-  # These items are applicable only to the implementation library.
-  cet_passthrough(IN_PLACE BP_REG_SOURCE
-    KEYWORD SOURCE EMPTY_KEYWORD NO_SOURCE)
-  ##################
   # Make the plugin library, to which we should not normally link
   # directly (see REG_SOURCE, above).
   #
   # Module-type libraries containing only plugin registration code can
   # be stripped.
+  cet_passthrough(IN_PLACE BP_REG_SOURCE KEYWORD SOURCE EMPTY_KEYWORD NO_SOURCE)
   cet_passthrough(FLAG APPEND target_thunk KEYWORD STRIP_LIBS cml_impl_args)
   if (REG_LIB_TYPE STREQUAL "MODULE" AND NOT NO_INSTALL)
     # We don't want the plugin-only library visible as an exported target.
@@ -284,12 +280,10 @@ function(basic_plugin NAME SUFFIX)
     ${REG_LIB_TYPE}
     ${BP_REG_SOURCE}
     ${cml_common_args} ${cml_impl_args}
-    LIBRARIES ${BP_LIBRARIES}
-  )
+    LIBRARIES ${BP_LIBRARIES})
   if (target_thunk)
     set_target_properties(${plugin_stem}_${SUFFIX}${target_thunk}
-      PROPERTIES OUTPUT_NAME "${plugin_stem}_${SUFFIX}"
-    )
+      PROPERTIES OUTPUT_NAME "${plugin_stem}_${SUFFIX}")
   elseif (BP_IMPL_TARGET_VAR)
     set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}${target_thunk}" PARENT_SCOPE)
   endif()
