@@ -18,7 +18,7 @@ include(CetRegexEscape)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL
   USE_BOOST_UNIT USE_PRODUCT_NAME VERSION)
-set(cet_bp_one_arg_opts EXPORT_SET SOVERSION)
+set(cet_bp_one_arg_opts EXPORT_SET IMPL_TARGET_VAR SOVERSION)
 set(cet_bp_list_options ALIAS IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS
   REG_SOURCE SOURCE)
 
@@ -240,6 +240,9 @@ function(basic_plugin NAME SUFFIX)
       set_target_properties("${plugin_stem}_${SUFFIX}"
         PROPERTIES OUTPUT_NAME "${plugin_stem}"
       )
+      if (BP_IMPL_TARGET_VAR)
+        set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}" PARENT_SCOPE)
+      endif()
       # Thunk the target name of the plugin library so we don't attempt
       # to link to it, but retain the vanilla library name for backward
       # compatibility.
@@ -287,6 +290,8 @@ function(basic_plugin NAME SUFFIX)
     set_target_properties(${plugin_stem}_${SUFFIX}${target_thunk}
       PROPERTIES OUTPUT_NAME "${plugin_stem}_${SUFFIX}"
     )
+  elseif (BP_IMPL_TARGET_VAR)
+    set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}${target_thunk}" PARENT_SCOPE)
   endif()
 endfunction()
 
