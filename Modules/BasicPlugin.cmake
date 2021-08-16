@@ -246,7 +246,7 @@ function(basic_plugin NAME SUFFIX)
       # Thunk the target name of the plugin library so we don't attempt
       # to link to it, but retain the vanilla library name for backward
       # compatibility.
-      set(target_thunk _plugin)
+      set(target_thunk _reg)
       # Trim the library list for the registration library:
       set(BP_LIBRARIES PRIVATE "${plugin_stem}_${SUFFIX}" ${BPL_REG})
       unset(cml_impl_args)
