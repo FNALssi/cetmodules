@@ -134,9 +134,17 @@ macro(find_package PKG)
       endif()
       if (CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG})
         list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
-          PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path)
-        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path})
-        unset(_fp_module_path)
+          PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_source)
+        list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
+          PREPEND "${${PKG}_BINARY_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_binary)
+        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path_binary} ${_fp_module_path_source})
+        unset(_fp_module_path_source)
+        unset(_fp_module_path_binary)
+      endif()
+      if (${PKG}_FOUND AND
+          NOT ("${${PKG}_CMAKE_PROJECT_VERSION_STRING}" STREQUAL "" OR
+            ${PKG}_CMAKE_PROJECT_VERSION_STRING STREQUAL PROJECT_VERSION))
+        set(${PKG}_VERSION ${${PKG}_CMAKE_PROJECT_VERSION_STRING})
       endif()
     endif()
     set(${_fp_PKG_UC}_FOUND ${PKG}_FOUND)

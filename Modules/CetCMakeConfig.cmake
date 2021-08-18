@@ -403,7 +403,6 @@ function(_generate_target_imports FRAG_LIST)
         install(EXPORT ${export_set}
           DESTINATION "${distdir}"
           FILE "${export_file}.cmake"
-          EXPORT_LINK_INTERFACE_LIBRARIES
           ${namespace}::)
         _verify_transitive_dependencies("\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake")
         _verify_cross_dependent_exports(${export_set}

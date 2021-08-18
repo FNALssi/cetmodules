@@ -7,7 +7,7 @@ plugin module.
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
 cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
@@ -18,7 +18,7 @@ include(CetRegexEscape)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL
   USE_BOOST_UNIT USE_PRODUCT_NAME VERSION)
-set(cet_bp_one_arg_opts EXPORT_SET SOVERSION)
+set(cet_bp_one_arg_opts EXPORT_SET IMPL_TARGET_VAR SOVERSION)
 set(cet_bp_list_options ALIAS IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS
   REG_SOURCE SOURCE)
 
@@ -238,12 +238,14 @@ function(basic_plugin NAME SUFFIX)
       # target name but have a different name for the implementation
       # library on disk.
       set_target_properties("${plugin_stem}_${SUFFIX}"
-        PROPERTIES OUTPUT_NAME "${plugin_stem}"
-      )
+        PROPERTIES OUTPUT_NAME "${plugin_stem}")
+      if (BP_IMPL_TARGET_VAR)
+        set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}" PARENT_SCOPE)
+      endif()
       # Thunk the target name of the plugin library so we don't attempt
       # to link to it, but retain the vanilla library name for backward
       # compatibility.
-      set(target_thunk _plugin)
+      set(target_thunk _reg)
       # Trim the library list for the registration library:
       set(BP_LIBRARIES PRIVATE "${plugin_stem}_${SUFFIX}" ${BPL_REG})
       unset(cml_impl_args)
@@ -263,15 +265,12 @@ function(basic_plugin NAME SUFFIX)
     endif()
   endif()
   ##################
-  # These items are applicable only to the implementation library.
-  cet_passthrough(IN_PLACE BP_REG_SOURCE
-    KEYWORD SOURCE EMPTY_KEYWORD NO_SOURCE)
-  ##################
   # Make the plugin library, to which we should not normally link
   # directly (see REG_SOURCE, above).
   #
   # Module-type libraries containing only plugin registration code can
   # be stripped.
+  cet_passthrough(IN_PLACE BP_REG_SOURCE KEYWORD SOURCE EMPTY_KEYWORD NO_SOURCE)
   cet_passthrough(FLAG APPEND target_thunk KEYWORD STRIP_LIBS cml_impl_args)
   if (REG_LIB_TYPE STREQUAL "MODULE" AND NOT NO_INSTALL)
     # We don't want the plugin-only library visible as an exported target.
@@ -281,13 +280,110 @@ function(basic_plugin NAME SUFFIX)
     ${REG_LIB_TYPE}
     ${BP_REG_SOURCE}
     ${cml_common_args} ${cml_impl_args}
-    LIBRARIES ${BP_LIBRARIES}
-  )
+    LIBRARIES ${BP_LIBRARIES})
   if (target_thunk)
     set_target_properties(${plugin_stem}_${SUFFIX}${target_thunk}
-      PROPERTIES OUTPUT_NAME "${plugin_stem}_${SUFFIX}"
-    )
+      PROPERTIES OUTPUT_NAME "${plugin_stem}_${SUFFIX}")
+  elseif (BP_IMPL_TARGET_VAR)
+    set(${BP_IMPL_TARGET_VAR} "${plugin_stem}_${SUFFIX}${target_thunk}" PARENT_SCOPE)
   endif()
+endfunction()
+
+macro(cet_build_plugin NAME BASE)
+  if ("${BASE}" STREQUAL "")
+    message(SEND_ERROR "vacuous BASE argument to cet_build_plugin()")
+  else()
+    foreach (_cbp_command IN ITEMS ${BASE} ${BASE}_plugin LISTS ${BASE}_builder)
+      list(POP_FRONT _cbp_command _cbp_cmd_name)
+      if (COMMAND ${_cbp_cmd_name})
+        list(PREPEND _cbp_cmd_names ${_cbp_cmd_name}) # Handle recursion.
+        cmake_language(CALL ${_cbp_cmd_name} ${NAME} ${_cbp_command} ${ARGN})
+        list(POP_FRONT _cbp_cmd_names _cbp_cmd_name)
+        break()
+      endif()
+      unset(_cbp_cmd_name)
+    endforeach()
+    unset(_cbp_command)
+    if (_cbp_cmd_name)
+      unset(_cbp_cmd_name)
+    elseif (DEFINED ${BASE}_LIBRARIES)
+      basic_plugin(${NAME} ${BASE} LIBRARIES ${ARGN} NOP ${${BASE}_LIBRARIES})
+    else()
+      message(SEND_ERROR "unable to find plugin builder for plugin type \"${BASE}\": missing include()?
+Need ${BASE}(), ${BASE}_plugin() or dependencies in \${${BASE}_LIBRARIES}, or use basic_plugin()")
+    endif()
+  endif()
+endmacro()
+
+# This macro will generate a CMake builder function for plugins of type
+# (e.g. inheriting from) TYPE.
+function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
+  # Allow a layered hierarchy while preventing looping.
+  if (TYPE STREQUAL BASE)
+    # Drop namespacing for final step.
+    string(REGEX REPLACE "^.*::" "" BASE_SUFFIX_ARG "${BASE}")
+    set(build basic)
+    set(extra_includes)
+  else()
+    set(build cet_build)
+    set(extra_includes "include(${BASE})\n")
+    set(BASE_SUFFIX_ARG ${BASE})
+  endif()
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
+    "\
+include_guard()
+cmake_minimum_required(VERSION 3.18...3.21 FATAL_ERROR)
+
+${extra_includes}include(BasicPlugin)
+
+# Generate a CMake plugin builder macro for tools of type ${TYPE} for
+# automatic invocation by build_plugin().
+macro(${TYPE} NAME)
+  ${build}_plugin(\${NAME} ${BASE_SUFFIX_ARG} \${ARGN} ${ARGN})
+endmacro()
+\
+")
+endfunction()
+
+function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
+  cet_write_plugin_builder(${ARGV})
+  if (NOT DEFINED
+      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      CACHE INTERNAL
+      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  endif()
+  set_property(CACHE
+    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    APPEND PROPERTY VALUE "${TYPE}")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+endfunction()
+
+function(cet_collect_plugin_builders DEST_SUBDIR)
+  list(POP_FRONT ARGN NAME_WE)
+  if ("${NAME_WE}" STREQUAL "")
+    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
+  endif()
+  list(SORT CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+  list(TRANSFORM CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
+  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    "\
+include_guard()
+
+${_ccpb_includes_content}
+\
+")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+  unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
+  unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
 endfunction()
 
 cmake_policy(POP)

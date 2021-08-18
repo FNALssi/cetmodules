@@ -273,14 +273,14 @@ sub get_derived_parent_data {
     } else {
       error_exit(<<EOF);
 UPS product name not specified in product_deps and could not identify an
-unambiguous project name in CMakeLists.txt
+unambiguous project name in $sourcedir/CMakeLists.txt
 EOF
     }
   }
 
   if (exists $cpi->{version_info} and $cpi->{version_info}->{extra}) {
     error_exit(sprintf(<<EOF, $cpi->{cmake_project_version}, $cpi->{version_info}->{extra}, $cpi->{cmake_project_version}));
-VERSION as specified in CMakeLists.txt:project() (%s) has an
+VERSION as specified in $sourcedir/CMakeLists.txt:project() (%s) has an
 impermissible non-numeric component "%s": remove from project()
 and set \${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING to %s
 before calling cet_cmake_env()
@@ -290,13 +290,13 @@ EOF
   if ($cpi->{CMAKE_PROJECT_VERSION_STRING}) {
     my $cmake_version_info = parse_version_string($cpi->{CMAKE_PROJECT_VERSION_STRING});
     if ($pi->{version} and $pi->{version} ne to_ups_version($cmake_version_info)) {
-      warning("UPS product version $pi->{version} from product_deps overridden by project variable $cpi->{CMAKE_PROJECT_VERSION_STRING} from CMakeLists.txt");
+      warning("UPS product $pi->{name} version $pi->{version} from product_deps overridden by project variable $cpi->{CMAKE_PROJECT_VERSION_STRING} from $sourcedir/CMakeLists.txt");
     }
     $pi->{version} = to_ups_version($cmake_version_info);
     $pi->{cmake_project_version} = to_version_string($cmake_version_info);
   } elsif ($cpi->{version_info}) {
     if ($pi->{version} and to_cmake_version($pi->{version}) ne $cpi->{cmake_project_version}) {
-      warning("UPS product version $pi->{version} from product_deps overridden by VERSION $cpi->{cmake_project_version} from project() in CMakeLists.txt");
+      warning("UPS product $pi->{name} version $pi->{version} from product_deps overridden by VERSION $cpi->{cmake_project_version} from project() in $sourcedir/CMakeLists.txt");
     }
     $pi->{version} = to_ups_version($cpi->{version_info});
   } elsif ($pi->{version}) {
@@ -305,7 +305,7 @@ EOF
       $pi->{cmake_project_version} = to_version_string($version_info);
     }
   } else {
-    warning("could not identify a product/project version from product_deps or CMakeLists.txt. Ensure version is set in product_deps or with project() or CMAKE_PROJECT_VERSION_STRING project variable in CMakeLists.txt.");
+    warning("could not identify a product/project version from product_deps or $sourcedir/CMakeLists.txt. Ensure version is set in product_deps or with project() or CMAKE_PROJECT_VERSION_STRING project variable in CMakeLists.txt.");
   }
 
   my @sorted;
