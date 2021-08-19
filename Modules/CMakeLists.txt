@@ -64,7 +64,6 @@ make_simple_builder(art::Output BASE art::module)
 make_simple_builder(art::ProducingService)
 make_simple_builder(art::ProvenanceDumperOutput BASE art::Output)
 make_simple_builder(art::ResultsProducer BASE art::plugin)
-make_simple_builder(art::SourceT BASE art::source)
 make_simple_builder(systemService)
 
 foreach (prefix ED Replicated Shared "")
