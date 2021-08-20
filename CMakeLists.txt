@@ -79,4 +79,6 @@ cet_cmake_config(EXTRA_TARGET_VARS CET_EXEC_TEST
   config/${PROJECT_NAME}-cmake-version-check.cmake
   config/${PROJECT_NAME}-override-toolchain.cmake
   config/${PROJECT_NAME}-CMP0096.cmake
+  CONFIG_POST_VARS
+  config/${PROJECT_NAME}-no-in-tree-source-modules.cmake
 )

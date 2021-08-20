@@ -1,0 +1,15 @@
+if (@PROJECT_NAME@_IN_TREE)
+  set(_@PROJECT_NAME@_source_module_paths)
+  foreach (module_path IN LISTS CMAKE_MODULE_PATH)
+    string(FIND "${module_path}" "@PROJECT_SOURCE_DIR@/Modules" _@PROJECT_NAME@_source_module_path)
+    if (_@PROJECT_NAME@_source_module_path EQUAL 0)
+      list(APPEND _@PROJECT_NAME@_source_module_paths "${module_path}")
+    endif()
+  endforeach()
+  if (_@PROJECT_NAME@_source_module_paths)
+    # Shuffle to front of CMAKE_MODULE_PATH to avoid issues with CMake
+    # modules with include_guard(GLOBAL).
+    list(REMOVE_ITEM CMAKE_MODULE_PATH ${_@PROJECT_NAME@_source_module_paths})
+    list(PREPEND CMAKE_MODULE_PATH ${_@PROJECT_NAME@_source_module_paths})
+  endif()
+endif()

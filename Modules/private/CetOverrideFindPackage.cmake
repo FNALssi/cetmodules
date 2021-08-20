@@ -137,7 +137,7 @@ macro(find_package PKG)
           PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_source)
         list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
           PREPEND "${${PKG}_BINARY_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_binary)
-        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path_binary} ${_fp_module_path_source})
+        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path_source} ${_fp_module_path_binary})
         unset(_fp_module_path_source)
         unset(_fp_module_path_binary)
       endif()
