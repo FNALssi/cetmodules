@@ -38,6 +38,7 @@ function(make_simple_builder NAME)
   list(POP_FRONT ARGN kw)
   if (kw STREQUAL "BASE")
     list(POP_FRONT ARGN BASE)
+    unset(kw)
   elseif (TGT MATCHES "([A-Z][a-z]+)$")
     string(TOLOWER "art::${CMAKE_MATCH_1}" BASE)
   else()
@@ -46,7 +47,7 @@ function(make_simple_builder NAME)
   string(REGEX REPLACE "^(.+)$"
     "$<$<TARGET_EXISTS:art_plugin_types::\\1>:art_plugin_types::\\1>"
     TGT "${TGT}")
-  cet_make_plugin_builder(${NAME} ${BASE} ${dest_subdir} ${ARGN} LIBRARIES
+  cet_make_plugin_builder(${NAME} ${BASE} ${dest_subdir} ${kw} ${ARGN} LIBRARIES
     REG ${TGT} NOP)
 endfunction()
 
@@ -66,15 +67,8 @@ make_simple_builder(art::ProvenanceDumperOutput BASE art::Output)
 make_simple_builder(art::ResultsProducer BASE art::plugin)
 make_simple_builder(systemService)
 
-foreach (prefix ED Replicated Shared "")
-  if (prefix STREQUAL "")
-    set(dir detail/)
-  else()
-    unset(dir)
-  endif()
-  foreach (type Analyzer Filter Producer)
-    cet_make_library(LIBRARY_NAME ${prefix}${type} INTERFACE
-      EXPORT_SET PluginTypes SOURCE ${dir}${prefix}${type}.h)
+foreach (prefix IN ITEMS ED Replicated Shared "")
+  foreach (type IN ITEMS Analyzer Filter Producer)
     make_simple_builder(art::${prefix}${type} BASE art::module)
   endforeach()
 endforeach()

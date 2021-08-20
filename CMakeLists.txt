@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.25.01 LANGUAGES NONE)
+project(cetmodules VERSION 2.25.02 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
@@ -79,4 +79,6 @@ cet_cmake_config(EXTRA_TARGET_VARS CET_EXEC_TEST
   config/${PROJECT_NAME}-cmake-version-check.cmake
   config/${PROJECT_NAME}-override-toolchain.cmake
   config/${PROJECT_NAME}-CMP0096.cmake
+  CONFIG_POST_VARS
+  config/${PROJECT_NAME}-no-in-tree-source-modules.cmake
 )
