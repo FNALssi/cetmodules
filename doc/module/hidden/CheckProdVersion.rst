@@ -1,1 +1,1 @@
-.. cmake-module:: /../Modules/CheckProdVersion.cmake
+.. cmake-module:: /../Modules/compat/CheckProdVersion.cmake
