@@ -1485,7 +1485,7 @@ EOF
   $out->print(print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1));
 
   # FHICL_FILE_PATH.
-  $fqdir = fq_path_for($pi, 'fcldir') and
+  $fqdir = fq_path_for($pi, 'fcldir', 'fcl') and
     $out->print
       (print_dev_setup_var("FHICL_FILE_PATH",
                            File::Spec->catfile('${CETPKG_BUILD}', $fqdir)));
