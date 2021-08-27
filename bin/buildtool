@@ -648,13 +648,16 @@ test_spec_args() {
 do_work() {
   local -a cmake_build_user_options generator_user_args
   local build_info=
-  if [ -z "$MRB_BUILDDIR" -a -n "$CETPKG_NAME" -a \
-    -n "$CETPKG_VERSION" ]; then
-    build_info="$CETPKG_NAME $CETPKG_VERSION"
-  elif [ -n "$MRB_BUILDDIR" -a -n "$MRB_PROJECT" -a \
+  if [ -n "$MRB_BUILDDIR" -a -n "$MRB_PROJECT" -a \
     "$MRB_SOURCE" = "$CETPKG_SOURCE" -a \
     "$MRB_BUILDDIR" = "$CETPKG_BUILD" ]; then
     build_info="MRB project $MRB_PROJECT $MRB_PROJECT_VERSION"
+    (( using_mrb = 1 ))
+  elif [ -n "$CETPKG_NAME" -a -n "$CETPKG_VERSION" ]; then
+    build_info="$CETPKG_NAME $CETPKG_VERSION"
+    unset using_mrb
+  else
+    fatal_error "unable to ascertain what to build - incomplete environment?"
   fi
   while [ -n "$1" ]; do
     case $1 in
@@ -848,29 +851,46 @@ EOF
 
 stage_ip() {
   stage="$1"
+  local stage_regex
   local s="${1:0:1}"
-  local cmd_args=(
-    cmake --build "$CETPKG_BUILD"
-    ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"}
-    ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"}
-  )
-  eval cmd_args+=\(\$\{${s}_opt_args\[*\]:+\"\$\{${s}_opt_args\[@\]\}\"\}\)
-  local cmd_postargs=(
-    "--"
-    ${extra_generator_args[@]:+"${extra_generator_args[@]}"}
-    ${generator_user_args[@]:+"${generator_user_args[@]}"}
-  )
-  eval cmd_postargs+=\(\$\{${s}_postargs\[*\]:+\"\$\{${s}_postargs\[@\]\}\"\}\)
   if (( using_ninja )); then
     stage_regex="^$stage:"
   else
     stage_regex='^\.\.\.[[:space:]]+'"$stage"'$'
   fi
-  if { "${cmd_args[@]}" -t help "${cmd_postargs[@]}" | \
-    grep -Ee "${stage_regex}" >/dev/null 2>&1; }; then
+  local cmd=()
+  local cmake_build=(cmake --build "$CETPKG_BUILD")
+  local cmake_build_args=(
+    ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"}
+    ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"}
+  )
+  local cmake_build_postargs=(
+    ${extra_generator_args[@]:+"${extra_generator_args[@]}"}
+    ${generator_user_args[@]:+"${generator_user_args[@]}"}
+  )
+  eval local opt_args=\(\$\{${s}_opt_args\[*\]:+\"\$\{${s}_opt_args\[@\]\}\"\}\)
+  eval local postargs=\(\$\{${s}_postargs\[*\]:+\"\$\{${s}_postargs\[@\]\}\"\}\)
+  if [ "$s" = p ] && (( using_mrb )); then
+    # Use mrb mp because CMake's packaging facility can create only one
+    # package and we need one per product.
+    cmd=(mrb mp ${opt_args[@]:+"${opt_args[@]}"} --)
+    cmake_build_args+=(${postargs[@]:+"${postargs[@]}"})
+  else # Use cmake build.
+    cmd=("${cmake_build[@]}" -t "${stage}")
+    cmake_build_args+=(${opt_args[@]:+"${opt_args[@]}"})
+    cmake_build_postargs+=(${postargs[@]:+"${postargs[@]}"})
+  fi
+  # Invoke cmake build (being *very* careful with arguments).
+  if (( using_mrb )) || \
+       "${cmake_build[@]}" \
+         ${cmake_build_args[@]:+"${cmake_build_args[@]}"} -t help \
+         ${cmake_build_postargs[@]:+-- "${cmake_build_postargs[@]}"} | \
+         grep -Ee "${stage_regex}" >/dev/null 2>&1; then
     announce_stage
-    lock_install cmd -d "$stage" \
-      "${cmd_args[@]}" -t "$stage" "${cmd_postargs[@]}"
+    lock_install \
+      cmd -d "$stage" \
+      "${cmd[@]}" ${cmake_build_args[@]:+"${cmake_build_args[@]}"} \
+      ${cmake_build_postargs[@]:+-- "${cmake_build_postargs[@]}"}
     check_status
   else
     announce_stage " SKIPPED - target $stage not configured"
@@ -887,7 +907,7 @@ ensure_unique_gen() {
 }
 
 require_tests() {
-  (( do_build = 2 )) # May be overridden by $short_circuit.
+  (( do_build )) || (( do_build = 2 ))
   (( do_test = 1 ))
 }
 
@@ -1140,14 +1160,14 @@ fi
 
 # Did we specify all?
 if (( all )); then
-  (( do_build = 2 ))
-  (( do_test = 2 ))
+  (( do_build )) || (( do_build = 2 ))
+  (( do_test )) || (( do_test = 2 ))
   (( do_install = 1 ))
   (( do_package = 1 ))
 else
   # In general, build unless we've been asked not to where that is
   # compatible with our other options.
-  (( do_build = do_build | ! no_build ))
+  (( do_build )) || (( no_build )) || (( do_build = 2 ))
 fi
 
 # Possibly clean up.
