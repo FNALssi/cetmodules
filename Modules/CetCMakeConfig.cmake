@@ -399,12 +399,15 @@ function(_generate_target_imports FRAG_LIST)
         export(EXPORT ${export_set}
           FILE "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${export_file}.cmake"
           ${namespace}::)
+        # Verify transitive dependencies. Note that the instructions
+        # inserted into cmake_install.cmake need to be executed *before*
+        # the CMake-generated ones that actually install the file.
+        _verify_transitive_dependencies("${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/CMakeFiles/Export/${distdir}/${export_file}.cmake")
         # Export targets for import from the installed package.
         install(EXPORT ${export_set}
           DESTINATION "${distdir}"
           FILE "${export_file}.cmake"
           ${namespace}::)
-        _verify_transitive_dependencies("\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake")
         _verify_cross_dependent_exports(${export_set}
           "\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
           )
@@ -689,14 +692,14 @@ function(_install_package_config_files)
 	  INSTALL_DESTINATION "${distdir}"
     PATH_VARS ${path_vars} ${CCC_PATH_VARS})
 
+  # Post-process manual target definitions in top-level Config file.
+  _verify_transitive_dependencies("${CCC_WORKDIR}/${config}")
+
   # Install top level config files.
   install(FILES
     "${CCC_WORKDIR}/${config}"
     "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${configVersion}"
     DESTINATION "${distdir}")
-
-  # Post-process manual target definitions in top-level Config file.
-  _verify_transitive_dependencies("\${CMAKE_INSTALL_PREFIX}/${distdir}/${config}")
 
   # Generate a top-level config file for the build tree directly at its
   # final location.
