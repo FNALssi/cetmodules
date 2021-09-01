@@ -35,8 +35,8 @@ project(cetmodules VERSION 2.26.00 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
-  ${PROJECT_BINARY_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules
+  ${PROJECT_BINARY_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
 # Other configuration.
