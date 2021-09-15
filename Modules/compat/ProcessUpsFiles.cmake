@@ -454,6 +454,10 @@ function(_restore_install_prefix)
                     OUTPUT_VARIABLE _cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     COMMAND_ERROR_IS_FATAL ANY)
+    execute_process(COMMAND rmdir \"${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}\"
+                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
+                    OUTPUT_QUIET
+                    ERROR_QUIET)
     message(STATUS \"in \${CMAKE_INSTALL_PREFIX}: \${_cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy}\")
     unset(_cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy)
     file(REMOVE \"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}-tmpinstall.tar\")
