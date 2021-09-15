@@ -30,21 +30,31 @@ include(CetExclude)
 include(ProjectVariable)
 
 function(install_scripts)
-  cmake_parse_arguments(PARSE_ARGV 0 IS "AS_TEST" "" "")
+  cmake_parse_arguments(PARSE_ARGV 0 IS "AS_TEST" "DEST_VAR" "")
   set(GLOBS "?*.sh" "?*.py" "?*.pl" "?*.rb")
   list(REMOVE_ITEM IS_UNPARSED_ARGUMENTS PROGRAMS) # Avoid duplication.
   if (IS_AS_TEST)
-    set(pvar TEST)
-    list(APPEND GLOBS "?*.cfg")
-  else()
-    set(pvar SCRIPTS)
+    if (DEFINED IS_DEST_VAR OR DEST_VAR IN_LIST IS_KEYWORDS_MISSING_VALUES)
+      message(FATAL_ERROR "AS_TEST is incompatible with DEST_VAR")
+    endif()
+    set(IS_DEST_VAR TEST_DIR)
+  elseif (NOT DEFINED IS_DEST_VAR)
+    set(IS_DEST_VAR BIN_DIR)
   endif()
   if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
-    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${IS_DEST_VAR}
+      ${IS_UNPARSED_ARGUMENTS}
       PROGRAMS _INSTALL_ONLY)
   else()
-    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${pvar}_DIR ${IS_UNPARSED_ARGUMENTS}
+    _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${IS_DEST_VAR}
+      ${IS_UNPARSED_ARGUMENTS}
       PROGRAMS _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS ${GLOBS})
+    if (IS_AS_TEST)
+      # Don't force installed .cfg files to be executable.
+      _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${IS_DEST_VAR}
+        ${IS_UNPARSED_ARGUMENTS}
+        _INSTALL_ONLY _SQUASH_SUBDIRS _GLOBS "?*.cfg")
+    endif()
   endif()
 endfunction()
 

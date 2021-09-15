@@ -438,13 +438,13 @@ macro(_ups_product_prep)
 endmacro()
 
 function(_restore_install_prefix)
-  message(VERBOSE "Executing delayed install(CODE...)")
+  message(DEBUG "Executing delayed install(CODE...)")
   # With older CMakeLists.txt files, deal with low level install()
   # invocations with an extra "${project}/${version}"
   install(CODE "\
 # Detect misplaced installs from older, cetbuildtools-using packages.
   if (IS_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}\")
-    message(VERBOSE \"tidying legacy installations: relocate ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}/*\")
+    message(STATUS \"tidying legacy installations: relocate ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}/*\")
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar c \"../../${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}-tmpinstall.tar\" .
                     WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}\"
                     COMMAND_ERROR_IS_FATAL ANY)
@@ -454,7 +454,11 @@ function(_restore_install_prefix)
                     OUTPUT_VARIABLE _cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     COMMAND_ERROR_IS_FATAL ANY)
-    message(VERBOSE \"\${_cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy}\")
+    execute_process(COMMAND rmdir \"${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}\"
+                    WORKING_DIRECTORY \"\${CMAKE_INSTALL_PREFIX}\"
+                    OUTPUT_QUIET
+                    ERROR_QUIET)
+    message(STATUS \"in \${CMAKE_INSTALL_PREFIX}: \${_cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy}\")
     unset(_cet_install_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_legacy)
     file(REMOVE \"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}_${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_VERSION}-tmpinstall.tar\")
   endif()
