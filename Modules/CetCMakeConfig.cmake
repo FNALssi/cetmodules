@@ -108,32 +108,73 @@ function(_cet_cmake_config_impl)
     project_variable(CONFIG_OUTPUT_ROOT_DIR
       ${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}
       DOCSTRING "Output location for CMake Config files, etc. for find_package()")
+    get_project_variable_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
     set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR}")
-    if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX AND
-        NOT ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH AND
-        NOT IS_ABSOLUTE
-        "${distdir}")
-      string(FIND "${distdir}"
-        "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}"
-        idx)
-      if (NOT idx EQUAL 0)
-        get_project_variable_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
-        if (ORIGIN STREQUAL "<initial-value>" OR
-            ORIGIN STREQUAL "<backup-default>")
-          message(SEND_ERROR "refusing to install architecture-dependent \
-CMake Config files in default location ${distdir}: set project variable NOARCH to TRUE, \
-or set project variable CONFIG_OUTPUT_ROOT_DIR to confirm\
+    if ("${distdir}" STREQUAL "") # Oops.
+      if (origin STREQUAL "<initial-value>") # Defaulted...
+        if (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH) # from DATA_ROOT_DIR; OR
+          message(SEND_ERROR "cannot install CMake Config files due to \
+an explicitly vacuous value for the DATA_ROOT_DIR project variable.
+Set it, or set the project variable CONFIG_OUTPUT_ROOT_DIR to the desired \
+subdirectory to allow dependent packages to use \
+find_package(${CETMODULES_CURRENT_PROJECT_NAME})\
+")
+        elseif (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
+          message(SEND_ERROR "cannot install CMake Config files due to \
+an explicitly vacuous value for the LIBRARY_DIR project variable.
+If this package is not architecture-dependent, set the project variable NOARCH; \
+otherwise set project variable CONFIG_OUTPUT_ROOT_DIR to the desired \
+subdirectory to allow dependent packages to use \
+find_package(${CETMODULES_CURRENT_PROJECT_NAME})\
+")
+        elseif (${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR)
+          message(WARNING "vacuous default location for CMake Config files \
+due to explicitly vacuous values for the LIBRARY_DIR and EXEC_PREFIX \
+project variables. Installing under DATA_ROOT_DIR \
+(${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}/) instead.
+Set project variable NOARCH TRUE, or set project variable \
+CONFIG_OUTPUT_ROOT_DIR to suppress this message\
+")
+          set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}")
+        else()
+          message(SEND_ERROR "cannot install CMake Config files due to \
+explicitly vacuous values for project variables LIBRARY_DIR and DATA_ROOT_DIR.
+Set the project variable CONFIG_OUTPUT_ROOT_DIR, or call \
+cet_cmake_config() with the NO_CMAKE_CONFIG flag to prevent the generation \
+of these configuration files\
 ")
         endif()
-      endif()
-    else()
-      message(WARNING "${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR is explicitly cleared \
-but ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH is undefined: installing possibly \
-architecture-dependent CMake Config files under ${distdir}.
-
-To suppress this warning, set ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH to TRUE or \
-set ${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR.
+      else() # Explicitly set empty.
+        message(SEND_ERROR "cannot install CMake Config files due to \
+an explicitly vacuous value for the CONFIG_OUTPUT_ROOT_DIR project variable.
+Set it to the desired subdirectory to allow dependent packages to use \
+find_package(${CETMODULES_CURRENT_PROJECT_NAME}), or call \
+cet_cmake_config() with the NO_CMAKE_CONFIG flag to prevent the generation \
+of these configuration files\
 ")
+      endif()
+    elseif (origin STREQUAL "<initial-value>" AND
+        NOT (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH OR
+          IS_ABSOLUTE "${distdir}")) # Defaulted.
+      # Is EXEC_PREFIX non-empty?
+      if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
+        string(FIND "${distdir}"
+          "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}"
+          idx)
+        if (NOT idx EQUAL 0)
+          message(SEND_ERROR "refusing to install architecture-dependent \
+CMake Config files in architecture-independent default location ${distdir}.
+Set project variable NOARCH TRUE, or set project variable \
+CONFIG_OUTPUT_ROOT_DIR to confirm intention\
+")
+        endif()
+      else()
+        message(WARNING "installing architecture-dependent CMake Config \
+files in possibly architecture-independent default location ${distdir}.
+Set project variable NOARCH TRUE, or set project variable \
+CONFIG_OUTPUT_ROOT_DIR to suppress this message\
+")
+      endif()
     endif()
     if (NOT CCC_COMPATIBILITY)
       set(CCC_COMPATIBILITY AnyNewerVersion)
