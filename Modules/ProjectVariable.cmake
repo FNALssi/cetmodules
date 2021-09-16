@@ -216,7 +216,8 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Default architecture-specific install directory types.
-set(CETMODULES_DEFAULT_ARCH_DIRS BIN_DIR LIBEXEC_DIR LIBRARY_DIR)
+set(CETMODULES_DEFAULT_ARCH_DIRS
+  BIN_DIR CONFIG_OUTPUT_ROOT_DIR LIBEXEC_DIR LIBRARY_DIR)
 
 # Type classifiers, including two special ones of our own that CMake
 # doesn't know about.
@@ -357,9 +358,21 @@ function(project_variable VAR_NAME)
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_ADD_NOARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS_INIT))
-    list(TRANSFORM current_val
-      REPLACE [[^([^/].*)$]] "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/\\1")
-    set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE ${current_val})
+    # Need to prepend EXEC_PREFIX to relative paths.
+    set(new_val)
+    foreach (path IN LISTS current_val)
+      if (NOT IS_ABSOLUTE path)
+        string(FIND "${path}"
+          "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}"
+          idx)
+        if (NOT idx EQUAL 0)
+          string(PREPEND path
+            "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/")
+        endif()
+        list(APPEND new_val "${path}")
+      endif()
+    endforeach()
+    set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE ${new_val})
   endif()
   ##################
   # Set "properties" of each project variable that we can interrogate
