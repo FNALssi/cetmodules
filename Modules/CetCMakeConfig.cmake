@@ -136,6 +136,9 @@ Set project variable NOARCH TRUE, or set project variable \
 CONFIG_OUTPUT_ROOT_DIR to suppress this message\
 ")
           set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}")
+          # Put corrected value in cache for subsequent runs.
+          set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR
+            PROPERTY VALUE "${distdir}")
         else()
           message(SEND_ERROR "cannot install CMake Config files due to \
 explicitly vacuous values for project variables LIBRARY_DIR and DATA_ROOT_DIR.
