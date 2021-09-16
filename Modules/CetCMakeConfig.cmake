@@ -99,16 +99,33 @@ function(_cet_cmake_config_impl)
   ####################################
   # Process config-related arguments.
   if (NOT CCC_NO_CMAKE_CONFIG)
-    set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}")
     if (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH)
       set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
-    elseif (${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR)
-      set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}")
-    elseif (NOT ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH STREQUAL "")
-      message(SEND_ERROR "refusing to install architecture-dependent \
-CMake Config files in ${distdir}: set ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH to TRUE or \
-set ${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR.\
+      set(config_out_default_var DATA_ROOT_DIR)
+    else()
+      set(config_out_default_var LIBRARY_DIR)
+    endif()
+    project_variable(CONFIG_OUTPUT_ROOT_DIR
+      ${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}
+      DOCSTRING "Output location for CMake Config files, etc. for find_package()")
+    set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR}")
+    if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX AND
+        NOT ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH AND
+        NOT IS_ABSOLUTE
+        "${distdir}")
+      string(FIND "${distdir}"
+        "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}"
+        idx)
+      if (NOT idx EQUAL 0)
+        get_project_variable_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
+        if (ORIGIN STREQUAL "<initial-value>" OR
+            ORIGIN STREQUAL "<backup-default>")
+          message(SEND_ERROR "refusing to install architecture-dependent \
+CMake Config files in default location ${distdir}: set project variable NOARCH to TRUE, \
+or set project variable CONFIG_OUTPUT_ROOT_DIR to confirm\
 ")
+        endif()
+      endif()
     else()
       message(WARNING "${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR is explicitly cleared \
 but ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH is undefined: installing possibly \
@@ -594,7 +611,6 @@ endif()\
   if (transitive_deps)
     # Remove duplicates.
     list(REMOVE_DUPLICATES transitive_deps)
-
     # Add to result.
     list(PREPEND transitive_deps "\
 ####################################

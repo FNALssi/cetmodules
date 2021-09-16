@@ -216,7 +216,8 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Default architecture-specific install directory types.
-set(CETMODULES_DEFAULT_ARCH_DIRS BIN_DIR LIBEXEC_DIR LIBRARY_DIR)
+set(CETMODULES_DEFAULT_ARCH_DIRS
+  BIN_DIR CONFIG_OUTPUT_ROOT_DIR LIBEXEC_DIR LIBRARY_DIR)
 
 # Type classifiers, including two special ones of our own that CMake
 # doesn't know about.
