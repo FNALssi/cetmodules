@@ -9,7 +9,8 @@ set(private_programs
   checkClassVersion
   filter-output
   filter-program-options
-  fix-man-dirs)
+  fix-man-dirs
+  remove_deleted_header_refs)
 
 set(legacy_private_programs
   cmake-graphviz-filt

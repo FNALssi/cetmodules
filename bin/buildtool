@@ -580,16 +580,6 @@ add_deleted_headers() {
   deleted_headers+=($1)
 }
 
-# Delete references to deleted headers.
-find_and_remove_deleted_header_refs() {
-  eval grep -Z -l -I -F -w \
-    -r $(for file in "${deleted_headers[@]}"; do
-    printf -- "${file+-e '$file' }"; done) . | \
-      while read -r -d $'' ff; do
-    grep -q -I -e '^INFO: buildtool log started' "$ff" || rm -fv "$ff"
-  done
-}
-
 # Funky argument parsing.
 process_gfargs() {
   local oifs="$IFS"
@@ -675,12 +665,14 @@ do_work() {
       ${cmake_options[*]} ${cmake_defs[*]}
   else
     announce_stage
+    # Remove references to deleted headers.
+    (( ${#deleted_headers[@]} )) && [ -d CMakeFiles ] && \
+      cmd -d "remove references to deleted headers" \
+          -w "$CETPKG_BUILD" \
+          "$libexec/remove_deleted_header_refs" "${deleted_headers[@]}" || true
     # Where definitions include comma-delimted lists, turn them into
     # CMake's list delimiter instead.
     cmake_defs=(${cmake_defs:+"${cmake_defs[@]//,/;}"})
-    (( ${#deleted_headers[@]} )) && [ -d CMakeFiles ] && \
-      cmd -d "remove references to deleted headers" \
-      -w "$CETPKG_BUILD" find_and_remove_deleted_header_refs || true
     # CMake 3.13 required for -S / -B.
     require_cmake 3.13
     [ -z "${c_postargs[*]}" ] || \
