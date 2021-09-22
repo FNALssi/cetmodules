@@ -25,7 +25,11 @@ cmake_version() {
 prog=${0##*/}
 
 # Private utilities.
-libexec=$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)
+libexec="$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)"
+
+. "$libexec/message_functions.sh" || \
+  { echo "ERROR: could not find essential functions in $libexec/message_functions.sh" \
+         1>&2; exit 1; }
 
 # CMake version.
 eval $(cmake --version | cmake_version running_cmake_version)
@@ -406,48 +410,6 @@ EOF
 }
 
 ##################
-# Logging and screen output.
-writeStuff() {
-  printf -- "$*\n"
-  (( redirected )) && printf -- "$*\n" 1>&3
-}
-writeToErr() {
-  printf -- "$*\n\n" 1>&2
-  (( redirected )) && printf -- "$*\n\n" 1>&4
-}
-report() { writeStuff "$*"; }
-info() { writeStuff "INFO: $*"; }
-verbose() { (( do_verbose )) && writeStuff "VERBOSE: $*"; }
-warning() { writeToErr "WARNING: $*"; }
-error() { writeToErr "ERROR: $*"; }
-fatal_error() {
-  if [[ $1 =~ ^[[:digit:]]+$ ]]; then exitval=$1; shift; else exitval=1; fi
-  writeToErr "FATAL ERROR: $*"; exit $exitval
-}
-internal_error() {
-  if [[ $1 =~ ^[[:digit:]]+$ ]]; then exitval=$1; shift; else exitval=1; fi
-  writeToErr "INTERNAL ERROR: $*"; unset TMP; exit $exitval
-}
-maybe_redirect() {
-  if log_no_tee; then
-    info "redirecting output to $log"
-    exec 3>&1 4>&2 >"$log" 2>&1
-    info "buildtool log started at $(date)"
-    (( redirected = 1 ))
-    trap "restore_output_streams; cleanup" EXIT
-  else
-    trap "cleanup" EXIT
-  fi
-}
-restore_output_streams() {
-  eval 'printf "\n"' ${redirected:+1>&3}
-  if (( redirected )); then
-    info "buildtool finished at $(date); log written to $log"
-    exec 2>&4- 1>&3-
-  fi
-}
-
-##################
 # Obtain information from CMake.
 cmake_var() {
   local val
@@ -509,11 +471,12 @@ cmd() {
     esac
   done
   shift $(( OPTIND - 1 ))
-  (( do_verbose )) && \
+  if (( _cet_do_verbose )); then
     writeStuff "COMMAND: $*\nWD: ${wd:-$(pwd -P)}${desc+\nDESCRIPTION: $desc}"
+  fi
   SECONDS=0
   ( if [ -n "$wd" ]; then cd "$wd" || exit; fi; "$@" ); local status=$?; echo
-  (( do_verbose )) && \
+  (( _cet_do_verbose )) && \
     writeStuff "$(printf "TIME ELAPSED: %d:%02d\n" $(($SECONDS / 60)) $(($SECONDS % 60)))"
   return $status
 }
@@ -525,18 +488,18 @@ check_status() {
     banner "$(info "stage $stage SUCCESS${build_info:+ for $build_info}")"
     return $status
   else
-    if (( redirected )); then
+    if (( _cet_redirected )); then
       banner 2 "$(eval "( fatal_error \"stage $stage FAILED${build_info:+ for $build_info}\" 2>&1 4>/dev/null)")"
     else printf -- "\n"
     fi
     eval "fatal_error $status \"stage $stage FAILED${build_info:+ for $build_info} with code $status\" \
-${redirected:+\"\\n             See $log for details\" 2>/dev/null}"
+${_cet_redirected:+\"\\n             See $log for details\" 2>/dev/null}"
     exit $status
   fi
 }
 
 announce_stage() {
-  eval 'printf "\n"' ${redirected:+1>&3}
+  eval 'printf "\n"' ${_cet_redirected:+1>&3}
   banner "$(info "stage $stage${build_info:+ for $build_info}$@")"
 }
 
@@ -1033,7 +996,7 @@ while true; do
       OIFS="$IFS"; IFS=","; test_labels+=($tmp_arg); IFS="$OIFS"
       shift;;
     --usage) usage;;
-    -v|--verbose) (( do_verbose = 1 ));;
+    -v|--verbose) (( _cet_do_verbose = 1 ));;
     --) shift; break;;
     *) echo "Bad argument $1" 1>&2; usage 2
   esac

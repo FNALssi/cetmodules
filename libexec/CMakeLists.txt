@@ -17,10 +17,12 @@ set(legacy_private_programs
   set_dev_products
   verify_build_environment)
 
+set(private_files message_functions.sh)
+
 set(legacy_private_files parse_deps.pm pass fail)
 
 cet_script(${private_programs} ${legacy_private_programs}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
 
-install(FILES ${legacy_private_files}
+install(FILES ${private_files} ${legacy_private_files}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
