@@ -82,9 +82,9 @@ endfunction()
 function(cet_checkpoint_did)
   get_property(did DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
   set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_VALUE "${did}"
-    CACHE INTERNAL "Propagate CMAKE_MODULE_PATH additions between subprojects")
+    CACHE INTERNAL "Propagate directory-scope INCLUDE_DIRECTORIES additions between subprojects")
   set(CETMODULES_DIRECTORY_INCLUDE_DIRECTORIES_CHECKPOINT_PROJECT "${CETMODULES_CURRENT_PROJECT_NAME}"
-    CACHE INTERNAL "Project name for previous CMAKE_MODULE_PATH checkpoint")
+    CACHE INTERNAL "Project name for previous INCLUDE_DIRECTORIES checkpoint")
 endfunction()
 
 function(cet_process_did)
