@@ -6,6 +6,7 @@ project_variable(LIBEXEC_DIR CONFIG ${CMAKE_INSTALL_LIBEXECDIR})
 
 set(private_programs
   cet_exec_test
+  cet_lock
   checkClassVersion
   filter-output
   filter-program-options

@@ -472,7 +472,11 @@ cmd() {
   done
   shift $(( OPTIND - 1 ))
   if (( _cet_do_verbose )); then
-    writeStuff "COMMAND: $*\nWD: ${wd:-$(pwd -P)}${desc+\nDESCRIPTION: $desc}"
+    local cmd_short="$*"
+    if [ "$1" = "$lock_cmd" ]; then
+      cmd_short="${cmd_short#*-- }"
+    fi
+    writeStuff "COMMAND: ${cmd_short}\nWD: ${wd:-$(pwd -P)}${desc+\nDESCRIPTION: $desc}"
   fi
   SECONDS=0
   ( if [ -n "$wd" ]; then cd "$wd" || exit; fi; "$@" ); local status=$?; echo
@@ -532,7 +536,6 @@ calculate_ops_dir() {
 
 cleanup() {
   [ -d "$TMP" ] && rm -rf "$TMP"
-  rm -f ${lock_files[*]:+"${lock_files[@]}"}
 }
 
 declare -a deleted_headers
@@ -632,6 +635,7 @@ do_work() {
     (( ${#deleted_headers[@]} )) && [ -d CMakeFiles ] && \
       cmd -d "remove references to deleted headers" \
           -w "$CETPKG_BUILD" \
+          ${lock_cmd[*]:+"${lock_cmd[@]}" -- } \
           "$libexec/remove_deleted_header_refs" "${deleted_headers[@]}" || true
     # Where definitions include comma-delimted lists, turn them into
     # CMake's list delimiter instead.
@@ -641,6 +645,7 @@ do_work() {
     [ -z "${c_postargs[*]}" ] || \
       error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
     cmd -d "execute CMake" \
+      ${lock_cmd[*]:+"${lock_cmd[@]}" -- } \
       cmake ${install_prefix:+-DCMAKE_INSTALL_PREFIX="$install_prefix"} \
       ${garg[*]:+"${garg[@]}"} \
       ${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"} \
@@ -688,6 +693,7 @@ ${tred:+| tred} > \"$gfile\""
         fi
       fi
       cmd -d "execute build" \
+        ${lock_cmd[*]:+"${lock_cmd[@]}" -- } \
         cmake --build "$CETPKG_BUILD" \
         ${extra_cmake_build_options[@]:+"${extra_cmake_build_options[@]}"} \
         ${cmake_build_user_options[@]:+"${cmake_build_user_options[@]}"} \
@@ -728,6 +734,7 @@ ${tred:+| tred} > \"$gfile\""
         error "specifying non-option arguments for test step (${t_postargs[*]}) is not meaningful"
       { { set +x; } 2>/dev/null # Don't need to see this.
         cmd -d "execute tests" -w "$CETPKG_BUILD"${ops_dir:+"/$ops_dir"} \
+          ${lock_cmd[*]:+"${lock_cmd[@]}" -- } \
           ctest ${tsargs[*]:+"${tsargs[@]}"} \
           ${t_opt_args[*]:+"${t_opt_args[@]}"} \
           2>&1 >&5 5>&-
@@ -765,45 +772,6 @@ ${tred:+| tred} > \"$gfile\""
   fi
 }
 
-timeout_i=30
-sleep_time=5
-# NFS locking using hard links, which are atomic (yes, even on NFS).
-lock_install() {
-  # Don't try to execute an install or package operation if there's one
-  # in progress for this install destination already.
-  local stat_cmd=(stat) timeout=$timeout_i
-  if [[ "$OSTYPE" == *darwin* ]]; then
-    stat_cmd+=(-f '%l')
-  else
-    stat_cmd+=(-c '%h')
-  fi
-  lock_files=("$(mktemp ${install_prefix:+-p "${install_prefix}"} -t .${prog:-buildtool}-install.XXXXXX.lock || fatal_error "unable to create lock file for installation in $install_prefix")")
-  trap "eval rm -f \${lock_files[*]:+\"\${lock_files[@]}\"}; unset lock_files" RETURN
-  cat > "$lock_files" <<EOF
-$BASH_SOURCE
-$$
-EOF
-  local lock_link="${lock_files%/*}/.${prog:-buildtool}-install-$CETPKG_NAME-$CETPKG_VERSION.lock"
-  local complained=0
-  while ! { ln "$lock_files" "$lock_link" || \
-    (( $("$stat_cmd[@]" "$lock_files") == 2 )); } 2>/dev/null; do
-    IFS=$'\n' read -r -d '' -a locked_by <"$lock_link" >/dev/null 2>&1
-    if ! (( complained )); then
-      complained=1
-      info "stage $stage of $CETPKG_NAME $CETPKG_VERSION currently locked by ${locked_by[0]##*/} (PID ${locked_by[1]:-<unknown>})..."
-    fi
-    (( timeout -= sleep_time ))
-    if (( timeout > 0 )); then
-      sleep $sleep_time
-    else
-      fatal_error "install lock timeout (${timeout_i}s) exceeded: lock still held by PID ${locked_by[1]:-<unknown>}\n" \
-        "rm -f \"$lock_link\" if known stale"
-    fi
-  done
-  lock_files+=("$lock_link")
-  ${*:+"$@"}
-}
-
 stage_ip() {
   stage="$1"
   local stage_regex
@@ -825,15 +793,18 @@ stage_ip() {
   )
   eval local opt_args=\(\$\{${s}_opt_args\[*\]:+\"\$\{${s}_opt_args\[@\]\}\"\}\)
   eval local postargs=\(\$\{${s}_postargs\[*\]:+\"\$\{${s}_postargs\[@\]\}\"\}\)
+  local ip_lock=()
   if [ "$s" = p ] && (( using_mrb )); then
     # Use mrb mp because CMake's packaging facility can create only one
     # package and we need one per product.
     cmd=(mrb mp ${opt_args[@]:+"${opt_args[@]}"} --)
     cmake_build_args+=(${postargs[@]:+"${postargs[@]}"})
+    # N.B. *WE DO NOT LOCK*, relying on mrb mp for this.
   else # Use cmake build.
     cmd=("${cmake_build[@]}" -t "${stage}")
     cmake_build_args+=(${opt_args[@]:+"${opt_args[@]}"})
     cmake_build_postargs+=(${postargs[@]:+"${postargs[@]}"})
+    ip_lock=(${lock_cmd[*]:+"${lock_cmd[@]}" -r ${stage/#install/${CETPKG_INSTALL:+"$CETPKG_INSTALL/.locks":}install} -- })
   fi
   # Invoke cmake build (being *very* careful with arguments).
   if (( using_mrb )) || \
@@ -842,8 +813,8 @@ stage_ip() {
          ${cmake_build_postargs[@]:+-- "${cmake_build_postargs[@]}"} | \
          grep -Ee "${stage_regex}" >/dev/null 2>&1; then
     announce_stage
-    lock_install \
-      cmd -d "$stage" \
+    cmd -d "$stage" \
+      ${ip_lock[*]:+"${ip_lock[@]}"} \
       "${cmd[@]}" ${cmake_build_args[@]:+"${cmake_build_args[@]}"} \
       ${cmake_build_postargs[@]:+-- "${cmake_build_postargs[@]}"}
     check_status
@@ -1045,6 +1016,18 @@ fi
 
 source "$CETPKG_BUILD/cetpkg_info.sh" || \
   fatal_error "error sourcing $CETPKG_BUILD/cetpkg_info.sh"
+
+# Command to use to get NFS-safe filesystem locks.
+lock_cmd=("$libexec/cet_lock"
+          -d "${CETPKG_BUILD}/.locks"
+          -l "$prog"
+          -r "$CETPKG_NAME-$CETPKG_VERSION"
+          -s 5
+          -t 30
+)
+
+(( _cet_redirected )) && lock_cmd+=(-R)
+(( _cet_verbose )) && lock_cmd+=(-v)
 
 if (( log_is_default )); then
   # Update the default log file name with what we know.
