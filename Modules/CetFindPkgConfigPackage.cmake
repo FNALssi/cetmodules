@@ -68,6 +68,9 @@ macro(cet_find_pkg_config_package)
     VERSION_VAR ${CMAKE_FIND_PACKAGE_NAME}_VERSION
     REQUIRED_VARS ${CMAKE_FIND_PACKAGE_NAME}_PREFIX)
 
+  unset(_cet_find_pkg_config_package_KEYWORDS_MISSING_VALUES)
+  unset(_cet_find_pkg_config_package_NAMESPACE)
+  unset(_cet_find_pkg_config_package_UNPARSED_ARGUMENTS)
   unset(_cet_find_pkg_config_package_module)
   unset(_cet_find_pkg_config_package_modules)
   unset(_cet_find_pkg_config_package_quiet)
