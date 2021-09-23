@@ -1190,8 +1190,8 @@ if (( clean )); then
     tar -f "$setup_files_backup" -c */table_* || \
     rm -f "$setup_files_backup" ) > /dev/null 2>&1
   if ! { find "$CETPKG_BUILD" -mindepth 1 -maxdepth 1 \
-    \( -type d -o -name 'ninja.build' -o \
-    -name '*.cmake' -o -name '*.cmake.in' -o \
+    \( -type d -o -name 'build.ninja' -o -name '.ninja_deps' -o \
+    -name '*.cmake' -o -name '*.cmake.in' -o -name 'DartConfiguration.tcl' -o \
     -name 'CMakeCache.txt' -o -name install_manifest.txt -o \
     -name 'Makefile' \) -print | \
     xargs rm -rf; }; then
@@ -1233,7 +1233,7 @@ fi
 
 if (( clean_logs )); then
   info "removing .log files from \"$CETPKG_BUILD\""
-  rm -f "$CETPKG_BUILD"/*.log
+  rm -f "$CETPKG_BUILD"/*.log "$CETPKG_BUILD/.ninja_log"
   (( short_circuit )) && exit || true
 fi
 
