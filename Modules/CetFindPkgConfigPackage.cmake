@@ -10,6 +10,10 @@ cmake_minimum_required(VERSION 2.8.12...3.19 FATAL_ERROR)
 include(FindPackageHandleStandardArgs)
 
 macro(cet_find_pkg_config_package)
+  cmake_parse_arguments(_cet_find_pkg_config_pkg "" "NAMESPACE" "" ${ARGN})
+  if (NOT _cet_find_pkg_config_package_NAMESPACE)
+    set(_cet_find_pkg_config_package_NAMESPACE ${CMAKE_FIND_PACKAGE_NAME})
+  endif()
   if (${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
     set(_cet_find_pkg_config_package_quiet QUIET)
   else()
@@ -44,7 +48,7 @@ macro(cet_find_pkg_config_package)
     endif()
   endif()
   set(_cet_find_pkg_config_package_modules)
-  foreach (_cet_find_pkg_config_package_module "${ARGN}")
+  foreach (_cet_find_pkg_config_package_module "${_cet_find_pkg_config_pkg_UNPARSED_ARGUMENTS}")
     set(_cet_find_pkg_config_package_modules
       "${_cet_find_pkg_config_package_modules}"
       "${_cet_find_pkg_config_package_module}${_cet_find_pkg_config_package_vexpr}")
@@ -55,8 +59,8 @@ macro(cet_find_pkg_config_package)
     NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH
     IMPORTED_TARGET ${_cet_find_pkg_config_package_modules})
   if (${CMAKE_FIND_PACKAGE_NAME}_FOUND AND
-      NOT TARGET ${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME})
-    add_library(${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME}
+      NOT TARGET ${_cet_find_pkg_config_package_NAMESPACE}::${CMAKE_FIND_PACKAGE_NAME})
+    add_library(${_cet_find_pkg_config_package_NAMESPACE}::${CMAKE_FIND_PACKAGE_NAME}
       ALIAS PkgConfig::${CMAKE_FIND_PACKAGE_NAME})
   endif()
 
@@ -64,6 +68,9 @@ macro(cet_find_pkg_config_package)
     VERSION_VAR ${CMAKE_FIND_PACKAGE_NAME}_VERSION
     REQUIRED_VARS ${CMAKE_FIND_PACKAGE_NAME}_PREFIX)
 
+  unset(_cet_find_pkg_config_package_KEYWORDS_MISSING_VALUES)
+  unset(_cet_find_pkg_config_package_NAMESPACE)
+  unset(_cet_find_pkg_config_package_UNPARSED_ARGUMENTS)
   unset(_cet_find_pkg_config_package_module)
   unset(_cet_find_pkg_config_package_modules)
   unset(_cet_find_pkg_config_package_quiet)
