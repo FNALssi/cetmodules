@@ -470,7 +470,7 @@ function(_generate_target_imports FRAG_LIST)
           FILE "${export_file}.cmake"
           ${namespace}::)
         _verify_cross_dependent_exports(${export_set}
-          "\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
+          "\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${distdir}/${export_file}.cmake"
           )
         list(APPEND exports "\
 
