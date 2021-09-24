@@ -293,7 +293,7 @@ function(install_python)
     DEPENDS "${IP_SETUP_PY}"
     )
   if (NOT IP_NO_INSTALL)
-    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=\"\${CMAKE_INSTALL_PREFIX}\" --install-lib=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}\" --install-scripts=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR}\" --install-headers=\"\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}\")")
+    install(CODE "execute_process(COMMAND python \"${IP_SETUP_PY}\" install --prefix=\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}\" --install-lib=\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}\" --install-scripts=\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR}\" --install-headers=\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}\")")
   endif()
 endfunction()
 
