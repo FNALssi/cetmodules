@@ -71,7 +71,8 @@ sub maybe_convert_cetbuildtools_args {
       error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }
     if ($_[0] eq "noarch") {
-      $options->{noarch} = 1
+      $options->{noarch} = 1;
+      shift;
     }
   }
   return (@_);
