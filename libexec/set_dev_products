@@ -56,11 +56,10 @@ sub check_for_old_product_deps {
 }
 
 sub maybe_convert_cetbuildtools_args {
-  my @result = ();
   my $options = shift;
   if (basename(dirname($0)) eq 'bin') {
     # cetbuildtools-style setup_for_development.
-    my ($s, $b) = (shift, shift);
+    my ($s, $b) = (shift, shift); # Not needed by cetmodules.
     if ($s ne $ENV{CETPKG_SOURCE}) {
       if (not $s or $s eq $ENV{CETPKG_BUILD}) {
         error_exit("missing argument \$CETPKG_SOURCE for \$1");
@@ -71,7 +70,8 @@ sub maybe_convert_cetbuildtools_args {
       error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }
     if ($_[0] eq "noarch") {
-      $options->{noarch} = 1
+      $options->{noarch} = 1;
+      shift;
     }
   }
   return (@_);
