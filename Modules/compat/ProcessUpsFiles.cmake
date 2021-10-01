@@ -100,14 +100,16 @@ function(_build_ups_table_file)
   # Define product environment variables.
 
   # FQ_DIR.
-  _table_var_clause(FQ_DIR TABLE_VARS
+  _table_var_clause(FQ_DIR
+    TABLE_VARS
     PVAR EXEC_PREFIX [[prodDir(_FQ_DIR, "@VAL@")]])
 
   # INC.
   #
   # Store derived UPS value for use by ROOT_INCLUDE_PATH.
   _project_var_to_ups_path(INCLUDE_DIR incdir)
-  _table_var_clause(INC TABLE_VARS APPEND
+  _table_var_clause(INC
+    TABLE_VARS APPEND
     PVAR INCLUDE_DIR
     [[envSet(${UPS_PROD_NAME_UC}_INC, "@VAL@")]]
     IF_TEST [[test -d "@VAL@"]])
@@ -116,8 +118,9 @@ function(_build_ups_table_file)
   #
   # Store derived UPS value for use by PYTHONPATH and PKG_CONFIG_PATH.
   _project_var_to_ups_path(LIBRARY_DIR libdir)
-  _table_var_clause(LIB TABLE_VARS
-    VAL "${libdir}" APPEND
+  _table_var_clause(LIB
+    TABLE_VARS APPEND
+    VAL "${libdir}"
     IF_TEST [[test -d "@VAL@"]]
     [[
 envSet(${UPS_PROD_NAME_UC}_LIB, "@VAL@")
@@ -137,50 +140,57 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
     else()
       set(pp_path_var [[${UPS_PROD_DIR}/lib]])
     endif()
-    _table_var_clause(PYTHONPATH TABLE_VARS
-      VAL ${pp_path_var} APPEND
-      IF_TEST [[test -n "@VAL@" -a -d "@VAL@"]]
+    _table_var_clause(PYTHONPATH
+      TABLE_VARS APPEND
+      VAL ${pp_path_var}
+      IF_TEST [[test -d "@VAL@"]]
       [[pathPrepend(PYTHONPATH, "@VAL@")]])
   endif()
 
   # PATH.
-  _table_var_clause(BIN TABLE_VARS APPEND
+  _table_var_clause(BIN
+    TABLE_VARS APPEND
     PVAR BIN_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(PATH, "@VAL@")]])
 
   # FHICL_FILE_PATH.
-  _table_var_clause(FHICL_FILE_PATH TABLE_VARS APPEND
+  _table_var_clause(FHICL_FILE_PATH
+    TABLE_VARS APPEND
     PVAR FHICL_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(FHICL_FILE_PATH, "@VAL@")]])
 
   # FW_SEARCH_PATH.
-  _table_var_clause(FW_SEARCH_PATH TABLE_VARS APPEND
+  _table_var_clause(FW_SEARCH_PATH
+    TABLE_VARS APPEND
     PVAR FW_SEARCH_PATH
-    IF_TEST [[test -n "@VAL@"]]
     [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
-  _table_var_clause("GDML_DIR -> FW_SEARCH_PATH" TABLE_VARS APPEND
+  _table_var_clause("GDML_DIR -> FW_SEARCH_PATH"
+    TABLE_VARS APPEND
     PVAR GDML_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
-  _table_var_clause("FW_DIR -> FW_SEARCH_PATH" TABLE_VARS APPEND
+  _table_var_clause("FW_DIR -> FW_SEARCH_PATH"
+    TABLE_VARS APPEND
     PVAR FW_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
 
   # WIRECELL_PATH.
-  _table_var_clause(WIRECELL_PATH TABLE_VARS APPEND
+  _table_var_clause(WIRECELL_PATH
+    TABLE_VARS APPEND
     PVAR WIRECELL_PATH
-    IF_TEST [[test -n "@VAL@"]]
     [[pathPrepend(WIRECELL_PATH, "@VAL@")]])
-  _table_var_clause("WP_DIR -> WIRECELL_PATH" TABLE_VARS APPEND
+  _table_var_clause("WP_DIR -> WIRECELL_PATH"
+    TABLE_VARS APPEND
     PVAR WP_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(WIRECELL_PATH, "@VAL@")]])
 
   # PERL5LIB.
-  _table_var_clause(PERL5LIB TABLE_VARS APPEND
+  _table_var_clause(PERL5LIB
+    TABLE_VARS APPEND
     PVAR PERLLIB_DIR
     IF_TEST [[test -d "@VAL@"]]
     [[pathPrepend(PERL5LIB, "@VAL@")]])
@@ -191,19 +201,22 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
   else()
     set(prefix_path [[${UPS_PROD_DIR}]])
   endif()
-  _table_var_clause(CMAKE_PREFIX_PATH TABLE_VARS
-    VAL "${prefix_path}" APPEND
+  _table_var_clause(CMAKE_PREFIX_PATH
+    TABLE_VARS APPEND
+    VAL "${prefix_path}"
     [[pathPrepend(CMAKE_PREFIX_PATH, "@VAL@")]])
 
   # PKG_CONFIG_PATH.
-  _table_var_clause(PKG_CONFIG_PATH TABLE_VARS
-    VAL "${libdir}" APPEND
+  _table_var_clause(PKG_CONFIG_PATH
+    TABLE_VARS APPEND
+    VAL "${libdir}"
     IF_TEST [[test -n "${${UPS_PROD_NAME_UC}_LIB}" -a -d "${${UPS_PROD_NAME_UC}_LIB}/pkgconfig"]]
     [[pathPrepend(PKG_CONFIG_PATH, "${${UPS_PROD_NAME_UC}_LIB}/pkgconfig")]])
 
   # ROOT_INCLUDE_PATH.
-  _table_var_clause("ROOT_INCLUDE_PATH for dictionaries." TABLE_VARS
-    VAL "${incdir}" APPEND
+  _table_var_clause("ROOT_INCLUDE_PATH for dictionaries."
+    TABLE_VARS APPEND
+    VAL "${incdir}"
     IF_TEST [[test -n "${${UPS_PROD_NAME_UC}_INC}"]]
     [[pathPrepend(ROOT_INCLUDE_PATH, "${${UPS_PROD_NAME_UC}_INC}")]])
 
@@ -245,21 +258,19 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
 endfunction()
 
 function(_project_var_to_ups_path VAR_NAME RESULT_VAR)
-  if (VAR_NAME IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    get_project_variable_property(${VAR_NAME} PROPERTY TYPE)
-  else()
+  if (NOT VAR_NAME IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     unset(${RESULT_VAR} PARENT_SCOPE)
     return()
   endif()
-  set(result "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}}")
-  if (TYPE MATCHES [[_FRAGMENT$]]) # Eligible for tweak.
-    if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
-      cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/" regex)
-      set(replacement [[${${UPS_PROD_NAME_UC}_FQ_DIR}/]])
-      list(TRANSFORM result REPLACE "^${regex}([^/].*)$" "${replacement}\\1")
-    endif()
-    set(replacement [[${UPS_PROD_DIR}/]])
-    list(TRANSFORM result REPLACE "^([^\$/].*)$" "${replacement}\\1")
+  cmake_parse_arguments(PARSE_ARGV 2 _PVUPS "REVERSE" "" "")
+  cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/" regex)
+  set(replacement [[${${UPS_PROD_NAME_UC}_FQ_DIR}/]])
+  list(TRANSFORM ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}
+    REPLACE "^${regex}([^/].*)$" "\${\${UPS_PROD_NAME_UC}_FQ_DIR}/\\1"
+    OUTPUT_VARIABLE result)
+  list(TRANSFORM result PREPEND [[${UPS_PROD_DIR}/]] REGEX "^[^/\$]")
+  if (_PVUPS_REVERSE)
+    list(REVERSE result)
   endif()
   list(JOIN result ":" result_string)
   set(${RESULT_VAR} "${result_string}" PARENT_SCOPE)
@@ -274,13 +285,19 @@ function(_table_var_clause LABEL OUT_VAR)
     message(FATAL_ERROR "INTERNAL: PVAR and VAL are mutually-exclusive in _table_var_clause()")
   endif()
   if (_TVC_PVAR)
-    _project_var_to_ups_path(${_TVC_PVAR} VAL)
+    string(TOLOWER "${_TVC_UNPARSED_ARGUMENTS}" reverse)
+    if (reverse MATCHES "prepend.*@val@")
+      set(reverse REVERSE)
+    else()
+      unset(reverse)
+    endif()
+    _project_var_to_ups_path(${_TVC_PVAR} VAL ${reverse})
   else()
     set(VAL "${_TVC_VAL}")
   endif()
   if (NOT VAL)
     if (NOT _TVC_APPEND) # Truncate.
-      set(${VAR} PARENT_SCOPE)
+      set(${OUT_VAR} PARENT_SCOPE)
     endif()
     return()
   endif()
