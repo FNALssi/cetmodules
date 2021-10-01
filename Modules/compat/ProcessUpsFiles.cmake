@@ -120,7 +120,7 @@ function(_build_ups_table_file)
   _project_var_to_ups_path(LIBRARY_DIR libdir)
   _table_var_clause(LIB
     TABLE_VARS APPEND
-    VAL "${libdir}"
+    VAL "${libdir}" NOP
     IF_TEST [[test -d "@VAL@"]]
     [[
 envSet(${UPS_PROD_NAME_UC}_LIB, "@VAL@")
@@ -142,7 +142,7 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
     endif()
     _table_var_clause(PYTHONPATH
       TABLE_VARS APPEND
-      VAL ${pp_path_var}
+      VAL ${pp_path_var} NOP
       IF_TEST [[test -d "@VAL@"]]
       [[pathPrepend(PYTHONPATH, "@VAL@")]])
   endif()
@@ -203,20 +203,20 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
   endif()
   _table_var_clause(CMAKE_PREFIX_PATH
     TABLE_VARS APPEND
-    VAL "${prefix_path}"
+    VAL "${prefix_path}" NOP
     [[pathPrepend(CMAKE_PREFIX_PATH, "@VAL@")]])
 
   # PKG_CONFIG_PATH.
   _table_var_clause(PKG_CONFIG_PATH
     TABLE_VARS APPEND
-    VAL "${libdir}"
+    VAL "${libdir}" NOP
     IF_TEST [[test -n "${${UPS_PROD_NAME_UC}_LIB}" -a -d "${${UPS_PROD_NAME_UC}_LIB}/pkgconfig"]]
     [[pathPrepend(PKG_CONFIG_PATH, "${${UPS_PROD_NAME_UC}_LIB}/pkgconfig")]])
 
   # ROOT_INCLUDE_PATH.
   _table_var_clause("ROOT_INCLUDE_PATH for dictionaries."
     TABLE_VARS APPEND
-    VAL "${incdir}"
+    VAL "${incdir}" NOP
     IF_TEST [[test -n "${${UPS_PROD_NAME_UC}_INC}"]]
     [[pathPrepend(ROOT_INCLUDE_PATH, "${${UPS_PROD_NAME_UC}_INC}")]])
 
@@ -278,7 +278,7 @@ endfunction()
 
 function(_table_var_clause LABEL OUT_VAR)
   cmake_parse_arguments(PARSE_ARGV 2 _TVC
-    "APPEND"
+    "APPEND;NOP"
     "BASE_INDENT;IF_TEST;INDENT;PVAR"
     "ELSE_IMPL;VAL")
   if (_TVC_PVAR AND _TVC_VAL)
