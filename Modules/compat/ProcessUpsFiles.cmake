@@ -139,7 +139,7 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
     endif()
     _table_var_clause(PYTHONPATH TABLE_VARS
       VAL ${pp_path_var} APPEND
-      IF_TEST [[test -n "@VAL@" -a -d "@VAL@"]]
+      IF_TEST [[test -d "@VAL@"]]
       [[pathPrepend(PYTHONPATH, "@VAL@")]])
   endif()
 
@@ -158,7 +158,6 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
   # FW_SEARCH_PATH.
   _table_var_clause(FW_SEARCH_PATH TABLE_VARS APPEND
     PVAR FW_SEARCH_PATH
-    IF_TEST [[test -n "@VAL@"]]
     [[pathPrepend(FW_SEARCH_PATH, "@VAL@")]])
   _table_var_clause("GDML_DIR -> FW_SEARCH_PATH" TABLE_VARS APPEND
     PVAR GDML_DIR
@@ -172,7 +171,6 @@ pathPrepend(CET_PLUGIN_PATH, ${${UPS_PROD_NAME_UC}_LIB})]])
   # WIRECELL_PATH.
   _table_var_clause(WIRECELL_PATH TABLE_VARS APPEND
     PVAR WIRECELL_PATH
-    IF_TEST [[test -n "@VAL@"]]
     [[pathPrepend(WIRECELL_PATH, "@VAL@")]])
   _table_var_clause("WP_DIR -> WIRECELL_PATH" TABLE_VARS APPEND
     PVAR WP_DIR
