@@ -282,7 +282,7 @@ function(_table_var_clause LABEL OUT_VAR)
   endif()
   if (NOT VAL)
     if (NOT _TVC_APPEND) # Truncate.
-      set(${VAR} PARENT_SCOPE)
+      set(${OUT_VAR} PARENT_SCOPE)
     endif()
     return()
   endif()
