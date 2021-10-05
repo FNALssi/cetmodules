@@ -529,7 +529,7 @@ function(cet_localize_pv PROJECT)
       set(generated)
       if (try_binary)
         get_filename_component(item_result "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
-        get_property(generated SOURCE "${result}" PROPERTY GENERATED)
+        get_property(generated SOURCE "${item_result}" PROPERTY GENERATED)
       endif()
       if (NOT (item_result AND (EXISTS "${item_result}" OR generated)))
         get_filename_component(item_result "${${PROJECT}_${var}}"
