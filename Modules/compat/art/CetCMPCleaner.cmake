@@ -30,7 +30,7 @@ macro(include _cmp_FILE)
     endif()
     set(_cmp_need_compat)
     if (NOT _cmp_first STREQUAL _cet_cmp_compat_dir)
-      if (_cmp_module} STREQUAL "ArtDictionary")
+      if (_cmp_module STREQUAL "ArtDictionary")
         set(_cmp_art_pkg canvas_root_io)
       elseif (_cmp_module MATCHES
           "^(MessagefacilityPlugins|mf(Stats)?Plugin)$")
