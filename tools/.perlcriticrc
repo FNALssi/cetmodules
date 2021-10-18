@@ -1,0 +1,7 @@
+severity = 2
+
+[-Documentation::RequirePodSections]
+[-Miscellanea::RequireRcsKeywords]
+[-Modules::RequireVersionVar]
+[-RegularExpressions::RequireDotMatchAnything]
+[-RegularExpressions::RequireLineBoundaryMatching]

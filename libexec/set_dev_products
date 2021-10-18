@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# -*- cperl -*-
 ########################################################################
 # set_dev_products
 #
@@ -10,80 +11,53 @@
 # * Requires a product_deps file.
 #
 ########################################################################
-use strict;
-use warnings FATAL =>
-  qw(io regexp severe syntax uninitialized void);
+
+use 5.016;
+
+use FindBin;
 
 use Cwd qw(abs_path);
-use File::Basename;
+use English qw(-no_match_vars);
+use File::Basename qw(basename dirname);
 use File::Spec;
 use IO qw(File Handle);
 use Getopt::Long;
+use List::MoreUtils;
 
-use vars qw ($_mydir $_failscript);
+use strict;
+use warnings FATAL => qw(
+  io
+  regexp
+  severe
+  syntax
+  uninitialized
+  void
+  );
+
+my ($_cetmodules_top, $_libexec);
+
+
 BEGIN {
-  my $_me = readlink($0);
-  if (not $_me) {
-    $_me = $0;
-  } elsif ($_me !~ m&^/&) {
-    $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
-  }
-  $_mydir = dirname($_me);
-  $_failscript = abs_path(File::Spec->catfile($_mydir, 'fail'));
+  $_libexec = $FindBin::RealBin;
+  $_cetmodules_top = abs_path(File::Spec->catfile($_libexec, q(..)));
 }
 
-use lib $_mydir;
+use lib $_libexec;
 
-use parse_deps qw(:DEFAULT $btype_table);
-use warnings FATAL => 'parse_deps';
+use Cetmodules::CMake;
+use Cetmodules::UPS::ProductDeps qw(:DEFAULT $BTYPE_TABLE);
+use Cetmodules::UPS::Setup;
+use Cetmodules::Util;
+
+use warnings FATAL => qw(Cetmodules);
+
+use vars qw($BTYPE_TABLE);
+
+my $_failscript = abs_path(File::Spec->catfile($_libexec, 'fail'));
 
 # Avoid an unsightly shell error message if we fail.
-END { print "$_failscript\n" if ($?); }
-
-sub check_for_old_product_deps {
-  my $pfile = shift;
-  my $fh = IO::File->new("$pfile", "<") or
-    error_exit("couldn't open $pfile for read");
-  my $retval = 1;
-  while (<$fh>) {
-    if (m&^\s*end_(?:product|qualifier)_list\b&) {
-      $retval = 0;
-      last;
-    }
-  }
-  $fh->close();
-  return $retval;
-}
-
-sub maybe_convert_cetbuildtools_args {
-  my $options = shift;
-  if (basename(dirname($0)) eq 'bin') {
-    # cetbuildtools-style setup_for_development.
-    my ($s, $b) = (shift, shift); # Not needed by cetmodules.
-    if ($s ne $ENV{CETPKG_SOURCE}) {
-      if (not $s or $s eq $ENV{CETPKG_BUILD}) {
-        error_exit("missing argument \$CETPKG_SOURCE for \$1");
-      } else {
-        error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
-      }
-    } elsif ($b ne $ENV{CETPKG_BUILD}) {
-      error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
-    }
-    if ($_[0] eq "noarch") {
-      $options->{noarch} = 1;
-      shift;
-    }
-  }
-  return (@_);
-}
-
-sub filter_build_types {
-  my $btypes = shift;
-  my $quals =
-    { map { my $q = $_;
-            map { (exists $btype_table->{$_} and $btypes->{$_} = $q) ?
-                    () : ($_ => $q); } split ':'; } @_ };
-  return $quals;
+END {
+  if ($CHILD_ERROR) { print "$_failscript\n"; }
 }
 
 1;
@@ -91,10 +65,208 @@ sub filter_build_types {
 # Configure argument handling.
 Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
 
-my $prog = basename($0);
+my $prog    = basename($PROGRAM_NAME);
 my $options = {};
 
-my $USAGE = <<EOF;
+my $sourcedir = $ENV{CETPKG_SOURCE} || die "vacuous \$CETPKG_SOURCE";
+
+my $builddir = ($options->{nobuild} ? q(.) : $ENV{CETPKG_BUILD} ||
+                \die "vacuous \$CETPKG_BUILD");
+
+my $pfile = "$sourcedir/ups/product_deps";
+
+if (_check_for_old_product_deps()) {
+  warning(
+      "you appear to be using a very old product_deps format with cetmodules",
+      "please issue the following command",
+      "migrate-package '$ENV{CETPKG_SOURCE}'");
+}
+
+# Get information from the product_deps file.
+my $pi    = get_parent_info($pfile);
+my $phash = get_product_list($pfile);
+my ($ndeps, $qhash, $qqhash) = get_qualifier_matrix($pfile);
+
+_generate_setup();
+
+1;
+
+
+sub _check_for_old_product_deps {
+  my $fh = IO::File->new("$pfile", "<") or
+    error_exit("couldn't open $pfile for read");
+  my $retval = 1;
+  while (<$fh>) {
+    if (m&\A\s*end_(?:product|qualifier)_list\b&msx) {
+      $retval = 0;
+      last;
+    }
+  }
+  $fh->close();
+  return $retval;
+} ## end sub _check_for_old_product_deps
+
+
+sub _consolidate_and_write {
+  my $tmpfl = "$builddir/setup_$pi->{name}";
+  my $tset_fh = IO::File->new("$tmpfl", ">") or
+    error_exit("couldn't open $tmpfl for write");
+
+  # Now look up products in the hash.
+  my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
+  classify_deps($pi, $deps);
+
+  print_dep_setup($deps, $tset_fh);
+
+  # Finish off with the buildtools setup file and environment variables
+  # required for development.
+  $options->{nobuild} or do {
+    my $modules_dir =
+      abs_path(File::Spec->catfile(dirname($FindBin::Bin), "Modules"));
+    my $cmake_args = ups_to_cmake($pi);
+    cetpkg_info_file(%{$pi},
+                     source     => $sourcedir,
+                     build      => $builddir,
+                     cmake_args => $cmake_args);
+    print_dev_setup($pi, $tset_fh);
+  };
+
+  # Write auxiliary files used in table generation from CMake.
+  write_table_deps($pi->{name}, $deps);
+  write_table_frag($pi->{name}, $pfile);
+
+  # Finish and exit.
+  close($tset_fh) or error_exit("failure writing to $tmpfl");
+  print "$tmpfl\n";
+  return;
+} ## end sub _consolidate_and_write
+
+
+sub _filter_build_types {
+  my ($btypes, @args) = @_;
+  my $quals = {
+    map {
+      my $q = $_;
+      map {
+        (exists $BTYPE_TABLE->{$_} and $btypes->{$_} = $q) ? () : ($_ => $q);
+      } split m&:&msx;
+      } @args
+  };
+  return $quals;
+} ## end sub _filter_build_types
+
+
+sub _generate_setup {
+  my (@quals) = _read_and_validate_args();
+
+  get_derived_parent_data($pi, $sourcedir, @quals);
+
+  $pi->{project_variable_prefix} =
+    shortest_unique_prefix($pi->{project_variable_prefix})
+    ->{ $pi->{project_variable_prefix} };
+
+  # Check whether we have a suitable line in the qualifier table.
+  if ($pi->{qualspec} and not exists $qqhash->{ $pi->{qualspec} }) {
+    my $msg = <<"EOF";
+specified parent qualspec $pi->{qualspec} does not have a corresponding row in the qualifier table.
+Known qualspecs:
+EOF
+    error_exit($msg, map { "  $_"; } reverse sort keys %{$qqhash});
+  }
+
+  _consolidate_and_write($pi, $phash, $qhash);
+  return;
+} ## end sub _generate_setup
+
+
+sub _maybe_convert_cetbuildtools_args {
+  my ($args) = @_;
+  if (basename($FindBin::Bin) eq 'bin') {
+
+    # cetbuildtools-style setup_for_development.
+    my ($s, $b) = splice(@{$args}, 0, 2); # Not needed by cetmodules.
+    if ($s ne $ENV{CETPKG_SOURCE}) {
+      if (not $s or $s eq $ENV{CETPKG_BUILD}) {
+        error_exit("missing argument \$CETPKG_SOURCE for \$1");
+      } else {
+        error_exit(
+              "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+      }
+    } elsif ($b ne $ENV{CETPKG_BUILD}) {
+      error_exit(
+              "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+    }
+    if ($args->[0] eq "noarch") {
+      $options->{noarch} = 1;
+      shift @{$args};
+    }
+  } ## end if (basename($FindBin::Bin...))
+  return;
+} ## end sub _maybe_convert_cetbuildtools_args
+
+
+sub _missing_btype_ok {
+  my @qualsets = @_;
+  return List::MoreUtils::any {
+    my @quals = split;
+    List::MoreUtils::none { exists $BTYPE_TABLE->{$_}; } @quals;
+  }
+  @qualsets;
+}
+
+
+sub _read_and_validate_args {
+  _maybe_convert_cetbuildtools_args(\@ARGV);
+
+  # Single letter options for build type (d, o, p).
+  my $btype_lookup =
+    { map { (substr($_, 0, 1) => $_) } keys %{$BTYPE_TABLE} };
+
+  my $input_btype_candidates = {};
+
+  GetOptions(
+    "help|h" => \&_usage,
+    (map {
+       ($_ => sub {
+          my ($opt) = @_;
+          $input_btype_candidates->{ $btype_lookup->{$opt} } = "-$opt";
+          return;
+        });
+       } keys %{$btype_lookup})
+    ) or
+    usage("error parsing arguments");
+
+  # Get qualifiers and/or build type from any remaining arguments.
+  my $input_quals = _filter_build_types($input_btype_candidates, @ARGV);
+
+  if (scalar keys %{$input_btype_candidates} > 1) {
+    error_exit("attempt to specify multiple build types:\n",
+               map { "$_ from $input_btype_candidates->{$_}\n"; }
+                 sort keys %{$input_btype_candidates});
+  }
+  my ($input_btype) = keys %{$input_btype_candidates};
+  if ($options->{noarch}) {
+    my $msg = <<"EOF";
+'set_dev_products noarch' (from old noarch variant of setup_for_development) is deprecated
+EOF
+    if (not($pi->{noarch} or $pi->{no_fq_dir})) {
+      $msg = <<"EOF";
+${msg}
+Use 'no_fq_dir' (no EXEC_PREFIX) or 'noarch' (EXEC_PREFIX=noarch-<quals>) in ups/product_deps
+Setting $pi->{no_fq_dir} for backward compatibility.
+EOF
+      $pi->{no_fq_dir} = 1;
+    }
+    warning($msg);
+  } ## end if ($options->{noarch})
+
+  return _validated_quals($input_btype, $input_quals);
+} ## end sub _read_and_validate_args
+
+
+sub _usage {
+  my @msg   = @_;
+  my $usage = <<"EOF";
 USAGE: $prog [--nobuild] [<-d|-o|-p>] [<qualifiers>]
        $prog -h|--help
 
@@ -106,140 +278,87 @@ package, and \$CETPKG_BUILD to point to the build area unless --nobuild
 is specified.
 
 EOF
-
-my $sourcedir = $ENV{CETPKG_SOURCE} || die "vacuous \$CETPKG_SOURCE";
-
-my $builddir = ($options->{nobuild} ? "." : $ENV{CETPKG_BUILD} || \
-                die "vacuous \$CETPKG_BUILD");
-
-my $pfile = "$sourcedir/ups/product_deps";
-if (check_for_old_product_deps($pfile)) {
-  warning("you appear to be using a very old product_deps format with cetmodules",
-          "please issue the following command",
-          "migrate-package '$ENV{CETPKG_SOURCE}'");
-}
-
-# Requested build types and the way they were specified.
-my $input_btypes = {};
-
-@ARGV = maybe_convert_cetbuildtools_args($options, @ARGV);
-
-# Single letter options for build type (d, o, p).
-my $btype_lookup = { map { (substr($_, 0, 1) => $_) } keys %$btype_table };
-
-GetOptions("help|h" => sub { print "$USAGE"; exit 1; },
-           (map { ($_ => sub { my $opt = shift;
-                               $input_btypes->{$btype_lookup->{$opt}} = "-$opt";
-                            }); } keys %$btype_lookup)) or die($USAGE);
-
-# Get qualifiers and/or build type from any remaining arguments.
-my $input_quals = filter_build_types($input_btypes, @ARGV);
-
-if (scalar keys %$input_btypes > 1) {
-  error_exit("attempt to specify multiple build types:\n",
-             map { "$_ from $input_btypes->{$_}\n"; } sort keys %$input_btypes);
-}
-
-# Get information from the product_deps file.
-my $pi = get_parent_info($pfile);
-if ($options->{noarch}) {
-  my $msg = "'set_dev_products noarch' (from old noarch variant of setup_for_development) is deprecated.";
-  if (not ($pi->{noarch} or $pi->{no_fq_dir})) {
-    $msg = "${msg}
-Use 'no_fq_dir' (no EXEC_PREFIX) or 'noarch' (EXEC_PREFIX=noarch-<quals>) in ups/product_deps
-Setting $pi->{no_fq_dir} for backward compatibility.";
-    $pi->{no_fq_dir} = 1;
+  if (scalar @msg) {
+    die(@msg, $usage);
+  } else {
+    print $usage;
+    exit(1);
   }
-}
+} ## end sub _usage
 
-my ($phash) = get_product_list($pfile);
-my ($ndeps, $qhash, $qqhash) = get_qualifier_matrix($pfile);
 
-my $supported_btypes = {};
-my $supported_quals = filter_build_types($supported_btypes, keys %$qqhash);
+sub _validated_build_type {
+  my ($input_btype, $default_btype, @supported_btypes) = @_;
+  my $build_type = $input_btype || $default_btype;
 
-my $default_btypes = {};
-my @default_quals = sort keys
-  %{filter_build_types($default_btypes,
-                       $pi->{default_qual} ? split(':', $pi->{default_qual} || '') : ())};
+  # Do we have at least one supported qualspec with a build type?
+  my $any_btype_supported = (scalar @supported_btypes) > 0;
 
-if (scalar keys %$default_btypes > 1) {
-  error_exit("found multiple default build types in defaultqual $pi->{default_qual} in $pfile");
-} elsif (scalar keys %$default_btypes and scalar keys %$input_btypes) {
-  warning("default build type from defaultqual",
-          "in $pfile is overridden from the command line");
-}
+  # Now see what we have:
+  if ($build_type) {
+    if ($any_btype_supported) {
+      List::MoreUtils::any { $build_type eq $_; } @supported_btypes or
+        error_exit(<<"EOF", join(q( ), @supported_btypes));
+specified build type $build_type not supported - $pi->{name} supports:
+EOF
+    } else {
+      error_exit(
+"build type $build_type specified but build types are not supported in $pfile"
+      );
+    }
+  } elsif ($any_btype_supported) {
+    _missing_btype_ok(keys %{$qqhash})
+      or
+      error_exit(
+       "build type required and no default in $pfile - $pi->{name} supports:",
+       join(q( ), @supported_btypes));
+  }
+  return $build_type;
+} ## end sub _validated_build_type
 
-# Do we have at least one supported qualspec without a build type?
-my $no_btype_ok = (not scalar keys %$supported_btypes) ||
-  grep { not grep { exists $btype_table->{$_}; } split; } keys %$qqhash;
 
-# Now see what we have:
-my ($build_type) = (scalar keys %$input_btypes) ? (keys %$input_btypes) :
-  ($no_btype_ok ? () : (keys %$default_btypes));
+sub _validated_quals {
+  my ($input_btype, $input_quals) = @_;
+  my $supported_btypes = {};
+  my $supported_quals =
+    _filter_build_types($supported_btypes, keys %{$qqhash});
 
-$build_type and not scalar keys %$supported_btypes and
-  error_exit("build type $build_type specified but build types are not supported in $pfile");
-$build_type or $no_btype_ok or
-  error_exit("build type required and no default in $pfile - $pi->{name} supports:",
-             join(" ", keys %{$supported_btypes}));
-$build_type or scalar keys %$input_quals or not scalar @default_quals or
-  grep { $_ eq '-nq-' } keys %$supported_quals or
-  error_exit("qualifiers not specified, no defaults and no qualifers is not permitted by $pfile");
-scalar keys %$input_quals and not scalar keys %$supported_quals and
-  error_exit("qualifiers specified but empty qualifier table in $pfile");
-not $build_type or grep { $build_type eq $_; } keys %$supported_btypes or
-  error_exit("specified build type $build_type not supported - $pi->{name} supports:",
-             join(" ", keys %{$supported_btypes}));
+  my $default_btype_candidates = {};
+  my @default_quals            = sort keys %{
+    _filter_build_types($default_btype_candidates,
+        $pi->{default_qual} ? split(m&:&msx, $pi->{default_qual} // q()) : ())
+  };
 
-get_derived_parent_data($pi, $sourcedir,
-                        (scalar keys %$input_quals) ? keys %$input_quals : @default_quals,
-                        $build_type || ());
+  if (scalar keys %{$default_btype_candidates} > 1) {
+    error_exit(<<"EOF");
+found multiple default build types in defaultqual $pi->{default_qual} in $pfile"
+EOF
+  }
+  my ($default_btype) = keys %{$default_btype_candidates};
+  if ($default_btype and $input_btype and not scalar keys %{$input_quals}) {
+    warning("default build type $default_btype from defaultqual",
+            "in $pfile is overridden from the command line by $input_btype");
+  }
 
-$pi->{project_variable_prefix} =
-  shortest_unique_prefix($pi->{project_variable_prefix})->{$pi->{project_variable_prefix}};
+  my $build_type = _validated_build_type($input_btype, $default_btype,
+                                         keys %{$supported_btypes});
 
-# Check for compiler.
-my $compiler;
-$compiler = compiler_for_quals($qhash->{compiler}, $pi->{qualspec})
-  if $qhash->{compiler} && ! $pi->{noarch};
+  my @quals;
+  if (scalar keys %{$input_quals}) {
+    scalar keys %{$supported_quals} or
+      error_exit("qualifiers specified but empty qualifier table in $pfile");
+    @quals = keys %{$input_quals};
+  } else {
+    scalar @default_quals or
+      not scalar %{$supported_quals} or
+      List::MoreUtils::any { $_ eq '-nq-' } keys %{$supported_quals} or
+      error_exit(<<"EOF");
+qualifiers not specified, no defaults and no qualifers is not permitted by $pfile
+EOF
+    @quals = @default_quals;
+  }
 
-# Check whether we have a suitable line in the qualifier table.
-if ($pi->{qualspec} and
-    not exists $qqhash->{$pi->{qualspec}}) {
-  error_exit(sprintf("specified parent qualspec $pi->{qualspec} does not have a corresponding row in the qualifier table.
-Known qualspecs:%s", (scalar keys %$qqhash) ? sprintf("\n  %s", join("\n  ", reverse sort keys %$qqhash)) : ""));
-}
+  # Return our validated (and possibly defaulted) qualifiers.
+  return @quals, $build_type || ();
+} ## end sub _validated_quals
 
-# Now look up products in the hash.
-my $deps = deps_for_quals($pi->{pfile}, $phash, $qhash, $pi->{qualspec});
-classify_deps($pi, $deps);
-
-my $tmpfl = "$builddir/setup_$pi->{name}";
-my $tset_fh = IO::File->new("$tmpfl", ">")
-  or error_exit("couldn't open $tmpfl for write");
-
-print_dep_setup($deps, $tset_fh);
-
-# Finish off with the buildtools setup file and environment variables
-# required for development.
-unless ($options->{nobuild}) {
-  my $modules_dir = abs_path(File::Spec->catfile(dirname($_mydir), "Modules"));
-  my $cmake_args = ups_to_cmake($pi);
-  cetpkg_info_file(%{$pi},
-                   source => $sourcedir,
-                   build => $builddir,
-                   cmake_args => $cmake_args);
-  print_dev_setup($pi, $tset_fh);
-}
-
-# Write auxiliary files used in table generation from CMake.
-write_table_deps($pi->{name}, $deps) or
- error_exit("unable to write dependencies to $deps for $pi->{name}'s UPS table file");
-
-write_table_frag($pi->{name}, $pfile) or
-  error_exit("unable to write UPS table fragment file to $pfile for $pi->{name}");
-
-close($tset_fh);
-print "$tmpfl\n";
-exit 0;

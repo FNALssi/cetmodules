@@ -1,0 +1,122 @@
+#!/bin/bash
+########################################################################
+# bootstrap-perl-env.sh
+#
+# Ensure that a suitably complete Perl environment is available in time
+# for set_dev_products to work
+########################################################################
+
+########################################################################
+# Functions
+########################################################################
+
+# Install packages without running all the tests.
+cpan() {
+  perl -MCPAN ${*:+-e 'CPAN::Shell->notest(@ARGV)' "$@"} 2>&1
+}
+
+needed_modules() {
+  { PERL5LIB="$CETPKG_SOURCE/libexec${PERL5LIB:+:$PERL5LIB}" \
+            scandeps.pl -c -R -V -T -C "$CETPKG_BUILD/scandeps-cache.dat" "$@" | \
+      sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
+  } 2>/dev/null
+  (( $? == 0 )) || \
+    { echo "ERROR: unable to identify Perl modules needed by set_dev_products" 1>&2; exit 1; }
+}
+
+install_modules_for() {
+  local needed_modules=($(needed_modules "$@"))
+  (( ${#needed_modules[@]} == 0 )) || \
+    cpan install ${needed_modules[*]:+"${needed_modules[@]}"} || \
+    { echo "ERROR: unable to install Perl modules: ${needed_modules[*]}" 1>&2; exit 1; }
+}
+
+########################################################################
+# Main
+########################################################################
+
+# Sanity check
+[ -n "$CETPKG_SOURCE" ] || { echo "ERROR: CETPKG_SOURCE must be defined" 1>&2; exit 1; }
+[ -n "$CETPKG_BUILD" ] || { echo "ERROR: CETPKG_BUILD must be defined" 1>&2; exit 1; }
+
+cpan_build="$CETPKG_BUILD/cpan_build"
+cpan_export="$CETPKG_BUILD/CPAN"
+cpan_tmp="$CETPKG_BUILD/.cpan/tmp"
+
+echo "INFO: bootstrapping Perl environment for cetmodules..." 1>&2
+
+mkdir -p "$cpan_tmp" && cd "$cpan_tmp" || \
+    { echo "ERROR: unable to prepare temporary work area $cpan_tmp" 1>&2; exit 1; }
+
+if ! [ -e "$cpan_build/lib/perl5/local/lib.pm" ]; then
+  echo "INFO: bootstrapping a local::lib Perl environment for cetmodules..." 1>&2
+  # Copy our CPAN configuration into a place where it will be found.
+  mkdir -p "$cpan_build/lib/perl5/CPAN"
+  cp "$CETPKG_SOURCE/CPAN/MyConfig.pm" "$cpan_build/lib/perl5/CPAN/"
+
+  # Bootstrap local::lib (also CPAN if missing).
+  local_lib_url="https://metacpan.org/pod/local::lib"
+  local_lib_download_url="$({ curl --insecure --fail "$local_lib_url" || \
+wget --no-check-certificate "$local_lib_url"; } 2>/dev/null | \
+sed -nEe '/itemprop="downloadUrl"/ s&^.*href="([^"]+)".*$&\1&p')"
+
+  [ -n "$local_lib_download_url" ] || \
+    { echo "ERROR: unable to locate download URL for local::lib on CPAN" 1>&2; }
+
+  { curl --insecure --fail "$local_lib_download_url" || \
+      wget --no-check-certificate "$local_lib_download_url"; } 2>/dev/null | \
+    tar zx || \
+    { echo "ERROR: unable to download local::lib from $local_lib_download_url" 1>&2; exit 1; }
+
+  cd "$(basename "$local_lib_download_url" .tar.gz)"
+  sed -Ei'' \
+      -e '/^\s*system.*-MCPANBootstrapper=init_config/ d' \
+      Makefile.PL
+  sed -Ei'' \
+      -e 's&CPAN::Config->load&CPAN::HandleConfig->load&g' \
+      inc/CPANBootstrapper.pm
+  { perl Makefile.PL --bootstrap="$cpan_build" && make test && make install; } 2>&1 || \
+    { echo "ERROR: unable to bootstrap an installation of local::lib" 1>&2; exit 1; }
+  cd - >/dev/null
+fi
+
+# Set up the environment to use our installed Perl modules.
+eval "$(perl -I"$cpan_build/lib/perl5" -Mlocal::lib="$cpan_build")" || \
+  { echo "ERROR: unable to set up environment to find locally-installed Perl modules" 1>&2; exit 1; }
+
+# Install modules we need to examine what is needed to run
+# set_dev_products and friends.
+echo "INFO: install/verify Perl distribution tools for cetmodules..." 1>&2
+cpan install YAML CPAN::SQLite && \
+  cpan install Log::Log4perl ExtUtils::CBuilder CPAN CPANPLUS Module::ScanDeps || \
+  { echo "ERROR: unable to install Perl module Module::ScanDeps and dependencies" 1>&2; exit 1; }
+
+# Set up the environment to install Perl modules for export.
+eval "$(perl -I"$cpan_build" -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
+  { echo "ERROR: unable to set up environment to install Perl modules for export" 1>&2; exit 1; }
+
+# Install local::lib for export.
+echo "INFO: install/verify local::lib for export..." 1>&2
+cpan install local::lib || \
+  { echo "ERROR: unable to install Perl module local::lib for export" 1>&2; exit 1; }
+
+# Install Perl modules needed by set_dev_products and migrate.
+echo "INFO: install/verify Perl modules required by cetmodules tools for export..." 1>&2
+install_modules_for \
+  $(find  "$CETPKG_SOURCE/libexec" -name '*.pm') \
+  "$CETPKG_SOURCE/libexec/set_dev_products" \
+  "$CETPKG_SOURCE/tools/migrate"
+
+# Revert environment for test requirements.
+eval "$(perl -I"$cpan_build" -Mlocal::lib=--deactivate,"$cpan_export")" || \
+  { echo "ERROR: unable to revert to environment for installation of build-only Perl modules" 1>&2; exit 1; }
+
+# Install test requirements.
+echo "INFO: install/verify Perl modules required by cetmodules tests..." 1>&2
+install_modules_for "$CETPKG_SOURCE/test/libexec/"*_t
+echo "INFO: bootstrapping Perl environment for cetmodules COMPLETE" 1>&2
+
+### Local Variables:
+### mode: sh
+### eval: (sh-set-shell "bash" t nil)
+### End:

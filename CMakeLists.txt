@@ -40,7 +40,6 @@ list(PREPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
 # Other configuration.
-set(${PROJECT_NAME}_NOARCH TRUE)
 set(${PROJECT_NAME}_FHICL_DIR "")
 set(${PROJECT_NAME}_INCLUDE_DIR "")
 set(${PROJECT_NAME}_LIBRARY_DIR "")
@@ -67,6 +66,12 @@ add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
+if (WANT_UPS)
+  # Bundle required Perl modules.
+  add_subdirectory(CPAN)
+  # Install scriptlets required by generated table file.
+  add_subdirectory(ups)
+endif()
 include(CTest)
 if (BUILD_TESTING)
   add_subdirectory(test)

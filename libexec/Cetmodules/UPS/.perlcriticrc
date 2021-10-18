@@ -1,0 +1,7 @@
+severity = 2
+
+[-BuiltinFunctions::ProhibitComplexMappings]
+[-Miscellanea::RequireRcsKeywords]
+[-Modules::ProhibitAutomaticExportation]
+[-Modules::RequireVersionVar]
+[-RegularExpressions::ProhibitComplexRegexes]

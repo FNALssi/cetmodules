@@ -1,770 +1,206 @@
 #!/usr/bin/env perl
+# -*- cperl -*-
 
 # FIXME: Restore function!
 # FIXME: Documentation!
 
 ##################
 # Preamble.
-use strict;
-use warnings FATAL =>
-  qw(io regexp severe syntax uninitialized void);
+
+use 5.016;
+
+# Should be first unless we're in a module.
+use FindBin;
 
 use Cwd qw(abs_path chdir getcwd);
-use Date::Format;
 use File::Copy;
 use File::Find;
-use File::Path qw(make_path remove_tree);
+use File::Path qw(make_path);
 use File::Spec;
-use FileHandle;
 use Getopt::Long qw(:config no_ignore_case bundling require_order);
-use List::Util;
+use IO qw(File Handle);
+use POSIX qw(strftime);
 use Pod::Usage;
-use POSIX 'ceil';
 
-use vars qw($mytop);
-our ($myversion, $myupsversion, $product_table_format, $pinfo_tab_width, $pkgtop);
+use strict;
+use warnings FATAL => qw(
+  io
+  regexp
+  severe
+  syntax
+  uninitialized
+  void
+  );
 
-sub flag_required(\$@);
-sub flag_recommended(\$@);
+my $_cetmodules_top;
+
 
 BEGIN {
-  my ($myvol, $mypath, $myfile) =
-    File::Spec->splitpath(__FILE__);
-
-  $mypath = abs_path($mypath);
-  $mytop = abs_path("$mypath/../");
+  $_cetmodules_top = abs_path(File::Spec->catfile($FindBin::RealBin, q(..)));
 }
 
-use lib "$mytop/libexec";
+use lib File::Spec->catfile($_cetmodules_top, "libexec");
 
-use parse_deps qw(:DEFAULT $pathspec_info get_pathspec);
+use Cetmodules qw(:DIAG_VARS);
+use Cetmodules::CMake;
+use Cetmodules::Migrate::CMake qw(:CMAKE_FILE_TOOLS);
+use Cetmodules::Migrate::ProductDeps qw(:DEFAULT $CETMODULES_VERSION);
+use Cetmodules::Migrate::Util;
+use Cetmodules::UPS::ProductDeps
+  qw(get_parent_info get_pathspec get_product_list get_qualifier_matrix $PATHSPEC_INFO);
+use Cetmodules::Util;
 
-$product_table_format = 2;
-$pinfo_tab_width = 8;
-##################
+use warnings FATAL => qw(Cetmodules);
+
+our ($PATHSPEC_INFO);
 
 my $options = {};
-GetOptions($options,
-           "help|h|?",
+GetOptions($options, "help|h|?",
+           "debug" => \$Cetmodules::DEBUG,
            "dry-run|n",
-           "quiet|q" => \$parse_deps::QUIET,
-           "verbose|v" => \$parse_deps::VERBOSE
-          ) or pod2usage(-exitval => 2);
+           "quiet|q"   => \$Cetmodules::QUIET,
+           "verbose|v" => \$Cetmodules::VERBOSE
+  ) or
+  pod2usage(-exitval => 2);
 
-$options->{help} and pod2usage(-exitval => 1, -verbose => 3);
-$options->{"dry-run"} and info("dry run: no files replaced or removed");
+$options->{help} and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
+$options->{"dry-run"} and info("[DRY_RUN] no files replaced or removed");
 
 scalar @ARGV or
-  unshift @ARGV, $ENV{CETPKG_SOURCE} ||
-  error_exit("vacuous source dir and \$CETPKG_SOURCE not set in environment");
+  unshift @ARGV,
+  ($ENV{CETPKG_SOURCE} || error_exit(
+              "vacuous source dir and \$CETPKG_SOURCE not set in environment")
+  );
 
 my $owd = getcwd();
 my @pkgdirs = map { abs_path($_); } @ARGV;
-for $pkgtop (@pkgdirs) {
+for my $pkgtop (@pkgdirs) {
   chdir($pkgtop);
   my $sfd = "ups/setup_for_development";
-  my $pinfo = "ups/product_deps";
+
+  my $pdinfo = { filename => "ups/product_deps" };
 
   -d "ups" or error_exit("no ups dir: nothing to do");
   -w "ups" or error_exit("ups dir not writable: nothing we can do");
-  -r "$sfd" or warning("$sfd missing or not readable: will refresh");
-  -r $pinfo or error_exit("no $pinfo to migrate");
+  -r $sfd  or warning("$sfd missing or not readable: will refresh");
+  -r $pdinfo->{filename} or error_exit("no $pdinfo->{filename} to migrate");
 
-  info("attempting to read $pinfo (warnings OK)...");
+  $pdinfo->{parent_info} =
+    get_parent_info($pdinfo->{filename}, (quiet_warnings => 1));
+  my $pkg_path_label = _pkg_path_label($pkgtop, $pdinfo->{parent_info});
+  get_pathspec($pdinfo->{parent_info}, keys %{$PATHSPEC_INFO});
+  $pdinfo->{pathspecs} = $pdinfo->{parent_info}->{pathspec_cache};
 
-  my $pi = get_parent_info($pinfo);
-  grep { get_pathspec($pi, $_); } keys %$pathspec_info and
-    my $pathspecs = $pi->{pathspec_cache};
-  my $products = get_product_list($pinfo);
-  my ($ndeps, $qualifier_columns, $qualifier_rows, $notes, $headers) =
-    get_qualifier_matrix($pinfo, *STDERR);
+  $pdinfo->{products} = get_product_list($pdinfo->{filename});
+  @{$pdinfo}{qw(ndeps qualifier_columns qualifier_rows notes headers)} =
+    get_qualifier_matrix($pdinfo->{filename}, *STDERR);
 
-  $qualifier_columns->{qualifier} =
-    { map { ( $_ => $_); } keys %$qualifier_rows };
-  grep { my $hash = $qualifier_columns->{$_};
-         grep { $hash->{$_} = '-nq-' unless $hash->{$_}; }
-           keys %$hash; } keys %$qualifier_columns;
-  $qualifier_columns->{notes} = { map { ( $_ => $notes->{$_} ); } keys %$qualifier_rows };
-  my $table_fragment = get_table_fragment($pinfo);
+  info("attempting to read $pkg_path_label/$pdinfo->{filename}... DONE",
+       $pkg_path_label);
 
-  my $from = { map
-               { ($_ =~ m&^cet(buildtools|modules)$&) ?
-                   (name => $_, version => $products->{$&}->{'-'}->{version}) :
-                     ();
-               } keys %$products };
+  my $from = {
+    map {
+      ($_ =~ m&^(cet(?:buildtools|modules))$&x) ?
+        (name => $_, version => $pdinfo->{products}->{$1}->{q(-)}->{version})
+        :
+        ();
+      } keys %{ $pdinfo->{products} } };
 
-  info("attempting to read $pinfo (warnings OK)... DONE");
-
-  if ($from and exists $from->{name} and $from->{name} eq "cetmodules") {
-    info("attempting to complete or verify a manual, partial or previous migration");
+  if ($from and ($from->{name} // q()) eq "cetmodules") {
+    info(<<'EOF');
+attempting to complete, update or verify a manual, partial or previous migration
+EOF
   }
 
-  backup_files();
+  $options->{"dry-run"} or _backup_files();
 
-  write_product_deps($pinfo, $pi, $pathspecs, $products, $qualifier_columns,
-                     $headers, $table_fragment);
+  write_product_deps($pkg_path_label, $pdinfo, $options);
 
-  if ($pi->{name} eq "cetmodules") {
+  if ($pdinfo->{parent_info}->{name} eq "cetmodules") {
     warning("refusing to touch our own ups/ or CMake files!");
   } else {
-    upgrade_ups_dir("ups");
-    write_top_CML($pi);
-    fix_cmake($pi);
+    _upgrade_ups_dir("ups");
+    write_top_CML($pkgtop, $pdinfo->{parent_info}, $options);
+    fix_cmake($pdinfo->{parent_info}, $options);
   }
-}
+} ## end for my $pkgtop (@pkgdirs)
 
 1;
 
-sub write_product_deps {
-  my ($pinfo, $pi, $pathspecs, $products, $qualifier_table, $headers, $table_fragment) = @_;
-  my $pinfo_template = "$mytop/ups-templates/product_deps.template";
-  $pinfo_template="$pinfo_template.in" unless -r $pinfo_template;
-  error_exit("unable to find a valid product_deps template file under $mytop")
-    unless -r $pinfo_template;
 
-  if ($pinfo_template =~ m&\.in$&) {
-    $myversion = `sed -Ene 's&^[[:space:]]*project[[:space:]]*\\([[:space:]]*cetmodules[[:space:]]+VERSION[[:space:]]+([^[:space:]]+).*\$&\\1&p' $mytop/CMakeLists.txt`;
-  } else {
-    $myversion = `sed -Ene 's&^#[[:space:]]+Generated by cetmodules ([^[:space:]]+).*\$&\\1&p' "$pinfo_template"`;
-  }
-  chomp $myversion;
-  error_exit "unable to ascertain current cetmodules version"
-    unless $myversion;
-  $myupsversion = to_ups_version($myversion);
-
-  info("generating $pinfo.new from $pinfo_template");
-
-  open(my $pinfo_out, ">", "$pinfo.new") or
-    error_exit("unable to write $pinfo.new");
-
-  open(my $pinfo_in, "<", "$pinfo_template") or
-    error_exit("unable to open $pinfo_template for read");
-
-  my ($quiet_through, $pending);
-
-  my $gentime = gentime();
-
-  my $divider = '#' x 36;
-  while (my $line = <$pinfo_in>) {
-    if ($line eq "${divider}\n") {
-      $pinfo_out->print($line);
-      if ($pending) {
-        &$pending();
-        undef $pending;
-      } else {
-        $line = <$pinfo_in>;
-        if (my ($label) = $line =~ m&#\s+(Basic|Directory|Product|Qualifier|Table|Backmatter)\b&) {
-          if ($label eq "Basic") {
-            $pending = sub { write_parent_info($pi, $pinfo_out); };
-          } elsif ($label eq "Directory") {
-            $pending = sub { write_pathspecs($pathspecs, $pinfo_out); };
-          } elsif ($label eq "Product") {
-            $pending = sub { write_product_table($products, $pinfo_out); };
-          } elsif ($label eq "Qualifier") {
-            $pending = sub { write_qualifier_table($qualifier_table, $headers, $pinfo_out); };
-          } elsif ($label eq "Table") {
-            $pending = sub { write_table_fragment($table_fragment, $pinfo_out); };
-          } elsif ($label eq "Backmatter") {
-            # NOP.
-          } else {
-            error_exit "internal error: don't know how to migrate section $label in $pinfo_in";
-          }
-        } else {
-          error_exit sprintf("unexpected use of section divider $divider at\n$pinfo_template:%s:\n\n  $line",
-                             $pinfo_in->input_line_number - 1);
-        }
-      }
-    }
-    $line =~ s&^(#\s+Generated by\s+).*$&${1}cetmodules $myversion at $gentime&;
-    if ($line =~ m&^product\s+version\s+qual&) {
-      $quiet_through = "end_product_list";
-    } elsif ($line =~ m&^qualifier\b\s*&) {
-      $quiet_through = "end_qualifier_list";
-    } elsif ($line =~ m&table_fragment_begin\b\s*&) {
-      $quiet_through = "table_fragment_end";
-    }
-    if ($quiet_through) {
-      # Ignore this section.
-      $line =~ m&^\s*\Q$quiet_through\E\b& or next;
-      undef $quiet_through;
-      next;
-    } else {
-      $pinfo_out->print($line);
-    }
-  }
-  close($pinfo_in);
-  close($pinfo_out);
-  if ($options->{"dry-run"}) {
-    notify("dry run: proposed edits / annotations in $pinfo.new");
-  } else {
-    info("installing $pinfo.new as $pinfo");
-    move("$pinfo.new", "$pinfo") or
-      error_exit("unable to install $pinfo.new as $pinfo");
-  }
+sub _pkg_path_label {
+  my ($pkgtop, $pi) = @_;
+  return (exists $pi->{name}) ? "<$pi->{name}>" : ".../$pkgtop";
 }
 
-sub write_parent_info {
-  my ($pi, $fh) = @_;
-  my @directives = (qw(parent chains defaultqual));
-  my @flags = (qw(no_fq_dir noarch define_pythonpath));
-  my $translate = { parent => $pi->{name},
-                    (exists $pi->{default_qual}) ?
-                    (defaultqual => $pi->{default_qual}) : (),
-                    (exists $pi->{chains} and scalar @{$pi->{chains}}) ?
-                    (chains => join('\t', @{$pi->{chains}})) : () };
 
-  %$translate = (%$translate,
-                 map { (exists $pi->{$_} and defined $pi->{$_}) ?
-                         ($_ => '') : (); } @flags);
-  my $ntabs = max_for_column(keys %$translate);
-  $fh->print(map { exists $translate->{$_} ? trimline(pad_to($ntabs, $_), "$translate->{$_}\n") : (); } @directives, @flags);
-}
-
-sub write_pathspecs {
-  my ($pathspecs, $fh) = @_;
-  my $table = [];
-  my @columns = (qw(dirkey key path));
-  foreach my $dirkey (sort keys %$pathspecs) {
-    my $pathspec = $pathspecs->{$dirkey};
-    my (@keys, @paths);
-    if (ref $pathspec->{key} eq 'ARRAY') {
-      @keys = @{$pathspec->{key}};
-      @paths = @{$pathspec->{path}};
-    } else {
-      @keys = ($pathspec->{key});
-      @paths = ($pathspec->{path});
-    }
-    while (scalar @keys) {
-      push @$table, { dirkey => $dirkey, key => shift @keys, path => shift @paths };
-    }
-  }
-  my $ntabs = { map { my $col = $_;
-                      $col => max_for_column(map { $_->{$col}; } @$table); }
-                @columns[0..$#columns-1] };
-  $fh->print(map { my $row = $_; trimline(map({ pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns)); } @$table);
-}
-
-sub max_for_column {
-  return scalar @_ ?
-    ceil(List::Util::max(map { length($_ // '') + 1; } @_) / $pinfo_tab_width) :
-      0;
-}
-
-sub write_product_table {
-  my ($products, $fh) = @_;
-  delete $products->{cetbuildtools};
-  $products->{cetmodules}->{'-'} =
-    { version => $myupsversion, only_for_build => 1 };
-  my @columns = (qw(product version qual flags));
-  my $max_flags = { };
-  my $product_table =
-    [ map { my $product = $_;
-            my @quals = keys %{$products->{$product}};
-            my @versions = map { $products->{$product}->{$_}->{version}; } @quals;
-            my @nflags = ();
-            my @flags = map { my @pflags = grep { $_ ne 'version' } keys %{$products->{$product}->{$_}};
-                              push @nflags, scalar @pflags; (@pflags); } @quals;
-            $max_flags->{$product} = List::Util::max(@nflags);
-            map { { product => $product,
-                      qual => $_,
-                        version => shift @versions,
-                          flags => shift @flags }; } @quals;
-          } keys %$products ];
-  my $ntabs = { map { my $col = $_;
-                      ($col => max_for_column(map({ $_->{$col}; } @$product_table), $col)); } @columns
-              };
-  $fh->print(map({ pad_to($ntabs->{$_}, $_); } @columns),
-             "<table_format=$product_table_format>\n");
-  $fh->print(map { my $row = $_; trimline(map({ pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns)); }
-             sort { $max_flags->{$a->{product}} <=> $max_flags->{$b->{product}} or
-                      $a->{product} cmp $b->{product} or
-                        version_cmp($a->{version}, $b->{version}); } @$product_table);
-  $fh->print("end_product_list\n");
-}
-
-sub write_qualifier_table {
-  my ($qualifier_table, $headers, $fh) = @_;
-  return unless scalar @$headers;
-  my $ntabs =
-    { map { ( $_ => max_for_column(values %{$qualifier_table->{$_}}, $_) );
-          } @{$headers}[0..$#$headers-1] };
-  $fh->print(trimline(map { pad_to($ntabs->{$_}, $_); } @$headers));
-  grep { my $qualifier = $_;
-         $fh->print(trimline(map { my $hash = $qualifier_table->{$_};
-                                   pad_to($ntabs->{$_} // 0, $hash->{$qualifier}); } @$headers, "\n"));
-       } sort keys %{$qualifier_table->{qualifier}};
-  $fh->print("end_qualifier_list\n");
-}
-
-sub write_table_fragment {
-  my ($table_fragment, $fh) = @_;
-  return unless $table_fragment;
-  $fh->print("table_fragment_begin\n",
-             map({ "$_\n"; } @$table_fragment),
-             "table_fragment_end\n");
-}
-
-sub upgrade_ups_dir {
+sub _upgrade_ups_dir {
   my ($upsdir) = @_;
-  my @to_remove = map { -f "$upsdir/$_" ? "$upsdir/$_" : (); }
-    (qw(product-config.cmake.in README setup_deps
-        setup_for_development CMakeLists.txt));
+  my @to_remove = map { -f "$upsdir/$_" ? "$upsdir/$_" : (); } (
+    qw(product-config.cmake.in README setup_deps
+      setup_for_development CMakeLists.txt));
   if ($options->{"dry-run"}) {
-    notify("dry run: would remove obsolete files from $upsdir:",
-            to_string(\@to_remove, { full_indent => 2 }));
+    notify("[DRY_RUN] would remove obsolete files from $upsdir:",
+           to_string(\@to_remove, { full_indent => 2 }));
   } else {
     info("removing obsolete files from $upsdir...");
     system(qw(rm -fv --), @to_remove) == 0 or
-      error_exist("failure removing obsolete files from $upsdir");
+      error_exit("failure removing obsolete files from $upsdir");
   }
   my @src_files = (qw(setup_for_development));
-  my $gentime = gentime();
+  my $gentime   = gentime();
   foreach my $file (@src_files) {
-    my $nobuild = ($file eq "setup_deps") ? 'nobuild' : '';
-    my $pkgtop_file = "$mytop/ups-templates/$file";
-    $pkgtop_file = "$mytop/ups-templates/setup.in"
-      unless (-r "$pkgtop_file");
-    error_exit("unable to generate $file from unreadable template $pkgtop_file")
-      unless (-r "$pkgtop_file");
+    my $nobuild = ($file eq "setup_deps") ? 'nobuild' : q();
+    my $pkgtop_file = "$_cetmodules_top/ups-templates/$file";
+    -r "$pkgtop_file" or
+      -r ($pkgtop_file = "$_cetmodules_top/ups-templates/setup.in") or
+      error_exit(
+            "unable to generate $file from unreadable template $pkgtop_file");
     if ($options->{"dry-run"}) {
-      notify("dry run: would generate $file from $pkgtop_file");
+      notify("[DRY_RUN] would generate $file from $pkgtop_file");
     } else {
       info("generating $file from template $pkgtop_file");
-      open(my $in, "<", "$pkgtop_file") or
+      my $in = IO::File->new("$pkgtop_file", "<") or
         error_exit("unable to open $pkgtop_file for read");
-      open(my $out, ">", "$upsdir/$file") or
+      my $out = IO::File->new(File::Spec->catfile("$upsdir", "$file"), ">") or
         error_exit("unable to open $upsdir/$file for write");
       while (my $line = <$in>) {
-        $line =~ s&^(#\s+Generated by\s+).*$&${1}cetmodules $myversion at $gentime&;
-        $line =~ s&\@nobuild\@&$nobuild&g;
+        $line =~
+s&^(\#\s+Generated by\s+).*$&${1}cetmodules $CETMODULES_VERSION at $gentime&x;
+        $line =~ s&\@nobuild\@&$nobuild&gx;
         $out->print($line);
       }
       $out->close();
       $in->close();
-    }
-  }
-}
+    } ## end else [ if ($options->{"dry-run"...})]
+  } ## end foreach my $file (@src_files)
+  return;
+} ## end sub _upgrade_ups_dir
 
-sub write_top_CML {
-  my ($pi) = @_;
-  my $cml = "CMakeLists.txt";
-  my $dest = "$cml.new";
-  info("upgrading $cml -> $dest");
-  open(my $cml_in, "<", "$cml") or
-    error_exit("unable to open $cml for read");
-  my @buffer = <$cml_in>;
-  $cml_in->close();
-  if ($buffer[0] =~ m&^###\s+MIGRATE-NO-ACTION\b&) {
-    info("upgrading $cml -> $dest SKIPPED due to MIGRATE-NO-ACTION in line 1");
-    return;
-  }
-  my $npasses = 0;
-  my $max_passes = 3;
-  open(my $cml_out, ">", "$dest") or
-    error_exit("unable to open $dest for write");
-  while (scalar @buffer and $npasses < $max_passes) {
-    $npasses = process_cml($cml, $cml_out, $pi, \@buffer);
-  }
-  error_exit("unable to convert $cml after $npasses passes")
-    unless $npasses < $max_passes;
-  $cml_out->close();
-  if ($options->{"dry-run"}) {
-    notify("dry run: proposed edits / annotations in $dest");
-  } else {
-    info("installing $dest as $cml");
-    move("$dest", "$cml") or
-      error_exit("unable to install $dest as $cml");
-  }
-}
 
-sub process_cml {
-  my ($filename, $fh, $pi, $buffer) = @_;
-  CORE::state (@shunt, $cmr_done, $project_done, $pass,
-               $seen_cet_cmake_config, $seen_find_package);
-  while (scalar @$buffer) {
-    my $line = shift @$buffer;
-    if ($line =~ m&^\s*#&) {
-      $fh->print($line);
-      next;
-    }
-    if (not $cmr_done) {
-      if ($line =~ m&^\s*(?i:cmake_minimum_required)\s*\(\s*VERSION\s+(?P<vmin>.*?)(?:\.\.\.(?P<vmax>.*?))?\s*(?P<fatal>FATAL_ERROR)?\s*\)(?P<post>.*)$&) {
-        my $cmr_info = { %+ };
-        if ($cmr_info->{vmin} and
-            version_cmp($cmr_info->{vmin},'3.19') < 0) {
-          $cmr_info->{vmin} = '3.19';
-          if ($cmr_info->{vmax} and version_cmp($cmr_info->{vmin}, $cmr_info->{vmax}) != -1) {
-            $cmr_info->{policy} = $cmr_info->{vmax};
-            undef $cmr_info->{vmax};
-          }
-        }
-        $fh->printf("cmake_minimum_required(VERSION $cmr_info->{vmin}%s FATAL_ERROR)%s\n",
-                    $cmr_info->{vmax} ? "...$cmr_info->{vmax}" : '',
-                    $cmr_info->{post} // '');
-        if ($cmr_info->{policy}) {
-          $fh->printf("cmake_policy(VERSION %s)\n", $cmr_info->{policy});
-        }
-        $cmr_done = 1;
-        unshift @$buffer, @shunt;
-        @shunt = ();
-        next;
-      } elsif ($line =~ m&^\s*(?i:project)\s*\(& or $pass) {
-        $fh->print("cmake_minimum_required(VERSION 3.19 FATAL_ERROR)\n");
-        $cmr_done = 1;
-        unshift @$buffer, @shunt;
-        @shunt = ();
-      } else {
-        push @shunt, $line;
-        next;
-      }
-    }
-    if (not $project_done) {
-      my $proj_info;
-      if ($line =~ s&^\s*(?i:project)(?:\s*(?:#[^\n]*)\n?)*\s*\((?:\s*(?:#[^\n]*)\n?)*(?P<name>[^\s)]*)\s*&&sp) {
-        $proj_info = { pre => ${^MATCH}, %+ };
-        if ($proj_info->{name} ne $pi->{name}) {
-          my $msg = <<EOF;
-CMake project name $proj_info->{name} does NOT match product name
-$pi->{name} - this may cause issues with (cet_)?find_package() vs
-find_ups_product()
-EOF
-          warning($msg);
-        }
-        # This loop will go over the remains of the project() call -
-        # over multiple lines if necessary - separating arguments and
-        # end-of line comments and storing them. Double-quoted arguments
-        # (even multi-line ones) are handled correctly. Note that the
-        # use of extra "+" symbols following "+," "*," or "?" indicates
-        # a "greedy" clause to prevent backtracking (e.g. in the case of
-        # a dangling double-quote), so we match extra clauses
-        # inappropriately.
-        my $count = 0;
-        while (1) {
-          if ($line =~ s&^(?P<args>\s*+(?:(?:(?:"(?:[^"\\]++|\\.)*+")|(?:[^#")]+))[ \t]*+)*)(?:(?P<comments>[ \t]?#[^\n]*)?+(?P<nl>\n?+))?+&&s) {
-            push(@{$proj_info->{args}}, sprintf("%s%s", $+{args} // '', $+{nl} // ''));
-            push @{$proj_info->{comments}}, $+{comments} // '' unless $line;
-          }
-          last if ($line =~ m&^\s*\)& or not scalar @$buffer);
-          $line = join("", $line, shift @$buffer);
-        }
-        error_exit("runaway trying to parse project() line in $filename?")
-          unless $line =~ m&^\s*\)&;
-        $proj_info->{post} = $line;
-        # Now separate multiple arguments on each line. We process the
-        # arguments in two passes like this in order to preserve the
-        # correspondence between arguments and comments on the same
-        # line.
-        my @all_args =
-          map { my $tmp = [];
-                pos() = undef;
-                my $endmatch = pos();
-                while (m&\G[ 	]*(?P<arg>(?:[\n]++|(?:"(?:[^"\\]++|\\.)*+")|(?:[^\s)]+)))[ 	]*(?P<nl>[\n])?+&sg) {
-                  last if ($endmatch // 0) == pos();
-                  push @{$tmp}, sprintf("$+{arg}%s", $+{nl} // '');
-                  $endmatch = pos();
-                };
-                error_exit("Leftovers: >", substr($_, $endmatch // 0), "<")
-                  unless length() == ($endmatch // 0);
-                $tmp;
-              } @{$proj_info->{args}};
-        my ($VERSION_next, $seen_version, $version_info, $seen_arg);
-      all_args: foreach my $arg_group (@all_args) {
-        arg_group: foreach my $arg (@$arg_group) {
-            die "INTERNAL ERROR parsing project() argument line $arg"
-              unless $arg =~ m&^(?P<q>"?+)(?P<v>.*?)\k{q}(?P<nl>[\n]++)?+$&s;
-            unless ($seen_arg) {
-              $seen_arg = 1;
-              # Check first argument to see if we need to mitigate or
-              # prevent an issue:
-              if ($arg =~ m&^(v)?(?:\d+[_.]?)+&) {
-                warning(sprintf("unexpected project() argument $arg looks like a \%sversion without the required VERSION keyword: mitigating", ($1 ? "UPS " : "")));
-                $arg = to_cmake_version($arg);
-                unshift @$arg_group, "VERSION";
-                $VERSION_next = 1;
-              } elsif (grep { $arg eq $_; } qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM)) {
-                verbose "prefixing language $arg with LANGUAGES keyword in project().";
-                unshift @$arg_group, "LANGUAGES";
-                next;
-              }
-            }
-            if ($VERSION_next) {
-              $seen_version = \$arg;
-              $version_info = { %+ };
-              last all_args;
-            }
-            elsif ($+{v} eq "VERSION") {
-              $VERSION_next = 1;
-              next;
-            }
-          }
-        }
-        if ($pi->{version}) {
-          my $piversion = to_cmake_version($pi->{version});
-          if ($seen_version) {
-            if ($piversion and $version_info->{v} ne $piversion) {
-              my $msg = <<EOF;
-CMake version in project() call ($version_info->{v}) does NOT match
-UPS-style version in product_deps ($pi->{version} -> $piversion):
-updating CMake version to $piversion (CMake version now governs)
-EOF
-              warning($msg);
-              $$seen_version =
-                sprintf("\%s$piversion\%s\%s",
-                        ($version_info->{q} // '') x 2,
-                        $version_info->{nl} // '');
-            }
-          } else {
-            if ($proj_info->{pre} =~ m&^(.*?)([ 	]*+\n?+)$&) {
-              $proj_info->{pre} =
-                sprintf("\%s\%s", join(" ", $1, "VERSION", $piversion), $2 // '');
-            }
-          }
-        }
-        $fh->print("find_package(cetmodules $myversion REQUIRED)\n") unless
-          $seen_find_package;
-        $fh->print($proj_info->{pre},
-                   join("  ", map({ my $l = join(" ", @$_);
-                         my $r = shift @{$proj_info->{comments}};
-                         if ($r) {
-                           chomp $l;
-                           join(" ", $l, "$r\n");
-                         } else {
-                           $l;
-                         }
-                       } @all_args)),
-                   $proj_info->{post} // ());
-        $project_done = 1;
-        next;
-      } elsif ($line =~ m&^\s*(?i:project)(?:\s*(?:#[^\n]*)\n?)*(?:\s*\((?:\s*(?:#[^\n]*)\n?)*)?$&s) {
-        # Possibly the beginnings of a project call: add the next line
-        # and check again.
-        unshift @$buffer, join('', $line, shift @$buffer);
-        next;
-      } elsif ($line =~ m&^[^#]*\bcet_cmake_env\b&) {
-        error_exit("unable to find a suitable project() call to update");
-      }
-    }
-    if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
-      $fh->print($line);
-      next;
-    }
-    if ($line =~ m&^\s*(?i:find_(?P<find>package|ups_product))\s*\(\s*(?P<pkg>cet(?:buildtools|modules))\s+(?P<minv>(?P<minvMajor>\d+)[^\s)]+)?&) {
-      if ($+{find} eq 'package' and $+{pkg} eq "cetmodules") {
-        $line =~ m&^\s*find_package\s*\(\s*cetmodules(\s+[^1)]|\s*\))& or
-          $line =~ s&^(\s*find_package\s*\(\s*cetmodules\s+)[^\s)]++(.*)$&${1}${myversion}${2}&;
-        $seen_find_package = 1;
-      } else {
-        next; # We will provide one in the right place.
-      }
-    }
-    $line =~ m&^\s*cet_cmake_config\s*\(\s*& and $seen_cet_cmake_config = 1;
-    $line =~ s&^(\s*)cet_report_compiler_flags\s*\(\s*\)&${1}cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)&;
-    $line =~ m&^\s*(?i:add_subdirectory)\s*\(\s*ups\b& and
-      next; # No longer needed.
-    if ($line =~ m&^\s*(?i:subdirs)\s*\($&) {
-      flag_required($line, ": remove ups dir from args if present");
-      flag_recommended($line, ": use add_subdirectory()");
-      # Too hard to deal with automatically.
-      my $msg = <<EOF;
-ACTION REQUIRED -
-ACTION REQUIRED - obsolete CMake command subdirs() command found: use add_subdirectory()
-ACTION REQUIRED - instead, omitting "ups" if present
-EOF
-      warning($msg);
-    }
-    $line =~ m&^\s*(?i:include)\s*\(\s*UseCPack& and next;
-    $fh->print($line);
-  }
-  if (scalar @shunt) {
-    @$buffer = @shunt;
-  } else {
-    $fh->print("cet_cmake_config()\n")
-      unless $seen_cet_cmake_config;
-  }
-  return ++$pass;
-}
-
-sub find_cmake {
-  return (grep { (-d and not m&^migrate-backup&) or
-                   $_ eq 'CMakeLists.txt' or m&\.cmake$&; } @_);
-}
-
-sub fix_cmake {
-  my ($pi) = @_;
-  find({ preprocess => \&find_cmake,
-         wanted => sub { fix_cmake_one($pi); }
-       },
-       '.');
-}
-
-sub fix_cmake_one {
-  my $pi = shift;
-  # Called by File::find() from fix_cmake() with respect to a
-  # CMakeLists.txt or *.cmake file to upgrade to use of cetmodules >=
-  # 2.0 where possible to do so programmatically.
-  my ($path, $filepath, $filename) = ($File::Find::dir, $File::Find::name, $_);
-  return if (not -f $filename or
-             grep { $pi->{name} eq $_; } qw(cetmodules mrb));
-  info("upgrading $filepath -> $filepath.new");
-  open(my $out, ">", "$filename.new") or
-    error_exit("unable to write $filepath.new");
-  open(my $in, "<", "$filename") or
-    error_exit("unable to open $filepath for read");
-  my $pname = $pi->{name};
-  my $seen_line1;
-  while (my $line = <$in>) {
-    if (not defined $seen_line1) {
-      $seen_line1 = 1;
-      if ($line =~ m&^###\s+MIGRATE-NO-ACTION\b&) {
-        info("upgrading $filepath -> $filepath.new SKIPPED due to MIGRATE-NO-ACTION in line 1");
-        $in->close();
-        $out->close();
-        system(qw(rm -f --), "$filename.new");
-        return;
-      }
-    }
-    if ($line =~ m&\s+###\s+MIGRATE-NO-ACTION\b$&) {
-      $out->print($line);
-      next;
-    }
-    while ($line =~ m&\$\{(?:\$\{product\}|\Q$pname\E)_([_\w]+)\}&g) {
-      my $dirkey_ish = $1;
-      my $dirkey_alt = join("", ($dirkey_ish =~ m&^(.*?)_*+(dir)$&));
-      my ($var_stem) =
-          map { ($dirkey_ish eq $_ or $dirkey_alt eq $_) ?
-                  var_stem_for_dirkey($_) : (); } keys %$pathspec_info;
-      $line =~ s&(\$\{(?:\$\{product\}|\Q$pname\E)_\Q$dirkey_ish\E\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem\}&g and
-        pos($line) = 0 and
-          verbose("$1 -> \${\${CETMODULES_CURRENT_PROJECT_NAME}_$var_stem}");
-    }
-    $line =~ s&\$\{gdml_install_dir\}&\${\${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR}&g and
-      verbose('${gdml_install_dir} -> ${${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR}');
-    flag_recommended($line, ": use add_subdirectory()")
-      if ($line =~ m&^\s*(?i:subdirs)\s*\($&);
-    flag_required($line, ": avoid using or changing CMAKE_INSTALL_PREFIX")
-      if $line =~ m&\bCMAKE_INSTALL_PREFIX\b&;
-    flag_required($line, ": remove")
-      if $line =~ m&(\b(?:(?i:cetbuildtools)|CMAKE_MODULE_PATH\b).*)$&;
-    flag_recommended($line, ": declare exportable CMake module directories with cet_cmake_module_directories()")
-      if $line =~ m&\bCMAKE_MODULE_PATH\b.*SOURCE_DIR$&;
-    flag_recommended($line, ": use find_package() to handle external modules directories")
-      if $line =~ m&\bCMAKE_MODULE_PATH\b.*\$ENV$&;
-    $line =~ s&(\$\{product\}/\${version\}/)&&g and verbose("\${product}/\${version}/ -> \"\"");
-    $line =~ s&(\$\{flavorqual(?:_dir)?\})&\${\${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}&g and
-      verbose("$1 -> \"\${\${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}\"");
-    $line =~ s&(\$\{product\})&\${CETMODULES_CURRENT_PROJECT_NAME}&g and
-      verbose("$1 -> \"\${CETMODULES_CURRENT_PROJECT_NAME}\"");
-    $line =~ s&(\$\{version\})&\${CETMODULES_CURRENT_PROJECT_VERSION}&g and
-      verbose("$1 -> \"\${CETMODULES_CURRENT_PROJECT_VERSION}\"");
-    while ($line =~ m&\G.*?\b(?P<clause>find_package\b\s*\(\s*(?P<pkg>[^\s)"]+))&g) {
-      my $safe_pos = pos($line);
-      $+{pkg} ne 'cetmodules' and
-        $line =~ s&\b(\Q$+{clause}\E)&cet_$1& and
-          pos($line) = $safe_pos + length('cet_') and
-            verbose("$1... -> cet_$1...");
-    }
-    flag_recommended($line, ": use target_link_directories() with target semantics")
-      if $line =~ m&\binclude_directories\b&;
-    flag_recommended($line, ": use target_compile_definitions()")
-      if $line =~ m&\badd(?:_compile)_definitions\b&;
-    flag_recommended($line, ": use target_add_definitions()")
-      if $line =~ m&\badd(?:_compile)_definitions\b&;
-    flag_recommended($line, ": use target_add_definitions() with -U")
-      if $line =~ m&\bremove_definitions\b&;
-    flag_recommended($line, ": use target_link_libraries() with target semantics")
-      if $line =~ m&\blink_(?:libraries|directories)\b&;
-    flag_recommended($line, ": use target_link_options()")
-      if $line =~ m&\badd_link_options\b&;
-    flag_recommended($line, ": use target_add_definitions() with -U")
-      if $line =~ m&\bremove_definitions\b&;
-    flag_recommended($line, ": use of $1... may be UPS-dependent")
-      if $line =~ m&\b(\$ENV\{|ENV\s)&;
-    flag_recommended($line, ": use cet_find_package() with target semantics for linking")
-      if $line =~ m&\b(find_ups_product|(?:cet_)find_library)\b&;
-    flag_recommended($line, ": use cet_test()")
-      if $line =~ m&\b(add_test)\b&;
-    flag_recommended($line, ": use art_make_library(), art_dictionary(), simple_plugin() with explicit source lists")
-      if $line =~ m&\b(art_make\b)&;
-    flag_recommended($line, ": use cet_make_library(), build_dictionary(), basic_plugin() with explicit source lists")
-      if $line =~ m&\b(cet_make\b)&;
-    $out->print($line);
-  }
-  $in->close();
-  $out->close();
-  if ($options->{"dry-run"}) {
-    notify("dry run: proposed edits / annotations in $filepath.new");
-  } else {
-    info("installing $filepath.new as $filepath");
-    move("$filename.new", "$filename") or
-      error_exit("unable to install $filepath.new as $filepath");
-  }
-}
-
-sub pad_to {
-  my $ntabs = shift;
-  my $content = shift // '';
-  return $content unless $ntabs;
-  my $column_width = $ntabs * $pinfo_tab_width;
-  my $tabs_to_add =
-    ceil(($column_width - length($content)) / $pinfo_tab_width);
-  my $result =
-    sprintf("$content%s",
-            ($tabs_to_add > 0) ? ("\t" x $tabs_to_add) : "");
-}
-
-sub backup_files {
-  my @lt = localtime;
-  my $date = strftime("%Y%m%d-%H%M%S%z", @lt);
+sub _backup_files {
+  my @lt        = localtime;
+  my $date      = strftime("%Y%m%d-%H%M%S%z", @lt);
   my $backupdir = abs_path("migrate-backup-$date");
   verbose("backing up files to $backupdir");
   make_path("$backupdir");
   system(qq(cp -pR ups $backupdir/ups)) == 0 or
     error_exit("unable to back up UPS directory ups to $backupdir");
-  find({ preprocess => \&find_cmake,
-         wanted => sub {
-           return unless -f;
-           my ($path, $filepath, $filename) = ($File::Find::dir, $File::Find::name, $_);
-           my $destdir = File::Spec->catfile($backupdir, $path);
-           make_path($destdir);
-           copy($_, "$destdir/") or error_exit("unable to back up $filepath to $destdir");
-         }
-       },
-       '.');
-}
-
-sub gentime {
-  my @lt = localtime;
-  return strftime('%a %b %d %H:%M:%S %Z', @lt);
-}
-
-sub trimline {
-  my $line = join("", @_);
-  $line =~ s&\s+$&&s;
-  return "$line\n";
-}
-
-sub flag_required(\$@) {
-  my $lref = shift;
-  return if flagged($lref);
-  chomp $$lref;
-  my $extra = join("", @_);
-  $$lref = "$${lref} ### MIGRATE-ACTION-REQUIRED$extra\n";
-}
-
-sub flag_recommended(\$@) {
-  my $lref = shift;
-  return if flagged($lref, @_);
-  chomp $$lref;
-  my $extra = join("", @_) || undef;
-  $$lref = "$${lref} ### MIGRATE-ACTION-RECOMMENDED$extra\n";
-}
-
-sub flagged {
-  my $line = (ref $_[0] eq 'SCALAR') ? ${$_[0]} : $_[0];
-  shift;
-  my $extra = join("", @_);
-  return $line =~ m&\s+### MIGRATE-ACTION-.*\Q$extra\E&;
-}
+  find({
+      preprocess => \&find_cmake,
+      wanted     => sub {
+        -f or return;
+        my ($path, $filepath, $filename) =
+          ($File::Find::dir, $File::Find::name, $_);
+        my $destdir = File::Spec->catfile($backupdir, $path);
+        make_path($destdir);
+        copy($_, "$destdir/") or
+          error_exit("unable to back up $filepath to $destdir");
+        }
+    },
+    q(.));
+  return;
+} ## end sub _backup_files
 
 1;
 
@@ -777,7 +213,7 @@ __END__
 I<migrate>: convert a cetbuildtools package to use cetmodules 2.X, or
          refresh and annotate an existing cetmodules 2.X package.
 
-=head1 SYNOPSIS
+=head1 USAGE
 
 B<migrate> I<options> [--] [I<pkg-top>+]
 

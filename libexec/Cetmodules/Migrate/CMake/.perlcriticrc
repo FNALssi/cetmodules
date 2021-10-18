@@ -1,0 +1,4 @@
+severity = 2
+
+[-Miscellanea::RequireRcsKeywords]
+[-Modules::RequireVersionVar]

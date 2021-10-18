@@ -5,6 +5,7 @@
 project_variable(LIBEXEC_DIR CONFIG ${CMAKE_INSTALL_LIBEXECDIR})
 
 set(private_programs
+  bootstrap-perl-env
   cet_exec_test
   cet_lock
   checkClassVersion
@@ -20,10 +21,14 @@ set(legacy_private_programs
 
 set(private_files message_functions.sh)
 
-set(legacy_private_files parse_deps.pm pass fail)
+set(legacy_private_files pass fail)
 
 cet_script(${private_programs} ${legacy_private_programs}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
 
 install(FILES ${private_files} ${legacy_private_files}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
+
+# Install Perl modules.
+install(DIRECTORY ./ DESTINATION ${cetmodules_LIBEXEC_DIR}
+  FILES_MATCHING PATTERN "*.pm")
