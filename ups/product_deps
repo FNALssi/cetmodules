@@ -1,6 +1,5 @@
 parent cetmodules
 
-noarch
 no_fq_dir
 fcldir -
 incdir	-
@@ -18,6 +17,8 @@ qualifier	cmake	ninja	cetpkgsupport
 end_qualifier_list
 
 table_fragment_begin
+    # Make sure we can see our bundled Perl modules.
+    sourceRequired(${UPS_PROD_DIR}/ups/perl-env.${UPS_SHELL}, UPS_ENV)
     # Masquerade as cetbuildtools.
     envSet(CETBUILDTOOLS_DIR,${CETMODULES_DIR})
 table_fragment_end
