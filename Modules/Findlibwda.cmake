@@ -50,7 +50,7 @@ if (libwda_FOUND)
   if (CETMODULES_CURRENT_PROJECT_NAME AND
       ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
     include_directories("${libwda_INCLUDE_DIRS}")
-    set(LIBWDA "${libwda_LIBRARY")
+    set(LIBWDA "${libwda_LIBRARY}")
   endif()
 endif()
 
