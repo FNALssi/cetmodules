@@ -117,6 +117,17 @@ macro(find_package PKG)
       string(TOUPPER "${PKG}" _fp_PKG_UC)
       # May be modified by transitive dependency searches.
       set(${PKG}_FOUND TRUE)
+      # Add any CMake module directories to CMAKE_MODULE_PATH.
+      if (CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG})
+        list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
+          PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_source)
+        list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
+          PREPEND "${${PKG}_BINARY_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_binary)
+        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path_source} ${_fp_module_path_binary})
+        unset(_fp_module_path_source)
+        unset(_fp_module_path_binary)
+      endif()
+      # Load transitive dependencies.
       if (CETMODULES_TRANSITIVE_DEPS_PROJECT_${PKG})
         # Save the current value of CMAKE_FIND_PACKAGE_NAME.
         set(_fp_CMAKE_FIND_PACKAGE_NAME_${PKG} ${CMAKE_FIND_PACKAGE_NAME})
@@ -131,15 +142,6 @@ macro(find_package PKG)
         endforeach()
         # Restore CMAKE_FIND_PACKAGE_NAME.
         set(CMAKE_FIND_PACKAGE_NAME ${_fp_CMAKE_FIND_PACKAGE_NAME_${PKG}})
-      endif()
-      if (CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG})
-        list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
-          PREPEND "${${PKG}_SOURCE_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_source)
-        list(TRANSFORM CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${PKG}
-          PREPEND "${${PKG}_BINARY_DIR}/" REGEX "^[^/]+" OUTPUT_VARIABLE _fp_module_path_binary)
-        list(PREPEND CMAKE_MODULE_PATH ${_fp_module_path_source} ${_fp_module_path_binary})
-        unset(_fp_module_path_source)
-        unset(_fp_module_path_binary)
       endif()
       if (${PKG}_FOUND AND
           NOT ("${${PKG}_CMAKE_PROJECT_VERSION_STRING}" STREQUAL "" OR
