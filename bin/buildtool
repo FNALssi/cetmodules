@@ -1128,11 +1128,12 @@ if (( clean )); then
     tar -f "$setup_files_backup" -c */table_* || \
     rm -f "$setup_files_backup" ) > /dev/null 2>&1
   if ! { find "$CETPKG_BUILD" -mindepth 1 -maxdepth 1 \
-    \( -type d -o -name 'build.ninja' -o -name '.ninja_deps' -o \
-    -name '*.cmake' -o -name '*.cmake.in' -o -name 'DartConfiguration.tcl' -o \
-    -name 'CMakeCache.txt' -o -name install_manifest.txt -o \
-    -name 'Makefile' \) -print | \
-    xargs rm -rf; }; then
+              \( -type d \( -name .cpan -o -name cpan_build -o -name CPAN \) \) -o \
+              \( \( -type d -o -name 'build.ninja' -o -name '.ninja_deps' -o \
+              -name '*.cmake' -o -name '*.cmake.in' -o -name 'DartConfiguration.tcl' -o \
+              -name 'CMakeCache.txt' -o -name install_manifest.txt -o \
+              -name 'Makefile' \) -print0 \) | \
+    xargs -0 rm -rf; }; then
     fatal_error "unable to clean directory \"$CETPKG_BUILD\""
   fi
   if [ -r "$setup_files_backup" ]; then
