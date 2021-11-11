@@ -291,10 +291,6 @@ recognized version formats\
     OMIT_IF_EMPTY OMIT_IF_NULL
     DOCSTRING "Compatible setting for WIRECELL_PATH")
 
-  if (WANT_UPS)
-    _ups_pv_compatibility()
-  endif()
-
   if (_cet_need_cetbuildtools_compat)
     _cetbuildtools_compatibility()
     unset(_cet_need_cetbuildtools_compat)

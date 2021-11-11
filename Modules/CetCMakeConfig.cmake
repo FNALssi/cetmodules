@@ -100,12 +100,14 @@ function(_cet_cmake_config_impl)
   if (NOT CCC_NO_CMAKE_CONFIG)
     if (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH)
       set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
-      set(config_out_default_var DATA_ROOT_DIR)
-    else()
-      set(config_out_default_var LIBRARY_DIR)
     endif()
-    project_variable(CONFIG_OUTPUT_ROOT_DIR
-      ${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}
+    if (${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY AND NOT
+        ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH)
+      set(config_out_default_var LIBRARY_DIR)
+    else()
+      set(config_out_default_var DATA_ROOT_DIR)
+    endif()
+    project_variable(CONFIG_OUTPUT_ROOT_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}"
       DOCSTRING "Output location for CMake Config files, etc. for find_package()")
     cet_get_pv_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
     set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR}")

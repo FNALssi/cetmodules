@@ -71,27 +71,6 @@ macro(_ups_init)
   _ups_use_maybe_unused()
 endmacro()
 
-macro(_ups_pv_compatibility)
-  if ("${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}" STREQUAL "" AND
-      NOT (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH OR
-        ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_CONFIG_OUTPUT_ROOT_DIR OR
-        ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR_INIT OR
-        ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR OR
-        "$CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR}"))
-    message(WARNING "libdir unset in product_deps and no value set for \
-project variable ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR.
-Initializing ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR to \
-${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR for compatibility.
-N.B. this assumes that all CMake config files are non-architecture-dependent.
-Initialize ${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR to \
-suppress this warning.")
-    set(${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR_INIT
-      "${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}")
-    list(APPEND ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS
-      CONFIG_OUTPUT_ROOT_DIR)
-  endif()
-endmacro()
-
 macro(_ups_set_variables)
   ##################
   # UPS product name.
@@ -149,13 +128,9 @@ macro(_ups_set_variables)
 
   ##################
   # UPS table file directory.
-  set(_usv_default_table_subdir ups)
-  if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
-    string(PREPEND _usv_default_table_subdir "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/")
-  endif()
-  project_variable(UPS_PRODUCT_TABLE_SUBDIR "${_usv_default_table_subdir}" DOCSTRING
+  list(APPEND ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS ups)
+  project_variable(UPS_PRODUCT_TABLE_SUBDIR ups DOCSTRING
     "Table file subdirectory for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
-  unset(_usv_default_table_subdir)
 
   ##################
   # UPS version file name.
