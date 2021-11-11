@@ -20,7 +20,7 @@ X
 #   that the variable is appropriately defined for dependents via
 #   find_package().
 #
-# set_project_variable_property([<project-name>] <var-name>
+# cet_set_pv_property([<project-name>] <var-name>
 #                               [APPEND|APPEND_STRING]
 #                               PROPERTY <property> [<value>...])
 #
@@ -28,7 +28,7 @@ X
 #   <project-name>_<var-name>. If <project-name> is not specified,
 #   ${CETMODULES_CURRENT_PROJECT_NAME} will be used.
 #
-# get_project_variable_property([<output-variable>] [PROJECT <project-name>]
+# cet_get_pv_property([<output-variable>] [PROJECT <project-name>]
 #                               <var-name> PROPERTY <property>)
 #
 #   Get the value of the specified <property> for
@@ -43,8 +43,8 @@ X
 #   below).
 #
 # * The attributes of any project variable are stored in cache also, and
-#   may be interrogated or changed via get_project_variable_property()
-#   and set_project_variable_property() respectively.
+#   may be interrogated or changed via cet_get_pv_property()
+#   and cet_set_pv_property() respectively.
 #
 # * In addition to the CMake variable types (see
 #   https://cmake.org/cmake/help/latest/prop_cache/TYPE.html or
@@ -371,29 +371,31 @@ function(project_variable VAR_NAME)
         list(APPEND new_val "${path}")
       endif()
     endforeach()
+    if (NOT DEFINED CACHE{CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+      set(CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE INTERNAL
+        "Properties for project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}")
+    endif()
     set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} PROPERTY VALUE ${new_val})
   endif()
   ##################
   # Set "properties" of each project variable that we can interrogate
   # later.
-  set(CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE INTERNAL
-    "Properties for project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}")
-  set_project_variable_property(${VAR_NAME} PROPERTY ORIGIN "${ORIGIN}")
-  set_project_variable_property(${VAR_NAME} PROPERTY TYPE "${CPV_TYPE}")
+  cet_set_pv_property(${VAR_NAME} PROPERTY ORIGIN "${ORIGIN}")
+  cet_set_pv_property(${VAR_NAME} PROPERTY TYPE "${CPV_TYPE}")
   foreach(var IN ITEMS CONFIG OMIT_IF_NULL)
     if (CPV_${var})
-      set_project_variable_property(${VAR_NAME} PROPERTY ${var})
+      cet_set_pv_property(${VAR_NAME} PROPERTY ${var} TRUE)
     endif()
   endforeach()
   if (CPV_TYPE IN_LIST _CPV_PATH_TYPES)
-    set_project_variable_property(${VAR_NAME} PROPERTY IS_PATH)
+    cet_set_pv_property(${VAR_NAME} PROPERTY IS_PATH)
     foreach (var IN ITEMS MISSING_OK OMIT_IF_MISSING)
       if (CPV_${var})
-        set_project_variable_property(${VAR_NAME} PROPERTY ${var})
+        cet_set_pv_property(${VAR_NAME} PROPERTY ${var} TRUE)
       endif()
     endforeach()
   else()
-    foreach(var IN ITEMS OMIT_IF_MISSING MISSING_OK)
+    foreach(var IN ITEMS MISSING_OK OMIT_IF_MISSING)
       if (CPV_${var})
         message(WARNING "${var} not valid for project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} of TYPE ${CPV_TYPE}")
       endif()
@@ -401,7 +403,7 @@ function(project_variable VAR_NAME)
   endif()
   if (CPV_OMIT_IF_EMPTY)
     if (CPV_TYPE MATCHES [[^PATH(_FRAGMENT)?$]])
-      set_project_variable_property(${VAR_NAME} PROPERTY OMIT_IF_EMPTY)
+      cet_set_pv_property(${VAR_NAME} PROPERTY OMIT_IF_EMPTY TRUE)
     else()
       message(WARNING "${var} not valid for project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} of TYPE ${CPV_TYPE}")
     endif()
@@ -409,74 +411,68 @@ function(project_variable VAR_NAME)
 endfunction()
 
 # Set the specified CMake or project variable property.
-function(set_project_variable_property)
+function(cet_set_pv_property)
   list(FIND ARGV "PROPERTY" PROP_IDX)
   list(SUBLIST ARGV ${PROP_IDX} -1 VALS)
   list(POP_FRONT VALS PROP_KW PROP)
   list(SUBLIST ARGV 0 ${PROP_IDX} ARGS)
   cmake_parse_arguments(SPVP "APPEND;APPEND_STRING" "" "" ${ARGS})
-  list(POP_BACK SPVP_UNPARSED_ARGUMENTS PVAR PROJ)
+  list(POP_BACK SPVP_UNPARSED_ARGUMENTS VAR_NAME PROJ)
   if (NOT PROJ)
     set(PROJ "${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
-  if (SPVP_UNPARSED_ARGUMENTS OR NOT (PROJ AND PVAR AND PROP_KW STREQUAL "PROPERTY" AND PROP))
-    message(FATAL_ERROR "set_project_variable_property(): bad arguments ${ARGV}"
-      "\nUSAGE: set_project_variable_property([<project-name>] <var-name> [APPEND|APPEND_STRING] PROPERTY <property> [<value>...])")
+  if (SPVP_UNPARSED_ARGUMENTS OR NOT (PROJ AND VAR_NAME AND PROP_KW STREQUAL "PROPERTY" AND PROP))
+    message(FATAL_ERROR "cet_set_pv_property(): bad arguments ${ARGV}"
+      "\nUSAGE: cet_set_pv_property([<project-name>] <var-name> [APPEND|APPEND_STRING] PROPERTY <property> [<value>...])")
   endif()
-  if (NOT PVAR IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    # Don't know this project variable.
-    message(FATAL_ERROR "set_project_variable_property(): project variable ${PROJ}_${PVAR} has not been defined")
+  if (NOT DEFINED CACHE{CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ}})
+    set(CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ} CACHE INTERNAL
+      "Properties for project variable ${PROJ}_${VAR_NAME}")
   endif()
   get_property(cached_properties
-    CACHE CETMODULES_${PVAR}_PROPERTIES_PROJECT_${PROJ} PROPERTY VALUE)
+    CACHE CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ} PROPERTY VALUE)
   if (PROP IN_LIST _CPV_FLAGS)
     # Flag.
     if (SPVP_APPEND OR SPVP_APPEND_STRING)
-      message(FATAL_ERROR "set_project_variable_property(): APPEND/APPEND_STRING invalid for flag ${PROP}"
-        "\nSet flag without <VALUE>, or reset with non-empty <VALUE> evaluating to FALSE.")
+      message(FATAL_ERROR "cet_set_pv_property(): APPEND/APPEND_STRING invalid for flag ${PROP}"
+        "\nSet flag with non-empty <VALUE> evaluating to TRUE, or reset.")
     endif()
     list(REMOVE_ITEM cached_properties "${PROP}")
-    if (VALS OR VALS STREQUAL "") # Flag should be set.
+    if (VALS) # Flag should be set.
       list(APPEND cached_properties "${PROP}")
     endif()
-  elseif (PROP IN_LIST _CPV_OPTIONS)
-    # Valued property.
-    set(PVAL)
-    list(FIND cached_properties "${PROP}" PROP_IDX)
-    if (PROP_IDX GREATER -1)
-      # Save.
-      list(SUBLIST cached_properties ${PROP_IDX} 2 PVAL)
-      # Remove for manipulation.
-      list(REMOVE_AT cached_properties ${PROP_IDX})
-      list(REMOVE_AT cached_properties ${PROP_IDX})
-      # Don't need property name any more.
-      list(POP_FRONT PVAL)
-    endif()
-    if (SPVP_APPEND_STRING)
-      # Treat as a string append.
-      string(APPEND PVAL "${VALS}")
-    elseif (SPVP_APPEND)
-      # Treat as a list append.
-      list(APPEND PVAL ${VALS})
-    else()
-      # Set.
-      set(PVAL ${VALS})
-    endif()
-    list(APPEND cached_properties ${PROP} "${PVAL}")
   else()
-    message(FATAL_ERROR
-      "set_project_variable_property(): unrecognized property ${PROP}"
-      "\nKnown flags: ${_CPV_FLAGS}"
-      "\nKnown options: ${_CPV_OPTIONS}")
+    list(LENGTH VALS nvals)
+    if (NOT nvals)
+      list(REMOVE_ITEM cached_properties "${PROP}")
+      unset(CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ} CACHE)
+      unset(CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ} PARENT_SCOPE)
+    else()
+      if (NOT DEFINED CACHE{CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ}})
+        set(CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ} ${VALS} CACHE
+          INTERNAL "Valued property for project variable ${PROJ}_${VAR_NAME}")
+      else()
+        if (SPVP_APPEND_STRING)
+          set(append_kw APPEND_STRING)
+        elseif (SPVP_APPEND)
+          set(append_kw APPEND)
+        else()
+          set(append_kw)
+        endif()
+        set_property(CACHE CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ}
+          ${append_kw} PROPERTY VALUE ${VALS})
+      endif()
+      list(APPEND cached_properties ${PROP})
+    endif()
   endif()
-  set_property(CACHE CETMODULES_${PVAR}_PROPERTIES_PROJECT_${PROJ}
+  set_property(CACHE CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ}
     PROPERTY VALUE ${cached_properties})
 endfunction()
 
-function(get_project_variable_property)
+function(cet_get_pv_property)
   cmake_parse_arguments(PARSE_ARGV 0 GPVP "" "PROJECT" "")
   # Read backwards.
-  list(POP_BACK GPVP_UNPARSED_ARGUMENTS PROP PROP_KW PVAR)
+  list(POP_BACK GPVP_UNPARSED_ARGUMENTS PROP PROP_KW VAR_NAME)
   if (GPVP_PROJECT)
     set(PROJ "${GPVP_PROJECT}")
     list(POP_FRONT GPVP_UNPARSED_ARGUMENTS OUT_VAR)
@@ -490,41 +486,26 @@ function(get_project_variable_property)
     set(OUT_VAR "${PROP}")
   endif()
   if (GPVP_UNPARSED_ARGUMENTS OR
-      NOT (PROJ AND PVAR AND OUT_VAR AND PROP_KW STREQUAL "PROPERTY" AND PROP))
+      NOT (PROJ AND VAR_NAME AND OUT_VAR AND PROP_KW STREQUAL "PROPERTY" AND PROP))
     message(FATAL_ERROR [=[
-get_project_variable_property bad arguments ${ARGV}
-USAGE: get_project_variable_property([<output-variable>] [PROJECT <project-name>] <var-name> PROPERTY <property>)
+cet_get_pv_property bad arguments ${ARGV}
+USAGE: cet_get_pv_property([<output-variable>] [PROJECT <project-name>] <var-name> PROPERTY <property>)
        If <output-variable> and <project-variable> are both specified, the PROJECT keyword is optional]=])
   endif()
-  if (NOT PVAR IN_LIST CETMODULES_VARS_PROJECT_${PROJ})
-    # Don't know this project variable.
-    message(FATAL_ERROR "get_project_variable_property(): project variable ${PROJ}_${PVAR} has not been defined")
-  endif()
-  get_property(cached_properties CACHE
-    CETMODULES_${PVAR}_PROPERTIES_PROJECT_${PROJ} PROPERTY VALUE)
-  if (PROP IN_LIST _CPV_FLAGS)
-    # Flag.
-    if (PROP IN_LIST cached_properties)
-      set(RESULT TRUE)
+  set(RESULT)
+  if (DEFINED CACHE{CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ}})
+    get_property(cached_properties CACHE
+      CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ} PROPERTY VALUE)
+    if (PROP IN_LIST _CPV_FLAGS)
+      # Flag.
+      if (PROP IN_LIST cached_properties)
+        set(RESULT TRUE)
+      else()
+        set(RESULT FALSE)
+      endif()
     else()
-      set(RESULT FALSE)
+      set(RESULT $CACHE{CETMODULES_${VAR_NAME}_PROPERTY_${PROP}_PROJECT_${PROJ}})
     endif()
-  elseif (PROP IN_LIST _CPV_OPTIONS)
-    # Valued property.
-    set(RESULT)
-    list(FIND cached_properties "${PROP}" PROP_IDX)
-    if (PROP_IDX GREATER -1)
-      # Save.
-      list(SUBLIST cached_properties ${PROP_IDX} 2 PVAL)
-      # Don't need property name.
-      list(POP_FRONT PVAL)
-      set(RESULT ${PVAL})
-    endif()
-  else()
-    message(FATAL_ERROR
-      "get_project_variable_property(): unrecognized property ${PROP}"
-      "\nKnown flags: ${_CPV_FLAGS}"
-      "\nKnown options: ${_CPV_OPTIONS}")
   endif()
   set(${OUT_VAR} ${RESULT} PARENT_SCOPE)
 endfunction()
