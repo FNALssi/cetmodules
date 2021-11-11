@@ -20,7 +20,7 @@ function(cet_generate_sphinxdocs)
   set(options EXTRA_ARGS OUTPUT_FORMATS)
   if (NOT "SPHINX_DOC_DIR" IN_LIST
       CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(SPHINX_DOC_DIR ${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}
+    project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
       BACKUP_DEFAULT ${CMAKE_INSTALL_DOCDIR}
       DOCSTRING "Location of installed Sphinx-generated documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
