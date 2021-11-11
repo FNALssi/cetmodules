@@ -81,8 +81,16 @@ X
 #     3. The value of a CMake or cached variable
 #        ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_<var-name>.
 #
+#     3a.The value imparted by a delayed evaluation of the parameters of
+#        the most recent preceding call to cet_set_pv_deferred(<var-name>)
+#        *without* the INIT flag.
+#
 #     4. The value of a CMake or cached variable
 #        ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT.
+#
+#     4a.The value imparted by a delayed evaluation of the parameters of
+#        the most recent preceding call to cet_set_pv_deferred(<var-name>)
+#        *with* the INIT flag.
 #
 #     5. <initial-value>.
 #
@@ -229,10 +237,47 @@ set(_CPV_RESERVED_NAMES BINARY_DIR DESCRIPTION HOMEPAGE_URL SOURCE_DIR
 
 # Flag properties.
 set(_CPV_FLAGS CONFIG IS_PATH MISSING_OK OMIT_IF_EMPTY OMIT_IF_MISSING
-  OMIT_IF_NULL)
+  OMIT_IF_NULL PV_INIT)
 
-# Option properties.
-set(_CPV_OPTIONS ORIGIN TYPE)
+function(cet_set_pv_deferred PROJ VAR_NAME)
+  cmake_parse_arguments(PARSE_ARGV 2 DPV "INIT;NOP" "COMMAND" "")
+  if (DPV_COMMAND)
+    set(var_dependencies ${DPV_UNPARSED_ARGUMENTS})
+  else()
+    string(REGEX REPLACE "[^<;]*(<[^;>]+>|;)[^<;]*" "\\1" var_dependencies "${DPV_UNPARSED_ARGUMENTS}")
+    string(REGEX REPLACE "<([^;>]+)>" "\\1;" var_dependencies "${var_dependencies}")
+    list(REMOVE_ITEM var_dependencies "")
+    message(STATUS "var_dependencies=${var_dependencies}")
+    string(REGEX REPLACE "<([^;>]+)>" "\${${PROJ}_\\1}"
+      dependent_values "${DPV_UNPARSED_ARGUMENTS}")
+    message(STATUS "dependent_values=${dependent_values}")
+  endif()
+  if (VAR_NAME IN_LIST CETMODULES_VARS_PROJECT_${PROJ})
+    if (DPV_INIT)
+      message(SEND_ERROR "cannot set initial value of already-defined dependent project variable ${VAR_NAME} for project ${PROJ}")
+      return()
+    elseif (DPV_COMMAND)
+      list(POP_FRONT DPV_COMMAND command_name)
+      cmake_language(CALL ${command_name} new_values ${DPV_COMMAND})
+    else()
+      cmake_language(EVAL CODE "set(new_values \"${dependent_values}\")")
+    endif()
+    set_property(CACHE ${PROJ}_${VAR_NAME} PROPERTY VALUE "${new_values}")
+    set(${PROJ}_${VAR_NAME} "${new_values}" PARENT_SCOPE)
+  else()
+    cet_set_pv_property(${PROJ} ${VAR_NAME} PROPERTY PV_DEPENDENCIES "${var_dependencies}")
+    if (DPV_COMMAND)
+      cet_set_pv_property(${PROJ} ${VAR_NAME} PROPERTY PV_COMMAND "${DPV_COMMAND}")
+    else()
+      cet_set_pv_property(${PROJ} ${VAR_NAME} PROPERTY PV_VALUES "${dependent_values}")
+    endif()
+    if (DPV_INIT)
+      cet_set_pv_property(${PROJ} ${VAR_NAME} PROPERTY PV_INIT TRUE)
+    else()
+      cet_set_pv_property(${PROJ} ${VAR_NAME} PROPERTY PV_INIT)
+    endif()
+  endif()
+endfunction()
 
 function(project_variable VAR_NAME)
   # Audit requested variable name for collisions with CMake.
@@ -300,11 +345,20 @@ function(project_variable VAR_NAME)
     set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}}")
     set(FORCE FORCE)
     set(ORIGIN "${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}")
+  elseif ("PV_DEPENDENCIES" IN_LIST CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} AND
+      NOT "PV_INIT" IN_LIST CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    # 3a.
+    _verify_pv_dependencies(${VAR_NAME})
+    _set_dependent()
   elseif (DEFINED ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
     # 4.
     set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT}")
     set(FORCE FORCE)
     set(ORIGIN "${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT")
+  elseif ("PV_DEPENDENCIES" IN_LIST CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    # 4a.
+    _verify_pv_dependencies(${VAR_NAME})
+    _set_dependent()
   else()
     unset(FORCE)
     set(DEFAULT_VAL "${CPV_UNPARSED_ARGUMENTS}")
@@ -469,6 +523,20 @@ function(cet_set_pv_property)
     PROPERTY VALUE ${cached_properties})
 endfunction()
 
+macro(_set_dependent)
+  if ("PV_COMMAND" IN_LIST CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    cet_get_pv_property(PV_COMMAND ${VAR_NAME} PROPERTY PV_COMMAND)
+    list(POP_FRONT PV_COMMAND command_name)
+    cmake_language(CALL ${command_name} DEFAULT_VAL ${PV_COMMAND})
+    set(ORIGIN "PV_COMMAND ${command_name}()")
+  else()
+    cet_get_pv_property(PV_VALUES ${VAR_NAME} PROPERTY PV_VALUES)
+    cmake_language(EVAL CODE "set(DEFAULT_VAL \"${PV_VALUES}\")")
+    set(ORIGIN "PV_VALUES")
+  endif()
+  set(FORCE FORCE)
+endmacro()
+
 function(cet_get_pv_property)
   cmake_parse_arguments(PARSE_ARGV 0 GPVP "" "PROJECT" "")
   # Read backwards.
@@ -508,4 +576,16 @@ USAGE: cet_get_pv_property([<output-variable>] [PROJECT <project-name>] <var-nam
     endif()
   endif()
   set(${OUT_VAR} ${RESULT} PARENT_SCOPE)
+endfunction()
+
+function(_verify_pv_dependencies VAR_NAME)
+  cet_get_pv_property(pv_dependencies ${VAR_NAME} PROPERTY PV_DEPENDENCIES)
+  foreach (VAR_DEP IN LISTS pv_dependencies)
+    if (NOT VAR_DEP IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+      message(FATAL_ERROR "\
+initial value of project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}\
+ depends on that of project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_DEP} \
+which has not yet been defined")
+    endif()
+  endforeach()
 endfunction()
