@@ -45,6 +45,9 @@ set(${PROJECT_NAME}_FHICL_DIR "")
 set(${PROJECT_NAME}_INCLUDE_DIR "")
 set(${PROJECT_NAME}_LIBRARY_DIR "")
 
+# Temporary for CI
+set(BUILD_DOCS FALSE)
+
 # Basic build environment.
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -68,7 +71,9 @@ include(CTest)
 if (BUILD_TESTING)
   add_subdirectory(test)
 endif()
-add_subdirectory(doc)
+if (BUILD_DOCS)
+  add_subdirectory(doc)
+endif()
 ####################################
 
 ####################################
