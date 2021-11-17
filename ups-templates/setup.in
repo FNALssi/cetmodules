@@ -137,7 +137,7 @@ setenv CETPKG_BUILD `/bin/pwd -P`
 #
 ########################################################################
 
-sed -Ee 's&\b__SET__([[:space:]]+)&'$_cetpkg_shell_var_set'&g' \
+sed -Ee 's&(^|[^[:alnum:]_]__SET__([[:space:]]+)&'$_cetpkg_shell_var_set'&g' \
   -e 's&__SETUP_ARGS__&'"$*"'&g' \
   > ./setup_common.$_cetpkg_shell_flavor <<\__TOP_EOF__
 ########################################################################
