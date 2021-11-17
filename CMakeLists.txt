@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.29.09 LANGUAGES NONE)
+project(cetmodules VERSION 2.29.10 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
@@ -44,6 +44,9 @@ set(${PROJECT_NAME}_NOARCH TRUE)
 set(${PROJECT_NAME}_FHICL_DIR "")
 set(${PROJECT_NAME}_INCLUDE_DIR "")
 set(${PROJECT_NAME}_LIBRARY_DIR "")
+
+# Temporary for CI
+set(BUILD_DOCS FALSE)
 
 # Basic build environment.
 include(CetCMakeEnv)
@@ -68,7 +71,9 @@ include(CTest)
 if (BUILD_TESTING)
   add_subdirectory(test)
 endif()
-add_subdirectory(doc)
+if (BUILD_DOCS)
+  add_subdirectory(doc)
+endif()
 ####################################
 
 ####################################
