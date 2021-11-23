@@ -283,39 +283,47 @@ function(_cet_fp_parse_args PKG)
       _fp_first_arg IN_LIST _cet_fp_keywords)
     unset(_fp_minver_${PKG} PARENT_SCOPE)
   elseif (_fp_first_arg MATCHES "^[0-9.]+$")
-    # Standard case, or ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA were already set.
+    # Standard case, or ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA were already
+    # set (in which case we don't need to deal with them).
     list(POP_FRONT _fp_args _fp_minver_${PKG})
     set(_fp_minver_${PKG} ${_fp_minver_${PKG}} PARENT_SCOPE)
-  elseif (_fp_first_arg MATCHES "([.]{3}[^.]*){2,}")
+  elseif (_fp_first_arg MATCHES "(\\.\\.\\.[^.]*)(\\.\\.\\.[^.]*)")
     # Unable to parse unambiguously.
     message(FATAL_ERROR "cannot parse ambiguous extended version (range?) ${_fp_first_arg}—use 0 for numeric version placeholders.")
-  elseif (_fp_first_arg MATCHES "^(.*)([.]{3}(.+))?$") # Extended version semantics for MIN and/or MAX.
-    # PKG_FIND_VERSION_(MIN|MAX)_EXTRA might be set already.
-    string(JOIN "-" _fp_minver_${PKG} ${CMAKE_MATCH_1} ${${PKG_FIND_VERSION_MIN_EXTRA}})
-    string(JOIN "-" _fp_maxver_${PKG} ${CMAKE_MATCH_3} ${${PKG_FIND_VERSION_MAX_EXTRA}})
-    # Run everything through.
-    parse_version_string("${_fp_minver_${PKG}}" _fp_minver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MIN_EXTRA)
-    parse_version_string("${_fp_maxver_${PKG}}" _fp_maxver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MAX_EXTRA)
-    string(JOIN "..." _fp_minver_${PKG} "${_fp_minver_${PKG}}" ${_fp_maxver_${PKG}})
-    # Propagate relevant results upward.
-    set(_fp_minver_${PKG} "${_fp_minver_${PKG}}" PARENT_SCOPE)
-    set(${PKG}_FIND_VERSION_MIN_EXTRA ${${PKG}_FIND_VERSION_MIN_EXTRA} PARENT_SCOPE)
-    set(${PKG}_FIND_VERSION_MAX_EXTRA ${${PKG}_FIND_VERSION_MAX_EXTRA} PARENT_SCOPE)
-    # Some cleanup.
-    unset(_fp_maxver_${PKG})
-    list(REMOVE_AT _fp_args 0)
   else()
-    # Should never get here.
-    message(FATAL_ERROR "internal error parsing find_package(${PKG} ${ARGV})")
+    string(REGEX REPLACE "\\.\\.\\.(.+)$" "" _fp_minver_${PKG} "${_fp_first_arg}")
+    if (NOT _fp_minver_${PKG} STREQUAL _fp_first_arg)
+      set(_fp_maxver_${PKG} "${CMAKE_MATCH_1}")
+    else()
+      unset(fp_maxver_${PKG})
+    endif()
+    if (NOT "${_fp_minver_${PKG}}${_fp_maxver_${PKG}}" STREQUAL "" AND
+        _fp_minver_${PKG} MATCHES "^([0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[0-9]+)?)?)?|$)" AND
+        _fp_maxver_${PKG} MATCHES "^([0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[0-9]+)?)?)?|$)")
+      # ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA might be set already.
+      if (fp_minver_${PKG} MATCHES "^[0-9.]+$")
+        string(JOIN "-" _fp_minver_${PKG} "${_fp_minver_${PKG}}" ${${PKG}_FIND_VERSION_MIN_EXTRA})
+      endif()
+      parse_version_string("${_fp_minver_${PKG}}" _fp_minver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MIN_EXTRA)
+      set(${PKG}_FIND_VERSION_MIN_EXTRA ${${PKG}_FIND_VERSION_MIN_EXTRA} PARENT_SCOPE)
+      if (fp_maxver_${PKG} MATCHES "^[0-9.]+$")
+        set(${PKG}_FIND_VERSION_MAX_EXTRA "${CMAKE_MATCH_2}")
+      endif()
+      parse_version_string("${_fp_maxver_${PKG}}" _fp_maxver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MAX_EXTRA)
+      set(${PKG}_FIND_VERSION_MAX_EXTRA ${${PKG}_FIND_VERSION_MAX_EXTRA} PARENT_SCOPE)
+      # Recombine and push upstream.
+      string(JOIN "..." _fp_minver_${PKG} "${_fp_minver_${PKG}}" ${_fp_maxver_${PKG}})
+      set(_fp_minver_${PKG} "${_fp_minver_${PKG}}" PARENT_SCOPE)
+      list(REMOVE_AT _fp_args 0)
+    else()
+      # Should never get here.
+      message(FATAL_ERROR "internal error parsing find_package(${PKG} ${ARGV})")
+    endif()
   endif()
   ####################################
 
   # Propagate remaining arguments upward to pass to find_package() proper.
   set(_fp_UNPARSED_ARGUMENTS ${_fp_args} PARENT_SCOPE)
-
-  # More cleanup.
-  unset(_fp_args)
-  unset(_fp_first_arg)
 endfunction()
 
 macro(_cet_ROOT_post_find_package)
