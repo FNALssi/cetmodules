@@ -12,7 +12,7 @@ if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND) # we have work to do
     if (_fp_Range_transitive_args)
       # We will need cetmodules in order to find Range transitively (but
       # see deprecation warning).
-      _cet_add_transitive_dependency(find_package cetmodules 2.29.11 REQUIRED)
+      _cet_add_transitive_dependency(find_package cetmodules 2.29.12 REQUIRED)
     endif()
   else()
     set(_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package ${CMAKE_FIND_PACKAGE_NAME})
