@@ -24,16 +24,15 @@ install(DIRECTORY ./ DESTINATION Modules
 file(COPY . DESTINATION .
   FILES_MATCHING PATTERN "*.cmake" PATTERN "[.#]*.cmake" EXCLUDE)
 
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/compat/Findrange-v3.cmake)
-  # Not necessary on case-insensitive filesystems.
-  cet_copy(${CMAKE_CURRENT_SOURCE_DIR}/compat/FindRange-v3.cmake
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/compat
-    NAME Findrange-v3.cmake)
-  list(APPEND generated_modules
-    ${CMAKE_CURRENT_BINARY_DIR}/compat/Findrange-v3.cmake)
-endif()
-
 install(FILES ${generated_modules} DESTINATION Modules)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/compat-aux)
+file(COPY_FILE ${CMAKE_CURRENT_SOURCE_DIR}/compat/FindRange-v3.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/compat-aux/Findrange-v3.cmake ONLY_IF_DIFFERENT)
+file(INSTALL ${CMAKE_CURRENT_BINARY_DIR}/compat-aux/Findrange-v3.cmake
+  DESTINATION Modules/compat-aux)
+cet_cmake_module_directories(NO_LOCAL Modules/compat-aux)
+
 
 ########################################################################
 # Generate plugin builds for compatibility.
