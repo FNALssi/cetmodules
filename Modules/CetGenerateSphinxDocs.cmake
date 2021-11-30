@@ -9,7 +9,6 @@ if (NOT cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
   set_property(GLOBAL APPEND PROPERTY JOB_POOLS sphinx_doc=1)
 endif()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 function(cet_generate_sphinxdocs)
@@ -219,5 +218,3 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
     set(${CGS_TARGETS_VAR} "${targets}" PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

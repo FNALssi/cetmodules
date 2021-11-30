@@ -4,8 +4,8 @@ X
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
-cmake_policy(PUSH)
+include_guard()
+
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(Compatibility)
@@ -51,5 +51,3 @@ function(_set_root_lib_vars)
     set(ROOT_${old_varname} "${var}" PARENT_SCOPE)
   endforeach()
 endfunction()
-
-cmake_policy(POP)

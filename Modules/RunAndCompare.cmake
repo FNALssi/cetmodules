@@ -35,7 +35,6 @@ X
 #   (mutually-exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
 #   DEFAULT to specify the default filter(s) somewhere in the chain.
 ########################################################################
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Defaults
@@ -138,5 +137,3 @@ filter_and_compare("${TEST_OUT}" "${TEST_REF}")
 if (TEST_REF_ERR)
   filter_and_compare("${TEST_ERR}" "${TEST_REF_ERR}")
 endif()
-
-cmake_policy(POP)

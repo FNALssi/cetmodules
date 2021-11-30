@@ -29,10 +29,9 @@ X
 ########################################################################
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_regex_escape)
@@ -100,5 +99,3 @@ function(_handle_regex_options MSG)
     message(FATAL_ERROR "${MSG}")
   endif()
 endfunction()
-
-cmake_policy(POP)

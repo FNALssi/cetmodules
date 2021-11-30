@@ -270,9 +270,8 @@ X
 ########################################################################
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 # Copy function.
@@ -796,5 +795,3 @@ function(_cet_add_test_properties TEST_NAME TEST_EXEC)
   set_property(TEST ${TEST_NAME} APPEND PROPERTY KEYWORDS CET
     $<TARGET_PROPERTY:${TEST_EXEC}>)
 endfunction()
-
-cmake_policy(POP)

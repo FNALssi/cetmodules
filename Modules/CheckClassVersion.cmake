@@ -2,7 +2,7 @@
 X
 =
 #]================================================================]
-cmake_policy(PUSH)
+include_guard()
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 set(CCV_DEFAULT_RECURSIVE FALSE
@@ -97,5 +97,3 @@ function(check_class_version)
     add_dependencies(${dictname}_dict ${CCV_REQUIRED_DICTIONARIES})
   endif()
 endfunction()
-
-cmake_policy(POP)

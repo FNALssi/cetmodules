@@ -2,9 +2,8 @@
 X
 =
 #]================================================================]
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(generate_from_fragments OUTFILE)
@@ -117,5 +116,3 @@ function(_read_and_expand FRAG FRAG_NAME RESULT_VAR)
     set(${RESULT_VAR} "${result}\n\n" PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

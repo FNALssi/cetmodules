@@ -32,9 +32,8 @@ X
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetInstall)
@@ -64,5 +63,3 @@ function(install_headers)
       _GLOBS "?*.h" "?*.hh" "?*.H" "?*.hpp" "?*.hxx" "?*.icc" "?*.tcc")
   endif()
 endfunction()
-
-cmake_policy(POP)

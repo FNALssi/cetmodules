@@ -2,9 +2,8 @@
 X
 =
 #]================================================================]
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetRegisterExportSet)
@@ -16,5 +15,3 @@ function (cet_register_export_name EXPORT_NAME)
     NAMESPACE ${ARGV1})
   set(${EXPORT_NAME} ${${EXPORT_NAME}} PARENT_SCOPE)
 endfunction()
-
-cmake_policy(POP)

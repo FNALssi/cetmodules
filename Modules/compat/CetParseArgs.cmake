@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
+include_guard()
+
+cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 include(Compatibility)
 function(cet_parse_args PREFIX ARGS FLAGS)
   warn_deprecated("cet_parse_args()" NEW "cmake_parse_arguments()")

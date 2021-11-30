@@ -1,3 +1,5 @@
+include_guard()
+
 # Add a find_dependency() call to the appropriate tracking variable.
 function(_cet_add_transitive_dependency SOURCE_CALL FIRST_ARG)
   # Deal with optional leading COMPONENT <component> ourselves, as with

@@ -2,7 +2,7 @@
 X
 =
 #]================================================================]
-cmake_policy(PUSH)
+include_guard()
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Exclude items from a list of files.
@@ -58,5 +58,3 @@ function (_cet_exclude_from_list OUTPUT_VAR)
   # Publish.
   set(${OUTPUT_VAR} "${RESULTS}" PARENT_SCOPE)
 endfunction()
-
-cmake_policy(POP)

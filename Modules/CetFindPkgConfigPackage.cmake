@@ -2,10 +2,9 @@
 X
 =
 #]================================================================]
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 2.8.12...3.19 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12...3.22 FATAL_ERROR)
 
 include(FindPackageHandleStandardArgs)
 
@@ -77,5 +76,3 @@ macro(cet_find_pkg_config_package)
   unset(_cet_find_pkg_config_package_required)
   unset(_cet_find_pkg_config_package_vexpr)
 endmacro()
-
-cmake_policy(POP)

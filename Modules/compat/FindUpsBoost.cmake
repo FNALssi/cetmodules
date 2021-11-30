@@ -18,9 +18,8 @@ X
 # N.B. This macro is DEPRECATED: please use find_package(Boost ...)
 # and target notation instead.
 ########################################################################
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(Compatibility)
@@ -51,5 +50,3 @@ macro(find_ups_boost)
     endif()
   endif()
 endmacro()
-
-cmake_policy(POP)

@@ -8,9 +8,8 @@ X
 #  minimum - optional minimum version 
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(FindUpsPackage)
@@ -55,5 +54,3 @@ macro(find_ups_geant4)
   unset(_FUG)
   unset(_fug_target)
 endmacro()
-
-cmake_policy(POP)

@@ -6,9 +6,8 @@ X
 # cet_rootcint(<output_name> [NO_INSTALL])
 # runs rootcint against files in CMAKE_CURRENT_SOURCE_DIR and puts the result in CMAKE_CURRENT_BINARY_DIR
 
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 if (POLICY CMP0112)
@@ -97,5 +96,3 @@ function(cet_rootcint OUTPUT_NAME)
   endif()
   #message(STATUS "cet_rootcint debug: generated code list ${cet_generated_code}")
 endfunction()
-
-cmake_policy(POP)

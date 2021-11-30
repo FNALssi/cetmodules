@@ -1,6 +1,5 @@
 include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 function(_cet_find_absolute_transitive_dependencies
@@ -62,5 +61,3 @@ if (CETMODULES_TEST_TARGET)
   file(READ "${CET_TEST_TARGET}" _targetFileData)
   _cet_find_absolute_transitive_dependencies("${CET_TEST_TARGET}" "${_targetFileData}" "")
 endif()
-
-cmake_policy(POP)

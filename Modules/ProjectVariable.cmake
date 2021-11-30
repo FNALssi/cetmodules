@@ -209,10 +209,9 @@ X
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 # Default architecture-specific install directory types.
@@ -529,5 +528,3 @@ USAGE: get_project_variable_property([<output-variable>] [PROJECT <project-name>
   endif()
   set(${OUT_VAR} ${RESULT} PARENT_SCOPE)
 endfunction()
-
-cmake_policy(POP)

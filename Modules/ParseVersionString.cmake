@@ -118,9 +118,8 @@ X
 #
 #######################################################################
 
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 # Need list(POP_FRONT...).
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
@@ -449,5 +448,3 @@ function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
   endif()
   set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
 endfunction()
-
-cmake_policy(POP)

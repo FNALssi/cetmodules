@@ -31,9 +31,8 @@ X
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(install_pkgmeta)
@@ -93,5 +92,3 @@ function(install_license)
   message(WARNING "install_license() is deprecated in favor of install_pkgmeta()")
   install_pkgmeta(${ARGN})
 endfunction()
-
-cmake_policy(POP)

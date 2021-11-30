@@ -17,7 +17,7 @@ X
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
 include (CetInstall)
 include (ProjectVariable)

@@ -40,9 +40,8 @@ X
 ##########################################################################
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_make_completions exec)
@@ -64,5 +63,3 @@ function(cet_make_completions exec)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR})
 endfunction(cet_make_completions)
-
-cmake_policy(POP)

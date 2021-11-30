@@ -14,9 +14,8 @@ This module defines an implementation of a generic file / installation function 
 :cmake:command:`_cet_install` is a "toolkit" function, intended to facilitate the generation of :cmake:command:`!install_X()` functions with particular default or enforced characteristics for files of a particular type.
 #]================================================================]
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include (CetCopy)
@@ -297,5 +296,3 @@ function(_cet_install_list CATEGORY DEST_VAR)
     ${_IL_LIST}
     DESTINATION "${DEST_DIR}")
 endfunction()
-
-cmake_policy(POP)

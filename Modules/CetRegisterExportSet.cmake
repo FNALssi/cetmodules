@@ -2,9 +2,8 @@
 X
 =
 #]================================================================]
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_register_export_set)
@@ -71,5 +70,3 @@ Also used for determining namespace for local aliases\
     set(${CETMODULES_CURRENT_PROJECT_NAME}_DEFAULT_EXPORT_SET ${EXPORT_SET} PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

@@ -28,7 +28,7 @@
 ########################################################################
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 # Project information.
 project(cetmodules VERSION 2.29.13 LANGUAGES NONE)

@@ -1,7 +1,6 @@
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 include(Compatibility)
 include(ParseVersionString)
@@ -51,5 +50,3 @@ macro(_cet_set_version_from_ups _csvfu_ups_version)
     set(${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING_INIT ${_csvfu_version_string})
   endif()
 endmacro()
-
-cmake_policy(POP)

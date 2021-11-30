@@ -67,8 +67,7 @@ X
 # Once only!
 include_guard(GLOBAL)
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 include(compat/Compatibility)
 include(ParseVersionString)
@@ -343,5 +342,3 @@ macro(_cet_ROOT_post_find_package)
     endif()
   endforeach()
 endmacro()
-
-cmake_policy(POP)

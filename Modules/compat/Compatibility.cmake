@@ -9,9 +9,8 @@ X
 ########################################################################
 
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetCMakeUtils)
@@ -238,5 +237,3 @@ macro(cet_without_deprecation_warnings _cet_func)
     unset(_cpv_deprecations_disabled)
   endif()
 endmacro()
-
-cmake_policy(POP)
