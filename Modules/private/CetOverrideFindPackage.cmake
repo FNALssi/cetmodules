@@ -83,10 +83,16 @@ endif()
 option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
-  COMMAND sed -E -n -e "/(Basic Signature and Module Mode|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  COMMAND sed -E -n -e "/(Basic Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
   OUTPUT_VARIABLE _cet_fp_keywords
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
+if ("${_cet_fp_keywords}" STREQUAL "")
+  message(FATAL_ERROR "\
+unable to obtain current list of find_package() keywords from CMake ${CMAKE_VERSION} - \
+\"Basic Signature\" heading change?\
+")
+endif()
 string(REPLACE "\n" ";" _cet_fp_keywords ${_cet_fp_keywords})
 list(REMOVE_DUPLICATES _cet_fp_keywords)
 set(_cet_fp_new_flags BUILD_ONLY INTERFACE NOP PRIVATE PUBLIC)
@@ -298,16 +304,16 @@ function(_cet_fp_parse_args PKG)
       unset(fp_maxver_${PKG})
     endif()
     if (NOT "${_fp_minver_${PKG}}${_fp_maxver_${PKG}}" STREQUAL "" AND
-        _fp_minver_${PKG} MATCHES "^([0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[0-9]+)?)?)?|$)" AND
-        _fp_maxver_${PKG} MATCHES "^([0-9]+(\\.[0-9]+(\\.[0-9]+(\\.[0-9]+)?)?)?|$)")
+        "${_fp_minver_${PKG}}" MATCHES "^(v?[0-9]+([._][0-9]+([._][0-9]+([._][0-9]+)?)?)?|$)" AND
+        "${_fp_maxver_${PKG}}" MATCHES "^(v?[0-9]+([._][0-9]+([._][0-9]+([._][0-9]+)?)?)?|$)")
       # ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA might be set already.
-      if (fp_minver_${PKG} MATCHES "^[0-9.]+$")
+      if ("${_fp_minver_${PKG}}" MATCHES "^[0-9.]+$")
         string(JOIN "-" _fp_minver_${PKG} "${_fp_minver_${PKG}}" ${${PKG}_FIND_VERSION_MIN_EXTRA})
       endif()
       parse_version_string("${_fp_minver_${PKG}}" _fp_minver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MIN_EXTRA)
       set(${PKG}_FIND_VERSION_MIN_EXTRA ${${PKG}_FIND_VERSION_MIN_EXTRA} PARENT_SCOPE)
-      if (fp_maxver_${PKG} MATCHES "^[0-9.]+$")
-        set(${PKG}_FIND_VERSION_MAX_EXTRA "${CMAKE_MATCH_2}")
+      if ("${_fp_maxver_${PKG}}" MATCHES "^[0-9.]+$")
+        string(JOIN "-" _fp_maxver_${PKG} "${_fp_maxver_${PKG}}" ${${PKG}_FIND_VERSION_MAX_EXTRA})
       endif()
       parse_version_string("${_fp_maxver_${PKG}}" _fp_maxver_${PKG} NO_EXTRA SEP . EXTRA_VAR ${PKG}_FIND_VERSION_MAX_EXTRA)
       set(${PKG}_FIND_VERSION_MAX_EXTRA ${${PKG}_FIND_VERSION_MAX_EXTRA} PARENT_SCOPE)
@@ -317,7 +323,7 @@ function(_cet_fp_parse_args PKG)
       list(REMOVE_AT _fp_args 0)
     else()
       # Should never get here.
-      message(FATAL_ERROR "internal error parsing find_package(${PKG} ${ARGV})")
+      message(FATAL_ERROR "internal error parsing find_package(${PKG} ${_fp_args})")
     endif()
   endif()
   ####################################

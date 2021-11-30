@@ -6,12 +6,13 @@ X
 include(private/CetAddTransitiveDependency)
 include(ParseVersionString)
 if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND) # we have work to do
+  unset(_cet_${CMAKE_FIND_PACKAGE_NAME}_config_mode)
   if (CMAKE_FIND_PACKAGE_NAME STREQUAL "Range") # compatibility
     set(_cet_Range_fphsa_package range-v3)
     unset(_cet_${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
     if (_fp_Range_transitive_args)
       # We will need cetmodules in order to find Range transitively (but
-      # see deprecation warning).
+      # see deprecation warning below).
       _cet_add_transitive_dependency(find_package cetmodules 2.29.12 REQUIRED)
     endif()
   else()
@@ -26,11 +27,16 @@ if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND) # we have work to do
     unset(_cet_${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
   endif()
   if (${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package}_FOUND)
-    set(_cet_${CMAKE_FIND_PACKAGE_NAME}_config_mode CONFIG_MODE)
     if (NOT CMAKE_FIND_PACKAGE_NAME STREQUAL _cet_${CMAKE_FIND_PACKAGE_NAME}_fhpsa_package)
-      set(${CMAKE_FIND_PACKAGE_NAME}_FOUND ${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package}_FOUND)
+      set(${CMAKE_FIND_PACKAGE_NAME}_FOUND ${${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package}_FOUND})
       set(_cet_${CMAKE_FIND_PACKAGE_NAME}_name_mismatched NAME_MISMATCHED)
+      set(${CMAKE_FIND_PACKAGE_NAME}_VERSION ${${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package}_VERSION})
+      if (CMAKE_FIND_PACKAGE_NAME STREQUAL Range)
+        set(${CMAKE_FIND_PACKAGE_NAME}_VERSION
+          "3.${${CMAKE_FIND_PACKAGE_NAME}_VERSION}")
+      endif()
     else()
+      set(_cet_${CMAKE_FIND_PACKAGE_NAME}_config_mode CONFIG_MODE)
       unset(_cet_${CMAKE_FIND_PACKAGE_NAME}_name_mismatched)
     endif()
   elseif (CMAKE_DISABLE_FIND_PACKAGE_${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package})
@@ -40,7 +46,6 @@ if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND) # we have work to do
     # Look for a UPS Range package configured in the environment.
     set(_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package
       ${CMAKE_FIND_PACKAGE_NAME})
-    unset(_cet_${CMAKE_FIND_PACKAGE_NAME}_config_mode)
     if (DEFINED ENV{RANGE_INC}) # UPS package?
       find_file(_cet_${CMAKE_FIND_PACKAGE_NAME}_hpp
         NAMES range_fwd.hpp HINTS ENV RANGE_INC
@@ -127,11 +132,10 @@ Use either find_package(Range) with target Range::Range, non-UPS Range-v3, or UP
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(${_cet_${CMAKE_FIND_PACKAGE_NAME}_fphsa_package}
+find_package_handle_standard_args(${CMAKE_FIND_PACKAGE_NAME}
   REQUIRED_VARS
   ${CMAKE_FIND_PACKAGE_NAME}_FOUND
   ${CMAKE_FIND_PACKAGE_NAME}_VERSION
-  HANDLE_VERSION_RANGE
   HANDLE_COMPONENTS
   ${_cet_${CMAKE_FIND_PACKAGE_NAME}_config_mode}
   ${_cet_${CMAKE_FIND_PACKAGE_NAME}_name_mismatched}
