@@ -83,10 +83,16 @@ endif()
 option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
-  COMMAND sed -E -n -e "/(Basic Signature and Module Mode|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  COMMAND sed -E -n -e "/(Basic Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
   OUTPUT_VARIABLE _cet_fp_keywords
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
+if ("${_cet_fp_keywords}" STREQUAL "")
+  message(FATAL_ERROR "\
+unable to obtain current list of find_package() keywords from CMake ${CMAKE_VERSION} - \
+\"Basic Signature\" heading change?\
+")
+endif()
 string(REPLACE "\n" ";" _cet_fp_keywords ${_cet_fp_keywords})
 list(REMOVE_DUPLICATES _cet_fp_keywords)
 set(_cet_fp_new_flags BUILD_ONLY INTERFACE NOP PRIVATE PUBLIC)
