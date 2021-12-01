@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 # Project information.
-project(cetmodules VERSION 2.29.13 LANGUAGES NONE)
+project(cetmodules VERSION 2.29.14 LANGUAGES NONE)
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
