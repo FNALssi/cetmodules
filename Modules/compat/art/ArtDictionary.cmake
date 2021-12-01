@@ -22,11 +22,10 @@ X
 #     directly.
 #
 #########################################################################
-include_guard(DIRECTORY)
+include_guard()
 
 include(BuildDictionary)
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 function(art_dictionary)
@@ -50,5 +49,3 @@ function(art_dictionary)
     set(${dict_name_var} "${${dict_name_var}}" PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

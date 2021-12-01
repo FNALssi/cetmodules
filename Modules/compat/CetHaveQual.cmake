@@ -1,7 +1,6 @@
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(Compatibility)
@@ -23,5 +22,3 @@ function(cet_have_qual QUAL)
     set(${OUT_VAR} FALSE PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

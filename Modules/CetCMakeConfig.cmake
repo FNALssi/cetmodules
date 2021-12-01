@@ -45,9 +45,8 @@ X
 ########################################################################
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.19.6 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
@@ -817,5 +816,3 @@ function(_targets_for RESULTS_VAR)
     unset(${RESULTS_VAR} PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

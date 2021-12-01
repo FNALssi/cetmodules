@@ -1,7 +1,6 @@
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 if (NOT WANT_UPS)
@@ -500,6 +499,3 @@ list(TRANSFORM CMAKE_INSTALL_MANIFEST_FILES REPLACE \\\"${e_pv}${e_pv}\\\" \\\"/
 \")\
 ")
 endfunction()
-
-
-cmake_policy(POP)

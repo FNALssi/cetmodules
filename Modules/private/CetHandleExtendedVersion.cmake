@@ -1,3 +1,5 @@
+include_guard()
+
 macro(_cet_handle_extended_version)
   if (DEFINED PROJECT_VERSION)
     parse_version_string("${PROJECT_VERSION}"

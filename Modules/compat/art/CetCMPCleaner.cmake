@@ -3,8 +3,8 @@ X
 =
 #]================================================================]
 include_guard(GLOBAL)
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.20...3.21 FATAL_ERROR)
+
+cmake_minimum_required(VERSION 3.20...3.22 FATAL_ERROR)
 
 set(_cet_cmp_compat_dir "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "art suite compatibility modules location")
 set(_cet_cmp_compat_art_version 3.10.00-alpha CACHE INTERNAL "art suite compatibility modules version")
@@ -69,5 +69,3 @@ macro(include _cmp_FILE)
     _include(${ARGV})
   endif()
 endmacro()
-
-cmake_policy(POP)

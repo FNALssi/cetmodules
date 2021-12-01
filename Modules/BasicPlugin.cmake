@@ -9,7 +9,6 @@ plugin module.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetPackagePath)
@@ -333,7 +332,7 @@ function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
     "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
     "\
 include_guard()
-cmake_minimum_required(VERSION 3.18...3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18...3.22 FATAL_ERROR)
 
 ${extra_includes}include(BasicPlugin)
 
@@ -385,5 +384,3 @@ ${_ccpb_includes_content}
   unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
   unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
 endfunction()
-
-cmake_policy(POP)

@@ -4,9 +4,8 @@ X
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_process_liblist RESULT_VAR)
@@ -135,5 +134,3 @@ ${ARG} was not defined at the time CMake processed instructions for dependent ta
   endif()
   set(${RESULT_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
-
-cmake_policy(POP)

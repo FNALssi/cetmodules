@@ -1,7 +1,6 @@
 # Avoid unwanted repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(Compatibility)
@@ -30,5 +29,3 @@ function(check_ups_version PRODUCT VERSION MINIMUM)
     endif()
   endif()
 endfunction()
-
-cmake_policy(POP)

@@ -3,9 +3,8 @@ X
 =
 #]================================================================]
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(Compatibility)
@@ -245,5 +244,3 @@ function(_transfer_package_vars FROM TO)
     endif()
   endforeach()
 endfunction()
-
-cmake_policy(POP)

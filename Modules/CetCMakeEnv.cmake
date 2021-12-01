@@ -8,10 +8,9 @@ the current project.
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.19...3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.22 FATAL_ERROR)
 
 # Override find package to deal with IN_TREE projects and reduce repeat
 # initializations.
@@ -126,6 +125,10 @@ macro(cet_cmake_env)
 
   # Required to ensure correct installation location with
   # cetbuildtools-compatible installations.
+  #
+  # N.B. Since this cmake_policy() command is in the *implementation* of
+  #      a macro, it is effective within the entire policy stack active
+  #      at the time of invocation.
   cmake_policy(SET CMP0082 NEW)
 
   # Remove unwanted information from any previous run.
@@ -423,5 +426,3 @@ function(_use_maybe_unused)
     endif()
   endforeach()
 endfunction()
-
-cmake_policy(POP)

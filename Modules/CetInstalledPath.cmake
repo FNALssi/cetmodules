@@ -2,9 +2,8 @@
 X
 =
 #]================================================================]
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetPackagePath)
@@ -40,5 +39,3 @@ function(cet_installed_path OUT_VAR)
     set(${OUT_VAR} "${PATH}" PARENT_SCOPE)
   endif()
 endfunction()
-
-cmake_policy(POP)

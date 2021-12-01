@@ -5,9 +5,8 @@ CetCMakeUtils
 General functions and macros.
 #]================================================================]
 
-include_guard(DIRECTORY)
+include_guard()
 
-cmake_policy(PUSH)
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 include(CetRegexEscape)
@@ -727,5 +726,3 @@ function(_add_to_exported_targets)
       "List of exported ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
 endfunction()
-
-cmake_policy(POP)

@@ -67,8 +67,7 @@ X
 # Once only!
 include_guard(GLOBAL)
 
-cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.18.2...3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 include(compat/Compatibility)
 include(ParseVersionString)
@@ -83,7 +82,7 @@ endif()
 option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
-  COMMAND sed -E -n -e "/(Basic Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
   OUTPUT_VARIABLE _cet_fp_keywords
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
@@ -343,5 +342,3 @@ macro(_cet_ROOT_post_find_package)
     endif()
   endforeach()
 endmacro()
-
-cmake_policy(POP)

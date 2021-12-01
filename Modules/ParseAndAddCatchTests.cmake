@@ -47,8 +47,7 @@ X
 #                                                                                                  #
 #==================================================================================================#
 
-cmake_policy(PUSH)
-cmake_policy(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.12)
 if (POLICY CMP0110)
   cmake_policy(SET CMP0110 NEW)
 endif()
@@ -205,5 +204,3 @@ function(ParseAndAddCatchTests TestTarget)
       set(${PACT_TargetsVar} "${${PACT_TargetsVar}}" PARENT_SCOPE)
     endif()
 endfunction()
-
-cmake_policy(POP)
