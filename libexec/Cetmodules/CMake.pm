@@ -24,7 +24,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 our (@EXPORT);
 
@@ -63,7 +63,7 @@ our (@EXPORT);
   remove_keyword
   replace_arg_at
   single_value_for
-  );
+);
 
 use Digest::SHA qw(sha256_hex);
 
@@ -81,8 +81,6 @@ use vars qw(@PROJECT_KEYWORDS);
 
 @PROJECT_KEYWORDS = qw(DESCRIPTION HOMEPAGE_URL VERSION LANGUAGES);
 
-
-
 ########################################################################
 # Exported functions
 ########################################################################
@@ -90,7 +88,7 @@ use vars qw(@PROJECT_KEYWORDS);
 
 sub add_args_after {
   my ($call_info, $idx_idx, @to_add) = @_;
-  my $n_args = scalar @{$call_info->{arg_indexes}};
+  my $n_args = scalar @{ $call_info->{arg_indexes} };
   if (defined $idx_idx) {
     $idx_idx < $n_args or error_exit(<<"EOF");
 arg_index $idx_idx out of bounds ($n_args arguments found)
@@ -116,7 +114,7 @@ sub all_values_for {
 
 sub append_args {
   my ($call_info, @to_add) = @_;
-  return insert_args_at($call_info, $#{$call_info->{arg_indexes}}, @to_add);
+  return insert_args_at($call_info, $#{ $call_info->{arg_indexes} }, @to_add);
 }
 
 # Return specified argument. In list context, returns argument and any
@@ -127,18 +125,19 @@ sub arg_at {
   my @result;
   my $index = _index_for_arg_at($call_info, $idx_idx);
   defined $index and
-    @result = _has_close_quote($call_info, $idx_idx) ?
+    @result =
+    _has_close_quote($call_info, $idx_idx) ?
     ($call_info->{chunks}->[ ($index - 1) .. ($index + 1) ]) :
     ($call_info->{chunks}->[$index]);
   return wantarray ? @result : join(q(), @result);
-}
+} ## end sub arg_at
 
 
 sub arg_location {
   my ($call_info, $idx_idx) = @_;
   my $result;
-  $result = $call_info->{chunk_locations}->
-    {_index_for_arg_at($call_info, $idx_idx) // return $result};
+  $result = $call_info->{chunk_locations}
+    ->{ _index_for_arg_at($call_info, $idx_idx) // return $result };
   return $result;
 }
 
@@ -271,16 +270,16 @@ sub insert_args_at {
       $point_index += 2;
     } else {
       my @item_chunks = _separate_quotes($item);
-      push @new_chunks, @item_chunks, ($ws eq q()) ? q( ) : $ws;
+      push @new_chunks,  @item_chunks, ($ws eq q()) ? q( ) : $ws;
       push @new_indexes, $point_index + ((@item_chunks > 1) ? 1 : 0);
       $point_index += scalar @item_chunks + 1;
       my $n_newlines = () = $item =~ m&\n&msgx;
       $n_newlines_tot += $n_newlines;
     }
-  }
+  } ## end foreach my $item (@to_add)
   $idx_idx < $n_arg_indexes or
-      $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or
-      do { pop @new_chunks; --$point_index; };
+    $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or
+    do { pop @new_chunks; --$point_index; };
   my $n_new_chunks = scalar @new_chunks;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   for (reverse($idx_idx .. $#{ $call_info->{arg_indexes} })) {
@@ -364,14 +363,15 @@ sub interpolated {
       $interpolated_string =~ s&$_not_escape\\t&\k<not_escape>\t&msgx; # tab
       $interpolated_string =~
         s&$_not_escape\\r&\k<not_escape>\r&msgx; # carriage return
-      $interpolated_string =~ s&$_not_escape\\n&\k<not_escape>\n&msgx; # newline
+      $interpolated_string =~
+        s&$_not_escape\\n&\k<not_escape>\n&msgx; # newline
       $interpolated_string =~ # "identity" escape sequences: \X -> X
-        s&$_not_escape\\(?P<identity>[^A-Za-z0-9_\$\\}{<])&\k<not_escape>\k<identity>&msgx;
+s&$_not_escape\\(?P<identity>[^A-Za-z0-9_\$\\}{<])&\k<not_escape>\k<identity>&msgx;
       $interpolated_string =~ # remaining identity escape sequences
-        s&$_not_escape\\(?P<identity>[\$\\}{<])&\k<not_escape>\k<identity>&msgx;
+s&$_not_escape\\(?P<identity>[\$\\}{<])&\k<not_escape>\k<identity>&msgx;
       $is_literal = 1;
     } ## end if (can_interpolate($interpolated_string...))
-  }
+  } ## end if (defined @separated)
   return
     wantarray ? ($interpolated_string, $is_literal) : $interpolated_string;
 } ## end sub interpolated
@@ -414,9 +414,11 @@ sub is_unquoted {
   return is_quoted(@_) ? 0 : 1;
 }
 
+
 sub is_whitespace {
   return join(q(), @_) =~ m&\A\s*\z&msx;
 }
+
 
 sub keyword_arg_append_position {
   my ($call_info, $keyword, @all_keywords) = @_;
@@ -424,7 +426,9 @@ sub keyword_arg_append_position {
   my $found_args = find_args_for($call_info, $keyword, @all_keywords);
   if (defined $found_args) {
     my $kw_idx = List::Util::max keys %{$found_args};
-    return add_args_after($call_info, $found_args->{kw_idx}->[$_LAST_ELEM_IDX] // $kw_idx);
+    return
+      add_args_after($call_info,
+                     $found_args->{kw_idx}->[$_LAST_ELEM_IDX] // $kw_idx);
   } else {
     return keyword_arg_insert_position($call_info, $keyword);
   }
@@ -433,11 +437,10 @@ sub keyword_arg_append_position {
 
 sub keyword_arg_insert_position {
   my ($call_info, $keyword) = @_;
-  my $kw_idx =
-    find_keyword($call_info, $keyword) // append_args($call_info, $keyword);
+  my $kw_idx = find_keyword($call_info, $keyword)
+    // append_args($call_info, $keyword);
   return add_args_after($call_info, $kw_idx);
 }
-
 
 # Consolidate arguments for a given keyword, returning the arg index of
 # the first argument or undef if missing or not applicable.
@@ -446,24 +449,29 @@ sub normalize_args_for {
   has_keyword($call_info, $kw) or return;
   my $n_args =
     (scalar @all_keywords and $all_keywords[0] =~ m&\A[[:digit:]]+\z&msx) ?
-    shift @all_keywords : undef;
+    shift @all_keywords :
+    undef;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   if ($n_args // 1) {
+
     # One or more arguments to save and reinsert after removal.
     my @saved_args = (defined $n_args) ?
+
       # single-value case
       single_value_for($call_info, $kw, @all_keywords) :
+
       # standard case: multiple arguments
       remove_args_for($call_info, $kw, @all_keywords);
     scalar @saved_args and return
       insert_args_at($call_info,
-                     keyword_arg_append_position($call_info,
-                                                 $kw,
-                                                 @all_keywords),
+                     keyword_arg_append_position(
+                                                $call_info, $kw, @all_keywords
+                                                ),
                      @saved_args);
-  }
+  } ## end if ($n_args // 1)
   return;
-}
+} ## end sub normalize_args_for
+
 
 sub prepend_args {
   my ($call_info, @to_add) = @_;
@@ -565,8 +573,7 @@ sub prepend_args {
 sub process_cmakelists {
   my ($cmakelists, %options) = @_;
   my ($cml_in, $cml_out);
-  ($cml_in, $cml_out, $cmakelists) =
-    _prepare_cml_io($cmakelists, \%options);
+  ($cml_in, $cml_out, $cmakelists) = _prepare_cml_io($cmakelists, \%options);
   my $line_no = 0;
   my $cml_data = {
     callback_results => {},
@@ -579,8 +586,10 @@ sub process_cmakelists {
     cml_in           => $cml_in,
     pending_comments => {} };
   $options{cml_out} and $cml_data->{cml_out} = delete $options{cml_out};
-  $options{comment_handler} and $cml_data->{comment_handler} = delete $options{comment_handler};
-  $options{eof_handler} and $cml_data->{eof_handler} = delete $options{eof_handler};
+  $options{comment_handler} and
+    $cml_data->{comment_handler} = delete $options{comment_handler};
+  $options{eof_handler} and
+    $cml_data->{eof_handler} = delete $options{eof_handler};
   $cml_data->{callback_regex} = join(q(|),
                                      map { quotemeta(sprintf('%s', $_)); }
                                        keys %{ $cml_data->{callbacks} });
@@ -612,10 +621,9 @@ sub reconstitute_code {
       (ref) ?
         sprintf('%s%s%s',
                 $_->{pre} // q(),
-                join(q(),
-                     map { $_ // (); } @{ $_->{chunks} // [] }),
+                join(q(), map { $_ // (); } @{ $_->{chunks} // [] }),
                 $_->{post} // q()) :
-                  $_;
+        $_;
       } @_);
 } ## end sub reconstitute_code
 
@@ -647,7 +655,6 @@ sub remove_args_at {
   return map { &{$_}; } reverse @removers;
 } ## end sub remove_args_at
 
-
 # Remove all arguments for a given keyword while leaving all instances
 # of said keyword in place. Returns a list of removed arguments *with*
 # any quotes.
@@ -656,8 +663,7 @@ sub remove_args_for {
   my $found_args = find_args_for($call_info, $kw, @args);
   return (defined $found_args) ?
     remove_args_at($call_info,
-                   map { @{ $found_args->{$_} }; } keys %{$found_args})
-    :
+                   map { @{ $found_args->{$_} }; } keys %{$found_args}) :
     undef;
 }
 
@@ -673,6 +679,7 @@ sub remove_keyword {
     undef;
 }
 
+
 sub replace_arg_at {
   my ($call_info, $idx_idx, @replacements) = @_;
   my @removed = _remove_args($call_info, $idx_idx, 1);
@@ -681,7 +688,7 @@ sub replace_arg_at {
                    @replacements);
   }
   return @removed;
-} ## end sub replace_arg_at
+}
 
 # Return the overriding value for a single-value keyword.
 sub single_value_for {
@@ -700,7 +707,7 @@ my $_seen_unquoted_open_parens = 0;
 sub _index_for_arg_at {
   my ($call_info, $idx_idx) = @_;
   my $result;
-  $result = $call_info->{arg_indexes}->[$idx_idx // return $result];
+  $result = $call_info->{arg_indexes}->[ $idx_idx // return $result ];
   return $result;
 }
 
@@ -737,8 +744,7 @@ sub _complete_call {
                                    expect_whitespace => $expect_whitespace,
                                    in_quote          => $in_quote
                                 },
-                                $call_info
-                               )
+                                $call_info)
          }{
       qw(line chunk_start_line
         line_no current_linepos
@@ -807,9 +813,9 @@ sub _dquote_postprocess {
   my ($pm, $lref) = @_;
   $pm->{q1} eq q(") or return;
   $pm->{quoted} eq q() and return 1; # Reprocess.
-    # If we have embedded, unescaped semicolons in a double-quoted
-    # string, we must treat the string as if it were multiple
-    # space-separated double-quoted strings.
+   # If we have embedded, unescaped semicolons in a double-quoted
+   # string, we must treat the string as if it were multiple
+   # space-separated double-quoted strings.
   my @splitcheck = ();
 
   # Can't use split here because we need the semicolons to be not
@@ -862,7 +868,7 @@ sub _extract_args_from_string {
            |(?P<delim>(?>[;\s]+))(?!\z) # -> (5) list delimiters/inter-argument whitespace
            )&&msx # Whew!
     ) {
-    my $value_index; # Chunk index of current "interesting" text.
+    my $value_index;              # Chunk index of current "interesting" text.
     my $pm = {%LAST_PAREN_MATCH}; # Save in case it gets clobbered.
     if (defined $pm->{quoted}) {
       _dquote_postprocess($pm, \$line) and next;
@@ -876,8 +882,7 @@ sub _extract_args_from_string {
       }
       debug(sprintf('read `%s\'-style quoted argument %s to %s() at %s',
                     $pm->{qs}, $pm->{chunk}, $call_info->{name},
-                    "$cmakelists:$chunk_start_line:$current_linepos"
-                   ));
+                    "$cmakelists:$chunk_start_line:$current_linepos"));
       push @{ $call_info->{chunks} }, $pm->{q1}, $pm->{quoted}, $pm->{q2};
       $value_index = $#{ $call_info->{chunks} } - 1;
       push @{ $call_info->{arg_indexes} }, $value_index;
@@ -898,8 +903,7 @@ sub _extract_args_from_string {
       }
       debug(sprintf('read unquoted argument %s to %s() at %s',
                     $pm->{chunk}, $call_info->{name},
-                    "$cmakelists:$chunk_start_line:$current_linepos"
-                   ));
+                    "$cmakelists:$chunk_start_line:$current_linepos"));
       push @{ $call_info->{chunks} }, $pm->{chunk};
       $value_index = $#{ $call_info->{chunks} };
       push @{ $call_info->{arg_indexes} }, $value_index;
@@ -962,7 +966,7 @@ sub _eof_error {
   # We have an error: find out what kind.
   my $error_message;
   if (($in_quote // q()) =~ m&\A[\"\[]&msx) {
-    $error_message = <<"EOF"
+    $error_message = <<"EOF";
 unclosed quote '$in_quote' at $cmakelists:$chunk_start_line:$current_linepos
 EOF
   } elsif (length($in_quote) and $in_quote !~ m&\A(?:\s*|\[(?>=*)\[)\z&msx) {
@@ -1012,17 +1016,18 @@ sub _has_close_quote {
   ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
   my ($call_info, $idx_idx) = @_;
   my $result;
-  my $index = $call_info->{arg_indexes}->[$idx_idx] // return $result;
+  my $index     = $call_info->{arg_indexes}->[$idx_idx] // return $result;
   my $open_info = _has_open_quote($call_info, $idx_idx) // return $result;
-  $index < $#{ $call_info->{chunks} } and
-    (
-     ($open_info->{qs} eq q(") and
-      $call_info->{chunks}->[ $index + 1 ] =~
-      m&\A(?P<q>(?P<qs>")(?P<qmarker>))\z&msx
-     ) or
-     $call_info->{chunks}->[ $index + 1 ] =~
-     m&\A(?P<q>(?P<qs>[]])(?P<qmarker>\Q$open_info->{qmarker}\E)[]])\z&msx
-    ) and $result = {%LAST_PAREN_MATCH};
+  $index < $#{ $call_info->{chunks} }
+    and (
+         ($open_info->{qs} eq q(") and
+          $call_info->{chunks}->[ $index + 1 ] =~
+          m&\A(?P<q>(?P<qs>")(?P<qmarker>))\z&msx
+         ) or
+         $call_info->{chunks}->[ $index + 1 ] =~
+         m&\A(?P<q>(?P<qs>[]])(?P<qmarker>\Q$open_info->{qmarker}\E)[]])\z&msx
+    ) and
+    $result = {%LAST_PAREN_MATCH};
   return $result;
 } ## end sub _has_close_quote
 
@@ -1034,10 +1039,12 @@ sub _has_open_quote {
   my $result;
   my $index = _index_for_arg_at($call_info, $idx_idx) // return $result;
   $call_info->{chunks}->[ $index - 1 ] =~
-    m&\A(?P<q>(?|(?P<qs>["])(?P<qmarker>)|(?P<qs>[[])(?P<qmarker>=*)[[]))\z&msx
-    and $result = {%LAST_PAREN_MATCH};
+m&\A(?P<q>(?|(?P<qs>["])(?P<qmarker>)|(?P<qs>[[])(?P<qmarker>=*)[[]))\z&msx
+    and
+    $result = {%LAST_PAREN_MATCH};
   return $result;
-}
+} ## end sub _has_open_quote
+
 
 sub _prepare_cml_io {
   my ($cmakelists, $options) = @_;
@@ -1065,14 +1072,15 @@ sub _prepare_cml_io {
       ($cml_out, $options->{output}) = @{ $options->{output} };
       $cml_out->opened or
         error_exit(
-"filehandle provided by \"output\" option must be already open for write");
+"filehandle provided by \"output\" option must be already open for write"
+        );
     } else {
       $cml_out = IO::File->new(">$options->{output}") or
         error_exit("failure to open \"$options->{output}\" for write");
     }
   } ## end if ($options->{output})
   return ($cml_in, $cml_out, $cmakelists);
-}
+} ## end sub _prepare_cml_io
 
 # Process a comment block.
 sub _process_pending_comments {
@@ -1091,8 +1099,7 @@ sub _process_pending_comments {
                 $comments->{start_line},
                 ($comments->{end_line} != $comments->{start_line}) ?
                   qq(--$comments->{end_line}) :
-                  q()
-               ));
+                  q()));
 
   # Call the comment handler.
   &{ $options->{comment_handler} }($comments, $cmakelists, $options);
@@ -1150,7 +1157,8 @@ reading CALL %s() at $cmakelists:$call_info->{start_line}:$call_info->{call_star
 EOF
 
     $line_no =
-      _complete_call($call_info, $cml_in, $cmakelists, $line, $line_no, $options);
+      _complete_call($call_info, $cml_in,  $cmakelists,
+                     $line,      $line_no, $options);
 
     # If we have end-of-line comments, process them first.
     if ($call_info->{post} =~ m&[)]\s*[#]&msx or
@@ -1168,7 +1176,8 @@ EOF
     if (my $func = $cml_data->{callbacks}->{ $call_info->{name} }) {
       debug(sprintf("invoking registered callback for CALL \%s()",
                     $call_info->{name}));
-      my $tmp_result = &{$func}($call_infos, $call_info, $cmakelists, $options);
+      my $tmp_result =
+        &{$func}($call_infos, $call_info, $cmakelists, $options);
       defined $tmp_result and
         $cml_data->{callback_results}->{ $call_info->{start_line} } =
         $tmp_result;
@@ -1181,7 +1190,7 @@ EOF
     }
   } else { # Not interesting.
     $cml_out and $cml_out->print($line);
-  } # Line analysis.
+  }        # Line analysis.
   return $line_no;
 } ## end sub _process_cml_lines
 
@@ -1189,7 +1198,7 @@ EOF
 sub _recalculate_comment_indexes {
   my ($call_info) = @_;
   @{ $call_info->{comment_indexes} } =
-    List::MoreUtils::indexes { is_comment($_); } @{$call_info->{chunks}};
+    List::MoreUtils::indexes { is_comment($_); } @{ $call_info->{chunks} };
   return;
 }
 
@@ -1203,11 +1212,11 @@ sub _remove_args {
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my @removed;
   my $last_arg_idx =
-    List::Util::min(($idx_idx // return @removed) +
-                    (($n_args // 1) || return @removed) - 1,
-                    $#{ $call_info->{arg_indexes} });
+    List::Util::min(
+      ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
+      $#{ $call_info->{arg_indexes} });
 
-  my $index = $call_info->{arg_indexes}->[$idx_idx];
+  my $index      = $call_info->{arg_indexes}->[$idx_idx];
   my $last_index = $call_info->{arg_indexes}->{$last_arg_idx};
 
   # Remove any preceding quote.
@@ -1219,7 +1228,8 @@ sub _remove_args {
   # Remove any trailing whitespace or comments
   while ($last_index < $#{ $call_info->{chunks} } and
          (is_whitespace($call_info->{chunks}->{$last_index}) or
-          is_comment($call_info->{chunks}->{$last_index}))) {
+          is_comment($call_info->{chunks}->{$last_index}))
+    ) {
     ++$last_index;
   }
 
@@ -1241,14 +1251,15 @@ sub _remove_args {
   # Recalculate comment indexes.
   _recalculate_comment_indexes($call_info);
 
-  my $prev_index = 0;
+  my $prev_index    = 0;
   my $in_whitespace = 0;
-  @removed =
-    map { join(q(), $removed_chunks[$prev_index..($_ - 1)]); }
-    List::MoreUtils::indexes
-      { my $prev_in_whitespace = $in_whitespace;
-        $in_whitespace = is_whitespace($_);
-        $prev_in_whitespace and not $in_whitespace; } @removed_chunks;
+  @removed = map { join(q(), $removed_chunks[ $prev_index .. ($_ - 1) ]); }
+    List::MoreUtils::indexes {
+    my $prev_in_whitespace = $in_whitespace;
+    $in_whitespace = is_whitespace($_);
+    $prev_in_whitespace and not $in_whitespace;
+  }
+  @removed_chunks;
   return @removed;
 } ## end sub _remove_args
 

@@ -23,7 +23,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 use vars qw(@CALL_HANDLERS @EVENT_HANDLERS);
 
@@ -72,7 +72,7 @@ Readonly::Array @CALL_HANDLERS => qw(
   set
   simple_plugin
   subdirs
-  );
+);
 
 Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
 
@@ -86,7 +86,7 @@ Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
 # Private variables
 ########################################################################
 
-my $_cml_state = { seen_calls => {} };
+my $_cml_state              = { seen_calls => {} };
 my $_cmake_required_version = _read_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
 
@@ -269,7 +269,9 @@ EOF
 ill-formed $call_info->{name}() at line $call_info->{start_line} (VERSION keyword missing value) will be corrected
 EOF
       insert_args_at($call_info,
-                     keyword_arg_append_position($call_info, 'VERSION', 'FATAL_ERROR'),
+                     keyword_arg_append_position(
+                                          $call_info, 'VERSION', 'FATAL_ERROR'
+                                                ),
                      $_cmake_required_version);
       $edited = 1;
     } else {
@@ -290,14 +292,14 @@ EOF
         } else {
           given (version_cmp($_cmake_required_version, $vmax)) {
             when ($_ == 1) {
-              $policy = $vmax;  # Preserve behavior of code.
-              continue ;
+              $policy = $vmax; # Preserve behavior of code.
+              continue;
             }
             when (not($_ < 0)) {
               undef $vmax;
             }
           }
-        }                       ## end else [ if (not $vmax) ]
+        } ## end else [ if (not $vmax) ]
         if ($policy) {
           my $line = <<"EOF";
 $call_info->{pre_call_ws}\Ecmake_policy(VERSION $policy)
@@ -308,16 +310,16 @@ EOF
         replace_arg_at($call_info, $req_version_idx,
                        join('...', $_cmake_required_version, $vmax // ()));
         $edited = 1;
-      }               ## end if (version_cmp($vmin,...))
-    }                 ## end else [ if (not $req_version_idx)]
-  }                   ## end else [ if (not has_keyword($call_info...))]
+      } ## end if (version_cmp($vmin,...))
+    } ## end else [ if (not $req_version_idx)]
+  } ## end else [ if (not has_keyword($call_info...))]
   if (not has_keyword($call_info, 'FATAL_ERROR')) {
     append_args($call_info, 'FATAL_ERROR');
     $edited = 1;
   }
   $edited and tag_changed(\$call_info->{post});
   return;
-}                               ## end sub cmake_minimum_required
+} ## end sub cmake_minimum_required
 
 
 sub cmake_policy {
@@ -417,6 +419,7 @@ sub macro {
   return;
 }
 
+
 sub project {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
@@ -428,41 +431,45 @@ EOF
     return;
   }
   $_cml_state->{seen_calls}->{ $call_info->{name} } = $call_info;
-  $_cml_state->{project_info} = my $project_info = { };
-  $project_info->{first_pass} =
-    my $cpi = get_cmake_project_info(dirname($cmakelists, $options),
-                                     quiet_warnings => 1);
+  $_cml_state->{project_info}                       = my $project_info = {};
+  $project_info->{first_pass}                       = my $cpi =
+    get_cmake_project_info(dirname($cmakelists, $options),
+                           quiet_warnings => 1);
 
   $project_info->{name} = $cpi->{cmake_project_name};
   my $n_args = scalar @{ $call_info->{arg_indexes} };
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   if ( # Identify old-style project() call.
-      $n_args > 1 and List::MoreUtils::all {
-        my $arg = interpolated($call_info, $_);
-        List::MoreUtils::any { $arg eq $_; } @_cmake_languages;
-      }
-      1 .. ($n_args - 1)
+    $n_args > 1 and List::MoreUtils::all {
+      my $arg = interpolated($call_info, $_);
+      List::MoreUtils::any { $arg eq $_; } @_cmake_languages;
+    }
+    1 .. ($n_args - 1)
     ) {
     # Old-style call with only name and languages (no keywords).
     add_args_after($call_info, 0, 'LANGUAGES');
-  }
+  } ## end if (  $n_args > 1 and ...)
   if ($cpi->{CMAKE_PROJECT_VERSION_STRING}) {
+
     # VERSION defined by
     # set($project_info->{cmake_project_name}_CMAKE_PROJECT_VERSION_STRING
     # ...)
     my $vsinfo = parse_version_string($cpi->{CMAKE_PROJECT_VERSION_STRING});
     if ($vsinfo->{extra}) { # non-alphanumeric component(s)
-      defined $cpi->{cmake_project_version} and
-        info(<<"EOF");
+      defined $cpi->{cmake_project_version} and info(<<"EOF");
 project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}: removing VERSION in project()
 EOF
+
       # Delete any VERSIONs from project() to avoid confusion.
       remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
-      $project_info->{cmake_project_version} = $cpi->{CMAKE_PROJECT_VERSION_STRING};
+      $project_info->{cmake_project_version} =
+        $cpi->{CMAKE_PROJECT_VERSION_STRING};
       $project_info->{cmake_project_version_info} = $vsinfo;
       tag_changed($call_info);
       if (my $vs_call_info =
-          dclone($_cml_state->{seen_calls}->{set_CMAKE_PROJECT_VERSION_STRING})) {
+          dclone($_cml_state->{seen_calls}->{set_CMAKE_PROJECT_VERSION_STRING}
+                )
+        ) {
         # This was seen too early and removed: reinstate it here with
         # the correct indentation.
         if ($call_info->{pre_call_ws}) {
@@ -472,7 +479,7 @@ EOF
         }
         tag_added($vs_call_info);
         push @{$call_infos}, $vs_call_info;
-      }
+      } ## end if (my $vs_call_info =...)
     } else {
       $project_info->{redundant_version_string} = 1;
       if (defined $cpi->{cmake_project_version} and
@@ -480,37 +487,41 @@ EOF
         info(<<"EOF");
 project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}: updating project($project_info->{name} VERSION ...)
 EOF
+
         # Delete any VERSIONs from project() to avoid confusion.
         remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
-        add_args_after($call_info, 0, 'VERSION', $cpi->{CMAKE_PROJECT_VERSION_STRING});
+        add_args_after($call_info, 0, 'VERSION',
+                       $cpi->{CMAKE_PROJECT_VERSION_STRING});
         tag_changed($call_info);
-      }
-    }
-  } elsif (defined $cpi->{cmake_project_version} and
-           defined $pi->{version}) { # we override product_deps
+      } ## end if (defined $cpi->{cmake_project_version...})
+    } ## end else [ if ($vsinfo->{extra}) ]
+  } elsif (defined $cpi->{cmake_project_version} and defined $pi->{version})
+  { # we override product_deps
     warning(<<"EOF");
 UPS product version $pi->{version} overridden by project($project_info->{name} ... VERSION $cpi->{cmake_project_version} ...) at $cmakelists:$cpi->{start_line}
 EOF
   } elsif (not defined $cpi->{cmake_project_version} and
            defined $pi->{version}) { # Take version from product_deps
-    $project_info->{cmake_project_version_info} =
-      my $vinfo = parse_version_string($pi->{version});
+    $project_info->{cmake_project_version_info} = my $vinfo =
+      parse_version_string($pi->{version});
     $project_info->{cmake_project_version} =
       to_cmake_version($project_info->{cmake_project_version_info});
-    if ($vinfo->{extra}) { # need to use version string
+    if ($vinfo->{extra}) {           # need to use version string
       my $line = <<"EOF";
 $call_info->{pre_call_ws}\Eset($project_info->{cmake_project_name} $project_info->{cmake_project_version})
 EOF
       tag_added(\$line);
       push @{$call_infos}, $line;
+
       # Remove any empty VERSION keywords.
       remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
     } else {
       remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
-      add_args_after($call_info, 0, 'VERSION', $cpi->{CMAKE_PROJECT_VERSION_STRING});
+      add_args_after($call_info, 0, 'VERSION',
+                     $cpi->{CMAKE_PROJECT_VERSION_STRING});
       tag_changed($call_info);
     }
-  }
+  } ## end elsif (not defined $cpi->...)
   return;
 } ## end sub project
 
@@ -521,29 +532,36 @@ sub remove_definitions {
   return;
 }
 
-my @_HANDLED_SET_VARS =
-  qw(CMAKE_PROJECT_VERSION_STRING
-   );
+my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
+);
+
 
 sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   my ($set_var_name, $is_literal) = interpolated($call_info, 0) // return;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  if ($set_var_name = List::MoreUtils::first_value { $set_var_name =~ m&(?:\A|_)\Q$_\E\z&msx; } @_HANDLED_SET_VARS) {
+  if (
+    $set_var_name = List::MoreUtils::first_value {
+      $set_var_name =~ m&(?:\A|_)\Q$_\E\z&msx;
+    }
+    @_HANDLED_SET_VARS
+    ) {
     # We have a match and (hopefully) a handler therefor.
-    $_cml_state->{seen_calls}->{set_$set_var_name} = $call_info;
+    $_cml_state->{seen_calls}->{ set_ $set_var_name} = $call_info;
     local $EVAL_ERROR; ## no critic qw(RequireInitializationForLocalVars)
     my $func_name = "Cetmodules::Migrate::CMake::Handlers\::_$set_var_name";
-    my $func_ref = \&{$func_name};
-    eval { &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options); } or 1;
+    my $func_ref  = \&{$func_name};
+    eval {
+      &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options);
+    } or 1;
     $EVAL_ERROR and error_exit(<<"EOF");
 error calling SET handler for matched variable $set_var_name at $cmakelists:$call_info->{start_line}:
 $EVAL_ERROR
 EOF
-  }
+  } ## end if ($set_var_name = List::MoreUtils::first_value...)
   return;
-}
+} ## end sub set
 
 
 sub simple_plugin {
@@ -577,11 +595,10 @@ EOF
   } else {
     debug("found definition of $type $name at line $call_info->{start_line}");
     $_cml_state->{current_definition} =
-      {
-       %{$call_info}, name => $name, type => $type };
+      { %{$call_info}, name => $name, type => $type };
   }
   return;
-}                               ## end sub _call_definition
+} ## end sub _call_definition
 
 
 sub _end_call_definition {
@@ -608,9 +625,8 @@ EOF
 sub _read_cmake_required_version {
   ## no critic qw(InputOutput::ProhibitBacktickOperators)
   my $cml_top = abs_path(
-                         File::Spec->catfile(
-                                             dirname(__FILE__), qw(.. .. .. ..), 'CMakeLists.txt'
-                                            ));
+     File::Spec->catfile(dirname(__FILE__), qw(.. .. .. ..), 'CMakeLists.txt')
+  );
   my $cmake_required_version =
 qx(sed -Ene 's&^[[:space:]]*cmake_minimum_required[(][[:space:]]*VERSION[[:space:]]+([[:digit:]]+([.][[:digit:]]+)*)([.]{3}[[:digit:]|.]+)?([[:space:]]+FATAL_ERROR)?[[:space:]]*[)].*\$&\\1&ip' "$cml_top");
   chomp $cmake_required_version;
@@ -624,7 +640,6 @@ qx(sed -Ene 's&^[[:space:]]*cmake_minimum_required[(][[:space:]]*VERSION[[:space
 #
 ########################################################################
 
-
 ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
 sub _set_CMAKE_PROJECT_VERSION_STRING {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
@@ -636,10 +651,11 @@ EOF
   } elsif (not $_cml_state->{project_info}->{redundant_version_string}) {
     return;
   }
+
   # Don't need this call.
   pop @{$call_infos};
   return;
-}
+} ## end sub _set_CMAKE_PROJECT_VERSION_STRING
 
 ## use critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
 ########################################################################

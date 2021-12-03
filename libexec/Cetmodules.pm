@@ -12,7 +12,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 use warnings::register;
 
@@ -20,7 +20,7 @@ use Exporter qw(import);
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 
-@EXPORT_OK = qw($DEBUG $QUIET $QUIET_WARNINGS $VERBOSE);
+@EXPORT_OK   = qw($DEBUG $QUIET $QUIET_WARNINGS $VERBOSE);
 %EXPORT_TAGS = (DIAG_VARS => [@EXPORT_OK]);
 
 our ($DEBUG, $QUIET, $QUIET_WARNINGS, $VERBOSE);

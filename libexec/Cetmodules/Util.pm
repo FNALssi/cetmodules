@@ -36,7 +36,7 @@ our (@EXPORT);
   version_cmp
   version_sort
   warning
-  );
+);
 
 ########################################################################
 # Private variables
@@ -44,7 +44,7 @@ our (@EXPORT);
 
 Readonly::Scalar my $_INIT_DEFAULT_PREFIX_MIN_LENGTH => 6;
 Readonly::Scalar my $_NO_NUMERIC_VERSION_OFFSET      => 100;
-Readonly::Scalar my $_VERSION_EXTRA_TYPE_NO_NUMERIC  => 1 +
+Readonly::Scalar my $_VERSION_EXTRA_TYPE_NO_NUMERIC => 1 +
   $_NO_NUMERIC_VERSION_OFFSET;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_PATCH   => 1;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_GENERIC => 2;
@@ -228,7 +228,7 @@ sub to_string {
   Readonly::Scalar my $HASH_INDENT            => length('{ ');
   Readonly::Scalar my $MAX_INCREMENTAL_INDENT => 14;
   my $options = ((@args == 2) and (ref $args[1] eq 'HASH')) ? pop @args : {};
-  my $indent = delete $options->{indent};
+  my $indent  = delete $options->{indent};
   defined $indent or
     $indent = (ref $args[0] and $#args > 0 and not ref $args[-1]) ? pop : 0;
   my $item = ((@args > 1) ? [@args] : shift @args) // "<undef>";
@@ -250,7 +250,7 @@ sub to_string {
   my $result;
   given ($type) {
     when ([ q(), 'CODE' ]) { $result = "$initial_indent$item"; }
-    when ('SCALAR') { $result = "$initial_indent$$item"; }
+    when ('SCALAR')        { $result = "$initial_indent$$item"; }
     when ('ARRAY') {
       $result = sprintf("$initial_indent\%s ]",
                         offset_annotated_items($indent, '[ ', @{$item}));
@@ -264,7 +264,7 @@ sub to_string {
           map {
             to_string($item->{$_},
                       { preamble => "$_ => ", indent => $indent });
-            } keys %{$item}));
+          } keys %{$item}));
       $indent -= $HASH_INDENT;
     } ## end when ('HASH')
     default {
@@ -296,7 +296,7 @@ sub version_cmp {
   my ($vInfoA, $vInfoB) =
     map { (ref $_) ? $_ : parse_version_string($_); } @args;
   my $ans = (
-             (($vInfoA->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET or
+             (($vInfoA->{extra_type}   // 0) > $_NO_NUMERIC_VERSION_OFFSET or
                 ($vInfoB->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET
              ) ? 0 : ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0) ||
                ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0) ||
@@ -332,7 +332,7 @@ sub version_sort($$) { ## no critic qw(ProhibitSubroutinePrototypes)
       ($vInfoA, $vInfoB);
     $ans =
       (lc($etextA // q()) eq lc($etextB // q())) ?
-      (($enumA // 0) <=> ($enumB // 0)) ||
+      (($enumA    // 0) <=> ($enumB // 0)) ||
       (($etextA // q()) cmp($etextB // q())) :
       (($vInfoA->{extra} // q()) cmp($vInfoB->{extra} // q()));
   } ## end if (not $ans)

@@ -21,14 +21,14 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
 
 use Cetmodules::Util qw(
   $DEFAULT_PREFIX_MIN_LENGTH
   shortest_unique_prefix
-  );
+);
 
 use warnings FATAL => qw(Cetmodules);
 

@@ -36,11 +36,11 @@ use vars qw($BTYPE_TABLE $PATHSPEC_INFO @EXPORT @EXPORT_OK);
   pathkey_is_valid
   sort_qual
   var_stem_for_dirkey
-  );
+);
 
 @EXPORT_OK = qw(
   $PATHSPEC_INFO
-  );
+);
 
 ########################################################################
 # Exported variables
@@ -121,8 +121,7 @@ sub get_parent_info {
         [ qw(define_pythonpath
             no_fq_dir
             noarch
-            old_style_config_vars)
-        ]
+            old_style_config_vars) ]
         ) {
         scalar @pars
           and warning(sprintf("unexpected garbage following $keyword: %s",
@@ -167,7 +166,7 @@ sub get_pathspec {
     $pi,
     [ map {
         (($requested_dirkeys->{$_} // 0) == $_NO_MATCH) ? "\Q$_\E" : ();
-        } keys %{$requested_dirkeys} ]);
+      } keys %{$requested_dirkeys} ]);
 
   my @results = map {
     ($pathspec_cache->{$_} and
@@ -188,6 +187,7 @@ sub get_product_list {
   my $piter     = $_NO_MATCH;
   my $phash     = {};
   my $pl_format = 1;         # Default format.
+
   while (<$fh>) {
     chomp;
     s&\s*\#.*\z&&msx;        # Eat all comments.
@@ -307,9 +307,9 @@ sub get_qualifier_matrix {
       map {
         my @dq = @{$_};
         ($dq[0] => { map { ($prods[$_] => $dq[$_]); } 1 .. $qlen });
-        } @{$qlist} };
+      } @{$qlist} };
     $headers = [ @prods, shift @{$notes} || () ];
-    $nhash = { map { ($_->[0] => (shift @{$notes} or q())); } @{$qlist} };
+    $nhash   = { map { ($_->[0] => (shift @{$notes} or q())); } @{$qlist} };
   } ## end if ($qlist and scalar ...)
   return ($qlen, $qhash, $qqhash, $nhash, $headers);
 } ## end sub get_qualifier_matrix
@@ -344,7 +344,7 @@ sub sort_qual {
 
   # If the first argument is a reference to ARRAY, then it is an output
   # array reference for the result.
-  my $sorted = ref($args[0] // undef) eq 'ARRAY' ? shift @args : [];
+  my $sorted       = ref($args[0] // undef) eq 'ARRAY' ? shift @args : [];
   my @resplit_args = split(/:/msx, join(q(:), @args));
   my ($cqual, $btype);
 
@@ -405,7 +405,7 @@ $_chain_option_table = {
     qualifier
     table_fragment_begin
     table_fragment_end
-    ), sort keys %{$PATHSPEC_INFO});
+  ), sort keys %{$PATHSPEC_INFO});
 
 $_valid_pathkeys = [qw(product_dir fq_dir -)];
 
@@ -429,8 +429,8 @@ qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?
     my ($dirkey, $pathkey, $dirname) =
       _validate_pathspec_entry($pi->{pfile},
                                $pathspec_cache,
-                               (@LAST_PAREN_MATCH{qw(dirkey pathkey dirname)})
-                              );
+                               (@LAST_PAREN_MATCH{
+                                  qw(dirkey pathkey dirname)}));
     push @{ $pathspec_cache->{$dirkey}->{key} }, $pathkey;
     if ($pathkey eq q(-) and not $dirname) {
       delete $pathspec_cache->{$dirkey}->{path};

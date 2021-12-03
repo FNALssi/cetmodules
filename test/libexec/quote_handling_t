@@ -20,7 +20,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 my $_libexec;
 
@@ -34,7 +34,7 @@ use lib $_libexec;
 use Cetmodules::CMake qw(
   process_cmakelists
   reconstitute_code
-  );
+);
 
 use warnings FATAL => qw(Cetmodules);
 
@@ -74,7 +74,7 @@ sub string_tester {
                    ($expected_substrings == 1) ? q() : q(s)
                   ));
     my $subtest_count = 0;
-    foreach my $idx_idx (0..-1) {
+    foreach my $idx_idx (0 .. -1) {
       my $open_ref      = $open_hash_refs->[$subtest_count];
       my $close_ref     = $close_hash_refs->[$subtest_count];
       my $separated_ref = $separated_refs[$subtest_count];
@@ -83,25 +83,29 @@ sub string_tester {
       ++$count;
       subtest "Test $count using '$test_string'" => sub {
         note(
-"Test $count: (subtest $subtest_count (\$idx_idx=$idx_idx) for '$test_string')");
+"Test $count: (subtest $subtest_count (\$idx_idx=$idx_idx) for '$test_string')"
+        );
         plan tests => 3;
-        my $open_test = Cetmodules::CMake::_has_open_quote($call_info, $idx_idx);
-        my $close_test = Cetmodules::CMake::_has_close_quote($call_info, $idx_idx);
+        my $open_test =
+          Cetmodules::CMake::_has_open_quote($call_info, $idx_idx);
+        my $close_test =
+          Cetmodules::CMake::_has_close_quote($call_info, $idx_idx);
         my $index = _index_for_arg_at($call_info, $idx_idx);
         my $joined =
-          join(q(), (defined $open_test) ?
-               (@{ $call_info->{chunks} }[ $index - 1 .. $index + 1 ]) :
-               ($call_info->{chunks}->[$index]));
+          join(q(),
+               (defined $open_test) ?
+                 (@{ $call_info->{chunks} }[ $index - 1 .. $index + 1 ]) :
+                 ($call_info->{chunks}->[$index]));
         $result->{$subtest_count} = {
-           open => compare_or_show($open_test, $open_ref, 'open'),
-           close => compare_or_show($close_test, $close_ref, 'close'),
-           separated => compare_or_show(
-             [ Cetmodules::CMake::_separate_quotes($joined) ],
-             $separated_ref,
-             'separate'
-             ) };
+                   open  => compare_or_show($open_test,  $open_ref,  'open'),
+                   close => compare_or_show($close_test, $close_ref, 'close'),
+                   separated =>
+                     compare_or_show(
+                             [ Cetmodules::CMake::_separate_quotes($joined) ],
+                             $separated_ref, 'separate'
+                     ) };
       };
-    } ## end foreach my $index (@{ $call_info...})
+    } ## end foreach my $idx_idx (0 .. -1)
     return $result;
   };
 } ## end sub string_tester
@@ -132,7 +136,7 @@ sub test_bad_string {
 bad string '$test_string' should have caused a parse failure matching qr&$fail_regex&
 EOF
   return;
-} ## end sub test_bad_string
+}
 
 # Open, close reference hashes for bracket-quoted string.
 sub bqbit {
@@ -152,10 +156,12 @@ EOF
 test_string(<<'EOF', ([$dqbit]) x 2, [qw(" ethel ")]); # 3..4
 "ethel"
 EOF
-test_string(<<'EOF', [ bqbit(q([), 2) ], [ bqbit(q(]), 2) ], [ q([==[), 'hibble', q(]==]) ]); # 5..6
+test_string(
+             <<'EOF', [ bqbit(q([), 2) ], [ bqbit(q(]), 2) ], [ q([==[), 'hibble', q(]==]) ]); # 5..6
 [==[hibble]==]
 EOF
-test_string(<<'EOF', [ bqbit(q([), 0) ], [ bqbit(q(]), 0) ], [ q([[), "ask me\n an[other]\n question\n", q(]]) ]); # 7..8
+test_string(
+             <<'EOF', [ bqbit(q([), 0) ], [ bqbit(q(]), 0) ], [ q([[), "ask me\n an[other]\n question\n", q(]]) ]); # 7..8
 
 [[ask me
  an[other]
@@ -169,11 +175,13 @@ EOF
 test_string(<<'EOF', ([undef]) x 2, ['aax"asxy"x']); # 11..12
 aax"asxy"x
 EOF
-test_string(<<'EOF', ([ undef, $dqbit, undef ]) x 2, ['aax'], [ q("), "as\n", q(") ], ['xy']); # 13..16
+test_string(
+             <<'EOF', ([ undef, $dqbit, undef ]) x 2, ['aax'], [ q("), "as\n", q(") ], ['xy']); # 13..16
 aax"as
 "xy
 EOF
-test_string(<<'EOF', ([ undef, $dqbit, undef ]) x 2, ['aax'], [ q("), "as\\\n", q(") ], ['xy']); # 17..20
+test_string(
+             <<'EOF', ([ undef, $dqbit, undef ]) x 2, ['aax'], [ q("), "as\\\n", q(") ], ['xy']); # 17..20
 aax"as\
 "xy
 EOF
@@ -184,38 +192,42 @@ EOF
 test_string(<<'EOF', undef, undef, ['ethel"Charlie"Bill']);         # 24..25
 ethel"Charlie"Bill
 EOF
-test_string(<<'EOF', ([ undef, $dqbit, undef ]) x 2, ['ethel'], [qw(" Charlie() ")], ['Bill']); # 26..29
+test_string(
+             <<'EOF', ([ undef, $dqbit, undef ]) x 2, ['ethel'], [qw(" Charlie() ")], ['Bill']); # 26..29
 ethel"Charlie()"Bill
 EOF
-test_string(<<'EOF', ([ (undef) x 4 ]) x 2, ['ethel"Charlie"'], [q{(}], [q{)}], ['Bill']); # 30..34
+test_string(
+             <<'EOF', ([ (undef) x 4 ]) x 2, ['ethel"Charlie"'], [q{(}], [q{)}], ['Bill']); # 30..34
 ethel"Charlie"()Bill
 EOF
-test_string(<<'EOF', ([ (undef) x 3 ]) x 2, [q{(}], ['ethel"Charlie"Bill'], [q{)}]); # 35..38
+test_string(
+             <<'EOF', ([ (undef) x 3 ]) x 2, [q{(}], ['ethel"Charlie"Bill'], [q{)}]); # 35..38
 ((ethel"Charlie"Bill))
 EOF
 test_string(<<'EOF', undef, undef, [q{\(ethel"Charlie"Bill}]); # 39..40
 \(ethel"Charlie"Bill
 EOF
-test_string(<<'EOF', ([ (undef) x 4 ]) x 2, [q(e)], [q{(}], ['thel"Charlie"Bill'], [q{)}]); # 41..45
+test_string(
+             <<'EOF', ([ (undef) x 4 ]) x 2, [q(e)], [q{(}], ['thel"Charlie"Bill'], [q{)}]); # 41..45
 e(thel"Charlie"Bill)
 EOF
-test_string(<<'EOF', ([ $dqbit, undef ]) x 2, [qw(" aax ")], ['ethel']); # 46..48
+test_string(
+             <<'EOF', ([ $dqbit, undef ]) x 2, [qw(" aax ")], ['ethel']); # 46..48
 "aax"ethel
 EOF
+test_string("a((a)x\"a)s\n\"x)y", ([ (undef) x 6, $dqbit, (undef) x 3 ]) x 2,
+            ['a'], ([q{(}]) x 2,
+            ['a'], [q{)}],
+            ['x'], [ q("), "a)s\n", q(") ],
+            ['x'], [q{)}],
+            ['y']); # 49..59
 test_string(
-          "a((a)x\"a)s\n\"x)y", ([ (undef) x 6, $dqbit, (undef) x 3 ]) x 2,
-          ['a'], ([q{(}]) x 2,
-          ['a'], [q{)}],
-          ['x'], [ q("), "a)s\n", q(") ],
-          ['x'], [q{)}],
-          ['y']); # 49..59
-test_string(
-      "a ( ( a)x \"a)s\n\"x)y", ([ (undef) x 6, $dqbit, (undef) x 3 ]) x 2,
-      ['a'], ([q{(}]) x 2,
-      ['a'], [q{)}],
-      ['x'], [ q("), "a)s\n", q(") ],
-      ['x'], [q{)}],
-      ['y']); # 60..70
+         "a ( ( a)x \"a)s\n\"x)y", ([ (undef) x 6, $dqbit, (undef) x 3 ]) x 2,
+         ['a'], ([q{(}]) x 2,
+         ['a'], [q{)}],
+         ['x'], [ q("), "a)s\n", q(") ],
+         ['x'], [q{)}],
+         ['y']); # 60..70
 test_string("a(3  ;;  ; \n ;;3; 3)",
             ([ (undef) x 6 ]) x 2,
             ['a'], [q&(&], (['3']) x 3, [q&)&]); # 71..77
@@ -228,7 +240,7 @@ test_string("a(\"3  ;;  ; \n ;;3\"; 3)",
             [ q("), qq( \n ), q(") ],
             [ q("), '3',      q(") ],
             ['3'],
-            [q&)&]);                                    # 78..86
+            [q&)&]); # 78..86
 test_string("a(\"3  ;  ; \n ;3\"; 3)",
             ([ (undef) x 2, ($dqbit) x 4, (undef) x 2 ]) x 2,
             ['a'],
@@ -238,7 +250,7 @@ test_string("a(\"3  ;  ; \n ;3\"; 3)",
             [ q("), qq( \n ), q(") ],
             [ q("), '3',      q(") ],
             ['3'],
-            [q&)&]);                                    # 87..95
+            [q&)&]); # 87..95
 test_string("a(\"3  ;;  ; \n ;;3\"; 3)",
             ([ (undef) x 2, ($dqbit) x 4, (undef) x 2 ]) x 2,
             ['a'],
@@ -248,7 +260,7 @@ test_string("a(\"3  ;;  ; \n ;;3\"; 3)",
             [ q("), qq( \n ), q(") ],
             [ q("), '3',      q(") ],
             ['3'],
-            [q&)&]);                                    # 96..104
+            [q&)&]); # 96..104
 test_string("a(\"3  \"\"\"\"  \"\" \n \"\"3\"; 3)",
             ([ (undef) x 2, ($dqbit) x 4, (undef) x 2 ]) x 2,
             ['a'],
@@ -258,7 +270,7 @@ test_string("a(\"3  \"\"\"\"  \"\" \n \"\"3\"; 3)",
             [ q("), qq( \n ), q(") ],
             [ q("), '3',      q(") ],
             ['3'],
-            [q&)&]);                                    # 105..113
+            [q&)&]); # 105..113
 
 test_bad_string(<<'EOF', qr&^\QFATAL_ERROR: unclosed quote '"'\E&msx); # 114
 "missing_close_quote

@@ -26,7 +26,7 @@ our (@EXPORT);
   tag_added
   tag_changed
   tagged
-  );
+);
 
 
 sub flag {

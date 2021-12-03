@@ -25,7 +25,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 our (@EXPORT);
 
@@ -46,7 +46,7 @@ our (@EXPORT);
   ups_to_cmake
   write_table_deps
   write_table_frag
-  );
+);
 
 ########################################################################
 # Private variables for use within this module only
@@ -188,7 +188,7 @@ sub deps_for_quals {
     my $matches = {
       map {
         match_qual($_, $qualspec) ? ($_ => $phash->{ ${prod} }->{$_}) : ();
-        } sort keys %{ $phash->{$prod} } };
+      } sort keys %{ $phash->{$prod} } };
 
     # Remove the default entry from the set of matches (if it exists)
     # and save it.
@@ -248,8 +248,7 @@ sub get_cmake_project_info {
                     map { %{$_}; }
                       values %{
                       process_cmakelists(
-                           $cmakelists,
-                           %options,
+                           $cmakelists, %options,
                            project_callback => \&_get_info_from_project_call,
                            set_callback     => \&_get_info_from_set_calls,
                            cet_cmake_env_callback => \&_set_seen_cet_cmake_env
@@ -424,7 +423,7 @@ sub print_dep_setup_one {
     (exists $dep_info->{setup_options} and $dep_info->{setup_options}) ?
     @{ $dep_info->{setup_options} } :
     ();
-  my @prodspec = ("$dep", "$thisver");
+  my @prodspec   = ("$dep", "$thisver");
   my $qualstring = join(q(:+), split(/:/msx, $dep_info->{qualspec} || q()));
   $qualstring and push @prodspec, '-q', $qualstring;
   $out->print("# > $dep <\n");
@@ -487,8 +486,8 @@ INTERNAL ERROR in print_dev_setup(): ups_to_cmake() should have been called firs
 EOF
   my @fqdirs =
     map { m&\A/&msx ? $_ : File::Spec->catfile('${CETPKG_BUILD}', $_); } (
-     _fq_path_for($pi, 'gdmldir', 'gdml') || (),
-     _fq_path_for($pi, 'fwdir') || ());
+                                   _fq_path_for($pi, 'gdmldir', 'gdml') || (),
+                                   _fq_path_for($pi, 'fwdir') || ());
   push @fqdirs,
     map { m&\A/&msx ? $_ : File::Spec->catfile('${CETPKG_SOURCE}', $_); }
     @{ $fw_pathspec->{fq_path} || [] };
@@ -579,10 +578,9 @@ sub ups_to_cmake {
   (not $pi->{cqual})
     or
     (exists $_cqual_table->{ $pi->{cqual} }
-     and my
-     ($cc,               $cxx,          $compiler_id,
-      $compiler_version, $cxx_standard, $fc,
-      $fc_id,            $fc_version)
+     and my ($cc,               $cxx,          $compiler_id,
+             $compiler_version, $cxx_standard, $fc,
+             $fc_id,            $fc_version)
      = @{ $_cqual_table->{ $pi->{cqual} } } or
      error_exit("unrecognized compiler qualifier $pi->{cqual}"));
 
@@ -743,7 +741,7 @@ sub _cmake_cetb_compat_defs {
       my $dirkey_ish = $dirkey;
       $dirkey_ish =~ s&([^_])dir\z&${1}_dir&msx;
       "-DCETB_COMPAT_${dirkey_ish}:STRING=${var_stem}";
-      } sort keys %{$PATHSPEC_INFO} ];
+    } sort keys %{$PATHSPEC_INFO} ];
 } ## end sub _cmake_cetb_compat_defs
 
 
@@ -768,8 +766,7 @@ sub _cmake_defs_for_ups_config {
   $pi->{chains} and push @cmake_args,
     sprintf("-D${pv_prefix}_UPS_PRODUCT_CHAINS=%s",
             join(q(;), (sort @{ $pi->{chains} })));
-  $pi->{build_only_deps} and
-    List::MoreUtils::any { $_ eq 'cetbuildtools' }
+  $pi->{build_only_deps} and List::MoreUtils::any { $_ eq 'cetbuildtools' }
   @{ $pi->{build_only_deps} } and
     push @cmake_args, @{ _cmake_cetb_compat_defs() };
   return @cmake_args;
@@ -844,20 +841,17 @@ sub _get_info_from_project_call {
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
                                          $options->{quiet_warnings} ? 1 : 0);
-  $_seen_cet_cmake_env and
-    warning(<<"EOF")
+  $_seen_cet_cmake_env and warning(<<"EOF")
 Ignoring project() call at line $call_info->{start_line} following previous call to cet_cmake_env() at line $_seen_cet_cmake_env
 EOF
     and return;
-  $_seen_project and
-    info(<<"EOF")
+  $_seen_project and info(<<"EOF")
 Ignoring superfluous project() call at line $call_info->{start_line} following previous call on line $_seen_project
 EOF
     and return;
   $_seen_project = $call_info->{start_line};
   my ($project_name, $is_literal) = interpolated($call_info, 0);
-  $project_name or
-    error_exit(<<"EOF");
+  $project_name or error_exit(<<"EOF");
 unable to find name in project() call at $cmakelists:$call_info->{start_line}
 EOF
   $is_literal or do {
@@ -868,8 +862,9 @@ EOF
   };
   my $result = { cmake_project_name => $project_name };
   my $version_idx =
-    find_single_value_for($call_info, 'VERSION', @PROJECT_KEYWORDS) //
-    return $result;
+    find_single_value_for($call_info, 'VERSION', @PROJECT_KEYWORDS)
+    // return $result;
+
   # We have a VERSION keyword and value.
   my $version;
   ($version, $is_literal) = interpolated($call_info, $version_idx);
@@ -883,7 +878,8 @@ EOF
   @{$result}{qw(cmake_project_version cmake_project_version_info)} =
     ($version, parse_version_string($version));
   return $result;
-}
+} ## end sub _get_info_from_project_call
+
 
 sub _get_info_from_set_calls {
   my ($call_infos, $call_info, $cmakelists, $options) = @_;
@@ -891,8 +887,9 @@ sub _get_info_from_set_calls {
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
                                          $options->{quiet_warnings} ? 1 : 0);
   my $wanted_pvar = 'CMAKE_PROJECT_VERSION_STRING';
-  my ($found_pvar) = (interpolated($call_info, 0) // return) =~
-    m&_(\Q$wanted_pvar\E)\z&msx or return;
+  my ($found_pvar) =
+    (interpolated($call_info, 0) // return) =~ m&_(\Q$wanted_pvar\E)\z&msx or
+    return;
   $_seen_cet_cmake_env and do {
     warning(<<"EOF");
 $call_info->{name}() ignored at line $call_info->{start_line} due to previous call to cet_cmake_env() at line $_seen_cet_cmake_env
@@ -902,7 +899,8 @@ EOF
   my $value;
   my @results = ();
   my $arg_idx = 1;
-  while (defined ($value = interpolated($call_info, $arg_idx++)) and $value ne 'CACHE') {
+  while (defined($value = interpolated($call_info, $arg_idx++)) and
+         $value ne 'CACHE') {
     push @results, $value;
   }
   return { $found_pvar => @results };

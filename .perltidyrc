@@ -1,0 +1,29 @@
+-bar # Opening brace always on right
+-baao # Break after all operators by default (rather than before)
+-bext=.orig/ # Backup extension, deleted if no errors
+-blbs=2 # 2 Black lines before a sub
+-cab=2 # Break after "=> ... ," unless we can form a one-line container
+-ce # "Cuddled elses:" } else {
+-ci=2 # Continuation indentation
+-csc # Automatic side comments for closing code blocks...
+-csci=10 # ... this long or longer
+-cti=1 # Closing token indentation (non-block)
+-i=2 # Per-level indentation
+-iob # Ignore old breakpoints where possible
+-it=2 # 2-pass for stability
+-kis # Preserve inline semicolons
+-l=78 # Wrap at 78 chars
+-lp # Line up parentheses
+-msc=1 # Minimum space for side comments
+-nsfs # Don't put spaces around semicolons in "for ()" directives
+-pt=2 # Parenthesis tightness setting
+-pvt=2 # Don't break lines after opening parens...
+-pvtc=1 # ... or---if we can do it "nicely"---closing parens
+-sbvt=2  # Don't break lines after opening square brackets...
+-sbvtc=1 # ... or---if we can do it "nicely"---closing square brackets
+-sct # Stack closing tokens
+-se # Problems to STDERR rather than *.ERR
+-sot # Stack opening tokens
+-ssc # Don't alter the separation of side comments with '##'
+-syn # Perl syntax check. N.B. causes BEGIN blocks to be executed
+-wbb="<< >>" # Break lines *before* these tokens, not after
