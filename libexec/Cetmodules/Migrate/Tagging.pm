@@ -10,6 +10,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 use Cetmodules::CMake;
 use Cetmodules::Migrate::ProductDeps qw($CETMODULES_VERSION);
+use Cetmodules::Util;
 
 use warnings FATAL => qw(Cetmodules);
 

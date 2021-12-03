@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 # -*- cperl -*-
 
+use 5.016;
+
 ## no critic qw(Subroutines::ProtectPrivateSubs RegularExpressions::ProhibitComplexRegexes ValuesAndExpressions::ProhibitMagicNumbers)
 
 # Should be first unless we're in a module.
@@ -289,7 +291,7 @@ qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into
 
 test_bad_string(
   '(codswallop ',
-qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 1:22\E&mx
+qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 1:22\E&msx
 ); # 117
 
 test_bad_string(

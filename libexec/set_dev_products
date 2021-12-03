@@ -234,7 +234,7 @@ sub _read_and_validate_args {
         });
      } keys %{$btype_lookup})
     ) or
-    usage("error parsing arguments");
+    _usage("error parsing arguments");
 
   # Get qualifiers and/or build type from any remaining arguments.
   my $input_quals = _filter_build_types($input_btype_candidates, @ARGV);

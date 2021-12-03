@@ -360,6 +360,7 @@ sub interpolated {
       $interpolated_string = $separated[0] || q();
     }
     if (can_interpolate($interpolated_string)) {
+      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
       $interpolated_string =~ s&$_not_escape\\t&\k<not_escape>\t&msgx; # tab
       $interpolated_string =~
         s&$_not_escape\\r&\k<not_escape>\r&msgx; # carriage return
@@ -495,11 +496,11 @@ sub prepend_args {
 #
 #      Write each statement (modified or not) to <out>.
 #
-#   XXX_callback => <callback>
+#  <func>_callback => <callback>
 #
 #      Invoke <callback>(<call-infos>) for a CMake statement:
 #
-#        XXX(...)
+#        <func>(...)
 ####################################
 # Notes
 #
@@ -1110,14 +1111,6 @@ sub _process_pending_comments {
   %{$comments} = ();
   return;
 } ## end sub _process_pending_comments
-
-# FIXME: 2021-09-29-CHG-01
-#        Need to verify we're accounting for whitespace when calculating
-#        positions.
-#
-# FIXME: 2021-09-29-CHG-02
-#        Need to account for any newlines in $line if we run into EOF.
-
 
 sub _process_cml_lines {
   my ($line, $line_no, $cml_data, $options) = @_;

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # -*- cperl -*-
 
-## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
+## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers TestingAndDebugging::RequireTestLabels)
 
 use 5.016;
 
@@ -260,15 +260,14 @@ my $nfigs     = length $nshuffles;
 my $idx       = 0;
 more_tests($nshuffles);
 
-while (
-  $idx < $nshuffles
-  and
-  compare_or_show(
-                  [     sort perl_version_cmp List::Util::shuffle(@v_ref_list)
-                  ],
+my $sort_func = \&perl_version_cmp;
+while ($idx < $nshuffles) {
+  my @to_sort = List::Util::shuffle(@v_ref_list);
+  my @sorted = sort $sort_func @to_sort;
+  compare_or_show(\@sorted,
                   \@v_ref_list,
                   sprintf("perl_version_cmp-%0-${nfigs}d", ++$idx))
-  ) {
+    or last;
 } ## end while ($idx < $nshuffles ...)
 
 done_testing($ntests);
