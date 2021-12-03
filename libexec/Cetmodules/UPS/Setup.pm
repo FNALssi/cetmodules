@@ -62,14 +62,14 @@ Readonly::Scalar my $_EXEC_MODE => oct(755);
 
 # Output information for buildtool.
 sub cetpkg_info_file {
-  my (%info) = @_;
+  my (%cetpkg_info) = @_;
 
   my @expected_keys = qw(source build name version cmake_project_version
     chains qualspec cqual build_type extqual use_time_deps
     build_only_deps cmake_args);
   my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
   my $cetpkgfile =
-    File::Spec->catfile($info{build} || q(.), "cetpkg_info.sh");
+    File::Spec->catfile($cetpkg_info{build} || q(.), "cetpkg_info.sh");
   my $fh = IO::File->new("$cetpkgfile", q(>)) or
     error_exit("couldn't open $cetpkgfile for write");
   $fh->print(<<'EOD');
@@ -109,17 +109,17 @@ EOD
   # lexical order.
   my @output_items = output_info(
     $tmp_fh,
-    \%info,
+    \%cetpkg_info,
     \@for_export,
     (map {
        my $key = $_;
-       (grep { $key eq $_ } keys %info) ? ($key) : ()
+       (grep { $key eq $_ } keys %cetpkg_info) ? ($key) : ()
        } @expected_keys
     ),
     (map {
        my $key = $_;
        (grep { $key eq $_ } @expected_keys) ? () : ($key)
-       } sort keys %info
+       } sort keys %cetpkg_info
     ));
   $tmp_fh->close();
   $tmp_fh->open(\$var_data, q(<)) or
@@ -336,14 +336,14 @@ sub match_qual {
 
 
 sub output_info {
-  my ($fh, $info, $for_export, @keys) = @_;
+  my ($fh, $cetpkg_info, $for_export, @keys) = @_;
   my @defined_vars = ();
   foreach my $key (@keys) {
-    my $var = "CETPKG_\U$key";
-    List::MoreUtils::any { $var eq $_; } @{$for_export} and
-      $var = "export $var";
-    my $val = $info->{$key} || q();
-    $fh->print("$var=");
+    my $current_var = "CETPKG_\U$key";
+    List::MoreUtils::any { $current_var eq $_; } @{$for_export} and
+      $current_var = "export $current_var";
+    my $val = $cetpkg_info->{$key} || q();
+    $fh->print("$current_var=");
     if (not ref $val) {
       $fh->print("\Q$val\E\n");
     } elsif (ref $val eq "SCALAR") {
@@ -353,7 +353,7 @@ sub output_info {
     } else {
       verbose(sprintf("ignoring unexpected info $key of type %s", ref $val));
     }
-    push @defined_vars, $var;
+    push @defined_vars, $current_var;
   } ## end foreach my $key (@keys)
   return @defined_vars;
 } ## end sub output_info
@@ -527,23 +527,23 @@ EOF
 
 
 sub print_dev_setup_var {
-  my ($var, $val, $no_errclause) = @_;
-  my @vals = (ref $val eq 'ARRAY') ? @{$val} : ($val // ());
+  my ($setup_var, $setup_val, $no_errclause) = @_;
+  my @vals = (ref $setup_val eq 'ARRAY') ? @{$setup_val} : ($setup_val // ());
   my $result;
   my $out = IO::File->new(\$result, q(>)) or
     error_exit("could not open memory stream to variable \$out");
   if (scalar @vals) {
-    $out->print("# $var\n",
-                "setenv $var ",
+    $out->print("# $setup_var\n",
+                "setenv $setup_var ",
                 '"`dropit -p \\"${',
-                "$var",
+                "$setup_var",
                 '}\\" -sfe ');
     $out->print(join(q( ), map { sprintf('\\"%s\\"', $_); } @vals), q(`"));
     if ($no_errclause) {
       $out->print("\n");
     } else {
       $out->print("; ");
-      _setup_err($out, "failure to prepend to $var");
+      _setup_err($out, "failure to prepend to $setup_var");
     }
   } ## end if (scalar @vals)
   $out->close();

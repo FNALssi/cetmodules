@@ -141,7 +141,8 @@ my $ref = { qw(
     095b46eb399d3cb7a89a3ffb9ed23b0c93a3f894e28ac6d564274d5f4aace0c3 095
     ) };
 verify_prefixes(1, $ref);
-my $ref2 = { map { ("$_" => substr($_, 0, $DEFAULT_PREFIX_MIN_LENGTH)); }
-             keys %{$ref} };
-verify_prefixes($ref2);
+my $ref_short =
+  { map { ("$_" => substr($_, 0, $DEFAULT_PREFIX_MIN_LENGTH)); }
+    keys %{$ref} };
+verify_prefixes($ref_short);
 done_testing($ntests);

@@ -192,7 +192,7 @@ sub _upgrade_CML {
     verbose(sprintf("%sno changes necessary to $cml_full%s",
                     $options->{"dry-run"} ? "[DRY_RUN] "       : q(),
                     (-e $dest)            ? ": removing $dest" : q()));
-    $options->{debug} or (-e $dest and unlink $dest);
+    $options->{'debug'} or (-e $dest and unlink $dest);
   }
   return;
 } ## end sub _upgrade_CML

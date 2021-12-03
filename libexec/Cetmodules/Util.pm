@@ -53,7 +53,6 @@ Readonly::Scalar my $_VERSION_EXTRA_TYPE_PRE     => -1;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_GAMMA   => -2;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_BETA    => -3;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_ALPHA   => -4;
-Readonly::Scalar my $_VERSION_EXTRA_TYPE_NIGHTLY => 3;
 
 ########################################################################
 # Exported variables
@@ -91,7 +90,7 @@ sub error_exit {
 }
 
 
-sub info {
+sub info { ## no critic qw(Bangs::ProhibitVagueNames)
   $QUIET or notify(@_);
   return;
 }
@@ -294,7 +293,7 @@ sub version_cmp {
 "tried to use version_cmp() as a sorting algorithm: use version_sort() instead"
     );
   my ($vInfoA, $vInfoB) =
-    map { (ref $_) ? $_ : parse_version_string($_); } @args;
+    map { (ref) ? $_ : parse_version_string($_); } @args;
   my $ans = (
              (($vInfoA->{extra_type}   // 0) > $_NO_NUMERIC_VERSION_OFFSET or
                 ($vInfoB->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET
@@ -324,7 +323,7 @@ sub version_cmp {
 sub version_sort($$) { ## no critic qw(ProhibitSubroutinePrototypes)
   my @args = @_;
   my ($vInfoA, $vInfoB) =
-    map { (ref $_) ? $_ : parse_version_string($_); } @args;
+    map { (ref) ? $_ : parse_version_string($_); } @args;
   my $ans = version_cmp($vInfoA, $vInfoB);
   if (not $ans) {
     my ($etextA, $enumA, $etextB, $enumB) =

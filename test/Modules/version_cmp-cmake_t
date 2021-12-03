@@ -1,25 +1,30 @@
 #!/usr/bin/env perl
+# -*- cperl -*-
+
+use 5.016;
+
+use Cwd qw(abs_path);
+use English qw(-no_match_vars);
+use File::Basename;
+use File::Spec;
+use List::Util qw(shuffle);
+use Readonly;
 
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
-use Cwd qw(abs_path);
-use File::Basename;
-use File::Spec;
-use List::Util qw(shuffle);
-
-use vars qw ($_mydir $_pmdir);
+my ($_mydir, $_pmdir);
 
 
 BEGIN {
-  my $_me = readlink($0);
+  my $_me = readlink($PROGRAM_NAME);
   if (not $_me) {
-    $_me = $0;
-  } elsif ($_me !~ m&^/&) {
-    $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
+    $_me = $PROGRAM_NAME;
+  } elsif ($_me !~ m&\A/&msx) {
+    $_me = abs_path(File::Spec->catfile(dirname($PROGRAM_NAME), $_me));
   }
   $_mydir = abs_path(dirname($_me));
-  $_pmdir = abs_path(File::Spec->catfile($_mydir, '..', '..', 'libexec'));
+  $_pmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'libexec'));
 } ## end BEGIN
 
 use lib $_pmdir;
@@ -28,25 +33,26 @@ use Test::More;
 
 
 sub compare_or_show {
-  my $test = shift;
-  my $expected = shift;
-  is_deeply($test, $expected, @_) or
+  my ($test, $expected, @args) = @_;
+  my $result = is_deeply($test, $expected, @args) or
     diag(explain($test), " != ", explain($expected));
+  return $result;
 }
 
-my $cmdir = abs_path(File::Spec->catfile($_mydir, '..', '..', 'Modules'));
-
+my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
 
 
+Readonly::Scalar my $_FLIP_OPERANDS => -1;
 sub cmake_version_cmp {
   my $ans;
   if (exists $ans_cache->{"$a"} and exists $ans_cache->{"$a"}->{"$b"}) {
     $ans = $ans_cache->{"$a"}->{"$b"};
   } elsif (exists $ans_cache->{"$b"} and exists $ans_cache->{"$b"}->{"$a"}) {
-    $ans = -1 * $ans_cache->{"$b"}->{"$a"};
+    $ans = $_FLIP_OPERANDS * $ans_cache->{"$b"}->{"$a"};
     $ans_cache->{"$a"}->{"$b"} = $ans;
   } else {
+    ## no critic qw(InputOutput::ProhibitBacktickOperators)
     $ans =
 `cmake -DCMAKE_MODULE_PATH:STRING="$cmdir" -DVERSION_A:STRING="$a" -DVERSION_B:STRING="$b" -P "${_mydir}/version_cmp_t.cmake" | sed -Ene 's&^-- (-1|0|1)\$&\\1&p'`;
     chomp $ans;
@@ -73,8 +79,8 @@ plan tests => @v_ref_list * (@v_ref_list - 1);
 outer: for my $i (0 .. (@v_ref_list - 1)) {
 inner: for my $j (0 .. (@v_ref_list - 1)) {
     next if $i == $j;
-    $::a = $v_ref_list[$i];
-    $::b = $v_ref_list[$j];
-    is(cmake_version_cmp(), $i <=> $j) or last outer;
+    $::a = $v_ref_list[$i]; ## no critic qw(Variables::ProhibitPackageVars)
+    $::b = $v_ref_list[$j]; ## no critic qw(Variables::ProhibitPackageVars)
+    is(cmake_version_cmp(), $i <=> $j, "$i <=> $j") or last outer;
   }
 }
