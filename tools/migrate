@@ -30,7 +30,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 my $_cetmodules_top;
 
@@ -63,7 +63,7 @@ GetOptions($options, "help|h|?",
   ) or
   pod2usage(-exitval => 2);
 
-$options->{help} and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
+$options->{help}      and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
 $options->{"dry-run"} and info("[DRY_RUN] no files replaced or removed");
 
 scalar @ARGV or
@@ -72,7 +72,7 @@ scalar @ARGV or
               "vacuous source dir and \$CETPKG_SOURCE not set in environment")
   );
 
-my $owd = getcwd();
+my $owd     = getcwd();
 my @pkgdirs = map { abs_path($_); } @ARGV;
 for my $pkgtop (@pkgdirs) {
   chdir($pkgtop);
@@ -101,10 +101,11 @@ for my $pkgtop (@pkgdirs) {
   my $from = {
     map {
       ($_ =~ m&^(cet(?:buildtools|modules))$&x) ?
-        (name => $_, version => $pdinfo->{products}->{$1}->{q(-)}->{version})
-        :
+        (name    => $_,
+         version => $pdinfo->{products}->{$1}->{q(-)}->{version}
+        ) :
         ();
-      } keys %{ $pdinfo->{products} } };
+    } keys %{ $pdinfo->{products} } };
 
   if ($from and ($from->{name} // q()) eq "cetmodules") {
     info(<<'EOF');
@@ -150,7 +151,7 @@ sub _upgrade_ups_dir {
   my @src_files = (qw(setup_for_development));
   my $gentime   = gentime();
   foreach my $file (@src_files) {
-    my $nobuild = ($file eq "setup_deps") ? 'nobuild' : q();
+    my $nobuild     = ($file eq "setup_deps") ? 'nobuild' : q();
     my $pkgtop_file = "$_cetmodules_top/ups-templates/$file";
     -r "$pkgtop_file" or
       -r ($pkgtop_file = "$_cetmodules_top/ups-templates/setup.in") or
@@ -196,7 +197,7 @@ sub _backup_files {
         make_path($destdir);
         copy($_, "$destdir/") or
           error_exit("unable to back up $filepath to $destdir");
-        }
+      }
     },
     q(.));
   return;

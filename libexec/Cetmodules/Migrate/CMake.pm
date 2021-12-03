@@ -27,7 +27,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 
@@ -38,8 +38,8 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_call_handlers);
 
 @EXPORT_OK = (@CMAKE_FILE_TOOLS, @HANDLER_TOOLS);
 
-%EXPORT_TAGS =
-  (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS, HANDLER_TOOLS => \@HANDLER_TOOLS);
+%EXPORT_TAGS = (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS,
+                HANDLER_TOOLS    => \@HANDLER_TOOLS);
 
 
 sub find_cmake {
@@ -55,12 +55,12 @@ sub find_cmake {
 sub fix_cmake {
   my @args = @_;
   find({
-      preprocess => \&find_cmake,
-      wanted     => sub { fix_cmake_one(@args); }
-    },
-    q(.));
+         preprocess => \&find_cmake,
+         wanted     => sub { fix_cmake_one(@args); }
+       },
+       q(.));
   return;
-} ## end sub fix_cmake
+}
 
 
 sub fix_cmake_one {
@@ -98,7 +98,9 @@ sub generate_call_handlers {
         debug(<<"EOF");
 invoking wrapped migration handler $func_name\E() for CMake call $call_info->{name}\E() at $cmakelists:$call_info->{start_line}
 EOF
-        eval { &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options); } or 1;
+        eval {
+          &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options);
+        } or 1;
         $EVAL_ERROR and error_exit(<<"EOF");
 error calling handler $func_name\E() for CMake call $call_info->{name}\E() at $cmakelists:$call_info->{start_line}:
 $EVAL_ERROR
@@ -189,8 +191,7 @@ sub _upgrade_CML {
   } else {
     verbose(sprintf("%sno changes necessary to $cml_full%s",
                     $options->{"dry-run"} ? "[DRY_RUN] "       : q(),
-                    (-e $dest)            ? ": removing $dest" : q()
-                   ));
+                    (-e $dest)            ? ": removing $dest" : q()));
     $options->{debug} or (-e $dest and unlink $dest);
   }
   return;

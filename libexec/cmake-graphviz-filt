@@ -8,13 +8,7 @@ use Pod::Usage;
 
 Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
 
-my $options =
-  {
-   dicts => 0,
-   exes => 0,
-   extlibs => 0,
-   "test-tree" => 0
-  };
+my $options = { dicts => 0, exes => 0, extlibs => 0, "test-tree" => 0 };
 
 my $deleted_nodes = {};
 
@@ -28,8 +22,7 @@ if (-f $opt_file) {
   unshift @ARGV, @file_options;
 }
 
-GetOptions($options,
-           "dicts",
+GetOptions($options, "dicts",
            "no-dicts" => sub { $options->{dicts} = 0; },
            "exes",
            "no-exes" => sub { $options->{exes} = 0; },
@@ -39,7 +32,9 @@ GetOptions($options,
            "no-short-libnames" => sub { $options->{"short-libnames"} = 0; },
            "test-tree",
            "no-test-tree" => sub { $options->{"test-tree"} = 0; },
-           "help|h|?") or pod2usage(-exitval => 2);
+           "help|h|?"
+  ) or
+  pod2usage(-exitval => 2);
 
 $options->{help} and pod2usage(-exitval => 1, -verbose => 3);
 
@@ -51,19 +46,17 @@ while (<>) {
       $node->{$1} = $2;
     }
     $node->{type} = type_from_shape($node->{shape});
-    if ($options->{"short-libnames"} and
-        $node->{label} =~ m&/&) {
+    if ($options->{"short-libnames"} and $node->{label} =~ m&/&) {
       $node->{label} = basename($node->{label});
     }
     node_color($node);
     if (wanted($node)) {
       print_node($node);
     } else {
-      $deleted_nodes->{$node->{name}} = 1;
+      $deleted_nodes->{ $node->{name} } = 1;
     }
   } elsif (m&"(node\d+)" -> "(node\d+)"&) {
-    if (! exists $deleted_nodes->{$1} and
-        ! exists $deleted_nodes->{$2}) {
+    if (!exists $deleted_nodes->{$1} and !exists $deleted_nodes->{$2}) {
       print;
     }
   } elsif (m&node\d+ -> node\d+&) {
@@ -75,9 +68,10 @@ EOF
   } else {
     print;
   }
-}
+} ## end while (<>)
 
 1;
+
 
 sub node_color {
   my $node = shift;
@@ -100,7 +94,8 @@ sub node_color {
     $node->{style} = "filled";
     $node->{color} = "wheat1";
   }
-}
+} ## end sub node_color
+
 
 sub type_from_shape {
   my $shape = shift;
@@ -113,10 +108,11 @@ sub type_from_shape {
   } else {
     return "UNKNOWN";
   }
-}
+} ## end sub type_from_shape
+
 
 sub wanted {
-  my $node = shift;
+  my $node   = shift;
   my $result = 1;
   if ($node->{label} =~ m&^test_& and not $options->{"test-tree"}) {
     $result = 0;
@@ -130,15 +126,24 @@ sub wanted {
     $result = 0;
   }
   return $result;
-}
+} ## end sub wanted
+
 
 sub print_node {
   my $node = shift;
-  print sprintf('"%s" [ %s ]',
-                $node->{name},
-                join(" ", map { ($_ eq "name" or $_ eq "type")?():sprintf("$_=\"%s\"", $node->{$_}); } sort keys %$node)
-               ), "\n";
-}
+  print sprintf(
+    '"%s" [ %s ]',
+    $node->{name},
+    join(
+      " ",
+      map {
+        ($_ eq "name" or $_ eq "type") ? () :
+          sprintf("$_=\"%s\"", $node->{$_});
+        } sort keys %$node
+    )
+    ),
+    "\n";
+} ## end sub print_node
 
 __END__
 

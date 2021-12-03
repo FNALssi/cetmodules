@@ -14,7 +14,7 @@ our (@EXPORT);
 @EXPORT = qw(
   gentime
   trimline
-  );
+);
 
 
 sub gentime {

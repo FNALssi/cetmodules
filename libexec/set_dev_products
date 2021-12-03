@@ -32,13 +32,13 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 my ($_cetmodules_top, $_libexec);
 
 
 BEGIN {
-  $_libexec = $FindBin::RealBin;
+  $_libexec        = $FindBin::RealBin;
   $_cetmodules_top = abs_path(File::Spec->catfile($_libexec, q(..)));
 }
 
@@ -108,7 +108,7 @@ sub _check_for_old_product_deps {
 
 
 sub _consolidate_and_write {
-  my $tmpfl = "$builddir/setup_$pi->{name}";
+  my $tmpfl   = "$builddir/setup_$pi->{name}";
   my $tset_fh = IO::File->new("$tmpfl", ">") or
     error_exit("couldn't open $tmpfl for write");
 
@@ -232,7 +232,7 @@ sub _read_and_validate_args {
           $input_btype_candidates->{ $btype_lookup->{$opt} } = "-$opt";
           return;
         });
-       } keys %{$btype_lookup})
+     } keys %{$btype_lookup})
     ) or
     usage("error parsing arguments");
 
@@ -349,8 +349,8 @@ EOF
       error_exit("qualifiers specified but empty qualifier table in $pfile");
     @quals = keys %{$input_quals};
   } else {
-    scalar @default_quals or
-      not scalar %{$supported_quals} or
+    scalar @default_quals                                            or
+      not scalar %{$supported_quals}                                 or
       List::MoreUtils::any { $_ eq '-nq-' } keys %{$supported_quals} or
       error_exit(<<"EOF");
 qualifiers not specified, no defaults and no qualifers is not permitted by $pfile

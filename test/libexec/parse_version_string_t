@@ -21,7 +21,7 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void
-  );
+);
 
 use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
 
@@ -33,7 +33,7 @@ use Cetmodules::Util qw(
   to_ups_version
   to_version_string
   version_cmp
-  );
+);
 
 use warnings FATAL => qw(Cetmodules);
 
@@ -75,7 +75,9 @@ compare_or_show(parse_version_string('.develop'), $develop_ref);
 note('.versatility');
 more_tests(5);
 compare_or_show(parse_version_string('.versatility'),
-               {qw(extra versatility extra_text versatility extra_type 101)});
+                {
+                  qw(extra versatility extra_text versatility extra_type 101)}
+               );
 is(to_ups_version('.versatility'),    'vversatility');
 is(to_dot_version('.versatility'),    'versatility');
 is(to_cmake_version('.versatility'),  q());
@@ -251,7 +253,7 @@ my @v_ref_list = qw(
   2.3-snapshot-20210615000000.20003
   nightly-276
   snapshot-29100
-  );
+);
 
 my $nshuffles = 10_000;
 my $nfigs     = length $nshuffles;

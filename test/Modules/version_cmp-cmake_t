@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use warnings FATAL =>
-  qw(io regexp severe syntax uninitialized void);
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 use Cwd qw(abs_path);
 use File::Basename;
@@ -10,6 +9,7 @@ use File::Spec;
 use List::Util qw(shuffle);
 
 use vars qw ($_mydir $_pmdir);
+
 
 BEGIN {
   my $_me = readlink($0);
@@ -19,13 +19,13 @@ BEGIN {
     $_me = abs_path(File::Spec->catfile(dirname($0), $_me));
   }
   $_mydir = abs_path(dirname($_me));
-  $_pmdir =
-    abs_path(File::Spec->catfile($_mydir, '..', '..', 'libexec'));
-}
+  $_pmdir = abs_path(File::Spec->catfile($_mydir, '..', '..', 'libexec'));
+} ## end BEGIN
 
 use lib $_pmdir;
 
 use Test::More;
+
 
 sub compare_or_show {
   my $test = shift;
@@ -34,10 +34,10 @@ sub compare_or_show {
     diag(explain($test), " != ", explain($expected));
 }
 
-my $cmdir =
-  abs_path(File::Spec->catfile($_mydir, '..', '..', 'Modules'));
+my $cmdir = abs_path(File::Spec->catfile($_mydir, '..', '..', 'Modules'));
 
-my $ans_cache = { };
+my $ans_cache = {};
+
 
 sub cmake_version_cmp {
   my $ans;
@@ -47,31 +47,31 @@ sub cmake_version_cmp {
     $ans = -1 * $ans_cache->{"$b"}->{"$a"};
     $ans_cache->{"$a"}->{"$b"} = $ans;
   } else {
-    $ans = `cmake -DCMAKE_MODULE_PATH:STRING="$cmdir" -DVERSION_A:STRING="$a" -DVERSION_B:STRING="$b" -P "${_mydir}/version_cmp_t.cmake" | sed -Ene 's&^-- (-1|0|1)\$&\\1&p'`;
+    $ans =
+`cmake -DCMAKE_MODULE_PATH:STRING="$cmdir" -DVERSION_A:STRING="$a" -DVERSION_B:STRING="$b" -P "${_mydir}/version_cmp_t.cmake" | sed -Ene 's&^-- (-1|0|1)\$&\\1&p'`;
     chomp $ans;
     $ans_cache->{"$a"}->{"$b"} = $ans;
   }
   return $ans;
-}
+} ## end sub cmake_version_cmp
 
-my @v_ref_list =
-  qw(
-      1
-      1.2
-      1.2.0.0p1
-      v1_2_0_1pre6
-      2.3.0-snapshot-20210615
-      2.3-snapshot-20210615000000.2
-      2.3-snapshot-20210615000000.200025
-      2.3-snapshot-20210615000000.20003
-      nightly-276
-      snapshot-29100
-   );
+my @v_ref_list = qw(
+  1
+  1.2
+  1.2.0.0p1
+  v1_2_0_1pre6
+  2.3.0-snapshot-20210615
+  2.3-snapshot-20210615000000.2
+  2.3-snapshot-20210615000000.200025
+  2.3-snapshot-20210615000000.20003
+  nightly-276
+  snapshot-29100
+);
 
 plan tests => @v_ref_list * (@v_ref_list - 1);
 
-outer: for my $i (0..(@v_ref_list-1)) {
- inner:  for my $j (0..(@v_ref_list-1)) {
+outer: for my $i (0 .. (@v_ref_list - 1)) {
+inner: for my $j (0 .. (@v_ref_list - 1)) {
     next if $i == $j;
     $::a = $v_ref_list[$i];
     $::b = $v_ref_list[$j];

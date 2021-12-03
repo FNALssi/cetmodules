@@ -8,81 +8,99 @@ use vars qw($clang_ups_version);
 use Cwd qw(cwd getcwd abs_path);
 use Getopt::Long qw(:config no_ignore_case bundling);
 
+
 BEGIN {
-    $clang_version = "7.0.0";
-    $clang_ups_version = $clang_version =~ s/(\d+)\.(\d+)\.(\d+)/v$1_$2_$3/rg;
+  $clang_version     = "7.0.0";
+  $clang_ups_version = $clang_version =~ s/(\d+)\.(\d+)\.(\d+)/v$1_$2_$3/rg;
 }
 
-my $script_name = $0 =~ s|.*/([^/]+)|$1|rg; # Trims leading directories of script name
+my $script_name =
+  $0 =~ s|.*/([^/]+)|$1|rg; # Trims leading directories of script name
 my $commit;
 my $directory;
 my $verbose;
 my $use_available;
 my $dry_run;
-GetOptions("help|h|?" => \&help_message,
+GetOptions("help|h|?"      => \&help_message,
            "directory|d=s" => \$directory,
-           "commit|c" => \$commit,
-           "dry-run|n" => \$dry_run,
-           "verbose|v" => \$verbose,
-           "use-available" => \$use_available)
-    or die_while_processing_options();
+           "commit|c"      => \$commit,
+           "dry-run|n"     => \$dry_run,
+           "verbose|v"     => \$verbose,
+           "use-available" => \$use_available
+  ) or
+  die_while_processing_options();
 
 if (!defined $directory) {
-    print "The 'directory|d' command-line option is required:\n";
-    usage();
-    exit 1;
+  print "The 'directory|d' command-line option is required:\n";
+  usage();
+  exit 1;
 }
 
 if (defined $dry_run) {
-    print "The 'dry-run' option is not yet supported.\n";
-    exit 1;
+  print "The 'dry-run' option is not yet supported.\n";
+  exit 1;
 }
+
 
 sub usage {
-    print "Usage: $script_name -d <directory> [-c|-n] [-v] [--use-available]\n";
+  print "Usage: $script_name -d <directory> [-c|-n] [-v] [--use-available]\n";
 }
+
 
 sub help_message {
-    usage();
-    print "Options:\n";
-    print "  -d [--directory] arg   Top-level directory to apply formatting script.\n";
-    print "  -c [--commit]          Commit changes after code-formatting has been applied.\n";
-    print "                         To use the 'commit' option, you must have a clean working\n";
-    print "                         area before invoking this script.\n";
-    print "  -n [--dry-run]         No changes will be made.\n";
-    print "  -v [--verbose]\n";
-    print "  --use-available        Use the version of clang-format already set up for use.\n";
-    print "                         This option can be used to override clang-format $clang_version.\n";
-    exit;
-}
+  usage();
+  print "Options:\n";
+  print
+"  -d [--directory] arg   Top-level directory to apply formatting script.\n";
+  print
+"  -c [--commit]          Commit changes after code-formatting has been applied.\n";
+  print
+"                         To use the 'commit' option, you must have a clean working\n";
+  print "                         area before invoking this script.\n";
+  print "  -n [--dry-run]         No changes will be made.\n";
+  print "  -v [--verbose]\n";
+  print
+"  --use-available        Use the version of clang-format already set up for use.\n";
+  print
+"                         This option can be used to override clang-format $clang_version.\n";
+  exit;
+} ## end sub help_message
+
 
 sub die_while_processing_options {
-    usage();
-    print "Type '$script_name --help' for more information.\n";
-    exit 1;
+  usage();
+  print "Type '$script_name --help' for more information.\n";
+  exit 1;
 }
+
 
 sub check_for_clean_working_area {
+
   # We would prefer to use git -C $directory, but older versions of git do not
   # support the -C option.
-  unless (system("cd $directory; git diff --exit-code > /dev/null 2>&1") == 0) {
+  unless (system("cd $directory; git diff --exit-code > /dev/null 2>&1") == 0)
+  {
     if ($commit) {
-        print "Error: The following working area has uncommitted changes:\n";
-        print "         '".abs_path($directory)."'\n";
-        print "       Please commit them before running $script_name with\n";
-        print "       the 'commit|c' program option.\n";
-        exit 2;
+      print "Error: The following working area has uncommitted changes:\n";
+      print "         '" . abs_path($directory) . "'\n";
+      print "       Please commit them before running $script_name with\n";
+      print "       the 'commit|c' program option.\n";
+      exit 2;
     }
     print "\nWarning: Current working area has uncommitted changes.\n";
-    print "         It may be difficult to distinguish between changes made\n";
+    print
+      "         It may be difficult to distinguish between changes made\n";
     print "         by the code formatter and any uncommitted changes.\n\n";
-  }
-}
+  } ## end unless (system(...))
+} ## end sub check_for_clean_working_area
+
 
 sub find_files {
-  my $cpp_files_str = `find -L $directory \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -printf "%p "`;
+  my $cpp_files_str =
+`find -L $directory \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -printf "%p "`;
   return $cpp_files_str;
 }
+
 
 sub cleanup_whitespace {
   my $files_str = shift;
@@ -91,39 +109,43 @@ sub cleanup_whitespace {
   my $dos_files_str = `file $files_str | grep CRLF | cut -d ':' -f 1`;
   if ($dos_files_str ne '') {
     my @dos_files = split /^/m, $dos_files_str;
-    print "  Switching ",scalar @dos_files," files to UNIX format\n";
+    print "  Switching ", scalar @dos_files, " files to UNIX format\n";
     foreach (@dos_files) {
-        chomp(my $filename = $_);
-        my $tmp_filename = $filename.".tmp";
-        open my $in, '<', $filename || die "open $filename: $!";
-        open my $out, '>>', $tmp_filename || die "open $filename.tmp: $!";
-        while (<$in>) {
-            s/\r//g;
-            print $out $_;
-        }
-        close $in;
-        close $out;
-        rename($tmp_filename, $filename);
-        if ($verbose) {
-            print "    Changed file: ".$filename."\n";
-        }
-    }
-  }
-}
+      chomp(my $filename = $_);
+      my $tmp_filename = $filename . ".tmp";
+      open my $in,  '<',  $filename     || die "open $filename: $!";
+      open my $out, '>>', $tmp_filename || die "open $filename.tmp: $!";
+      while (<$in>) {
+        s/\r//g;
+        print $out $_;
+      }
+      close $in;
+      close $out;
+      rename($tmp_filename, $filename);
+      if ($verbose) {
+        print "    Changed file: " . $filename . "\n";
+      }
+    } ## end foreach (@dos_files)
+  } ## end if ($dos_files_str ne ...)
+} ## end sub cleanup_whitespace
+
 
 sub apply_clang_format {
+
   # clang-format removes trailing whitespace errors, so we do not
   # worry about those.
 
   my ($format_program, $files_str) = @_;
   print "  Applying clang-format $clang_version\n";
+
   # clang-format will use the style file located in a parent directory
   # of the specified directory.  Because we require that (1) the
   # directory is inside of a git repository and (2) that the top-level
   # directory of the git repository contains a .clang-format file, we
   # are guaranteed to use the correct style file.
   system("$format_program -i -style=file $files_str");
-}
+} ## end sub apply_clang_format
+
 
 sub report_changed_files {
   my $changed_files_str = `cd $directory; git diff --name-only`;
@@ -139,77 +161,95 @@ sub report_changed_files {
       print "  $_";
     }
   } else {
-      print "Changed ".scalar(@changed_files)." files\n";
+    print "Changed " . scalar(@changed_files) . " files\n";
   }
 
   if ($commit) {
-    system("cd $directory; git add .; git commit -m 'Apply clang-format $clang_version.'");
+    system(
+"cd $directory; git add .; git commit -m 'Apply clang-format $clang_version.'"
+    );
   }
-}
+} ## end sub report_changed_files
 
 unless (-d "$directory") {
-    print "Cannot access directory '$directory' from current working directory '", getcwd, "'\n";
-    exit 3;
+  print
+    "Cannot access directory '$directory' from current working directory '",
+    getcwd, "'\n";
+  exit 3;
 }
 
 # Check that we are first in a git repository
 if (system("type git > /dev/null 2>&1") != 0) {
-    print "Error: cannot use $script_name without git.\n";
-    exit 2;
+  print "Error: cannot use $script_name without git.\n";
+  exit 2;
 }
 
-chomp(my $in_git_repository = `cd $directory; git rev-parse --is-inside-work-tree 2>/dev/null`);
+chomp(my $in_git_repository =
+      `cd $directory; git rev-parse --is-inside-work-tree 2>/dev/null`);
 if ($in_git_repository ne "true") {
-    print "Error: the specified directory must be within a git repository.\n";
-    exit 4;
+  print "Error: the specified directory must be within a git repository.\n";
+  exit 4;
 }
 
 # Check for .clang-format file in repository
 chomp(my $git_top_level = `cd $directory; git rev-parse --show-toplevel`);
 unless (-f "$git_top_level/.clang-format") {
-    print "Error: the specified repository does not have a .clang-format file.\n";
-    exit 5;
+  print
+    "Error: the specified repository does not have a .clang-format file.\n";
+  exit 5;
 }
 
 my $clang_format_program;
-my $clang_format_available = system("type clang-format > /dev/null 2>&1") == 0;
+my $clang_format_available =
+  system("type clang-format > /dev/null 2>&1") == 0;
 my $search_ups = 1;
 if ($clang_format_available) {
-    $clang_format_program = "clang-format";
-    chomp(my $available_version = `clang-format --version | head -1`);
-    $available_version =~ s/clang-format version (\d+\.\d+\.\d+).*/$1/g;
-    if ($use_available) {
-        # No search necessary as the available version is what is desired
-        if ($available_version !~ $clang_version) {
-            print "\nWarning: The 'use-available' option has been specified, which will use\n";
-            print "         clang-format $available_version instead of the expected version ($clang_version).\n\n";
-        }
-        $clang_version = $available_version;
-        $search_ups = undef;
+  $clang_format_program = "clang-format";
+  chomp(my $available_version = `clang-format --version | head -1`);
+  $available_version =~ s/clang-format version (\d+\.\d+\.\d+).*/$1/g;
+  if ($use_available) {
+
+    # No search necessary as the available version is what is desired
+    if ($available_version !~ $clang_version) {
+      print
+"\nWarning: The 'use-available' option has been specified, which will use\n";
+      print
+"         clang-format $available_version instead of the expected version ($clang_version).\n\n";
     }
-    if ($available_version =~ $clang_version) {
-        # No search necessary as the correct version is available
-        $search_ups = undef;
-    }
-}
+    $clang_version = $available_version;
+    $search_ups    = undef;
+  } ## end if ($use_available)
+  if ($available_version =~ $clang_version) {
+
+    # No search necessary as the correct version is available
+    $search_ups = undef;
+  }
+} ## end if ($clang_format_available)
 
 if ($search_ups) {
-    # For case where clang-format is not readily available, but there
-    # might be a version accessible in UPS.
-    my $ups_available = system("type ups > /dev/null 2>&1") == 0;
-    if (system("type ups > /dev/null 2>&1") != 0 ||
-        system("ups exist clang $clang_ups_version") != 0) {
-        print "Error: clang-format $clang_version is not available.  If you have a UPS\n";
-        print "       products area, you can download a binary distribution from\n";
-        print "       https://scisoft.fnal.gov/scisoft/packages/clang/$clang_ups_version\n";
-        print "       Please ensure that you have set up your UPS products area.\n";
-        exit 7;
-    }
-    chomp($clang_format_program = `. \$(\${UPS_DIR}/bin/ups setup clang $clang_ups_version) && type -p clang-format`);
-}
+
+  # For case where clang-format is not readily available, but there
+  # might be a version accessible in UPS.
+  my $ups_available = system("type ups > /dev/null 2>&1") == 0;
+  if (system("type ups > /dev/null 2>&1") != 0 ||
+      system("ups exist clang $clang_ups_version") != 0) {
+    print
+"Error: clang-format $clang_version is not available.  If you have a UPS\n";
+    print
+      "       products area, you can download a binary distribution from\n";
+    print
+"       https://scisoft.fnal.gov/scisoft/packages/clang/$clang_ups_version\n";
+    print
+      "       Please ensure that you have set up your UPS products area.\n";
+    exit 7;
+  } ## end if (system("type ups > /dev/null 2>&1"...))
+  chomp($clang_format_program =
+`. \$(\${UPS_DIR}/bin/ups setup clang $clang_ups_version) && type -p clang-format`
+  );
+} ## end if ($search_ups)
 
 check_for_clean_working_area();
-print "Re-formatting files in directory '".abs_path($directory)."'\n";
+print "Re-formatting files in directory '" . abs_path($directory) . "'\n";
 my $files_str = find_files();
 if ($files_str =~ /^\s*$/) {
   print "No files were changed.\n";
