@@ -2,4 +2,3 @@
 [-ErrorHandling::RequireUseOfExceptions]
 [-Miscellanea::RequireRcsKeywords]
 [-Modules::RequireVersionVar]
-[-ValuesAndExpressions::RequireNumberSeparators]
