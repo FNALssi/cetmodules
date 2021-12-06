@@ -20,15 +20,12 @@ needed_modules() {
             scandeps.pl -c -R -V -T -C "$CETPKG_BUILD/scandeps-cache.dat" "$@" | \
       sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
   } 2>/dev/null
-  (( $? == 0 )) || \
-    { echo "ERROR: unable to identify Perl modules needed by set_dev_products" 1>&2; exit 1; }
 }
 
 install_modules_for() {
   local needed_modules=($(needed_modules "$@"))
   (( ${#needed_modules[@]} == 0 )) || \
-    cpan install ${needed_modules[*]:+"${needed_modules[@]}"} || \
-    { echo "ERROR: unable to install Perl modules: ${needed_modules[*]}" 1>&2; exit 1; }
+    cpan install ${needed_modules[*]:+"${needed_modules[@]}"}
 }
 
 ########################################################################
@@ -43,13 +40,14 @@ cpan_build="$CETPKG_BUILD/cpan_build"
 cpan_export="$CETPKG_BUILD/CPAN"
 cpan_tmp="$CETPKG_BUILD/.cpan/tmp"
 
-echo "INFO: bootstrapping Perl environment for cetmodules..." 1>&2
-
+(( TIME_TOTAL = 0 ))
+echo "bootstrapping Perl environment for cetmodules (may take >=15 minutes for a pristine install)..." 1>&2
 mkdir -p "$cpan_tmp" && cd "$cpan_tmp" || \
     { echo "ERROR: unable to prepare temporary work area $cpan_tmp" 1>&2; exit 1; }
 
 if ! [ -e "$cpan_build/lib/perl5/local/lib.pm" ]; then
-  echo "INFO: bootstrapping a local::lib Perl environment for cetmodules..." 1>&2
+  (( SECONDS = 0 ))
+  echo "bootstrapping a local::lib Perl environment for cetmodules..." 1>&2
   # Copy our CPAN configuration into a place where it will be found.
   mkdir -p "$cpan_build/lib/perl5/CPAN"
   cp "$CETPKG_SOURCE/CPAN/MyConfig.pm" "$cpan_build/lib/perl5/CPAN/"
@@ -75,9 +73,14 @@ sed -nEe '/itemprop="downloadUrl"/ s&^.*href="([^"]+)".*$&\1&p')"
   sed -Ei'' \
       -e 's&CPAN::Config->load&CPAN::HandleConfig->load&g' \
       inc/CPANBootstrapper.pm
-  { perl Makefile.PL --bootstrap="$cpan_build" && make test && make install; } 2>&1 || \
-    { echo "ERROR: unable to bootstrap an installation of local::lib" 1>&2; exit 1; }
+  { perl Makefile.PL --bootstrap="$cpan_build" && make test && make install; } 2>&1 \
+    || status=FAILED
   cd - >/dev/null
+  (( TIME = SECONDS ))
+  (( TIME_TOTAL += TIME ))
+  printf "bootstrapping a local::lib Perl environment for cetmodules...${status:-OK} (%d:%02d)\n" \
+         $((TIME / 60)) $((TIME % 60)) 1>&2
+  [ -z "${status}" ] || exit 1
 fi
 
 # Set up the environment to use our installed Perl modules.
@@ -86,35 +89,74 @@ eval "$(perl -I"$cpan_build/lib/perl5" -Mlocal::lib="$cpan_build")" || \
 
 # Install modules we need to examine what is needed to run
 # set_dev_products and friends.
-echo "INFO: install/verify Perl distribution tools for cetmodules..." 1>&2
+(( SECONDS = 0 ))
+echo "install/verify Perl distribution tools for cetmodules..." 1>&2
 cpan install YAML CPAN::SQLite && \
-  cpan install Log::Log4perl ExtUtils::CBuilder CPAN CPANPLUS Module::ScanDeps || \
-  { echo "ERROR: unable to install Perl module Module::ScanDeps and dependencies" 1>&2; exit 1; }
+  cpan install Log::Log4perl ExtUtils::CBuilder CPAN CPANPLUS Module::ScanDeps \
+     || status=FAILED
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+printf "install/verify Perl distribution tools for cetmodules...${status:-OK} (%d:%02d)\n" \
+       $((TIME / 60)) $((TIME % 60)) 1>&2
+[ -z "${status}" ] || exit 1
 
 # Set up the environment to install Perl modules for export.
 eval "$(perl -I"$cpan_build" -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
   { echo "ERROR: unable to set up environment to install Perl modules for export" 1>&2; exit 1; }
 
 # Install local::lib for export.
-echo "INFO: install/verify local::lib for export..." 1>&2
-cpan install local::lib || \
-  { echo "ERROR: unable to install Perl module local::lib for export" 1>&2; exit 1; }
+(( SECONDS = 0 ))
+echo "install/verify local::lib for export..." 1>&2
+cpan install local::lib || status=FAILED
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+printf "install/verify local::lib for export...${status:-OK} (%d:%02d)\n" \
+       $((TIME / 60)) $((TIME % 60)) 1>&2
+[ -z "${status}" ] || exit 1
 
 # Install Perl modules needed by set_dev_products and migrate.
-echo "INFO: install/verify Perl modules required by cetmodules tools for export..." 1>&2
+(( SECONDS = 0 ))
+echo "install/verify Perl modules required by cetmodules tools for export..." 1>&2
 install_modules_for \
   $(find  "$CETPKG_SOURCE/libexec" -name '*.pm') \
   "$CETPKG_SOURCE/libexec/set_dev_products" \
-  "$CETPKG_SOURCE/tools/migrate"
+  "$CETPKG_SOURCE/tools/migrate" || status=FAILED
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+printf "install/verify Perl modules required by cetmodules tools for export...${status:-OK} (%d:%02d)\n" \
+       $((TIME / 60)) $((TIME % 60)) 1>&2
+[ -z "${status}" ] || exit 1
 
-# Revert environment for test requirements.
+# Revert environment for dev/build/test requirements.
 eval "$(perl -I"$cpan_build" -Mlocal::lib=--deactivate,"$cpan_export")" || \
   { echo "ERROR: unable to revert to environment for installation of build-only Perl modules" 1>&2; exit 1; }
 
-# Install test requirements.
-echo "INFO: install/verify Perl modules required by cetmodules tests..." 1>&2
+# Install modules to aid development
+(( SECONDS = 0 ))
+echo "install/verify Perl modules for cetmodules development..." 1>&2
+cpan install Perl::Tidy || status=FAILED
 install_modules_for "$CETPKG_SOURCE/test/libexec/"*_t
-echo "INFO: bootstrapping Perl environment for cetmodules COMPLETE" 1>&2
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+printf "install/verify Perl modules for cetmodules development...${status:-OK} (%d:%02d)\n" \
+       $((TIME / 60)) $((TIME % 60)) 1>&2
+[ -z "${status}" ] || exit 1
+
+# Install modules for build/test
+(( SECONDS = 0 ))
+echo "install/verify Perl modules for cetmodules build/test..." 1>&2
+cpan install B::Lint {Test,Task}::Perl::Critic \
+  && install_modules_for "$CETPKG_SOURCE/test/"{Modules,libexec}/*_t \
+    || status=FAILED
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+printf "install/verify Perl modules for cetmodules build/test...${status:-OK} (%d:%02d)\n" \
+       $((TIME / 60)) $((TIME % 60)) 1>&2
+[ -z "${status}" ] || exit 1
+
+# Done.
+printf "bootstrapping Perl environment for cetmodules...COMPLETE (%d:%02d)\n" \
+       $((TIME_TOTAL / 60)) $((TIME_TOTAL % 60)) 1>&2
 
 ### Local Variables:
 ### mode: sh

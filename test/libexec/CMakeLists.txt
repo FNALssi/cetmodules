@@ -3,8 +3,8 @@
 
 set(PERL_TEST_SCRIPTS
   ${CMAKE_CURRENT_SOURCE_DIR}/parse_version_string_t
-  ${CMAKE_CURRENT_SOURCE_DIR}/shortest_unique_prefix_t
   ${CMAKE_CURRENT_SOURCE_DIR}/quote_handling_t
+  ${CMAKE_CURRENT_SOURCE_DIR}/shortest_unique_prefix_t
   )
 
 set(PERL_FILES
@@ -18,10 +18,12 @@ set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/Setup.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/LintWarn.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/VariableSaver.pm
   ${PROJECT_SOURCE_DIR}/libexec/set_dev_products
   ${PROJECT_SOURCE_DIR}/tools/migrate
   ${PERL_TEST_SCRIPTS}
+  ${PROJECT_SOURCE_DIR}/test/Modules/version_cmp-cmake_t
   )
 
 execute_process(COMMAND perl -MO=Lint INPUT_FILE /dev/null
@@ -34,25 +36,45 @@ else()
 endif()
 
 find_program(PERLCRITIC NAMES perlcritic)
+if (PERLCRITIC)
+  set(BLINT_IS_FIXTURE TRUE)
+else()
+  unset(BLINT_IS_FIXTURE)
+endif()
 
 ##################
 # B::Lint.
 if (HAVE_BLint)
-  set(BLint_COMMAND perl
-    -MO=Lint,all,no-implicit-read,no-implicit-write,no-dollar-underscore)
-  foreach (pfut IN LISTS PERL_FILES)
-    string(MAKE_C_IDENTIFIER "${pfut}_BLint" pfut_t)
+  set(lintwarn_t Cetmodules::Util::LintWarn_Blint)
+  string(JOIN ":" p5lib "${PROJECT_BINARY_DIR}/libexec" "${PROJECT_SOURCE_DIR}/libexec" $ENV{PERL5LIB} "")
+  foreach(pfut IN LISTS PERL_FILES)
+    if (pfut MATCHES "(^|/)Cetmodules/Util/LintWarn\.pm$")
+      set(pfut_t ${lintwarn_t})
+      set(lintwarn_opts "-Mwarnings FATAL => qw(all)")
+      unset(REQ_LINTWARN)
+    else()
+      string(MAKE_C_IDENTIFIER "${pfut}_BLint" pfut_t)
+      set(lintwarn_opts -MCetmodules::Util::LintWarn)
+      set(REQ_LINTWARN TRUE)
+    endif()
     add_test(NAME ${pfut_t}
-      COMMAND ${BLint_COMMAND} "${pfut}"
+      COMMAND perl
+      ${lintwarn_opts}
+      -MO=Lint,all,no-implicit-read,no-implicit-write,no-dollar-underscore
+      "${pfut}"
       )
-    STRING(JOIN ":" p5lib "${PROJECT_BINARY_DIR}/libexec:${PROJECT_SOURCE_DIR}/libexec" $ENV{PERL5LIB} "")
     set_tests_properties(${pfut_t} PROPERTIES
       ENVIRONMENT "PERL5LIB=${p5lib}"
       LABELS "DEFAULT;RELEASE"
       )
-    if (PERLCRITIC)
+    if (BLINT_IS_FIXTURE OR NOT REQ_LINTWARN)
       set_property(TEST ${pfut_t}
         PROPERTY FIXTURES_SETUP ${pfut_t}
+        )
+    endif()
+    if (REQ_LINTWARN)
+      set_property(TEST ${pfut_t}
+        PROPERTY FIXTURES_REQUIRED ${lintwarn_t}
         )
     endif()
   endforeach()
@@ -65,8 +87,57 @@ if (PERLCRITIC)
   # Run perlcritic with decreasing tolerance for each file in turn; a
   # lower tolerance test for a given file will not be run if a higher
   # tolerance test failed, allowing the failed test's identity to denote
-  # the severity level of the failed perlcritic criterion.
+  # the severity level of any failed perlcritic criteria.
   set(PERLCRITIC_COMMAND perlcritic --color --verbose=8)
+  set(PERLCRITIC_THEMES_EXP "\
+(
+  ( bangs
+  + bugs
+  + certrec
+  + certrule
+  + compatibility
+  + complexity
+  + core
+  + cosmetic
+  + editor
+  + efficiency
+  + maintenance
+  + moose
+  + pbp
+  + performance
+  + portability
+  + readability
+  + roles
+  + security
+  + storable
+  + tests
+  + unicode
+  )
+  -
+  ( JTRAMMELL
+  + danger
+  + itch
+  + lax
+  + nits
+  + notrecommended
+  + petpeeves
+  + pulp
+  + risky
+  + strictersubs
+  + swift
+  + tics
+  )
+)
+*
+( ! more ) \
+")
+  if (NOT "${PERLCRITIC_THEMES_EXP}" STREQUAL "")
+    string(REGEX REPLACE "[ \t\n]+" "" PERLCRITIC_THEMES_EXP
+      "${PERLCRITIC_THEMES_EXP}")
+    list(APPEND PERLCRITIC_COMMAND --theme "(${PERLCRITIC_THEMES_EXP})")
+  endif()
+  list(APPEND PERLCRITIC_COMMAND --exclude "\\bBangs::ProhibitCommentedOutCode\$")
+  list(APPEND PERLCRITIC_COMMAND --statistics)
   set(MAX_SEV 5)
   set(MIN_SEV 2)
   foreach (pfut IN LISTS PERL_FILES)
@@ -86,7 +157,7 @@ if (PERLCRITIC)
     while (NOT MIN_SEV GREATER sev)
       string(MAKE_C_IDENTIFIER "${pfut}_perlcritic_${sev}" pfut_t)
       add_test(NAME ${pfut_t}
-        COMMAND ${PERLCRITIC_COMMAND} -${sev} ${rc_args} "${pfut}"
+        COMMAND ${PERLCRITIC_COMMAND} --severity ${sev} ${rc_args} "${pfut}"
         )
       if (HAVE_BLint)
         set_property(TEST ${pfut_t} PROPERTY FIXTURES_REQUIRED ${pfut_BLint})

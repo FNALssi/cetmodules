@@ -1,5 +1,3 @@
-severity = 2
-
 [-BuiltinFunctions::ProhibitComplexMappings]
 [-ErrorHandling::RequireCarping]
 [-ErrorHandling::RequireUseOfExceptions]
