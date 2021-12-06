@@ -467,12 +467,10 @@ EOF
       $project_info->{cmake_project_version_info} = $vsinfo;
       tag_changed($call_info,
                  "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
-      if (my $vs_call_info =
-          dclone($_cml_state->{seen_calls}->{set_CMAKE_PROJECT_VERSION_STRING}
-                )
-        ) {
+      if (my $vs_call_info = $_cml_state->{seen_calls}->{set}->{CMAKE_PROJECT_VERSION_STRING}) {
         # This was seen too early and removed: reinstate it here with
         # the correct indentation.
+        $vs_call_info = dclone($vs_call_info->[0]);
         if ($call_info->{pre_call_ws}) {
           $vs_call_info->{pre_call_ws} = $call_info->{pre_call_ws};
         } else {
@@ -551,7 +549,7 @@ sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
     @_HANDLED_SET_VARS
     ) {
     # We have a match and (hopefully) a handler therefor.
-    $_cml_state->{seen_calls}->{ set_ $set_var_name} = $call_info;
+    push @{$_cml_state->{seen_calls}->{set}->{$set_var_name}}, $call_info;
     local $EVAL_ERROR; ## no critic qw(RequireInitializationForLocalVars)
     my $func_name = "Cetmodules::Migrate::CMake::Handlers\::_$set_var_name";
     my $func_ref  = \&{$func_name};
@@ -646,7 +644,6 @@ qx(sed -Ene 's&^[[:space:]]*cmake_minimum_required[(][[:space:]]*VERSION[[:space
 ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
 sub _set_CMAKE_PROJECT_VERSION_STRING {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  $_cml_state->{seen_calls}->{set_CMAKE_PROJECT_VERSION_STRING} = $call_info;
   if (not $_cml_state->{seen_calls}->{project}) { # Too early.
     warning(<<"EOF");
 Project variable CMAKE_PROJECT_VERSION_STRING set at $cmakelists:$call_info->{start_line} must follow project() and precede cet_cmake_env() - relocating.
