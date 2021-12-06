@@ -374,7 +374,24 @@ sub find_library {
 
 sub find_package {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
+  my $package_to_find = interpolated(arg_at($call_info, 0));
+  if ($package_to_find =~ m&\A(cet(?:modules|buildtools))\z&msx and
+      (exists $_cml_state->{project_info} or
+       (exists $_cml_state->{seen_calls} and
+        exists $_cml_state->{seen_calls}->{ $call_info->{name} } and
+        scalar keys $_cml_state->{seen_calls}->{ $call_info->{name} }->{cetmodules}))) {
+    info(<<"EOF");
+removing late, redundant $call_info->{name}($1) at line $call_info->{start_line}
+EOF
+    pop(@{$call_infos});
+  } else {
+    if ($package_to_find eq 'cetbuildtools') {
+      tag_changed($call_info, "$package_to_find -> cetmodules");
+      $package_to_find = 'cetmodules';
+      replace_arg_at($call_info, 0, $package_to_find);
+    }
+    $_cml_state->{seen_calls}->{ $call_info->{name} }->{$package_to_find}->{$call_info->{start_line}} = $call_info;
+  }
   return;
 }
 
