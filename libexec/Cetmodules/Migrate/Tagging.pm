@@ -82,7 +82,22 @@ sub remove_directive {
 
 sub tag {
   my ($textref, $type, $extra) = @_;
-  defined $extra or $extra = q();
+  my $text;
+  given (ref $textref) {
+    when (undef) {
+      $text = $textref;
+      $textref = \$text;
+    }
+    when ('SCALAR') { }
+    when ('HASH' and exists $textref->{post}) {
+      $textref = \$textref->{post};
+    }
+    default {
+      error_exit(<<"EOF");
+cannot tag unknown entity $textref
+EOF
+    }
+  }
   tagged($textref, $type, $extra) or
     ${$textref} =~ s&[ \t]*(\Z)& ### MIGRATE-$type$extra$1&msx;
   return ${$textref};
@@ -90,15 +105,17 @@ sub tag {
 
 
 sub tag_added {
-  my ($textref) = @_;
-  return tag($textref, "ADDED (migrate-$CETMODULES_VERSION)");
+  my ($textref, $extra) = @_;
+  return tag($textref, "ADDED (migrate-$CETMODULES_VERSION)",
+             ($extra) ? " - $extra" : ());
 }
 
 
 sub tag_changed {
-  my ($textref) = @_;
+  my ($textref, $extra) = @_;
   remove_all_directives($textref);
-  return tag($textref, "CHANGED (migrate-$CETMODULES_VERSION)");
+  return tag($textref, "CHANGED (migrate-$CETMODULES_VERSION)",
+             ($extra) ? " - $extra" : ());
 }
 
 
