@@ -86,7 +86,7 @@ Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
 # Private variables
 ########################################################################
 
-my $_cml_state              = { seen_calls => {} };
+my $_cml_state              = { };
 my $_cmake_required_version = _read_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
 
@@ -237,7 +237,7 @@ sub cet_report_compiler_flags {
 
 sub cmake_minimum_required {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  my $edited;
+  my $edit;
   if ($_cml_state->{seen_calls}->{ $call_info->{name} }) {
     debug(<<"EOF");
 ignoring duplicate $call_info->{name}() at line $call_info->{start_line} \
@@ -260,7 +260,7 @@ EOF
 ill-formed $call_info->{name}() at line $call_info->{start_line} (no VERSION) will be corrected
 EOF
     append_args($call_info, 'VERSION', $_cmake_required_version);
-    $edited = 1;
+    $edit = "added missing keyword VERSION";
   } else {
     my ($req_version_idx) =
       find_single_value_for($call_info, qw(VERSION 1 FATAL_ERROR));
@@ -273,7 +273,7 @@ EOF
                                           $call_info, 'VERSION', 'FATAL_ERROR'
                                                 ),
                      $_cmake_required_version);
-      $edited = 1;
+      $edit = 1;
     } else {
       my $req_version = arg_at($call_info, $req_version_idx);
       my ($req_version_int, $is_literal) = interpolated($req_version);
@@ -304,20 +304,20 @@ EOF
           my $line = <<"EOF";
 $call_info->{pre_call_ws}\Ecmake_policy(VERSION $policy)
 EOF
-          tag_added(\$line);
+          tag_added(\$line, "CMake compatibility");
           push @{$call_infos}, $line;
         }
-        replace_arg_at($call_info, $req_version_idx,
-                       join('...', $_cmake_required_version, $vmax // ()));
-        $edited = 1;
+        my $new_req_version = join(q(...), $_cmake_required_version, $vmax // ());
+        $edit = sprintf("VERSION %s -> $new_req_version", arg_at($call_info, $req_version_idx));
+        replace_arg_at($call_info, $req_version_idx, $new_req_version);
       } ## end if (version_cmp($vmin,...))
     } ## end else [ if (not $req_version_idx)]
   } ## end else [ if (not has_keyword($call_info...))]
+  defined $edit and tag_changed($call_info, $edit || ());
   if (not has_keyword($call_info, 'FATAL_ERROR')) {
     append_args($call_info, 'FATAL_ERROR');
-    $edited = 1;
+    tag_changed($call_info, "added FATAL_ERROR");
   }
-  $edited and tag_changed(\$call_info->{post});
   return;
 } ## end sub cmake_minimum_required
 
@@ -465,7 +465,8 @@ EOF
       $project_info->{cmake_project_version} =
         $cpi->{CMAKE_PROJECT_VERSION_STRING};
       $project_info->{cmake_project_version_info} = $vsinfo;
-      tag_changed($call_info);
+      tag_changed($call_info,
+                 "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
       if (my $vs_call_info =
           dclone($_cml_state->{seen_calls}->{set_CMAKE_PROJECT_VERSION_STRING}
                 )
@@ -477,7 +478,7 @@ EOF
         } else {
           delete $vs_call_info->{pre_call_ws};
         }
-        tag_added($vs_call_info);
+        tag_changed($vs_call_info, "moved from line $vs_call_info->{start_line}");
         push @{$call_infos}, $vs_call_info;
       } ## end if (my $vs_call_info =...)
     } else {
@@ -492,7 +493,8 @@ EOF
         remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
         add_args_after($call_info, 0, 'VERSION',
                        $cpi->{CMAKE_PROJECT_VERSION_STRING});
-        tag_changed($call_info);
+        tag_changed($call_info,
+                    "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
       } ## end if (defined $cpi->{cmake_project_version...})
     } ## end else [ if ($vsinfo->{extra}) ]
   } elsif (defined $cpi->{cmake_project_version} and defined $pi->{version})
@@ -510,7 +512,7 @@ EOF
       my $line = <<"EOF";
 $call_info->{pre_call_ws}\Eset($project_info->{cmake_project_name} $project_info->{cmake_project_version})
 EOF
-      tag_added(\$line);
+      tag_added(\$line, "extended version semantics");
       push @{$call_infos}, $line;
 
       # Remove any empty VERSION keywords.
@@ -519,7 +521,8 @@ EOF
       remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);
       add_args_after($call_info, 0, 'VERSION',
                      $cpi->{CMAKE_PROJECT_VERSION_STRING});
-      tag_changed($call_info);
+      tag_changed($call_info,
+                  "set(CMAKE_PROJECT_VERSION_STRING) -> VERSION");
     }
   } ## end elsif (not defined $cpi->...)
   return;
