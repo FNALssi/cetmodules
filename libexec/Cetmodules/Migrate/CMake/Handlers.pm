@@ -92,143 +92,103 @@ my $_default_crv     = "3.19";
 # Exported functions
 ########################################################################
 sub add_compile_definitions {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_compile_definitions
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_compile_options {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_compile_options
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_definitions {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_definitions
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_dependencies {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_dependencies
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_link_options {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_link_options
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_subdirectory {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_subdirectory
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub add_test {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub add_test
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub art_dictionary {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub art_dictionary
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub art_make {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub art_make
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub art_make_library {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub art_make_library
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub basic_plugin {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub basic_plugin
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub build_dictionary {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub build_dictionary
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub build_plugin {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub build_plugin
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_cmake_config {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_cmake_config
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_cmake_env {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_cmake_env
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_find_library {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_find_library
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_make {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_make
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_make_library {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_make_library
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_make_executable {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_make_executable
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cet_report_compiler_flags {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cet_report_compiler_flags
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub cmake_minimum_required {
@@ -325,10 +285,8 @@ EOF
 
 
 sub cmake_policy {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub cmake_policy
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub comment_handler {
@@ -338,17 +296,13 @@ sub comment_handler {
 
 
 sub endfunction {
-  my @args = @_;
-  _end_call_definition(@args);
-  return;
-} ## end sub endfunction
+  goto &_end_call_definition; # Delegate.
+}
 
 
 sub endmacro {
-  my @args = @_;
-  _end_call_definition(@args);
-  return;
-} ## end sub endmacro
+  goto &_end_call_definition; # Delegate.
+}
 
 
 sub eof_handler {
@@ -360,17 +314,13 @@ sub eof_handler {
 
 
 sub function {
-  my @args = @_;
-  _call_definition(@args);
-  return;
-} ## end sub function
+  goto &_call_definition; # Delegate.
+}
 
 
 sub find_library {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub find_library
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub find_package {
@@ -489,38 +439,28 @@ sub find_ups_root {
 
 
 sub include_directories {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub include_directories
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub link_directories {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub link_directories
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub link_libraries {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub link_libraries
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub link_options {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub link_options
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub macro {
-  my @args = @_;
-  _call_definition(@args);
-  return;
-} ## end sub macro
+  goto &_call_definition;     # Delegate.
+}
 
 
 sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
@@ -647,10 +587,8 @@ EOF
 
 
 sub remove_definitions {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub remove_definitions
+  goto &_handler_placeholder; # Delegate.
+}
 my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
 );
 
@@ -684,17 +622,13 @@ EOF
 
 
 sub simple_plugin {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub simple_plugin
+  goto &_handler_placeholder; # Delegate.
+}
 
 
 sub subdirs {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub subdirs
+  goto &_handler_placeholder; # Delegate.
+}
 
 ########################################################################
 # Private functions
@@ -805,6 +739,13 @@ my $_product_to_package_table = { boost    => 'Boost',
                                   tbb      => 'TBB',
                                   xerces_c => 'XercesC',
                                 };
+
+
+sub _handler_placeholder {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  debug("in handler for $call_info->{name}()");
+  return;
+} ## end sub _handler_placeholder
 
 
 sub _product_to_package {
