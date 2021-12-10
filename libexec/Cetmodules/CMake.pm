@@ -682,7 +682,7 @@ sub remove_args_for {
 } #-# End sub remove_args_for
 
 # Remove all instances of keyword and any arguments thereto, and return
-# a list of removed arguments *with* any quotes.
+# a list of removed items *with* any quotes.
 sub remove_keyword {
   my ($call_info, $kw, @args) = @_;
   my $found_args = find_args_for($call_info, $kw, @args);
