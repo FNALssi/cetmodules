@@ -634,6 +634,10 @@ EOF
 sub remove_definitions {
   goto &_handler_placeholder; # Delegate.
 }
+
+####################################
+# Private constants used by set()
+####################################
 my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
 );
 
@@ -718,6 +722,10 @@ EOF
   } ## end else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
   return;
 } ## end sub _end_call_definition
+
+####################################
+# Private constants used by _find_package_keywords()
+####################################
 my @_cmake_fp_kw;
 my @_cet_fp_kw =
   qw(BUILD_ONLY EXPORT INTERFACE NOP OPTIONAL PROJECT PUBLIC PRIVATE REQUIRED_BY);
