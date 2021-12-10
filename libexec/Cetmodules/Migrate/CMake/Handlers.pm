@@ -469,7 +469,7 @@ sub macro {
 } #-# End sub macro
 
 
-sub project {
+sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
@@ -479,7 +479,15 @@ ignoring subsequent $call_info->{name}() at line $call_info->{start_line} \
 previously seen at $_cml_state->{seen_calls}->{$call_info->{name}}->{start_line}
 EOF
     return;
-  } #-# End if ($_cml_state->{seen_calls...})
+  } elsif (not(
+      exists $_cml_state->{seen_calls}->{'find_package'}
+      and $_cml_state->{seen_calls}->{'find_package'}->{cetmodules})) {
+    unshift @{$call_infos},
+      ${tag_added(
+          sprintf("%sfind_package(cetmodules REQUIRED)\n",
+            $call_info->{pre_call_ws} // q()),
+          "find_package(cetmodules) must precede project()") };
+  } #-# End elsif (not(exists $_cml_state... [ if ($_cml_state->{seen_calls...})]))
   $_cml_state->{seen_calls}->{ $call_info->{name} } = $call_info;
   $_cml_state->{project_info}                       = my $project_info = {};
   $project_info->{first_pass}                       = my $cpi =
