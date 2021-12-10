@@ -528,7 +528,7 @@ EOF
   } elsif (defined $cpi->{cmake_project_version} and defined $pi->{version})
   { # we override product_deps
     warning(<<"EOF");
-UPS product version $pi->{version} overridden by project($project_info->{name} ... VERSION $cpi->{cmake_project_version} ...) at $cmakelists:$cpi->{start_line}
+UPS product version $pi->{version} overridden by project($project_info->{name} ... VERSION $cpi->{cmake_project_version} ...) at $cmakelists:$call_info->{start_line}
 EOF
   } elsif (not defined $cpi->{cmake_project_version}
       and defined $pi->{version}) { # Take version from product_deps

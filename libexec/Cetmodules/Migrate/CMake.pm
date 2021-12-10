@@ -152,10 +152,10 @@ sub _upgrade_CML {
       \&Cetmodules::Migrate::CMake::Handlers::comment_handler,
       eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
     );
-  my $results = process_cmakelists(
-      [$cml_in, $cml_full],
-      output => [$cml_out, $dest_full],
-      %handlers);
+  my $cmakelists = [$cml_in,  $cml_full];
+  my $output     = [$cml_out, $dest_full];
+  $options = { %{$options}, output => $output, %handlers };
+  my $results = process_cmakelists($cmakelists, $options);
   $cml_out->close();
   my $changed = keys %{$results};
 

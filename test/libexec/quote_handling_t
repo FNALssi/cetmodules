@@ -119,8 +119,9 @@ sub test_string {
   $test_string = "test_string$test_string";
   open(my $fh_in, "<", \$test_string)
     or die "unable to open input stream for string $test_string";
-  process_cmakelists([$fh_in, 'TEST_STRING'],
-      test_string_callback => string_tester($test_string, @args));
+  my $cmakelists = [$fh_in, 'TEST_STRING'];
+  process_cmakelists($cmakelists,
+      { test_string_callback => string_tester($test_string, @args) });
   $fh_in->close();
   return;
 } ## end sub test_string

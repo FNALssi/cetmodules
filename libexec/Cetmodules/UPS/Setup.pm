@@ -243,11 +243,12 @@ sub get_cmake_project_info {
   my $proj_info = { map { %{$_}; }
                     values %{
                       process_cmakelists(
-                        $cmakelists, %options,
-                        project_callback => \&_get_info_from_project_call,
-                        set_callback     => \&_get_info_from_set_calls,
-                        cet_cmake_env_callback => \&_set_seen_cet_cmake_env) }
-  };
+                        $cmakelists,
+                        { %options,
+                          project_callback => \&_get_info_from_project_call,
+                          set_callback     => \&_get_info_from_set_calls,
+                          cet_cmake_env_callback => \&_set_seen_cet_cmake_env
+                        }) } };
   return $proj_info;
 } ## end sub get_cmake_project_info
 

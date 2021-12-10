@@ -573,45 +573,44 @@ sub prepend_args {
 #     parenthesis).
 ########################################################################
 sub process_cmakelists {
-  my ($cmakelists, %options) = @_;
+  my ($cmakelists, $options) = @_;
   my ($cml_in, $cml_out);
-  ($cml_in, $cml_out, $cmakelists) = _prepare_cml_io($cmakelists, \%options);
+  ($cml_in, $cml_out, $cmakelists) = _prepare_cml_io($cmakelists, $options);
   my $line_no = 0;
   my $cml_data =
     {
     callback_results => {},
     callbacks        => {
         map {
-          m&\A(.*)_callback\z&msx ? ((lc $1) => delete $options{$_}) : ();
-        } keys %options
+          m&\A(.*)_callback\z&msx ? ((lc $1) => delete $options->{$_}) : ();
+        } keys %{$options}
     },
     cmakelists       => $cmakelists,
     cml_in           => $cml_in,
     pending_comments => {} };
-  $options{cml_out} and $cml_data->{cml_out} = delete $options{cml_out};
-  $options{comment_handler}
-    and $cml_data->{comment_handler} = delete $options{comment_handler};
-  $options{eof_handler}
-    and $cml_data->{eof_handler} = delete $options{eof_handler};
+  $cml_out and $cml_data->{cml_out} = $cml_out;
+  $options->{comment_handler}
+    and $cml_data->{comment_handler} = delete $options->{comment_handler};
+  $options->{eof_handler}
+    and $cml_data->{eof_handler} = delete $options->{eof_handler};
   $cml_data->{callback_regex} = join(q(|),
       map { quotemeta(sprintf('%s', $_)); } keys %{ $cml_data->{callbacks} });
 
   while (my $line = <$cml_in>) {
-    $line_no = _process_cml_lines($line, ++$line_no, $cml_data, \%options);
+    $line_no = _process_cml_lines($line, ++$line_no, $cml_data, $options);
   } # Reading file.
 
   # Process any pending full-line comments.
-  _process_pending_comments($cml_data->{pending_comments},
-      $cml_out, $cmakelists, $line_no, \%options);
+  _process_pending_comments($cml_data, $line_no, $options);
 
   # If we have an EOF handler, call it.
   if ($cml_data->{eof_handler}) {
     debug("invoking registered EOF handler for $cmakelists");
-    &{ $cml_data->{eof_handler} }($cml_data, $line_no, \%options);
+    &{ $cml_data->{eof_handler} }($cml_data, $line_no, $options);
   }
 
   # Close and return.
-  $cml_out and not ref $options{output} and $cml_out->close();
+  $cml_out and not ref $options->{output} and $cml_out->close();
   return $cml_data->{callback_results};
 } ## end sub process_cmakelists
 
@@ -1093,31 +1092,37 @@ sub _prepare_cml_io {
 
 # Process a comment block.
 sub _process_pending_comments {
-  my ($comments, $cml_out, $cmakelists, $line_no, $options) = @_;
-  $comments->{start_line} and exists $options->{comment_handler} or return;
+  my ($cml_data, $line_no, $options) = @_;
+  my ($cmakelists, $cml_out, $pending_comments) =
+    @{$cml_data}{qw(cmakelists cml_out pending_comments)};
+  $pending_comments
+    and $pending_comments->{start_line}
+    and exists $cml_data->{comment_handler}
+    or return;
 
   # Make our comment block hash look like a "real" $call_info.
-  @{$comments}{qw(end_line arg_indexes comment_indexes chunk_locations)} = (
-                                   $line_no - 1,
-                                   ([0 .. $#{ $comments->{chunks} }]) x 2,
-                                   [$comments->{start_line} .. ($line_no - 1)]
-  );
+  @{$pending_comments}
+    {qw(end_line arg_indexes comment_indexes chunk_locations)} = (
+                           $line_no - 1,
+                           ([0 .. $#{ $pending_comments->{chunks} }]) x 2,
+                           [$pending_comments->{start_line} .. ($line_no - 1)]
+    );
   debug(sprintf(
       'processing comments from %s:%s%s',
       $cmakelists,
-      $comments->{start_line},
-      ($comments->{end_line} != $comments->{start_line})
-      ? qq(--$comments->{end_line})
+      $pending_comments->{start_line},
+      ($pending_comments->{end_line} != $pending_comments->{start_line})
+      ? qq(--$pending_comments->{end_line})
       : q()
   ));
 
   # Call the comment handler.
-  &{ $options->{comment_handler} }($comments, $cmakelists, $options);
+  &{ $cml_data->{comment_handler} }($pending_comments, $cmakelists, $options);
 
   # Output the (possibly-changed) comment lines, if we care.
-  my @tmp_lines = reconstitute_code($comments);
+  my @tmp_lines = reconstitute_code($pending_comments);
   $cml_out and scalar @tmp_lines and $cml_out->print(@tmp_lines);
-  %{$comments} = ();
+  %{$pending_comments} = ();
   return;
 } ## end sub _process_pending_comments
 
@@ -1136,8 +1141,7 @@ sub _process_cml_lines {
       or $pending_comments->{start_line} = $line_no;
     return $line_no;
   } #-# End if ($line =~ m&\A\s*[#].*\z&msx)
-  _process_pending_comments($pending_comments, $cml_out, $cmakelists,
-      $line_no, $options);
+  _process_pending_comments($cml_data, $line_no, $options);
 
   if (
       ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
@@ -1164,11 +1168,11 @@ EOF
     # If we have end-of-line comments, process them first.
     if ($call_info->{post} =~ m&[)]\s*[#]&msx
         or scalar @{ $call_info->{comment_indexes} // [] }
-        and exists $options->{comment_handler}) {
+        and exists $cml_data->{comment_handler}) {
       debug(sprintf(<<"EOF", $call_info->{name}));
 invoking registered comment handler for end-of-line comments for CALL \%s()
 EOF
-      &{ $options->{comment_handler} }($call_info, $options);
+      &{ $cml_data->{comment_handler} }($call_info, $cmakelists, $options);
     } #-# End if ($call_info->{post}...)
     my $call_infos = [$call_info];
 
@@ -1216,7 +1220,7 @@ sub _remove_args {
       ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
       $#{ $call_info->{arg_indexes} });
   my $index      = $call_info->{arg_indexes}->[$idx_idx];
-  my $last_index = $call_info->{arg_indexes}->{$last_arg_idx};
+  my $last_index = $call_info->{arg_indexes}->[$last_arg_idx];
 
   # Remove any preceding quote.
   _has_open_quote($call_info, $idx_idx) and --$index;
@@ -1227,8 +1231,8 @@ sub _remove_args {
   # Remove any trailing whitespace or comments
   while (
       $last_index < $#{ $call_info->{chunks} }
-      and (is_whitespace($call_info->{chunks}->{$last_index})
-        or is_comment($call_info->{chunks}->{$last_index}))
+      and (is_whitespace($call_info->{chunks}->[$last_index + 1])
+        or is_comment($call_info->{chunks}->[$last_index + 1]))
     ) {
     ++$last_index;
   } #-# End while ($last_index < $#{ ...})
