@@ -59,6 +59,7 @@ our (@EXPORT);
   remove_args_for
   remove_keyword
   replace_arg_at
+  replace_call_with
   single_value_for
 );
 
@@ -703,6 +704,23 @@ sub replace_arg_at {
   }
   return @removed;
 } #-# End sub replace_arg_at
+
+
+sub replace_call_with {
+  my ($call_info, $new_call, @args) = @_;
+  my $old_call = $call_info->{name};
+
+  if (@args) {
+    remove_args_at($call_info, 0 .. $#{ $call_info->{arg_indexes} });
+
+    if ($args[0] ne q()) {
+      insert_args_at($call_info, 0, @args);
+    }
+  } #-# End if (@args)
+  $call_info->{name} = $new_call;
+  $call_info->{pre} =~ s&\b\Q$old_call\E\b&$new_call&imsx;
+  return;
+} #-# End sub replace_call_with
 
 # Return the overriding value for a single-value keyword.
 sub single_value_for {
