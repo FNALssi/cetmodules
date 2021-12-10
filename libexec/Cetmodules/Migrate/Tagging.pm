@@ -2,16 +2,12 @@
 package Cetmodules::Migrate::Tagging;
 
 use 5.016;
-
 use Exporter qw(import);
-
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
-
 use Cetmodules::CMake;
 use Cetmodules::Migrate::ProductDeps qw($CETMODULES_VERSION);
 use Cetmodules::Util;
-
 use warnings FATAL => qw(Cetmodules);
 
 our (@EXPORT);
@@ -58,7 +54,7 @@ sub has_directive {
   my ($textish, $directive) = @_;
   my $text = (ref $textish) ? ${$textish} : $textish;
   return $text =~ m&(?:\A|\s+)\#\#\#\s+MIGRATE-$directive\b&msx;
-}
+} #-# End sub has_directive
 
 
 sub has_ignore_directive {
@@ -71,14 +67,14 @@ sub remove_all_directives {
   my ($textref) = @_;
   return ${$textref} =~
     s&(?:\A|\s+)[#]{3}\s+MIGRATE-(?!NO-ACTION\b).*?(\s+[#]|$)&$1&msgx;
-}
+} #-# End sub remove_all_directives
 
 
 sub remove_directive {
   my ($textref, $directive) = @_;
   return ${$textref} =~
     s&(?:\A|\s+)[#]{3}\s+MIGRATE-$directive.*?(\s+[#]|$)&$1&msgx;
-}
+} #-# End sub remove_directive
 
 
 sub tag {
@@ -86,7 +82,7 @@ sub tag {
   my $text;
   given (ref $textref) {
     when (undef) {
-      $text = $textref;
+      $text    = $textref;
       $textref = \$text;
     }
     when ('SCALAR') { }
@@ -97,33 +93,36 @@ sub tag {
       error_exit(<<"EOF");
 cannot tag unknown entity $textref
 EOF
-    }
-  }
-  tagged($textref, $type, $extra) or
-    ${$textref} =~ s&[ \t]*(\Z)& ### MIGRATE-$type$extra$1&msx;
+    } #-# End default
+  } #-# End given
+  tagged($textref, $type, $extra)
+    or ${$textref} =~ s&[ \t]*(\Z)& ### MIGRATE-$type$extra$1&msx;
   return ${$textref};
-}
+} #-# End sub tag
 
 
 sub tag_added {
   my ($textref, $extra) = @_;
-  return tag($textref, "ADDED (migrate-$CETMODULES_VERSION)",
-             ($extra) ? " - $extra" : ());
-}
+  return
+    tag($textref,
+      "ADDED (migrate-$CETMODULES_VERSION)",
+      ($extra) ? " - $extra" : ());
+} #-# End sub tag_added
 
 
 sub tag_changed {
   my ($textref, $extra) = @_;
   remove_all_directives($textref);
-  return tag($textref, "CHANGED (migrate-$CETMODULES_VERSION)",
-             ($extra) ? " - $extra" : ());
-}
+  return
+    tag($textref,
+      "CHANGED (migrate-$CETMODULES_VERSION)",
+      ($extra) ? " - $extra" : ());
+} #-# End sub tag_changed
 
 
 sub tagged {
   my ($textish, $type, $extra) = @_;
   defined $extra or $extra = q();
   return has_directive($textish, "$type$extra");
-}
-
+} #-# End sub tagged
 1;

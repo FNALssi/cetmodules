@@ -1,29 +1,122 @@
--bar # Opening brace always on right
--baao # Break after all operators by default (rather than before)
--bext=.orig/ # Backup extension, deleted if no errors
--blbs=2 # 2 Black lines before a sub
--cab=2 # Break after "=> ... ," unless we can form a one-line container
--ce # "Cuddled elses:" } else {
--ci=2 # Continuation indentation
--csc # Automatic side comments for closing code blocks...
--csci=10 # ... this long or longer
--cti=1 # Closing token indentation (non-block)
--i=2 # Per-level indentation
--iob # Ignore old breakpoints where possible
--it=2 # 2-pass for stability
--kis # Preserve inline semicolons
--l=78 # Wrap at 78 chars
--lp # Line up parentheses
--msc=1 # Minimum space for side comments
--nsfs # Don't put spaces around semicolons in "for ()" directives
--pt=2 # Parenthesis tightness setting
--pvt=2 # Don't break lines after opening parens...
--pvtc=1 # ... or---if we can do it "nicely"---closing parens
--sbvt=2  # Don't break lines after opening square brackets...
--sbvtc=1 # ... or---if we can do it "nicely"---closing square brackets
--sct # Stack closing tokens
--se # Problems to STDERR rather than *.ERR
--sot # Stack opening tokens
--ssc # Don't alter the separation of side comments with '##'
--syn # Perl syntax check. N.B. causes BEGIN blocks to be executed
--wbb="<< >>" # Break lines *before* these tokens, not after
+#################
+# Composite Options
+##################
+
+# -gnu, -pbp, etc. Place first so individual constituent options may be
+#  overridden.
+
+##################
+# I/O Control
+##################
+
+--backup-and-modify-in-place # -b
+--backup-file-extension=/orig # -bext=/orig
+--logfile # -log
+--no-standard-output # -nst
+--standard-error-output # -se
+
+##################
+# Basic Options
+##################
+
+--indent-columns=2 # -i=2
+--maximum-line-length=78 # -l=78
+--extended-syntax # -xs
+--preserve-line-endings # -ple
+--add-terminal-newline # -atnl
+--converge # -conv (a.k.a -it=4)
+
+##################
+# Code Indentation Control
+##################
+
+--continuation-indentation=2 # -ci=2
+--extended-continuation-indentation # -xci
+--line-up-parentheses # -lp
+--line-up-parentheses-exclusion-list='w(2' # -lpxl='w(2'
+--closing-token-indentation=1 # -cti=1
+--outdent-long-quotes # -olq
+--outdent-labels # -ola
+
+##################
+# Whitespace Control
+##################
+
+--paren-tightness=2 # -pt=2
+--square-bracket-tightness=2 # -sbt=2
+--brace-tightness=1 # -bt=1
+--block-brace-tightness=1 # -bbt=1
+--tight-secret-operators # -tso
+--no-space-for-semicolon # -nsfs
+--add-semicolons # -asc
+--add-whitespace # -aws
+--delete-old-whitespace # -dws
+--space-prototype-paren=0 # -spp=0
+--logical-padding # -lop
+
+##################
+# Comment Controls
+##################
+
+--ignore-side-comment-lengths # -iscl
+--minimum-space-to-comment=1 # -msc=1
+--closing-side-comments # -csc
+--closing-side-comment-interval=5 # -csci=5
+--closing-side-comment-prefix="#-# End" # -cscp="#-# End"
+--closing-side-comments-balanced # -cscb
+--closing-side-comment-else-flag=2 # -csce=2
+--closing-side-comment-warnings # -cscw
+--static-block-comments # -sbc
+--static-side-comments # -ssc
+
+##################
+# Line Break Control
+##################
+
+--cuddled-else # -ce
+--cuddled-blocks # -cb
+--cuddled-block-list="sort map grep" # -cbl="sort map grep"
+--no-opening-brace-on-new-line # -nbl
+--opening-brace-always-on-right # -bar
+--break-before-hash-brace=2 # -bbhb=2
+--break-before-hash-brace-and-indent=0 # -bbhbi=0
+--weld-nested-containers # -wnc
+--weld-nested-exclusion-list="q" # -wnxl="q"
+--vertical-tightness=2 # -vt=2
+--vertical-tightness-closing=3 # -vtc=3
+--stack-opening-tokens # -sot
+--stack-closing-tokens # -sct
+--delete-old-newlines # -dnl
+--add-newlines # -anl
+--break-after-all-operators # -baao
+--want-break-before="<< >> && || // ! and or not xor ? :" # -wbb="<< >> && || // ! and or not xor ? :"
+
+##################
+# Controlling List Formatting
+##################
+
+--comma-arrow-breakpoints=2 # -cab=2
+
+##################
+# Retaining or Ignoring Existing Line Breaks
+##################
+
+--ignore-old-breakpoints # -iob
+--keep-interior-semicolons # -kis
+
+##################
+# Blank Line Control
+##################
+
+--blanks-before-comments # -bbc
+--blanks-before-blocks # -bbb
+--blank-lines-before-packages=2 # -blbp=2
+--blank-lines-before-subs=2 # -blbs=2
+--long-block-line-count=1 # -llbl=1
+--keep-old-blank-lines=0 # -kbl=0
+--keyword-group-blanks-list="use require our" # -kgbl="use require our"
+--keyword-group-blanks-size=1 # -kgbls=1
+--keyword-group-blanks-before=2 # -kgbb=2
+--keyword-group-blanks-after=2 # -kgba=2
+--keyword-group-blanks-inside # -kgbi
+--keyword-group-blanks-delete # -kgbd

@@ -2,14 +2,12 @@
 # -*- cperl -*-
 
 use 5.016;
-
 use Cwd qw(abs_path);
 use English qw(-no_match_vars);
 use File::Basename;
 use File::Spec;
 use List::Util qw(shuffle);
 use Readonly;
-
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
@@ -18,6 +16,7 @@ my ($_mydir, $_pmdir);
 
 BEGIN {
   my $_me = readlink($PROGRAM_NAME);
+
   if (not $_me) {
     $_me = $PROGRAM_NAME;
   } elsif ($_me !~ m&\A/&msx) {
@@ -28,24 +27,23 @@ BEGIN {
 } ## end BEGIN
 
 use lib $_pmdir;
-
 use Test::More;
 
 
 sub compare_or_show {
   my ($test, $expected, @args) = @_;
-  my $result = is_deeply($test, $expected, @args) or
-    diag(explain($test), " != ", explain($expected));
+  my $result = is_deeply($test, $expected, @args)
+    or diag(explain($test), " != ", explain($expected));
   return $result;
-}
-
+} #-# End sub compare_or_show
 my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
-
-
 Readonly::Scalar my $_FLIP_OPERANDS => -1;
+
+
 sub cmake_version_cmp {
   my $ans;
+
   if (exists $ans_cache->{"$a"} and exists $ans_cache->{"$a"}->{"$b"}) {
     $ans = $ans_cache->{"$a"}->{"$b"};
   } elsif (exists $ans_cache->{"$b"} and exists $ans_cache->{"$b"}->{"$a"}) {
@@ -57,10 +55,9 @@ sub cmake_version_cmp {
 `cmake -DCMAKE_MODULE_PATH:STRING="$cmdir" -DVERSION_A:STRING="$a" -DVERSION_B:STRING="$b" -P "${_mydir}/version_cmp_t.cmake" | sed -Ene 's&^-- (-1|0|1)\$&\\1&p'`;
     chomp $ans;
     $ans_cache->{"$a"}->{"$b"} = $ans;
-  }
+  } #-# End else [ if (exists $ans_cache->... [elsif (exists $ans_cache->...)])]
   return $ans;
 } ## end sub cmake_version_cmp
-
 my @v_ref_list = qw(
   1
   1.2
@@ -73,14 +70,12 @@ my @v_ref_list = qw(
   nightly-276
   snapshot-29100
 );
-
 plan tests => @v_ref_list * (@v_ref_list - 1);
-
 outer: for my $i (0 .. (@v_ref_list - 1)) {
 inner: for my $j (0 .. (@v_ref_list - 1)) {
     next if $i == $j;
     $::a = $v_ref_list[$i]; ## no critic qw(Variables::ProhibitPackageVars)
     $::b = $v_ref_list[$j]; ## no critic qw(Variables::ProhibitPackageVars)
     is(cmake_version_cmp(), $i <=> $j, "$i <=> $j") or last outer;
-  }
-}
+  } #-# End inner: for my $j (0 .. (@v_ref_list...))
+} #-# End outer: for my $i (0 .. (@v_ref_list...))

@@ -2,10 +2,8 @@
 package Cetmodules::Migrate::Util;
 
 use 5.016;
-
 use Exporter qw(import);
 use POSIX qw(strftime);
-
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
@@ -28,6 +26,5 @@ sub trimline {
   my $line = join(q(), @text);
   $line =~ s&(?-s:\s+)$&&msgx;
   return "$line\n";
-}
-
+} #-# End sub trimline
 1;

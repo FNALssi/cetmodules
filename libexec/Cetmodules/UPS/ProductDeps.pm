@@ -2,16 +2,13 @@
 package Cetmodules::UPS::ProductDeps;
 
 use 5.016;
-
 use English qw(-no_match_vars);
 use Exporter qw(import);
 use File::Spec;
 use IO::File;
 use List::MoreUtils;
 use Readonly;
-
 use Cetmodules::Util;
-
 use strict;
 use warnings FATAL => qw(
   Cetmodules
@@ -21,7 +18,6 @@ use warnings FATAL => qw(
   syntax
   uninitialized
   void);
-
 use vars qw($BTYPE_TABLE $PATHSPEC_INFO @EXPORT @EXPORT_OK);
 
 @EXPORT = qw(
@@ -37,52 +33,42 @@ use vars qw($BTYPE_TABLE $PATHSPEC_INFO @EXPORT @EXPORT_OK);
   sort_qual
   var_stem_for_dirkey
 );
-
 @EXPORT_OK = qw(
   $PATHSPEC_INFO
 );
-
 ########################################################################
 # Exported variables
 ########################################################################
-
 $BTYPE_TABLE =
   { q(debug) => 'Debug', q(prof) => 'RelWithDebInfo', q(opt) => 'Release' };
-
-$PATHSPEC_INFO = {
-           bindir         => {},
-           cmakemoduledir => { project_var => 'CMAKE_MODULES_DIR' },
-           fcldir         => { project_var => 'FHICL_DIR' },
-           fwdir          => {},
-           gdmldir        => {},
-           incdir         => { project_var => 'INCLUDE_DIR' },
-           libdir         => { project_var => 'LIBRARY_DIR' },
-           perllib        => {},
-           set_fwdir => { multiple_ok => 1, project_var => "FW_SEARCH_PATH" },
-           set_wpdir => { multiple_ok => 1, project_var => "WIRECELL_PATH" },
-           testdir   => {},
-           wpdir     => {} };
-
+$PATHSPEC_INFO =
+  { bindir         => {},
+    cmakemoduledir => { project_var => 'CMAKE_MODULES_DIR' },
+    fcldir         => { project_var => 'FHICL_DIR' },
+    fwdir          => {},
+    gdmldir        => {},
+    incdir         => { project_var => 'INCLUDE_DIR' },
+    libdir         => { project_var => 'LIBRARY_DIR' },
+    perllib        => {},
+    set_fwdir      => { multiple_ok => 1, project_var => "FW_SEARCH_PATH" },
+    set_wpdir      => { multiple_ok => 1, project_var => "WIRECELL_PATH" },
+    testdir        => {},
+    wpdir          => {} };
 ########################################################################
 # Private variables for use within this module only
 ########################################################################
-
 my ($_chain_option_table, @_known_keywords, $_valid_pathkeys);
-
 Readonly::Scalar my $_LAST_CHAR_IDX => -1;
 Readonly::Scalar my $_NOT_PRESENT   => -2;
 Readonly::Scalar my $_NO_MATCH      => -1;
-
 ########################################################################
 # Exported functions
 ########################################################################
-
-
 sub dirkey_is_valid {
   my ($dirkey) = @_;
-  return ($dirkey and
-          List::MoreUtils::any { $_ eq $dirkey } keys %{$PATHSPEC_INFO});
-}
+  return ($dirkey
+      and List::MoreUtils::any { $_ eq $dirkey } keys %{$PATHSPEC_INFO});
+} #-# End sub dirkey_is_valid
 
 
 sub get_parent_info {
@@ -90,6 +76,7 @@ sub get_parent_info {
   my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
   my $result = { pfile => $pfile };
   my $chains;
+
   while (<$fh>) {
     chomp;
     s&\s*\#.*\z&&msx;
@@ -97,15 +84,15 @@ sub get_parent_info {
     my ($keyword, @pars) = split;
     given ($keyword) {
       when ('parent') {
-        $#pars < 1 or
-          $options{quiet_warnings}
-          or
-          warning("multi-argument version of \"parent\" in $pfile",
-                  "is deprecated: VERSION defined via project() or",
-                  "via <project>_CMAKE_PROJECT_VERSION_STRING in",
-                  "CMakeLists.txt governs.",
-                  "Use \"chain[s] [current|test|new|old|<chain>] ...\" in",
-                  "$pfile to specify chains.");
+        $#pars < 1
+          or $options{quiet_warnings}
+          or warning(
+            "multi-argument version of \"parent\" in $pfile",
+            "is deprecated: VERSION defined via project() or",
+            "via <project>_CMAKE_PROJECT_VERSION_STRING in",
+            "CMakeLists.txt governs.",
+            "Use \"chain[s] [current|test|new|old|<chain>] ...\" in",
+            "$pfile to specify chains.");
         $result->{name}    = shift @pars;
         $result->{version} = shift @pars;
         @{$chains}{@pars} = (1) x scalar @pars;
@@ -117,15 +104,14 @@ sub get_parent_info {
         $result->{default_qual} =
           (($pars[0] // q()) eq '-nq-') ? q() : sort_qual(@pars);
       }
-      when (
-        [ qw(define_pythonpath
-            no_fq_dir
-            noarch
-            old_style_config_vars) ]
-        ) {
+      when ([qw(define_pythonpath
+             no_fq_dir
+             noarch
+             old_style_config_vars)
+        ]) {
         scalar @pars
           and warning(sprintf("unexpected garbage following $keyword: %s",
-                              join(q( ), @pars)));
+            join(q( ), @pars)));
         $result->{$keyword} = 1;
       } ## end when ([ qw(define_pythonpath...)])
       default {
@@ -136,9 +122,9 @@ sub get_parent_info {
 
   # Make the chain list, translating -c... ups declare options to their
   # corresponding chain names.
-  scalar keys %{$chains} and
-    $result->{chains} =
-    [ sort map { $_chain_option_table->{$_} // $_; } keys %{$chains} ];
+  scalar keys %{$chains}
+    and $result->{chains} =
+    [sort map { $_chain_option_table->{$_} // $_; } keys %{$chains}];
   return $result;
 } ## end sub get_parent_info
 
@@ -154,25 +140,24 @@ sub get_pathspec {
   # of creating the entry in $pathspec_cache if they don't already
   # exist, so we won't look for them again.
   my $requested_dirkeys = {
-    map {
-      my ($dirkey) = ($_);
-      dirkey_is_valid($dirkey) or
-        error_exit("unrecognized directory key $dirkey");
-      ($dirkey => $pathspec_cache->{$dirkey}->{seen_at} // $_NO_MATCH);
+      map {
+        my ($dirkey) = ($_);
+        dirkey_is_valid($dirkey)
+        or error_exit("unrecognized directory key $dirkey");
+        ($dirkey => $pathspec_cache->{$dirkey}->{seen_at} // $_NO_MATCH);
       } @requested_dirkeys
   };
-
   _pathspecs_for_keys(
-    $pi,
-    [ map {
-        (($requested_dirkeys->{$_} // 0) == $_NO_MATCH) ? "\Q$_\E" : ();
-      } keys %{$requested_dirkeys} ]);
-
+      $pi,
+      [map {
+         (($requested_dirkeys->{$_} // 0) == $_NO_MATCH) ? "\Q$_\E" : ();
+       } keys %{$requested_dirkeys}]);
   my @results = map {
-    ($pathspec_cache->{$_} and
-     $_NOT_PRESENT ne ($pathspec_cache->{$_}->{seen_at} // $_NOT_PRESENT))
-      ? $pathspec_cache->{$_} :
-      undef;
+      (     $pathspec_cache->{$_}
+        and $_NOT_PRESENT ne
+        ($pathspec_cache->{$_}->{seen_at} // $_NOT_PRESENT))
+      ? $pathspec_cache->{$_}
+      : undef;
   } @requested_dirkeys;
   return (scalar @results > 1) ? @results : pop @results;
 } ## end sub get_pathspec
@@ -194,18 +179,19 @@ sub get_product_list {
     m&\w+&msx or next;
     my (@words) = split;
     my $keyword = $words[0];
+
     if ($keyword eq "end_product_list") {
       last;                  # Done.
     } elsif ($keyword eq "product") {
       $get_phash = "true";
+
       if ($words[$_LAST_CHAR_IDX] =~
           m&\A<\s*(?:table_)?format\s*=\s*(\d+)\s*>&msx) {
         $pl_format = ${1};
       }
     } elsif ($get_phash) {
       _unwanted_keyword($keyword)
-        and error_exit(
-        sprintf(
+        and error_exit(sprintf(
 "unexpected keyword $keyword at $pfile:%d - missing end_product_list?",
           $fh->input_line_number));
 
@@ -222,10 +208,10 @@ sub get_product_list {
           ($version, $qualspec, q(-), $prod);
         warning(
 "Deprecated only_for_build entry found in $pfile: please replace:\n",
-          "  \"$_\"\n",
-          "with\n",
-          "  \"$prod\t$version\t$qualspec\t$modifiers[0]\"\n",
-          "This accommodation will be removed in future.");
+            "  \"$_\"\n",
+            "with\n",
+            "  \"$prod\t$version\t$qualspec\t$modifiers[0]\"\n",
+            "This accommodation will be removed in future.");
       } ## end if ($prod eq "only_for_build")
 
       if ($qualspec and $qualspec eq "-nq-") {
@@ -234,12 +220,11 @@ sub get_product_list {
         # version 2, it means, "when we have no qualifiers," and "-"
         # means, "always."
         $qualspec = ($pl_format == 1) ? q(-) : q();
-      }
-
-      $phash->{$prod}->{$qualspec} = {
-                            version => (($version eq q(-)) ? "-c" : $version),
-                            map { ($_ => 1) } @modifiers
-      };
+      } #-# End if ($qualspec and $qualspec...)
+      $phash->{$prod}->{$qualspec} =
+        { version => (($version eq q(-)) ? "-c" : $version),
+          map { ($_ => 1) } @modifiers
+        };
     } else {
     }
   } ## end while (<$fh>)
@@ -255,12 +240,14 @@ sub get_qualifier_list {
   my @qlist = ();
   my @notes = ();
   my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
+
   while (<$fh>) {
     chomp;
     s&\s*\#.*\z&&msx;
     m&\w+&msx or next;
     my (@words) = split;
     my $keyword = $words[0];
+
     if ($keyword eq "end_qualifier_list") {
       last; # Done.
     } elsif ($get_quals) {
@@ -270,18 +257,18 @@ EOF
       scalar @words < $qlen and error_exit(<<"EOF");
 require $qlen qualifier_list entries for $keyword at $pfile:$INPUT_LINE_NUMBER - found only $#words
 EOF
-      push @notes, $words[ $qlen + 1 ] || q();
+      push @notes, $words[$qlen + 1] || q();
       push @qlist,
-        [ map { (not $_ or $_ eq "-nq-") ? (q()) : sort_qual($_); }
-          @words[ 0 .. $qlen ] ];
+        [map { (not $_ or $_ eq "-nq-") ? (q()) : sort_qual($_); }
+         @words[0 .. $qlen]];
     } elsif ($keyword eq "qualifier") {
       $get_quals = 1;
-      push @qlist, [ List::MoreUtils::before { $_ eq 'notes' } @words ];
+      push @qlist, [List::MoreUtils::before { $_ eq 'notes' } @words];
 
       # N.B. qlen does not count the qualifier column for historical
       # reasons, though @qlist includes it.
       $qlen = $#{ $qlist[0] };
-      $qlen < $#words and @notes = ($words[ $qlen + 1 ]);
+      $qlen < $#words and @notes = ($words[$qlen + 1]);
     } else {
     }
   } ## end while (<$fh>)
@@ -293,22 +280,22 @@ EOF
 sub get_qualifier_matrix {
   my ($pinfo) = @_;
   my ($qlen, $qlist, $notes) = get_qualifier_list($pinfo);
-  my ($qhash, $qqhash, $nhash, $headers)
-    ; # (by-column, by-row, notes, headers)
+  my ($qhash, $qqhash, $nhash, $headers); # (by-column, by-row, notes, headers)
+
   if ($qlist and scalar @{$qlist}) {
-    my @prods = @{ shift @{$qlist} }; # Drop header row from @{$qlist}.
+    my @prods = @{ shift @{$qlist} };     # Drop header row from @{$qlist}.
     $qhash = {
-      map {
-        my $idx = $_;
-        ($prods[$idx] => { map { (@{$_}[0] => @{$_}[$idx]); } @{$qlist} });
+        map {
+          my $idx = $_;
+          ($prods[$idx] => { map { (@{$_}[0] => @{$_}[$idx]); } @{$qlist} });
         } 1 .. $qlen
     };
     $qqhash = {
-      map {
-        my @dq = @{$_};
-        ($dq[0] => { map { ($prods[$_] => $dq[$_]); } 1 .. $qlen });
-      } @{$qlist} };
-    $headers = [ @prods, shift @{$notes} || () ];
+        map {
+          my @dq = @{$_};
+          ($dq[0] => { map { ($prods[$_] => $dq[$_]); } 1 .. $qlen });
+        } @{$qlist} };
+    $headers = [@prods, shift @{$notes} || ()];
     $nhash   = { map { ($_->[0] => (shift @{$notes} or q())); } @{$qlist} };
   } ## end if ($qlist and scalar ...)
   return ($qlen, $qhash, $qqhash, $nhash, $headers);
@@ -320,13 +307,14 @@ sub get_table_fragment {
   my $reading_frag;
   my @fraglines = ();
   my $fh = IO::File->new("$pfile", "<") or error_exit("couldn't open $pfile");
+
   while (<$fh>) {
     chomp;
     next if (m&\A\s*\#&msx and not $reading_frag);
     m&\A\s*table_fragment_end&msx and undef $reading_frag;
     $reading_frag and push @fraglines, $_;
     m&\A\s*table_fragment_begin&msx and $reading_frag = 1;
-  }
+  } #-# End while (<$fh>)
   $fh->close();
   return (scalar @fraglines) ? \@fraglines : undef;
 } ## end sub get_table_fragment
@@ -334,9 +322,9 @@ sub get_table_fragment {
 
 sub pathkey_is_valid {
   my ($pathkey) = @_;
-  return $pathkey and
-    List::MoreUtils::any { $_ eq $pathkey } @{$_valid_pathkeys};
-}
+  return $pathkey
+    and List::MoreUtils::any { $_ eq $pathkey } @{$_valid_pathkeys};
+} #-# End sub pathkey_is_valid
 
 
 sub sort_qual {
@@ -347,18 +335,18 @@ sub sort_qual {
   my $sorted       = ref($args[0] // undef) eq 'ARRAY' ? shift @args : [];
   my @resplit_args = split(/:/msx, join(q(:), @args));
   my ($cqual, $btype);
-
   my @extquals = ();
+
   foreach my $q (map { (m&\A\+(.*)?&msx) or $_; } @resplit_args) {
     if ($q =~ m&\A[ce]\d+z&msx) {
-      $cqual and
-        error_exit("multiple primary qualifiers encountered: $cqual, $q") or
-        $cqual = $q;
+      $cqual
+        and error_exit("multiple primary qualifiers encountered: $cqual, $q")
+        or $cqual = $q;
     } elsif (exists $BTYPE_TABLE->{$q}) {
-      $btype and
+      $btype
+        and
         error_exit("multiple build type qualifiers encountered: $btype, $q")
-        or
-        $btype = $q;
+        or $btype = $q;
     } elsif ($q ne '-nq-') {
       push @extquals, $q;
     }
@@ -374,24 +362,20 @@ sub sort_qual {
 sub var_stem_for_dirkey {
   my $dirkey = shift;
   return
-    uc($PATHSPEC_INFO->{$dirkey}->{project_var} ||
-       (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
-}
-
+    uc($PATHSPEC_INFO->{$dirkey}->{project_var}
+      || (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
+} #-# End sub var_stem_for_dirkey
 ########################################################################
 # Private variables
 ########################################################################
-
-$_chain_option_table = {
-                         '-c' => 'current',
+$_chain_option_table = { '-c' => 'current',
                          '-d' => 'development',
                          '-n' => 'new',
                          '-o' => 'old',
                          '-t' => 'test'
                        };
-
 @_known_keywords = (
-  qw(chain
+    qw(chain
     chains
     defaultqual
     define_pythonpath
@@ -405,33 +389,29 @@ $_chain_option_table = {
     qualifier
     table_fragment_begin
     table_fragment_end
-  ), sort keys %{$PATHSPEC_INFO});
-
+    ), sort keys %{$PATHSPEC_INFO});
 $_valid_pathkeys = [qw(product_dir fq_dir -)];
-
 ########################################################################
 # Private functions
 ########################################################################
-
-
 sub _pathspecs_for_keys {
   my ($pi, $dirkeys) = @_;
   scalar @{ $dirkeys // [] } or return;
   my $pathspec_cache = $pi->{pathspec_cache};
-  my $dirkeys_regex = sprintf(
+  my $dirkeys_regex  = sprintf(
 qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?\z&msx,
-    join(q(|), @{$dirkeys}));
-  my $fh = IO::File->new("$pi->{pfile}", "<") or
-    error_exit("couldn't open $pi->{pfile} for read");
+      join(q(|), @{$dirkeys}));
+  my $fh = IO::File->new("$pi->{pfile}", "<")
+    or error_exit("couldn't open $pi->{pfile} for read");
+
   while (<$fh>) {
     chomp;
     m&$dirkeys_regex&msx or next;
     my ($dirkey, $pathkey, $dirname) =
-      _validate_pathspec_entry($pi->{pfile},
-                               $pathspec_cache,
-                               (@LAST_PAREN_MATCH{
-                                  qw(dirkey pathkey dirname)}));
+      _validate_pathspec_entry($pi->{pfile}, $pathspec_cache,
+        (@LAST_PAREN_MATCH{qw(dirkey pathkey dirname)}));
     push @{ $pathspec_cache->{$dirkey}->{key} }, $pathkey;
+
     if ($pathkey eq q(-) and not $dirname) {
       delete $pathspec_cache->{$dirkey}->{path};
     } else {
@@ -446,19 +426,20 @@ qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?
       $pathspec_cache->{$_}->{seen_at} = $_NOT_PRESENT;
     } elsif (not $PATHSPEC_INFO->{$_}->{multiple_ok}) {
       $pathspec_cache->{$_}->{key} = $pathspec_cache->{$_}->{key}->[0];
-      exists $pathspec_cache->{$_}->{path} and
-        $pathspec_cache->{$_}->{path} = $pathspec_cache->{$_}->{path}->[0];
-    }
-  }
+      exists $pathspec_cache->{$_}->{path}
+        and $pathspec_cache->{$_}->{path} =
+        $pathspec_cache->{$_}->{path}->[0];
+    } #-# End elsif (not $PATHSPEC_INFO... [ if (not defined $pathspec_cache...)])
+  } #-# End for (@{$dirkeys})
   return;
 } ## end sub _pathspecs_for_keys
 
 
 sub _unwanted_keyword {
   my ($keyword, @allowed) = @_;
-  return (List::MoreUtils::any { $keyword eq $_ } @_known_keywords and
-          List::MoreUtils::none { $keyword eq $_ } @allowed);
-}
+  return (List::MoreUtils::any { $keyword eq $_ } @_known_keywords
+      and List::MoreUtils::none { $keyword eq $_ } @allowed);
+} #-# End sub _unwanted_keyword
 
 
 sub _validate_pathspec_entry {
@@ -488,9 +469,7 @@ EOF
   }
   return ($dirkey, $pathkey, $dirname);
 } ## end sub _validate_pathspec_entry
-
 1;
-
 __END__
 
 # Not currently needed.

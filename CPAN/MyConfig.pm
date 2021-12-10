@@ -1,6 +1,4 @@
-
-$CPAN::Config = {
-                  'allow_installing_module_downgrades' => q[ask/no],
+$CPAN::Config = { 'allow_installing_module_downgrades' => q[ask/no],
                   'allow_installing_outdated_dists'    => q[ask/no],
                   'applypatch'                         => q[],
                   'auto_commit'                        => q[0],

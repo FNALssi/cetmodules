@@ -13,10 +13,12 @@ my $regex_line_with_both_opts =
 
 while (<>) {
   my @long_opts = m&$regex_line_with_long_opt&;
+
   if (scalar(@long_opts) == 1) {
     print "$long_opts[0]\n";
   }
   my @both_opts = m&$regex_line_with_both_opts&;
+
   if (scalar(@both_opts) == 2) {
     print "$both_opts[0]\n";
     print "$both_opts[1]\n";

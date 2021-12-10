@@ -6,7 +6,6 @@
 # optionally update dependency listings in other packages to match.
 ########################################################################
 use strict;
-
 use Cwd qw(chdir :DEFAULT);
 use File::Basename;
 use File::Find;
@@ -15,26 +14,22 @@ use Getopt::Long;
 use Pod::Usage;
 
 Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
-
 my $options         = {};
 my %bumped_versions = ();
 my $wanted_version;
-
-GetOptions($options,          "debug|d",
-           "client-dir|c=s@", "dry-run|n",
-           "help|h|?",        "M|major",
-           \&set_mode,        "m|minor",
-           \&set_mode,        "p|patch",
-           \&set_mode,        "s|set-version=s",
-           \&set_mode,        "tag",
-           "verbose|v",       "u|micro",
-           \&set_mode,        "update-only|U=s",
-           \&mark_for_update
-  ) or
-  pod2usage(-exitval => 2);
-
-$options->{help} and pod2usage(-exitval => 1, -verbose => 3);
-
+GetOptions(
+    $options,          "debug|d",
+    "client-dir|c=s@", "dry-run|n",
+    "help|h|?",        "M|major",
+    \&set_mode,        "m|minor",
+    \&set_mode,        "p|patch",
+    \&set_mode,        "s|set-version=s",
+    \&set_mode,        "tag",
+    "verbose|v",       "u|micro",
+    \&set_mode,        "update-only|U=s",
+    \&mark_for_update)
+  or pod2usage(-exitval => 2);
+$options->{help}      and pod2usage(-exitval => 1, -verbose => 3);
 $options->{"dry-run"} and report("Dry run: no actual changes made!");
 
 if (scalar keys %bumped_versions) { # update-only.
@@ -44,20 +39,19 @@ if (scalar keys %bumped_versions) { # update-only.
     error("Expected exactly one mode specification.");
     pod2usage(-exitval => 2);
   }
+
   foreach my $loc ((scalar @ARGV) ? @ARGV : (".")) {
     inc_version($loc);
   }
-}
-
+} #-# End else [ if (scalar keys %bumped_versions)]
 update_clients();
-
 maybe_commit_and_tag();
-
 1;
 
 
 sub set_mode {
   my ($opt, $arg) = @_;
+
   if (!exists $options->{mode} or ($options->{mode} eq $opt and $opt eq "U"))
   {
     $options->{mode} = shift;
@@ -71,14 +65,16 @@ sub set_mode {
 
 sub mark_for_update {
   my ($cetpackage, $version, $loc) = @_;
+
   if ($cetpackage eq "update-only") { # Argument processing.
     ($cetpackage, $version) = split /,/, $version;
+
     unless ($cetpackage and $version) {
       error("mark_for_update: bad package / version $cetpackage / $version.");
       return 1;
     }
-    $version =~ s&^v&&;               # Strip any leading "v."
-  }
+    $version =~ s&^v&&; # Strip any leading "v."
+  } #-# End if ($cetpackage eq "update-only")
   $bumped_versions{$cetpackage} = { version => $version };
   $bumped_versions{$cetpackage}->{loc} = $loc if $loc;
 } ## end sub mark_for_update
@@ -103,13 +99,13 @@ sub inc_version {
   my $loc = shift;
   -f "$loc/ups/product_deps" or return;
   my $deps_file = "$loc/ups/product_deps";
-  open(IN, $deps_file) or
-    do { error("Unable to open file \"$deps_file\" for read."); exit(1); };
+  open(IN, $deps_file)
+    or do { error("Unable to open file \"$deps_file\" for read."); exit(1); };
   my $tmp = `mktemp /tmp/increment-version.XXXXXXXXXX`;
   chomp $tmp;
   $tmp or do { error("Unable to get temporary file.\n"); exit(1); };
-  open(OUT, ">$tmp") or
-    do { error("Unable to open temporary file for write."); exit(1); };
+  open(OUT, ">$tmp")
+    or do { error("Unable to open temporary file for write."); exit(1); };
   my ($stem, $cetpackage, $version, @v, $new_version);
 
   while (<IN>) {
@@ -121,6 +117,7 @@ m&^(\s*parent\s+(\S+)\s+v)((\d+)_(\d+)(?:_(\d+)(?:(_?(?:pre|rc|p|alpha|a|beta|b)
     do { print OUT; next; } unless scalar @v;
     my $tail = pop @v;
     $tail =~ s&^\S*&&; # Remove super-micro version.
+
     if ($options->{mode} eq "M") {
       ++$v[0];
       defined $v[1] and $v[1] = 0;
@@ -145,7 +142,8 @@ m&^(\s*parent\s+(\S+)\s+v)((\d+)_(\d+)(?:_(\d+)(?:(_?(?:pre|rc|p|alpha|a|beta|b)
       } else {
         $v[3] = "_01";
       }
-    }
+    } #-# End elsif ($options->{mode} eq... [ if ($options->{mode} eq...)])
+
     if ($wanted_version) {
       $new_version = $wanted_version;
       $new_version =~ s&^v&&; # Strip any leading "v."
@@ -154,45 +152,47 @@ m&^(\s*parent\s+(\S+)\s+v)((\d+)_(\d+)(?:_(\d+)(?:(_?(?:pre|rc|p|alpha|a|beta|b)
       defined $v[1] and $new_version .= sprintf("_%02d", $v[1]);
       defined $v[2] and $new_version .= sprintf("_%02d", $v[2]);
       defined $v[3] and $new_version .= $v[3];
-    }
+    } #-# End else [ if ($wanted_version) ]
     report "$cetpackage v$version -> v$new_version.";
     print OUT "$stem$new_version", $tail || "", "\n";
     undef @v;
   } ## end while (<IN>)
   close(IN);
   close(OUT);
+
   if (system("diff -qwu \"$deps_file\" \"$tmp\" >/dev/null 2>&1")) {
     unless ($options->{"dry-run"}) {
       if (system("cp", "$tmp", "$deps_file")) {
         ERROR("Updating $deps_file from $tmp: $!");
         exit(1);
       }
-    }
+    } #-# End unless ($options->{"dry-run"...})
     mark_for_update($cetpackage, $new_version, $loc);
-  }
+  } #-# End if (system("diff -qwu \"$deps_file\" \"$tmp\" >/dev/null 2>&1"...))
   unlink($tmp) unless $options->{debug};
 } ## end sub inc_version
 
 
 sub maybe_new_version {
   my $cetpackage = shift;
+
   if (exists $bumped_versions{$cetpackage}) {
     return $bumped_versions{$cetpackage}->{version};
   } else {
     return;
   }
-}
+} #-# End sub maybe_new_version
 
 
 sub update_one_client {
   my $file_to_update = shift;
-  open(IN, $file_to_update) or
-    die "Unable to open file \"$file_to_update\" for read.";
+  open(IN, $file_to_update)
+    or die "Unable to open file \"$file_to_update\" for read.";
   my $tmp = `mktemp /tmp/increment-version.XXXXXXXXXX`;
   chomp $tmp;
   $tmp or do { error("Unable to get temporary file."); exit(1); };
-  open(OUT, ">$tmp") or
-    do { error("Unable to open temporary file for write."); exit(1); };
+  open(OUT, ">$tmp")
+    or do { error("Unable to open temporary file for write."); exit(1); };
   my $in_prods;
   my ($stem, $cetpackage, $version, @v, $new_version);
 
@@ -204,75 +204,78 @@ sub update_one_client {
       unless $cetpackage;
     m&^\s*product\s+version& and do { $in_prods = 1; next; };
     $in_prods and do {
-      my ($stem, $found_prod, $found_version) =
+        my ($stem, $found_prod, $found_version) =
         (m&^((?:\s*only_for_build)?\s*(\S+)\s+v)(\S+)&);
-      if ($found_prod and $found_version) {
-        my $new_version = maybe_new_version($found_prod);
-        if ($new_version and $found_version ne $new_version) {
-          report
+
+        if ($found_prod and $found_version) {
+          my $new_version = maybe_new_version($found_prod);
+
+          if ($new_version and $found_version ne $new_version) {
+            report
 "Updating ${cetpackage}'s use of $found_prod from $found_version to $new_version in ",
             dirname($File::Find::dir), ".";
-          s&^\Q$stem$found_version&${stem}$new_version&;
-        }
+            s&^\Q$stem$found_version&${stem}$new_version&;
+          } #-# End if ($new_version and $found_version...)
       } else {
-        undef $in_prods;
-      }
+          undef $in_prods;
+        }
     };
   } continue {
     print OUT "$_\n";
   }
   close(IN);
   close(OUT);
+
   if (system("diff -qwu \"$file_to_update\" \"$tmp\" >/dev/null 2>&1")) {
     unless ($options->{"dry-run"}) {
       if (system("cp", "$tmp", "$file_to_update")) {
         error("Updating $file_to_update from $tmp: $!");
         exit(1);
       }
-    }
-  }
+    } #-# End unless ($options->{"dry-run"...})
+  } #-# End if (system(...))
   unlink($tmp) unless $options->{debug};
 } ## end sub update_one_client
 
 
 sub update_clients {
   File::Find::find({ wanted => \&wanted, follow => 1 },
-                   @{ $options->{"client-dir"} })
+      @{ $options->{"client-dir"} })
     if (defined $options->{"client-dir"} and scalar keys %bumped_versions);
-}
+} #-# End sub update_clients
 
 
 sub wanted {
   my ($dev, $ino, $mode, $nlink, $uid, $gid);
-
-  (($dev, $ino, $mode, $nlink, $uid, $gid) = lstat($_)) and
-    $File::Find::name =~ /^.*\/ups\/product_deps\z/s and
-    update_one_client($_);
-}
+  (($dev, $ino, $mode, $nlink, $uid, $gid) = lstat($_))
+    and $File::Find::name =~ /^.*\/ups\/product_deps\z/s
+    and update_one_client($_);
+} #-# End sub wanted
 
 
 sub maybe_commit_and_tag {
   return unless $options->{tag};
+
   foreach my $cetpackage (keys %bumped_versions) {
     my $loc = $bumped_versions{$cetpackage}->{loc} or next;
     my $cmd =
       sprintf(
 "pwd; cd \"%s\" && git commit -m 'Bump version to %s' ups/product_deps && git tag -fam 'Bump version for release' v%s",
-      $loc,
-      $bumped_versions{$cetpackage}->{version},
-      $bumped_versions{$cetpackage}->{version});
+        $loc,
+        $bumped_versions{$cetpackage}->{version},
+        $bumped_versions{$cetpackage}->{version});
+
     if ($options->{"dry-run"}) {
       report("Would tag package $cetpackage at version ",
-             $bumped_versions{$cetpackage}->{version},
-             " in $loc.");
+          $bumped_versions{$cetpackage}->{version},
+          " in $loc.");
     } elsif (system($cmd) != 0) {
       error("Unable to commit and tag update to $cetpackage at version ",
-            $bumped_versions{$cetpackage}->{version},
-            " in $loc.");
-    }
+          $bumped_versions{$cetpackage}->{version},
+          " in $loc.");
+    } #-# End elsif (system($cmd) != 0) [ if ($options->{"dry-run"...})]
   } ## end foreach my $cetpackage (keys...)
 } ## end sub maybe_commit_and_tag
-
 __END__
 
 =pod

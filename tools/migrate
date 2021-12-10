@@ -1,11 +1,8 @@
 #!/usr/bin/env perl
 # -*- cperl -*-
-
 ## no critic qw(Bangs::ProhibitFlagComments)
-
 # FIXME: Restore function!
 # FIXME: Documentation!
-
 ##################
 # Preamble.
 
@@ -13,7 +10,6 @@ use 5.016;
 
 # Should be first unless we're in a module.
 use FindBin;
-
 use Cwd qw(abs_path chdir getcwd);
 use File::Copy;
 use File::Find;
@@ -23,7 +19,6 @@ use Getopt::Long qw(:config no_ignore_case bundling require_order);
 use IO qw(File Handle);
 use POSIX qw(strftime);
 use Pod::Usage;
-
 use strict;
 use warnings FATAL => qw(
   io
@@ -33,7 +28,6 @@ use warnings FATAL => qw(
   uninitialized
   void
 );
-
 my $_cetmodules_top;
 
 
@@ -42,7 +36,6 @@ BEGIN {
 }
 
 use lib File::Spec->catfile($_cetmodules_top, "libexec");
-
 use Cetmodules qw(:DIAG_VARS);
 use Cetmodules::CMake;
 use Cetmodules::Migrate::CMake qw(:CMAKE_FILE_TOOLS);
@@ -51,71 +44,59 @@ use Cetmodules::Migrate::Util;
 use Cetmodules::UPS::ProductDeps
   qw(get_parent_info get_pathspec get_product_list get_qualifier_matrix $PATHSPEC_INFO);
 use Cetmodules::Util;
-
 use warnings FATAL => qw(Cetmodules);
 
 our ($PATHSPEC_INFO);
 
 my $options = {};
-GetOptions($options, "help|h|?",
-           "debug" => \$Cetmodules::DEBUG,
-           "dry-run|n",
-           "quiet|q"   => \$Cetmodules::QUIET,
-           "verbose|v" => \$Cetmodules::VERBOSE
-  ) or
-  pod2usage(-exitval => 2);
-
+GetOptions(
+    $options, "help|h|?",
+    "debug" => \$Cetmodules::DEBUG,
+    "dry-run|n",
+    "quiet|q"   => \$Cetmodules::QUIET,
+    "verbose|v" => \$Cetmodules::VERBOSE)
+  or pod2usage(-exitval => 2);
 $options->{help}      and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
 $options->{"dry-run"} and info("[DRY_RUN] no files replaced or removed");
-
-scalar @ARGV or
-  unshift @ARGV,
-  ($ENV{CETPKG_SOURCE} || error_exit(
-              "vacuous source dir and \$CETPKG_SOURCE not set in environment")
-  );
-
+scalar @ARGV
+  or unshift @ARGV,
+  ( $ENV{CETPKG_SOURCE}
+    || error_exit(
+      "vacuous source dir and \$CETPKG_SOURCE not set in environment"));
 my $owd     = getcwd();
 my @pkgdirs = map { abs_path($_); } @ARGV;
+
 for my $pkgtop (@pkgdirs) {
   chdir($pkgtop);
-  my $sfd = "ups/setup_for_development";
-
+  my $sfd    = "ups/setup_for_development";
   my $pdinfo = { filename => "ups/product_deps" };
-
   -d "ups" or error_exit("no ups dir: nothing to do");
   -w "ups" or error_exit("ups dir not writable: nothing we can do");
   -r $sfd  or warning("$sfd missing or not readable: will refresh");
   -r $pdinfo->{filename} or error_exit("no $pdinfo->{filename} to migrate");
-
   $pdinfo->{parent_info} =
     get_parent_info($pdinfo->{filename}, (quiet_warnings => 1));
   my $pkg_path_label = _pkg_path_label($pkgtop, $pdinfo->{parent_info});
   get_pathspec($pdinfo->{parent_info}, keys %{$PATHSPEC_INFO});
   $pdinfo->{pathspecs} = $pdinfo->{parent_info}->{pathspec_cache};
-
-  $pdinfo->{products} = get_product_list($pdinfo->{filename});
+  $pdinfo->{products}  = get_product_list($pdinfo->{filename});
   @{$pdinfo}{qw(ndeps qualifier_columns qualifier_rows notes headers)} =
     get_qualifier_matrix($pdinfo->{filename}, *STDERR);
-
   info("attempting to read $pkg_path_label/$pdinfo->{filename}... DONE",
-       $pkg_path_label);
-
+      $pkg_path_label);
   my $from = {
-    map {
-      (m&\A(cet(?:buildtools|modules))\z&msx) ?
-        (name => $_, version => $pdinfo->{products}->{$1}->{q(-)}->{version}
-        ) :
-        ();
-    } keys %{ $pdinfo->{products} } };
-
+      map {
+        (m&\A(cet(?:buildtools|modules))\z&msx)
+        ? (name    => $_,
+           version => $pdinfo->{products}->{$1}->{q(-)}->{version})
+        : ();
+      } keys %{ $pdinfo->{products} } };
   if ($from and ($from->{name} // q()) eq "cetmodules") {
     info(<<'EOF');
 attempting to complete, update or verify a manual, partial or previous migration
 EOF
-  }
-
+  } #-# End if ($from and ($from->...))
   $options->{"dry-run"} or _backup_files();
-
   write_product_deps($pkg_path_label, $pdinfo, $options);
 
   if ($pdinfo->{parent_info}->{name} eq "cetmodules") {
@@ -124,9 +105,8 @@ EOF
     _upgrade_ups_dir("ups");
     write_top_CML($pkgtop, $pdinfo->{parent_info}, $options);
     fix_cmake($pdinfo->{parent_info}, $options);
-  }
+  } #-# End else [ if ($pdinfo->{parent_info...})]
 } ## end for my $pkgtop (@pkgdirs)
-
 1;
 
 
@@ -139,39 +119,42 @@ sub _pkg_path_label {
 sub _upgrade_ups_dir {
   my ($upsdir) = @_;
   my @to_remove = map { -f "$upsdir/$_" ? "$upsdir/$_" : (); } (
-    qw(product-config.cmake.in README setup_deps
+      qw(product-config.cmake.in README setup_deps
       setup_for_development CMakeLists.txt));
   if ($options->{"dry-run"}) {
     notify("[DRY_RUN] would remove obsolete files from $upsdir:",
-           to_string(\@to_remove, { full_indent => 2 }));
+        to_string(\@to_remove, { full_indent => 2 }));
   } else {
     info("removing obsolete files from $upsdir...");
-    system(qw(rm -fv --), @to_remove) == 0 or
-      error_exit("failure removing obsolete files from $upsdir");
-  }
+    system(qw(rm -fv --), @to_remove) == 0
+      or error_exit("failure removing obsolete files from $upsdir");
+  } #-# End else [ if ($options->{"dry-run"...})]
   my @src_files = (qw(setup_for_development));
   my $gentime   = gentime();
+
   foreach my $file (@src_files) {
     my $nobuild     = ($file eq "setup_deps") ? 'nobuild' : q();
     my $pkgtop_file = "$_cetmodules_top/ups-templates/$file";
-    -r "$pkgtop_file" or
-      -r ($pkgtop_file = "$_cetmodules_top/ups-templates/setup.in") or
-      error_exit(
-            "unable to generate $file from unreadable template $pkgtop_file");
+    -r "$pkgtop_file"
+      or -r ($pkgtop_file = "$_cetmodules_top/ups-templates/setup.in")
+      or error_exit(
+        "unable to generate $file from unreadable template $pkgtop_file");
+
     if ($options->{"dry-run"}) {
       notify("[DRY_RUN] would generate $file from $pkgtop_file");
     } else {
       info("generating $file from template $pkgtop_file");
-      my $in = IO::File->new("$pkgtop_file", "<") or
-        error_exit("unable to open $pkgtop_file for read");
-      my $out = IO::File->new(File::Spec->catfile("$upsdir", "$file"), ">") or
-        error_exit("unable to open $upsdir/$file for write");
+      my $in = IO::File->new("$pkgtop_file", "<")
+        or error_exit("unable to open $pkgtop_file for read");
+      my $out = IO::File->new(File::Spec->catfile("$upsdir", "$file"), ">")
+        or error_exit("unable to open $upsdir/$file for write");
+
       while (my $line = <$in>) {
         $line =~
 s&\A(\#\s+Generated by\s+).*$&${1}cetmodules $CETMODULES_VERSION at $gentime&msx;
         $line =~ s&\@nobuild\@&$nobuild&gmsx;
         $out->print($line);
-      }
+      } #-# End while (my $line = <$in>)
       $out->close();
       $in->close();
     } ## end else [ if ($options->{"dry-run"...})]
@@ -186,26 +169,24 @@ sub _backup_files {
   my $backupdir = abs_path("migrate-backup-$date");
   verbose("backing up files to $backupdir");
   make_path("$backupdir");
-  system(qq(cp -pR ups $backupdir/ups)) == 0 or
-    error_exit("unable to back up UPS directory ups to $backupdir");
-  find({
-      preprocess => \&find_cmake,
-      wanted     => sub {
-        -f or return;
-        my ($path, $filepath, $filename) =
+  system(qq(cp -pR ups $backupdir/ups)) == 0
+    or error_exit("unable to back up UPS directory ups to $backupdir");
+  find(
+      { preprocess => \&find_cmake,
+        wanted     => sub {
+          -f or return;
+          my ($path, $filepath, $filename) =
           ($File::Find::dir, $File::Find::name, $_);
-        my $destdir = File::Spec->catfile($backupdir, $path);
-        make_path($destdir);
-        copy($_, "$destdir/") or
-          error_exit("unable to back up $filepath to $destdir");
-      }
-    },
-    q(.));
+          my $destdir = File::Spec->catfile($backupdir, $path);
+          make_path($destdir);
+          copy($_, "$destdir/")
+          or error_exit("unable to back up $filepath to $destdir");
+        }
+      },
+      q(.));
   return;
 } ## end sub _backup_files
-
 1;
-
 __END__
 
 =pod

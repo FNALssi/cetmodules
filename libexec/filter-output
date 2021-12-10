@@ -27,14 +27,14 @@ s&\d+-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}(?:\s+(?:[01]\d|2[0
   s&/.*/(\w*_(plugin|module|service|source|tool).cc)&<path>/${1}&g;
   ########################################################################
   # Messagefacility messages.
-  s&^(\%MSG.*?:\s+).*?(<date-time>)&${1}${2}&
-    ; # OS X does not currently print application.
+  s&^(\%MSG.*?:\s+).*?(<date-time>)&${1}${2}&; # OS X does not currently print application.
   ########################################################################
   # TimeReport lines.
   m&^TimeReport& and s&[\d\.]+&<duration>&g;
   ########################################################################
   # MemReport lines.
   m&^MemReport\s+-+\s+Memory\s+Summary& and $in_memReport = 1;
+
   if ($in_memReport) {
     undef $in_memReport if m&^\s*$&;
     next;

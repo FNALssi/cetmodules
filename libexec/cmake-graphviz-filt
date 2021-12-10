@@ -1,18 +1,14 @@
 #!/usr/bin/perl -w
 
 use strict;
-
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
 
 Getopt::Long::Configure(qw(no_ignore_case bundling require_order));
-
-my $options = { dicts => 0, exes => 0, extlibs => 0, "test-tree" => 0 };
-
+my $options       = { dicts => 0, exes => 0, extlibs => 0, "test-tree" => 0 };
 my $deleted_nodes = {};
-
-my $opt_file = glob("~/.cgfrc");
+my $opt_file      = glob("~/.cgfrc");
 
 if (-f $opt_file) {
   open(OPTS, $opt_file) or die "Unable to read options file $opt_file.";
@@ -20,36 +16,37 @@ if (-f $opt_file) {
   close(OPTS);
   chomp @file_options;
   unshift @ARGV, @file_options;
-}
-
-GetOptions($options, "dicts",
-           "no-dicts" => sub { $options->{dicts} = 0; },
-           "exes",
-           "no-exes" => sub { $options->{exes} = 0; },
-           "extlibs",
-           "no-extlibs" => sub { $options->{extlibs} = 0; },
-           "short-libnames",
-           "no-short-libnames" => sub { $options->{"short-libnames"} = 0; },
-           "test-tree",
-           "no-test-tree" => sub { $options->{"test-tree"} = 0; },
-           "help|h|?"
-  ) or
-  pod2usage(-exitval => 2);
-
+} #-# End if (-f $opt_file)
+GetOptions(
+    $options, "dicts",
+    "no-dicts" => sub { $options->{dicts} = 0; },
+    "exes",
+    "no-exes" => sub { $options->{exes} = 0; },
+    "extlibs",
+    "no-extlibs" => sub { $options->{extlibs} = 0; },
+    "short-libnames",
+    "no-short-libnames" => sub { $options->{"short-libnames"} = 0; },
+    "test-tree",
+    "no-test-tree" => sub { $options->{"test-tree"} = 0; },
+    "help|h|?")
+  or pod2usage(-exitval => 2);
 $options->{help} and pod2usage(-exitval => 1, -verbose => 3);
 
 while (<>) {
   if (m&^\s*"(node\d+)"\s*\[\s*(.*?)\s*\].*$&) {
     my $node = { name => $1 };
     my $pars = $2;
+
     while ($pars =~ m&(\w+)="([^"]+)"\s*&g) {
       $node->{$1} = $2;
     }
     $node->{type} = type_from_shape($node->{shape});
+
     if ($options->{"short-libnames"} and $node->{label} =~ m&/&) {
       $node->{label} = basename($node->{label});
     }
     node_color($node);
+
     if (wanted($node)) {
       print_node($node);
     } else {
@@ -69,12 +66,12 @@ EOF
     print;
   }
 } ## end while (<>)
-
 1;
 
 
 sub node_color {
   my $node = shift;
+
   if ($node->{type} eq "extlib") {
     $node->{style} = "filled";
     $node->{color} = "pink";
@@ -99,6 +96,7 @@ sub node_color {
 
 sub type_from_shape {
   my $shape = shift;
+
   if ($shape eq "house") {
     return "exe";
   } elsif ($shape eq "polygon") {
@@ -114,17 +112,18 @@ sub type_from_shape {
 sub wanted {
   my $node   = shift;
   my $result = 1;
+
   if ($node->{label} =~ m&^test_& and not $options->{"test-tree"}) {
     $result = 0;
   } elsif ($node->{type} eq "exe" and not $options->{exes}) {
     $result = 0;
   } elsif ($node->{type} eq "extlib" and not $options->{extlibs}) {
     $result = 0;
-  } elsif ($node->{type} eq "lib" and
-           $node->{label} =~ m&_(dict|map)$& and
-           not $options->{dicts}) {
+  } elsif ($node->{type} eq "lib"
+      and $node->{label} =~ m&_(dict|map)$&
+      and not $options->{dicts}) {
     $result = 0;
-  }
+  } #-# End elsif ($node->{type} eq "lib"... [ if ($node->{label} =~ ...)])
   return $result;
 } ## end sub wanted
 
@@ -132,19 +131,19 @@ sub wanted {
 sub print_node {
   my $node = shift;
   print sprintf(
-    '"%s" [ %s ]',
-    $node->{name},
-    join(
-      " ",
-      map {
-        ($_ eq "name" or $_ eq "type") ? () :
-          sprintf("$_=\"%s\"", $node->{$_});
+      '"%s" [ %s ]',
+      $node->{name},
+      join(
+        " ",
+        map {
+            ($_ eq "name" or $_ eq "type")
+          ? ()
+          : sprintf("$_=\"%s\"", $node->{$_});
         } sort keys %$node
-    )
+      )
     ),
     "\n";
 } ## end sub print_node
-
 __END__
 
 =pod
