@@ -57,7 +57,10 @@ Readonly::Array @CALL_HANDLERS => qw(
   endmacro
   find_library
   find_package
+  find_ups_boost
+  find_ups_geant4
   find_ups_product
+  find_ups_root
   function
   include_directories
   link_directories
@@ -427,11 +430,60 @@ EOF
 } #-# End sub find_package
 
 
-sub find_ups_product {
+sub find_ups_boost {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
-  return;
+  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
+} #-# End sub find_ups_boost
+
+
+sub find_ups_geant4 { ## no critic qw(Bangs::ProhibitNumberedNames)
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  debug("in handler for $call_info->{name}()");
+  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
+} #-# End sub find_ups_geant4
+
+
+sub find_ups_product {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  my $product_to_find = interpolated(arg_at($call_info, 0));
+  replace_call_with($call_info, 'find_package');
+  my $package_to_find = single_value_for($call_info, 'PROJECT', 1)
+    // _product_to_package($product_to_find);
+  my $had_project_kw =
+    remove_keyword($call_info, "PROJECT", _find_package_keywords(qw(all)));
+  my $add_required = not remove_keyword($call_info, "OPTIONAL");
+
+  if ($package_to_find ne $product_to_find) {
+    replace_arg_at($call_info, 0, $package_to_find);
+  }
+  $add_required and append_args($call_info, "REQUIRED");
+  my @old_bits = (
+      ($had_project_kw ? ('PROJECT', $package_to_find) : ()),
+      ($add_required   ? ()                            : qw(OPTIONAL)));
+  (      scalar @old_bits
+      or $add_required
+      or $package_to_find ne $product_to_find)
+    and unshift @old_bits, $product_to_find;
+  my @new_bits = ($add_required) ? qw(REQUIRED) : ();
+  scalar @old_bits and unshift @new_bits, $package_to_find;
+  push @old_bits, q(...);
+  push @new_bits, q(...);
+  tag_changed(
+      $call_info,
+      sprintf(
+        "find_ups_product(%s) -> find_package(%s)",
+        join(q( ), @old_bits),
+        join(q( ), @new_bits)));
+  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
 } #-# End sub find_ups_product
+
+
+sub find_ups_root {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  debug("in handler for $call_info->{name}()");
+  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
+} #-# End sub find_ups_root
 
 
 sub include_directories {
