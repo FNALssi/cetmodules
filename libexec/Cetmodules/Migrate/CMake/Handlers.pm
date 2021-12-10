@@ -256,7 +256,7 @@ EOF
     $edit = "added missing keyword VERSION";
   } else {
     my ($req_version_idx) =
-      find_single_value_for($call_info, qw(VERSION 1 FATAL_ERROR));
+      find_single_value_for($call_info, qw(VERSION FATAL_ERROR));
 
     if (not $req_version_idx) {
       warning(<<"EOF");
