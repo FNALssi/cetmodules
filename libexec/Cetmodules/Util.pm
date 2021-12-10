@@ -19,6 +19,7 @@ our (@EXPORT);
   error
   error_exit
   info
+  is_ups_version
   notify
   offset_annotated_items
   parse_version_string
@@ -86,6 +87,12 @@ sub error_exit {
 sub info { ## no critic qw(Bangs::ProhibitVagueNames)
   $QUIET or notify(@_);
   return;
+}
+
+
+sub is_ups_version {
+  my ($maybe_ups_version) = (@_) or return;
+  return $maybe_ups_version =~ m&\Av(?:[^[:digit:]].{2,}|[[:digit:]])&msx;
 }
 
 
