@@ -82,22 +82,35 @@ sub generate_call_handlers {
         my $func_name = "Cetmodules::Migrate::CMake::Handlers\::$_";
         "${_}_callback" => sub {
           my ($call_infos, $call_info, $cmakelists, $options) = @_;
-          local $_; ## no critic qw(RequireInitializationForLocalVars)
-          my $func_ref = \&{$func_name};
           my $result;
           has_ignore_directive($call_info) and return $result; # NOP
+          local $_; ## no critic qw(RequireInitializationForLocalVars)
           my $orig_call = reconstitute_code(@{ $call_infos // [] });
+
+          # Save for diagnostics in case they get changed:
+          my $saved_info = { name       => $call_info->{name},
+                             start_line => $call_info->{start_line} };
+
+          # Invoke the real function.
+          my $func_ref = \&{$func_name};
           remove_all_directives($call_info);
           debug(<<"EOF");
-invoking wrapped migration handler $func_name\E() for CMake call $call_info->{name}\E() at $cmakelists:$call_info->{start_line}
+invoking wrapped migration handler $func_name\E() for CMake call $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}
 EOF
           eval {
             &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options);
           } or 1;
-          $EVAL_ERROR and error_exit(<<"EOF");
-error calling handler $func_name\E() for CMake call $call_info->{name}\E() at $cmakelists:$call_info->{start_line}:
-$EVAL_ERROR
+
+          if (my $err = $EVAL_ERROR) {
+            $err =~ s&^FATAL_ERROR:\s*&&msxg;
+            $err =~ s&^\s*&&msxg;
+            $err =~ s&^&   &msxg;
+            error_exit(<<"EOF");
+error calling handler $func_name\E() for CMake call $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}:
+
+$err
 EOF
+          } ## end if (my $err = $EVAL_ERROR)
           my $new_call = reconstitute_code(@{ $call_infos // [] });
 
           if ($orig_call ne ($new_call // q())) {
