@@ -82,12 +82,9 @@ sub generate_call_handlers {
           local $_; ## no critic qw(RequireInitializationForLocalVars)
           my $func_ref = \&{$func_name};
           my $result;
-          ( List::MoreUtils::any {
-              has_ignore_directive($call_info->{chunks}->[$_]);
-            }
-            @{ $call_info->{arg_indexes} })
-          and return $result; # NOP
+          has_ignore_directive($call_info) and return $result; # NOP
           my $orig_call = reconstitute_code(@{ $call_infos // [] });
+          remove_all_directives($call_info);
           debug(<<"EOF");
 invoking wrapped migration handler $func_name\E() for CMake call $call_info->{name}\E() at $cmakelists:$call_info->{start_line}
 EOF

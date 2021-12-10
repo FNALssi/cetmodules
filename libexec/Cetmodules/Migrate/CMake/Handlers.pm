@@ -265,7 +265,7 @@ EOF
       insert_args_at($call_info,
           keyword_arg_append_position($call_info, 'VERSION', 'FATAL_ERROR'),
           $_cmake_required_version);
-      $edit = 1;
+      $edit = "VERSION keyword missing value";
     } else {
       my $req_version = arg_at($call_info, $req_version_idx);
       my ($req_version_int, $is_literal) = interpolated($req_version);
@@ -296,11 +296,10 @@ EOF
         } ## end else [ if (not $vmax) ]
 
         if ($policy) {
-          my $line = <<"EOF";
+          my $lineref = tag_added(<<"EOF", "CMake compatibility");
 $call_info->{pre_call_ws}\Ecmake_policy(VERSION $policy)
 EOF
-          tag_added(\$line, "CMake compatibility");
-          push @{$call_infos}, $line;
+          push @{$call_infos}, ${$lineref};
         } #-# End if ($policy)
         my $new_req_version =
           join(q(...), $_cmake_required_version, $vmax // ());
@@ -538,11 +537,10 @@ EOF
       to_cmake_version($project_info->{cmake_project_version_info});
 
     if ($vinfo->{extra}) {          # need to use version string
-      my $line = <<"EOF";
+      my $lineref = tag_added(<<"EOF", "extended version semantics");
 $call_info->{pre_call_ws}\Eset($project_info->{cmake_project_name} $project_info->{cmake_project_version})
 EOF
-      tag_added(\$line, "extended version semantics");
-      push @{$call_infos}, $line;
+      push @{$call_infos}, ${$lineref};
 
       # Remove any empty VERSION keywords.
       remove_keyword($call_info, 'VERSION', @PROJECT_KEYWORDS);

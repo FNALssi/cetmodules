@@ -19,6 +19,8 @@ our (@EXPORT);
   flagged
   has_directive
   has_ignore_directive
+  remove_all_directives
+  remove_directive
   tag
   tag_added
   tag_changed
@@ -27,20 +29,20 @@ our (@EXPORT);
 
 
 sub flag {
-  my ($textref, $type, $extra) = @_;
-  return tag($textref, "ACTION-$type", $extra);
+  my ($textish, $type, $extra) = @_;
+  return tag($textish, "ACTION-$type", $extra);
 }
 
 
 sub flag_recommended {
-  my ($textref, $extra) = @_;
-  return flag($textref, "RECOMMENDED", $extra);
+  my ($textish, $extra) = @_;
+  return flag($textish, "RECOMMENDED", $extra);
 }
 
 
 sub flag_required {
-  my ($textref, $extra) = @_;
-  return flag($textref, "REQUIRED", $extra);
+  my ($textish, $extra) = @_;
+  return flag($textish, "REQUIRED", $extra);
 }
 
 
@@ -52,8 +54,8 @@ sub flagged {
 
 sub has_directive {
   my ($textish, $directive) = @_;
-  my $text = (ref $textish) ? ${$textish} : $textish;
-  return $text =~ m&(?:\A|\s+)\#\#\#\s+MIGRATE-$directive\b&msx;
+  my $textref = _tag_textref($textish);
+  return ${$textref} =~ m&(?:\A|\s+)\#\#\#\s+MIGRATE-$directive\b&msx;
 } #-# End sub has_directive
 
 
@@ -64,57 +66,44 @@ sub has_ignore_directive {
 
 
 sub remove_all_directives {
-  my ($textref) = @_;
-  return ${$textref} =~
+  my ($textish) = @_;
+  my $textref = _tag_textref($textish);
+  ${$textref} =~
     s&(?:\A|\s+)[#]{3}\s+MIGRATE-(?!NO-ACTION\b).*?(\s+[#]|$)&$1&msgx;
+  return $textref;
 } #-# End sub remove_all_directives
 
 
 sub remove_directive {
-  my ($textref, $directive) = @_;
-  return ${$textref} =~
-    s&(?:\A|\s+)[#]{3}\s+MIGRATE-$directive.*?(\s+[#]|$)&$1&msgx;
+  my ($textish, $directive) = @_;
+  my $textref = _tag_textref($textish);
+  ${$textref} =~ s&(?:\A|\s+)[#]{3}\s+MIGRATE-$directive.*?(\s+[#]|$)&$1&msgx;
+  return $textref;
 } #-# End sub remove_directive
 
 
 sub tag {
-  my ($textref, $type, $extra) = @_;
-  my $text;
-  given (ref $textref) {
-    when (undef) {
-      $text    = $textref;
-      $textref = \$text;
-    }
-    when ('SCALAR') { }
-    when ('HASH' and exists $textref->{post}) {
-      $textref = \$textref->{post};
-    }
-    default {
-      error_exit(<<"EOF");
-cannot tag unknown entity $textref
-EOF
-    } #-# End default
-  } #-# End given
+  my ($textish, $type, $extra) = @_;
+  my $textref = _tag_textref($textish);
   tagged($textref, $type, $extra)
     or ${$textref} =~ s&[ \t]*(\Z)& ### MIGRATE-$type$extra$1&msx;
-  return ${$textref};
+  return $textref;
 } #-# End sub tag
 
 
 sub tag_added {
-  my ($textref, $extra) = @_;
+  my ($textish, $extra) = @_;
   return
-    tag($textref,
+    tag($textish,
       "ADDED (migrate-$CETMODULES_VERSION)",
       ($extra) ? " - $extra" : ());
 } #-# End sub tag_added
 
 
 sub tag_changed {
-  my ($textref, $extra) = @_;
-  remove_all_directives($textref);
+  my ($textish, $extra) = @_;
   return
-    tag($textref,
+    tag($textish,
       "CHANGED (migrate-$CETMODULES_VERSION)",
       ($extra) ? " - $extra" : ());
 } #-# End sub tag_changed
@@ -125,4 +114,25 @@ sub tagged {
   defined $extra or $extra = q();
   return has_directive($textish, "$type$extra");
 } #-# End sub tagged
+
+
+sub _tag_textref {
+  my ($textish) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+  my ($result);
+  given (ref $textish) {
+    when ('SCALAR') { $result = $textish; }
+    when ('HASH') {
+      defined $textish->{post} or continue;
+      $result = \$textish->{post};
+    }
+    when (q()) { $result = \$textish; }
+    default {
+      error_exit(<<"EOF");
+cannot identify tag text from unknown entity $textish
+EOF
+    } #-# End default
+  } #-# End given
+  return $result;
+} #-# End sub _tag_textref
 1;
