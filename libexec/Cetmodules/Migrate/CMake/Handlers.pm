@@ -80,8 +80,9 @@ Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
 # Private variables
 ########################################################################
 my $_cml_state              = {};
-my $_cmake_required_version = _read_cmake_required_version();
+my $_cmake_required_version = _get_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
+my $_default_crv     = "3.19";
 ########################################################################
 # Exported functions
 ########################################################################
@@ -650,15 +651,22 @@ EOF
 } ## end sub _end_call_definition
 
 
-sub _read_cmake_required_version {
+sub _get_cmake_required_version {
   ## no critic qw(InputOutput::ProhibitBacktickOperators)
-  my $cml_top = abs_path(File::Spec->catfile(
-      dirname(__FILE__), qw(.. .. .. ..),
-      'CMakeLists.txt'));
-  my $cmake_required_version =
-qx(sed -Ene 's&^[[:space:]]*cmake_minimum_required[(][[:space:]]*VERSION[[:space:]]+([[:digit:]]+([.][[:digit:]]+)*)([.]{3}[[:digit:]|.]+)?([[:space:]]+FATAL_ERROR)?[[:space:]]*[)].*\$&\\1&ip' "$cml_top");
-  chomp $cmake_required_version;
-  return $cmake_required_version;
+  my $result = $_default_crv;
+  my $crv_file =
+    abs_path(File::Spec->catfile(
+      dirname(__FILE__), qw(.. .. .. .. etc),
+      'cmake_required_version.txt'));
+
+  if (my $crv_fh = IO::File->new("$crv_file", "<")) {
+    while (<$crv_fh>) {
+      m&\A\s*([0-9.]+)[\s#]*&msx or next;
+      $result = $1;
+      last;
+    } #-# End while (<$crv_fh>)
+  } #-# End if (my $crv_fh = IO::File...)
+  return $result;
 } ## end sub _read_cmake_required_version
 ########################################################################
 # _set_X
