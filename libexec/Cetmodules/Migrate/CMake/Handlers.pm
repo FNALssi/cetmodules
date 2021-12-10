@@ -792,14 +792,29 @@ sub _get_cmake_required_version {
   } #-# End if (my $crv_fh = IO::File...)
   return $result;
 } ## end sub _read_cmake_required_version
+my $_product_to_package_table = { boost    => 'Boost',
+                                  cppunit  => 'CppUnit',
+                                  geant4   => 'Geant4',
+                                  range    => 'Range-v3',
+                                  root     => 'ROOT',
+                                  smc      => 'Smc',
+                                  sqlite   => 'SQLite3',
+                                  tbb      => 'TBB',
+                                  xerces_c => 'XercesC',
+                                };
+
+
+sub _product_to_package {
+  my ($product) = @_;
+  return $_product_to_package_table->{$product} // $product;
+}
 ########################################################################
 # _set_X
 #
 # Private callback routines invoked by set()
 #
 ########################################################################
-## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
-sub _set_CMAKE_PROJECT_VERSION_STRING {
+sub _set_CMAKE_PROJECT_VERSION_STRING { ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
 
   if (not $_cml_state->{seen_calls}->{'project'}) { # Too early.
@@ -814,6 +829,5 @@ EOF
   pop @{$call_infos};
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
-## use critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
 ########################################################################
 1;
