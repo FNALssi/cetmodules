@@ -1189,8 +1189,9 @@ sub _process_cml_lines {
                     %LAST_PAREN_MATCH,
                     call_start_char => length($LAST_PAREN_MATCH{pre_call_ws}),
                     name            => lc $LAST_PAREN_MATCH{command},
-                    start_line      => $line_no
-    };
+                    start_line      => $line_no,
+                    chunks          => [],
+                    arg_indexes     => [] };
     debug(sprintf(<<"EOF", $call_info->{name}));
 reading CALL %s() at $cmakelists:$call_info->{start_line}:$call_info->{call_start_char}",
 EOF
