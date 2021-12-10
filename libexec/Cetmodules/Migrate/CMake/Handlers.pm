@@ -383,41 +383,86 @@ EOF
 
 
 sub find_ups_boost {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} ## end sub find_ups_boost
+  goto &find_ups_product; # Delegate.
+}
 
 
 sub find_ups_geant4 { ## no critic qw(Bangs::ProhibitNumberedNames)
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} ## end sub find_ups_geant4
+  goto &find_ups_product; # Delegate.
+}
 
 
 sub find_ups_product {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  my $product_to_find = interpolated(arg_at($call_info, 0));
-  replace_call_with($call_info, 'find_package');
-  my $package_to_find = single_value_for($call_info, 'PROJECT', 1)
-    // _product_to_package($product_to_find);
-  my $had_project_kw =
-    remove_keyword($call_info, "PROJECT", _find_package_keywords(qw(all)));
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+  my $old_call = $call_info->{name};
+  my ($product_to_find, $package_to_find, $had_project_kw);
+
+  # Handle OPTIONAL keyword.
   my $add_required = not remove_keyword($call_info, "OPTIONAL");
 
-  if ($package_to_find ne $product_to_find) {
-    replace_arg_at($call_info, 0, $package_to_find);
+  # Rename the function.
+  replace_call_with($call_info, 'find_package');
+
+  # Behavior specific to the function we're replacing.
+  given ($old_call) {
+    when ('find_ups_product') {
+      $product_to_find = interpolated(arg_at($call_info, 0));
+
+      # Determine package name for product and replace args.
+      $had_project_kw =
+        remove_keyword($call_info, "PROJECT", _find_package_keywords());
+      $package_to_find = single_value_for($call_info, 'PROJECT', 1)
+        // _product_to_package($product_to_find);
+
+      if ($package_to_find ne $product_to_find) {
+        replace_arg_at($call_info, 0, $package_to_find);
+      }
+    } ## end when ('find_ups_product')
+    when (m&\Afind_ups_(?P<product>boost|geant4|root)\z&msx) {
+      $package_to_find = _product_to_package($LAST_PAREN_MATCH{product});
+      prepend_args($call_info, $package_to_find);
+    }
+    default { # Unknown call delegated to us.
+      error_exit(<<"EOF");
+unrecognized find_ups_X() call $old_call at $cmakelists:$call_info->{start_line}
+EOF
+    } ## end default
+  } ## end given
+
+  # Translate minimum version requirement if necessary.
+  my $minv = interpolated(arg_at($call_info, 1));
+  is_ups_version($minv) or undef $minv;
+
+  # Remove arguments to find_ups_boost() not already handled.
+  if (not defined $product_to_find and $package_to_find eq 'Boost') {
+    remove_args_at($call_info,
+        ((defined $minv) ? 2 : 1) .. $#{ $call_info->{arg_indexes} });
   }
-  $add_required and append_args($call_info, "REQUIRED");
+  $add_required
+    and not has_keyword($call_info, 'REQUIRED')
+    and append_args($call_info, "REQUIRED");
+
+  ####################################
+  # Compose and add the annotation.
   my @old_bits = (
-      ($had_project_kw ? ('PROJECT', $package_to_find) : ()),
-      ($add_required   ? ()                            : qw(OPTIONAL)));
-  (      scalar @old_bits
+      (defined $minv) ? $minv                         : (),
+      $had_project_kw ? ('PROJECT', $package_to_find) : (),
+      $add_required   ? ()                            : qw(OPTIONAL)
+  );
+  defined $product_to_find
+    and (scalar @old_bits
       or $add_required
       or $package_to_find ne $product_to_find)
     and unshift @old_bits, $product_to_find;
   my @new_bits = ($add_required) ? qw(REQUIRED) : ();
+
+  # Handling of $minv delayed to when we no longer need the UPS version.
+  if (defined $minv) {
+    $minv = to_dot_version($minv);
+    replace_arg_at($call_info, 1, $minv);
+    unshift @new_bits, $minv;
+  } ## end if (defined $minv)
   scalar @old_bits and unshift @new_bits, $package_to_find;
   push @old_bits, q(...);
   push @new_bits, q(...);
@@ -427,15 +472,15 @@ sub find_ups_product {
         "find_ups_product(%s) -> find_package(%s)",
         join(q( ), @old_bits),
         join(q( ), @new_bits)));
+  ##
+  ####################################
   return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
 } ## end sub find_ups_product
 
 
 sub find_ups_root {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} ## end sub find_ups_root
+  goto &find_ups_product; # Delegate.
+}
 
 
 sub include_directories {
