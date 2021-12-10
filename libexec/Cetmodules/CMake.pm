@@ -242,17 +242,26 @@ sub insert_args_at {
   my ($call_info, $idx_idx, @to_add) = @_;
   my ($point_index_start, $line_no_init);
   my $n_arg_indexes = scalar @{ $call_info->{arg_indexes} };
+  my ($need_preceding_whitespace, $need_following_whitespace);
 
   if (($idx_idx // $n_arg_indexes) < $n_arg_indexes) {
     $point_index_start = $call_info->{arg_indexes}->[$idx_idx];
     $line_no_init      = $call_info->{chunk_locations}->{$point_index_start};
     _has_open_quote($call_info, $idx_idx) and --$point_index_start;
-  } else {
+    $need_following_whitespace = 1;
+  } else { # appending
     $idx_idx           = $n_arg_indexes;
     $point_index_start = scalar @{ $call_info->{chunks} };
     $line_no_init      = $call_info->{end_line};
+    $need_following_whitespace =
+      (scalar @{ $call_info->{chunks} }
+        and is_whitespace($call_info->{chunks}->[$_LAST_ELEM_IDX]));
+    $need_preceding_whitespace =
+      ($n_arg_indexes
+        and not is_whitespace($call_info->{chunks}->[$_LAST_ELEM_IDX]));
   } #-# End else [ if (($idx_idx // $n_arg_indexes...))]
   my (@new_chunks, @new_indexes, @new_locations);
+  $need_preceding_whitespace and push @new_chunks, q( );
   my $n_newlines_tot = 0;
   my $point_index    = $point_index_start;
 
@@ -274,9 +283,12 @@ sub insert_args_at {
       $n_newlines_tot += $n_newlines;
     } #-# End else [ if (is_comment($item))]
   } ## end foreach my $item (@to_add)
-  $idx_idx < $n_arg_indexes
-    or $new_chunks[$_LAST_ELEM_IDX] eq qq(\n)
-    or do { pop @new_chunks; --$point_index; };
+
+  if (not(
+      $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace)) {
+    pop @new_chunks;
+    --$point_index;
+  } #-# End if (not($new_chunks[$_LAST_ELEM_IDX...]))
   my $n_new_chunks = scalar @new_chunks;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
