@@ -103,15 +103,17 @@ EOF
           if ($orig_call ne ($new_call // q())) {
             @{$result}[qw(orig_call new_call)] =
             ($orig_call, $new_call // q());
-            $options->{"dry-run"}
-            and printf
-            <<'EOF', $call_info->{start_line}, map { join("\n     ", split m&\n&msx); } ($orig_call, $new_call);
+            $options->{"dry-run"} and printf <<'EOF'
+
 ---------------old------------------
 % 4d %s
-====================================
-     %s
+====================================%s
 +++++++++++++++new++++++++++++++++++
+
 EOF
+            , $call_info->{start_line},
+            map { join("\n     ", split m&\n&msx); }
+            ($orig_call, ($new_call) ? "\n$new_call" : q());
           } ## end if ($orig_call ne ($new_call...))
           return $result;
         };
