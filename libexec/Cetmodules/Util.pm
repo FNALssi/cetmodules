@@ -250,8 +250,7 @@ sub to_string {
   $options->{full_indent} and $indent += $options->{full_indent};
   my $result;
   given ($type) {
-    when ([q(), 'CODE']) { $result = "$initial_indent$item"; }
-    when ('SCALAR')      { $result = "$initial_indent$$item"; }
+    when ('SCALAR') { $result = "$initial_indent$$item"; }
     when ('ARRAY') {
       $result = sprintf("$initial_indent\%s ]",
           offset_annotated_items($indent, '[ ', @{$item}));
@@ -268,9 +267,7 @@ sub to_string {
             } keys %{$item}));
       $indent -= $HASH_INDENT;
     } ## end when ('HASH')
-    default {
-      die "ERROR: cannot print item of type $_.\n";
-    } #-# End default
+    default { $result = "$initial_indent$item"; }
   } ## end given
   return sprintf('%s%s', $options->{preamble} || q(), $result);
 } ## end sub to_string
