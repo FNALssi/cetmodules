@@ -401,11 +401,11 @@ EOF
   $_cml_state->{seen_calls}->{ $call_info->{name} }->{$package_to_find}
     ->{ $call_info->{start_line} } = $call_info;
   my @removed_keywords = map {
-      remove_keyword($call_info, $_, _find_package_keywords(qw(all))) // ();
+      remove_keyword($call_info, $_, _find_package_keywords()) // ();
   } qw(BUILD_ONLY PRIVATE);
 
   if (my @obsolete_keywords = map {
-        remove_keyword($call_info, $_, _find_package_keywords(qw(all))) // ();
+        remove_keyword($call_info, $_, _find_package_keywords()) // ();
       } qw(INTERFACE PUBLIC)
     ) {
 
@@ -746,7 +746,7 @@ my @_cet_fp_kw =
 
 sub _find_package_keywords {
   my @args = @_;
-  @args or @args = qw(cmake);
+  @args or @args = qw(all);
   my $types = { map { lc $_ => 1; } @args };
   my $result;
 
