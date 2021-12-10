@@ -39,9 +39,12 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_call_handlers);
 sub find_cmake {
   return (
       grep {
-           (-d and not m&\Amigrate-backup&msx)
-        or $_ eq 'CMakeLists.txt'
-        or m&\.cmake\z&msx;
+        ( -d and # Process most directories ...
+          not(m&\Amigrate-backup&msx or m&\A\.&msx)) # except "dot" directories.
+        or (
+          $_ eq 'CMakeLists.txt' and # Directory-level CMake files ...
+          not $File::Find::dir eq q(.)) # except already-handled top level.
+        or m&\.cmake\z&msx; # Standard extension for CMake files.
       } @_);
 } #-# End sub find_cmake
 
@@ -119,7 +122,7 @@ EOF
 sub write_top_CML {
   my ($pkgtop, $pi, $options) = @_;
   return
-    _upgrade_CML("$pkgtop/CMakeLists.txt", "$pkgtop/CMakeLists.new", $pi,
+    _upgrade_CML("$pkgtop/CMakeLists.txt", "$pkgtop/CMakeLists.txt.new", $pi,
       $options);
 } #-# End sub write_top_CML
 ########################################################################
