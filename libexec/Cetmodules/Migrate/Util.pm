@@ -26,5 +26,5 @@ sub trimline {
   my $line = join(q(), @text);
   $line =~ s&(?-s:\s+)$&&msgx;
   return "$line\n";
-} #-# End sub trimline
+} ## end sub trimline
 1;

@@ -35,7 +35,7 @@ sub compare_or_show {
   my $result = is_deeply($test, $expected, @args)
     or diag(explain($test), " != ", explain($expected));
   return $result;
-} #-# End sub compare_or_show
+} ## end sub compare_or_show
 my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
 Readonly::Scalar my $_FLIP_OPERANDS => -1;
@@ -55,7 +55,7 @@ sub cmake_version_cmp {
 `cmake -DCMAKE_MODULE_PATH:STRING="$cmdir" -DVERSION_A:STRING="$a" -DVERSION_B:STRING="$b" -P "${_mydir}/version_cmp_t.cmake" | sed -Ene 's&^-- (-1|0|1)\$&\\1&p'`;
     chomp $ans;
     $ans_cache->{"$a"}->{"$b"} = $ans;
-  } #-# End else [ if (exists $ans_cache->... [elsif (exists $ans_cache->...)])]
+  } ## end else [ if (exists $ans_cache->... [elsif (exists $ans_cache->...)])]
   return $ans;
 } ## end sub cmake_version_cmp
 my @v_ref_list = qw(
@@ -77,5 +77,5 @@ inner: for my $j (0 .. (@v_ref_list - 1)) {
     $::a = $v_ref_list[$i]; ## no critic qw(Variables::ProhibitPackageVars)
     $::b = $v_ref_list[$j]; ## no critic qw(Variables::ProhibitPackageVars)
     is(cmake_version_cmp(), $i <=> $j, "$i <=> $j") or last outer;
-  } #-# End inner: for my $j (0 .. (@v_ref_list...))
-} #-# End outer: for my $i (0 .. (@v_ref_list...))
+  } ## end inner: for my $j (0 .. (@v_ref_list...))
+} ## end outer: for my $i (0 .. (@v_ref_list...))

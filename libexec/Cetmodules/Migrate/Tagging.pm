@@ -56,7 +56,7 @@ sub has_directive {
   my ($textish, $directive) = @_;
   my $textref = _tag_textref($textish);
   return ${$textref} =~ m&(?:\A|\s+)\#\#\#\s+MIGRATE-$directive\b&msx;
-} #-# End sub has_directive
+} ## end sub has_directive
 
 
 sub has_ignore_directive {
@@ -71,7 +71,7 @@ sub remove_all_directives {
   ${$textref} =~
     s&(?:\A|\s+)[#]{3}\s+MIGRATE-(?!NO-ACTION\b).*?(\s+[#]|$)&$1&msgx;
   return $textref;
-} #-# End sub remove_all_directives
+} ## end sub remove_all_directives
 
 
 sub remove_directive {
@@ -79,7 +79,7 @@ sub remove_directive {
   my $textref = _tag_textref($textish);
   ${$textref} =~ s&(?:\A|\s+)[#]{3}\s+MIGRATE-$directive.*?(\s+[#]|$)&$1&msgx;
   return $textref;
-} #-# End sub remove_directive
+} ## end sub remove_directive
 
 
 sub tag {
@@ -88,7 +88,7 @@ sub tag {
   tagged($textref, $type, $extra)
     or ${$textref} =~ s&[ \t]*(\Z)& ### MIGRATE-$type$extra$1&msx;
   return $textref;
-} #-# End sub tag
+} ## end sub tag
 
 
 sub tag_added {
@@ -97,7 +97,7 @@ sub tag_added {
     tag($textish,
       "ADDED (migrate-$CETMODULES_VERSION)",
       ($extra) ? " - $extra" : ());
-} #-# End sub tag_added
+} ## end sub tag_added
 
 
 sub tag_changed {
@@ -106,14 +106,14 @@ sub tag_changed {
     tag($textish,
       "CHANGED (migrate-$CETMODULES_VERSION)",
       ($extra) ? " - $extra" : ());
-} #-# End sub tag_changed
+} ## end sub tag_changed
 
 
 sub tagged {
   my ($textish, $type, $extra) = @_;
   defined $extra or $extra = q();
   return has_directive($textish, "$type$extra");
-} #-# End sub tagged
+} ## end sub tagged
 
 
 sub _tag_textref {
@@ -131,8 +131,8 @@ sub _tag_textref {
       error_exit(<<"EOF");
 cannot identify tag text from unknown entity $textish
 EOF
-    } #-# End default
-  } #-# End given
+    } ## end default
+  } ## end given
   return $result;
-} #-# End sub _tag_textref
+} ## end sub _tag_textref
 1;

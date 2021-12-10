@@ -34,6 +34,7 @@ our (@EXPORT);
   version_sort
   warning
 );
+
 ########################################################################
 # Private variables
 ########################################################################
@@ -48,10 +49,12 @@ Readonly::Scalar my $_VERSION_EXTRA_TYPE_PRE     => -1;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_GAMMA   => -2;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_BETA    => -3;
 Readonly::Scalar my $_VERSION_EXTRA_TYPE_ALPHA   => -4;
+
 ########################################################################
 # Exported variables
 ########################################################################
 $DEFAULT_PREFIX_MIN_LENGTH = $_INIT_DEFAULT_PREFIX_MIN_LENGTH;
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -61,7 +64,7 @@ sub debug {
   chomp @msg;
   print STDERR map { "DEBUG: $_\n"; } map { split(m&\n&msx) } @msg;
   return;
-} #-# End sub debug
+} ## end sub debug
 
 
 sub error {
@@ -70,14 +73,14 @@ sub error {
   print STDERR map { "ERROR: $_\n"; }
     (q(), (map { split(m&\n&msx) } @msg), q());
   return;
-} #-# End sub error
+} ## end sub error
 
 
 sub error_exit {
   my (@msg) = @_;
   chomp @msg;
   die map { "FATAL_ERROR: $_\n"; } (q(), (map { split(m&\n&msx) } @msg), q());
-} #-# End sub error_exit
+} ## end sub error_exit
 
 
 sub info { ## no critic qw(Bangs::ProhibitVagueNames)
@@ -91,7 +94,7 @@ sub notify {
   chomp @msg;
   print map { "INFO: $_\n"; } map { split(m&\n&msx) } @msg;
   return;
-} #-# End sub notify
+} ## end sub notify
 
 
 sub offset_annotated_items {
@@ -136,7 +139,7 @@ sub parse_version_string {
       defined $result->{$key} or $result->{$key} = 0;
       unshift @bits, $result->{$key};
     }
-  } #-# End foreach my $key (qw(tweak patch minor major))
+  } ## end foreach my $key (qw(tweak patch minor major))
   scalar @bits and $result->{bits} = [@bits];
   return _parse_extra($result);
 } ## end sub parse_version_string
@@ -170,7 +173,7 @@ sub shortest_unique_prefix {
       $result->{ $letters{$letter}->[0] } =
         substr($letters{$letter}->[0], 0, $prefix_min_length);
       next;
-    } #-# End if (scalar @{ $letters...})
+    } ## end if (scalar @{ $letters...})
     my $candidate;
 
     for my $word1 (@{ $letters{$letter} }) {
@@ -185,7 +188,7 @@ sub shortest_unique_prefix {
           $candidate = substr($word1, 0,
               (($i + 1) > $prefix_min_length) ? $i + 1 : $prefix_min_length);
           $prefix_length = $i;
-        } #-# End if ($i > $prefix_length)
+        } ## end if ($i > $prefix_length)
       } ## end for my $word2 (@{ $letters...})
       $result->{$word1} = $candidate // $word1;
     } ## end for my $word1 (@{ $letters...})
@@ -208,7 +211,7 @@ sub to_product_name {
   my $name = lc shift or error_exit("vacuous name");
   $name =~ s&[^a-z0-9]&_&msxg;
   return $name;
-} #-# End sub to_product_name
+} ## end sub to_product_name
 
 
 sub to_ups_version {
@@ -279,7 +282,7 @@ sub verbose {
   chomp @msg;
   print map { "VERBOSE: $_\n"; } map { split(m&\n&msx) } @msg;
   return;
-} #-# End sub verbose
+} ## end sub verbose
 
 # Comparison algorithm for versions. cf cet_version_cmp() in
 # ParseVersionString.cmake.
@@ -345,7 +348,8 @@ sub warning {
   print STDERR map { "WARNING: $_\n"; }
     (q(), (map { split(m&\n&msx) } @msg), q());
   return;
-} #-# End sub warning
+} ## end sub warning
+
 ########################################################################
 # Private variables and functions
 ########################################################################
@@ -426,7 +430,7 @@ sub _parse_extra {
       $vInfo->{extra_type} = $_VERSION_EXTRA_TYPE_NO_NUMERIC;
       undef $enum;
       $etext = $vInfo->{extra};
-    } #-# End when (not exists $vInfo->...)
+    } ## end when (not exists $vInfo->...)
     when (['patch', ('p' and ($enum // q()) ne q())]) {
       $vInfo->{extra_type} = $_VERSION_EXTRA_TYPE_PATCH;
     }

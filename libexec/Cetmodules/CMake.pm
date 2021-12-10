@@ -77,6 +77,7 @@ my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
 use vars qw(@PROJECT_KEYWORDS);
 
 @PROJECT_KEYWORDS = qw(DESCRIPTION HOMEPAGE_URL VERSION LANGUAGES);
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -104,7 +105,7 @@ sub all_values_for {
   $result = map { arg_at($call_info, $_) }
     (find_all_args_for($call_info, @args) // return $result);
   return $result;
-} #-# End sub all_values_for
+} ## end sub all_values_for
 
 
 sub append_args {
@@ -134,7 +135,7 @@ sub arg_location {
   $result = $call_info->{chunk_locations}
     ->{ _index_for_arg_at($call_info, $idx_idx) // return $result };
   return $result;
-} #-# End sub arg_location
+} ## end sub arg_location
 
 # Check whether we can make this a truly literal CMake string, or
 # whether there are CMake- or Make-style variable references or
@@ -160,7 +161,7 @@ sub find_all_args_for {
   return (defined $found_args)
     ? map { @{ $found_args->{$_} }; } sort keys %{$found_args}
     : undef;
-} #-# End sub find_all_args_for
+} ## end sub find_all_args_for
 
 # Return arg indexes of all arguments to given keyword, grouped by
 # keyword location.
@@ -195,7 +196,7 @@ sub find_args_matching {
   return
     grep { interpolated($call_info, $_) =~ $re; }
     (($offset // 0) .. $#{ $call_info->{arg_indexes} });
-} #-# End sub find_args_matching
+} ## end sub find_args_matching
 
 # Find arg_index for first argument matching regex.
 sub find_first_arg_matching {
@@ -203,7 +204,7 @@ sub find_first_arg_matching {
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   return List::MoreUtils::first_value { interpolated($call_info, $_) =~ $re; }
   (($offset // 0) .. $#{ $call_info->{arg_indexes} });
-} #-# End sub find_first_arg_matching
+} ## end sub find_first_arg_matching
 
 # Return arg_index of first instance of keyword.
 sub find_keyword {
@@ -222,7 +223,7 @@ sub find_single_value_for {
     foreach my $kw_idx (reverse sort keys %{$found_args}) {
       $value = $found_args->{$kw_idx}->[0] and last;
     }
-  } #-# End if (defined $found_args)
+  } ## end if (defined $found_args)
   return $value;
 } ## end sub find_single_value_for
 
@@ -260,7 +261,7 @@ sub insert_args_at {
     $need_preceding_whitespace =
       ($n_arg_indexes
         and not is_whitespace($call_info->{chunks}->[$_LAST_ELEM_IDX]));
-  } #-# End else [ if (($idx_idx // $n_arg_indexes...))]
+  } ## end else [ if (($idx_idx // $n_arg_indexes...))]
   my (@new_chunks, @new_indexes, @new_locations);
   $need_preceding_whitespace and push @new_chunks, q( );
   my $n_newlines_tot = 0;
@@ -282,14 +283,14 @@ sub insert_args_at {
       $point_index += scalar @item_chunks + 1;
       my $n_newlines =()= $item =~ m&\n&msgx;
       $n_newlines_tot += $n_newlines;
-    } #-# End else [ if (is_comment($item))]
+    } ## end else [ if (is_comment($item))]
   } ## end foreach my $item (@to_add)
 
   if (not(
       $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace)) {
     pop @new_chunks;
     --$point_index;
-  } #-# End if (not($new_chunks[$_LAST_ELEM_IDX...]))
+  } ## end if (not($new_chunks[$_LAST_ELEM_IDX...]))
   my $n_new_chunks = scalar @new_chunks;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
@@ -298,7 +299,7 @@ sub insert_args_at {
     $call_info->{arg_indexes}->[$_] += $n_new_chunks;
     $call_info->{chunk_locations}->{ $index + $n_new_chunks } =
       $call_info->{chunk_locations}->{$index} + $n_newlines_tot;
-  } #-# End for (reverse($idx_idx .....))
+  } ## end for (reverse($idx_idx .....))
   $call_info->{end_line} += $n_newlines_tot;
 
   # Splice in the new arg_index entries.
@@ -314,6 +315,7 @@ sub insert_args_at {
   _recalculate_comment_indexes($call_info);
   return $idx_idx;
 } ## end sub insert_args_at
+
 ########################################################################
 # Return a *partial* interpolation of the CMake function/macro call
 # argument at the given arg_index:
@@ -454,7 +456,7 @@ sub keyword_arg_insert_position {
   my $kw_idx = find_keyword($call_info, $keyword)
     // append_args($call_info, $keyword);
   return add_args_after($call_info, $kw_idx);
-} #-# End sub keyword_arg_insert_position
+} ## end sub keyword_arg_insert_position
 
 # Consolidate arguments for a given keyword, returning the arg index of
 # the first argument or undef if missing or not applicable.
@@ -660,7 +662,7 @@ sub remove_args_at {
         and ($arg_indexes[0] // $_NO_MATCH) == $last_idx_idx + 1) {
       ++$n_items;
       $last_idx_idx = shift @arg_indexes;
-    } #-# End while (defined $last_idx_idx...)
+    } ## end while (defined $last_idx_idx...)
     push @removers,
       sub { return _remove_args($call_info, $idx_idx, $n_items); };
   } ## end while (@arg_indexes)
@@ -680,7 +682,7 @@ sub remove_args_for {
     ? remove_args_at($call_info,
       map { @{ $found_args->{$_} }; } keys %{$found_args})
     : undef;
-} #-# End sub remove_args_for
+} ## end sub remove_args_for
 
 # Remove all instances of keyword and any arguments thereto, and return
 # a list of removed items *with* any quotes.
@@ -691,7 +693,7 @@ sub remove_keyword {
     ? remove_args_at($call_info,
       map { ($_, @{ $found_args->{$_} }); } keys %{$found_args})
     : undef;
-} #-# End sub remove_keyword
+} ## end sub remove_keyword
 
 
 sub replace_arg_at {
@@ -703,7 +705,7 @@ sub replace_arg_at {
         @replacements);
   }
   return @removed;
-} #-# End sub replace_arg_at
+} ## end sub replace_arg_at
 
 
 sub replace_call_with {
@@ -716,18 +718,19 @@ sub replace_call_with {
     if ($args[0] ne q()) {
       insert_args_at($call_info, 0, @args);
     }
-  } #-# End if (@args)
+  } ## end if (@args)
   $call_info->{name} = $new_call;
   $call_info->{pre} =~ s&\b\Q$old_call\E\b&$new_call&imsx;
   return;
-} #-# End sub replace_call_with
+} ## end sub replace_call_with
 
 # Return the overriding value for a single-value keyword.
 sub single_value_for {
   my ($call_info, @args) = @_;
   my $sv_idx = find_single_value_for($call_info, @args) or return;
   return arg_at($call_info, $sv_idx);
-} #-# End sub single_value_for
+} ## end sub single_value_for
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -739,7 +742,7 @@ sub _index_for_arg_at {
   my $result;
   $result = $call_info->{arg_indexes}->[$idx_idx // return $result];
   return $result;
-} #-# End sub _index_for_arg_at
+} ## end sub _index_for_arg_at
 
 
 sub _complete_call {
@@ -799,7 +802,7 @@ sub _complete_call {
         $line = join(q(), $line, $next_line);
         ++$line_no;
         $next_line =~ m&\A\s*\z&msx or last;
-      } #-# End while (my $next_line = <$cml_in>)
+      } ## end while (my $next_line = <$cml_in>)
       $line_no > $current_line_no and next; # Reprocess what we have.
     } ## end if ( $line =~ m&\A # anchor to string start )
 
@@ -825,7 +828,7 @@ EOF
 unknown error at $cmakelists:$chunk_start_line parsing:
   \Q$line\E
 EOF
-    } #-# End else [ if ($line =~ m&\A([)])&msx) [... [elsif ($cml_in->eof()) ]](([(]))]
+    } ## end else [ if ($line =~ m&\A([)])&msx) [... [elsif ($cml_in->eof()) ]](([(]))]
   } ## end while (1)
 
   # Found the end of the call.
@@ -862,7 +865,7 @@ sub _dquote_postprocess {
     ${$lref} = sprintf("$pm->{q1}%s$pm->{q2}${$lref}",
         join("$pm->{q2} $pm->{q1}", @splitcheck, $pm->{quoted}));
     return 1; # Reprocess.
-  } #-# End if (scalar @splitcheck)
+  } ## end if (scalar @splitcheck)
   return;
 } ## end sub _dquote_postprocess
 
@@ -973,7 +976,7 @@ EOF
 
       # Skip adding to chunk_locations for whitespace and quotes.
       undef $value_index;
-    } ## end else [ if (defined $pm->{quoted...})]
+    } ## end else [ if (defined $pm->{quoted... [... [elsif (defined $pm->{comment...})]]})]
 
     # Keep track of the line numbers on which we find each
     # argument or end-of-line comment.
@@ -1037,14 +1040,14 @@ EOF
 unquoted string at $cmakelists:$chunk_start_line:$current_linepos runs into EOF at $quote_start_line:$quote_start_linepos
 %s
 EOF
-    } #-# End else [ if (substr($in_quote, ...))]
+    } ## end else [ if (substr($in_quote, ...))]
   } else {
     $error_message =
       sprintf(<<"EOF", join(q(), reconstitute_code($call_info), $line));
 incomplete call to $call_info->{name}() at $cmakelists:$call_info->{start_line}:$call_info->{call_start_char} runs into EOF at $line_no:$current_linepos
 %s
 EOF
-  } #-# End else [ if (($in_quote // q())... [elsif (length($in_quote) ...)])]
+  } ## end else [ if (($in_quote // q())... [elsif (length($in_quote) ...)])]
   error_exit($error_message);
   return;
 } ## end sub _eof_error
@@ -1100,7 +1103,7 @@ sub _prepare_cml_io {
     debug("opening CMake file $cmakelists");
     $cml_in = IO::File->new("$cmakelists", "<")
       or error_exit("unable to open $cmakelists for read");
-  } #-# End else [ if (ref $cmakelists) ]
+  } ## end else [ if (ref $cmakelists) ]
 
   if ($options->{output}) {
     if (ref $options->{output}) {
@@ -1170,7 +1173,7 @@ sub _process_cml_lines {
     exists $pending_comments->{start_line}
       or $pending_comments->{start_line} = $line_no;
     return $line_no;
-  } #-# End if ($line =~ m&\A\s*[#].*\z&msx)
+  } ## end if ($line =~ m&\A\s*[#].*\z&msx)
   _process_pending_comments($cml_data, $line_no, $options);
 
   if (
@@ -1203,7 +1206,7 @@ EOF
 invoking registered comment handler for end-of-line comments for CALL \%s()
 EOF
       &{ $cml_data->{comment_handler} }($call_info, $cmakelists, $options);
-    } #-# End if ($call_info->{post}...)
+    } ## end if ($call_info->{post}...)
     my $call_infos = [$call_info];
 
     # Now see if someone is interested in this call.
@@ -1215,7 +1218,7 @@ EOF
       defined $tmp_result
         and $cml_data->{callback_results}->{ $call_info->{start_line} } =
         $tmp_result;
-    } #-# End if (my $func = $cml_data...)
+    } ## end if (my $func = $cml_data...)
 
     # Reconstitute the call information.
     if ($cml_out) {
@@ -1234,7 +1237,7 @@ sub _recalculate_comment_indexes {
   @{ $call_info->{comment_indexes} } =
     List::MoreUtils::indexes { is_comment($_); } @{ $call_info->{chunks} };
   return;
-} #-# End sub _recalculate_comment_indexes
+} ## end sub _recalculate_comment_indexes
 
 # Removes $n_args contiguous CMake arguments starting at $idx_idx.
 # See remove_args_at() for possibly-non-contiguous arguments.
@@ -1265,7 +1268,7 @@ sub _remove_args {
         or is_comment($call_info->{chunks}->[$last_index + 1]))
     ) {
     ++$last_index;
-  } #-# End while ($last_index < $#{ ...})
+  } ## end while ($last_index < $#{ ...})
   my $chunks_to_remove = $last_index - $index + 1;
 
   # Remove all relevant chunks.
@@ -1291,7 +1294,7 @@ sub _remove_args {
     my $prev_in_whitespace = $in_whitespace;
     $in_whitespace = is_whitespace($_);
     $prev_in_whitespace and not $in_whitespace;
-  } #-# End List::MoreUtils::indexes
+  } ## end List::MoreUtils::indexes
   @removed_chunks;
   return @removed;
 } ## end sub _remove_args

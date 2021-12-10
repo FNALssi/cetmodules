@@ -68,7 +68,7 @@ if (_check_for_old_product_deps()) {
       "you appear to be using a very old product_deps format with cetmodules",
       "please issue the following command",
       "migrate-package '$ENV{CETPKG_SOURCE}'");
-} #-# End if (_check_for_old_product_deps...)
+} ## end if (_check_for_old_product_deps...)
 
 # Get information from the product_deps file.
 my $pi    = get_parent_info($pfile);
@@ -88,7 +88,7 @@ sub _check_for_old_product_deps {
       $retval = 0;
       last;
     }
-  } #-# End while (<$fh>)
+  } ## end while (<$fh>)
   $fh->close();
   return $retval;
 } ## end sub _check_for_old_product_deps
@@ -159,7 +159,7 @@ specified parent qualspec $pi->{qualspec} does not have a corresponding row in t
 Known qualspecs:
 EOF
     error_exit($msg, map { "  $_"; } reverse sort keys %{$qqhash});
-  } #-# End if ($pi->{qualspec} and...)
+  } ## end if ($pi->{qualspec} and...)
   _consolidate_and_write($pi, $phash, $qhash);
   return;
 } ## end sub _generate_setup
@@ -201,7 +201,7 @@ sub _missing_btype_ok {
     List::MoreUtils::none { exists $BTYPE_TABLE->{$_}; } @quals;
   }
   @qualsets;
-} #-# End sub _missing_btype_ok
+} ## end sub _missing_btype_ok
 
 
 sub _read_and_validate_args {
@@ -230,7 +230,7 @@ sub _read_and_validate_args {
         "attempt to specify multiple build types:\n",
         map { "$_ from $input_btype_candidates->{$_}\n"; }
         sort keys %{$input_btype_candidates});
-  } #-# End if (scalar keys %{$input_btype_candidates...})
+  } ## end if (scalar keys %{$input_btype_candidates...})
   my ($input_btype) = keys %{$input_btype_candidates};
 
   if ($options->{noarch}) {
@@ -245,7 +245,7 @@ Use 'no_fq_dir' (no EXEC_PREFIX) or 'noarch' (EXEC_PREFIX=noarch-<quals>) in ups
 Setting $pi->{no_fq_dir} for backward compatibility.
 EOF
       $pi->{no_fq_dir} = 1;
-    } #-# End if (not($pi->{noarch} ...))
+    } ## end if (not($pi->{noarch} ...))
     warning($msg);
   } ## end if ($options->{noarch})
   return _validated_quals($input_btype, $input_quals);
@@ -294,13 +294,13 @@ EOF
       error_exit(
 "build type $build_type specified but build types are not supported in $pfile"
       );
-    } #-# End else [ if ($any_btype_supported)]
+    } ## end else [ if ($any_btype_supported)]
   } elsif ($any_btype_supported) {
     _missing_btype_ok(keys %{$qqhash})
       or error_exit(
 "build type required and no default in $pfile - $pi->{name} supports:",
         join(q( ), @supported_btypes));
-  } #-# End elsif ($any_btype_supported) [ if ($build_type) ]
+  } ## end elsif ($any_btype_supported) [ if ($build_type) ]
   return $build_type;
 } ## end sub _validated_build_type
 
@@ -321,7 +321,7 @@ sub _validated_quals {
     error_exit(<<"EOF");
 found multiple default build types in defaultqual $pi->{default_qual} in $pfile"
 EOF
-  } #-# End if (scalar keys %{$default_btype_candidates...})
+  } ## end if (scalar keys %{$default_btype_candidates...})
   my ($default_btype) = keys %{$default_btype_candidates};
 
   if ($default_btype and $input_btype and not scalar keys %{$input_quals}) {
@@ -345,7 +345,7 @@ EOF
 qualifiers not specified, no defaults and no qualifers is not permitted by $pfile
 EOF
     @quals = @default_quals;
-  } #-# End else [ if (scalar keys %{$input_quals...})]
+  } ## end else [ if (scalar keys %{$input_quals...})]
 
   # Return our validated (and possibly defaulted) qualifiers.
   return @quals, $build_type || ();

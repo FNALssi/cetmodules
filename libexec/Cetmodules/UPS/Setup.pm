@@ -44,11 +44,13 @@ our (@EXPORT);
   write_table_deps
   write_table_frag
 );
+
 ########################################################################
 # Private variables for use within this module only
 ########################################################################
 my ($_cqual_table, $_seen_cet_cmake_env, $_seen_project);
 Readonly::Scalar my $_EXEC_MODE => oct(755);
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -140,7 +142,7 @@ sub classify_deps {
     $pi->{ ($dep_info->{$dep}->{only_for_build})
         ? 'build_only_deps'
         : 'use_time_deps' }->{$dep} = 1;
-  } #-# End foreach my $dep (sort keys ...)
+  } ## end foreach my $dep (sort keys ...)
 
   foreach my $key (qw(build_only_deps use_time_deps)) {
     $pi->{$key} = [sort keys %{ $pi->{$key} }];
@@ -209,7 +211,7 @@ EOF
 
         # Normal case.
         $result->{qualspec} = $qhash->{$prod}->{$qualspec} || q();
-      } #-# End else [ if ($qhash->{$prod}->{... [elsif ($qhash->{$prod}->{...})]})]
+      } ## end else [ if ($qhash->{$prod}->{... [elsif ($qhash->{$prod}->{...})]})]
     } elsif (not $result->{only_for_build}) {
       if (not exists $qhash->{$prod}) {
         error_exit("dependency $prod has no column in the qualifier table.",
@@ -280,7 +282,7 @@ sub get_derived_parent_data {
 UPS product name not specified in product_deps and could not identify an
 unambiguous project name in $sourcedir/CMakeLists.txt
 EOF
-  } #-# End if (not defined $pi->{...})
+  } ## end if (not defined $pi->{...})
   exists $cpi->{cmake_project_version_info}
     and $cpi->{cmake_project_version_info}->{extra}
     and error_exit(<<"EOF");
@@ -324,7 +326,7 @@ sub match_qual {
          $qual_spec eq q(-)
       or $qual_spec eq '-default-'
       or ($neg xor grep { $qual_spec eq $_ } @quals));
-} #-# End sub match_qual
+} ## end sub match_qual
 
 
 sub output_info {
@@ -439,7 +441,7 @@ EOF
     $setup_cmd = sprintf(
         '%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
         "$setup_cmd", ("SETUP_\U$dep\E") x 2);
-  } #-# End if (scalar @setup_options)
+  } ## end if (scalar @setup_options)
   $out->print("$setup_cmd; ");
   _setup_err($out, "$setup_cmd failed");
   return;
@@ -572,6 +574,7 @@ sub ups_to_cmake {
       = @{ $_cqual_table->{ $pi->{cqual} } }
       or error_exit("unrecognized compiler qualifier $pi->{cqual}"));
   my @cmake_args = ();
+
   ##################
   # UPS-specific CMake configuration.
   push @cmake_args, '-DWANT_UPS:BOOL=ON';
@@ -584,6 +587,7 @@ sub ups_to_cmake {
     "-DUPS_Fortran_COMPILER_VERSION:STRING=$fc_version";
   my $pv_prefix = "CET_PV_$pi->{project_variable_prefix}";
   push @cmake_args, _cmake_defs_for_ups_config($pi, $pv_prefix);
+
   ##################
   # General CMake configuration.
   push @cmake_args, "-DCET_PV_PREFIX:STRING=$pi->{project_variable_prefix}";
@@ -603,6 +607,7 @@ sub ups_to_cmake {
     and push @cmake_args, "-D${pv_prefix}_DEFINE_PYTHONPATH:BOOL=ON";
   $pi->{old_style_config_vars}
     and push @cmake_args, "-D${pv_prefix}_OLD_STYLE_CONFIG_VARS:BOOL=ON";
+
   ##################
   # Pathspec-related CMake configuration.
   push @cmake_args,
@@ -618,14 +623,15 @@ sub ups_to_cmake {
       push @{ $pathspec->{key} eq 'fq_dir'
           ? \@arch_pathspecs
           : \@noarch_pathspecs }, $pathspec->{var_stem};
-    } #-# End if ($pathspec->{var_stem...})
-  } #-# End foreach my $pathspec (values...)
+    } ## end if ($pathspec->{var_stem...})
+  } ## end foreach my $pathspec (values...)
   scalar @arch_pathspecs and push @cmake_args,
     sprintf("-D${pv_prefix}_ADD_ARCH_DIRS:INTERNAL=%s",
       join(q(;), @arch_pathspecs));
   scalar @noarch_pathspecs and push @cmake_args,
     sprintf("-D${pv_prefix}_ADD_NOARCH_DIRS:INTERNAL=%s",
       join(q(;), @noarch_pathspecs));
+
   ##################
   # Done.
   return \@cmake_args;
@@ -660,6 +666,7 @@ sub write_table_frag {
   }
   return;
 } ## end sub write_table_frag
+
 ########################################################################
 # Private variables
 ########################################################################
@@ -708,6 +715,7 @@ $_cqual_table =
            '11.1.0'
           ],
   };
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -783,7 +791,7 @@ sub _cmake_project_var_for_pathspec {
         warning(
             "redundant pathkey $pskey ignored for absolute path $path",
             "specified for directory key $dirkey: use '-' as a placeholder.");
-      } #-# End elsif ($path =~ m&\A/&msx) [ if ($pskey eq q(-)) ]
+      } ## end elsif ($path =~ m&\A/&msx) [ if ($pskey eq q(-)) ]
       push @result_elements, $path;
     } ## end foreach my $pskey (@{ $pathspec...})
     $pathspec->{fq_path} = [@result_elements];
@@ -791,7 +799,7 @@ sub _cmake_project_var_for_pathspec {
 
     # Single non-elided value.
     push @result_elements, $pathspec->{path};
-  } #-# End else [ if (ref $pathspec->{key...})]
+  } ## end else [ if (ref $pathspec->{key...})]
   return (scalar @result_elements != 1 or $result_elements[0])
     ? sprintf("-D${pv_prefix}_${var_stem}=%s", join(q(;), @result_elements))
     : undef;
@@ -812,7 +820,7 @@ sub _fq_path_for {
           and List::MoreUtils::any { $_ eq $dirkey } qw(bindir libdir)));
     $fq_path = File::Spec->catfile($want_fq ? $pi->{fq_dir} : (),
         $pathspec->{path} || $default || ());
-  } #-# End if (not($fq_path or ($pathspec...)))
+  } ## end if (not($fq_path or ($pathspec...)))
   return $fq_path;
 } ## end sub _fq_path_for
 
@@ -937,7 +945,7 @@ EOF
 could not identify a product/project version from product_deps or $sourcedir/CMakeLists.txt.
 Ensure version is set in product_deps or with project() or CMAKE_PROJECT_VERSION_STRING project variable in CMakeLists.txt
 EOF
-  } #-# End else [ if ($cpi->{CMAKE_PROJECT_VERSION_STRING... [... [elsif ($pi->{version}) ]]})]
+  } ## end else [ if ($cpi->{CMAKE_PROJECT_VERSION_STRING... [... [elsif ($pi->{version}) ]]})]
   return;
 } ## end sub _set_version
 

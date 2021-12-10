@@ -46,7 +46,7 @@ sub find_cmake {
           not $File::Find::dir eq q(.)) # except already-handled top level.
         or m&\.cmake\z&msx; # Standard extension for CMake files.
       } @_);
-} #-# End sub find_cmake
+} ## end sub find_cmake
 
 
 sub fix_cmake {
@@ -57,7 +57,7 @@ sub fix_cmake {
       },
       q(.));
   return;
-} #-# End sub fix_cmake
+} ## end sub fix_cmake
 
 
 sub fix_cmake_one {
@@ -126,7 +126,8 @@ sub write_top_CML {
   return
     _upgrade_CML("$pkgtop/CMakeLists.txt", "$pkgtop/CMakeLists.txt.new", $pi,
       $options);
-} #-# End sub write_top_CML
+} ## end sub write_top_CML
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -141,7 +142,7 @@ sub _upgrade_CML {
     info("upgrading $cml -> $dest SKIPPED due to \"$1\" directive in line 1");
     $cml_in->close();
     return;
-  } #-# End if (has_ignore_directive...)
+  } ## end if (has_ignore_directive...)
   info("upgrading $cml_full -> $dest_full");
   my $cml_out = IO::File->new("$dest", ">")
     or error_exit("unable to open $dest_full for write");
@@ -172,7 +173,7 @@ sub _upgrade_CML {
           ($changed != 1) ? 's' : q()));
       move("$dest", "$cml")
         or error_exit("unable to install $dest_full as $cml_full");
-    } #-# End else [ if ($options->{"dry-run"...})]
+    } ## end else [ if ($options->{"dry-run"...})]
   } else {
     verbose(sprintf(
         "%sno changes necessary to $cml_full%s",
@@ -180,7 +181,7 @@ sub _upgrade_CML {
         (-e $dest)            ? ": removing $dest" : q()
     ));
     $options->{'debug'} or (-e $dest and unlink $dest);
-  } #-# End else [ if ($changed) ]
+  } ## end else [ if ($changed) ]
   return;
 } ## end sub _upgrade_CML
 1;

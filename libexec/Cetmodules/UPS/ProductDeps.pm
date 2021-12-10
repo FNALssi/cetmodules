@@ -36,6 +36,7 @@ use vars qw($BTYPE_TABLE $PATHSPEC_INFO @EXPORT @EXPORT_OK);
 @EXPORT_OK = qw(
   $PATHSPEC_INFO
 );
+
 ########################################################################
 # Exported variables
 ########################################################################
@@ -54,6 +55,7 @@ $PATHSPEC_INFO =
     set_wpdir      => { multiple_ok => 1, project_var => "WIRECELL_PATH" },
     testdir        => {},
     wpdir          => {} };
+
 ########################################################################
 # Private variables for use within this module only
 ########################################################################
@@ -61,6 +63,7 @@ my ($_chain_option_table, @_known_keywords, $_valid_pathkeys);
 Readonly::Scalar my $_LAST_CHAR_IDX => -1;
 Readonly::Scalar my $_NOT_PRESENT   => -2;
 Readonly::Scalar my $_NO_MATCH      => -1;
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -68,7 +71,7 @@ sub dirkey_is_valid {
   my ($dirkey) = @_;
   return ($dirkey
       and List::MoreUtils::any { $_ eq $dirkey } keys %{$PATHSPEC_INFO});
-} #-# End sub dirkey_is_valid
+} ## end sub dirkey_is_valid
 
 
 sub get_parent_info {
@@ -113,7 +116,7 @@ sub get_parent_info {
           and warning(sprintf("unexpected garbage following $keyword: %s",
             join(q( ), @pars)));
         $result->{$keyword} = 1;
-      } ## end when ([ qw(define_pythonpath...)])
+      } ## end when ([qw(define_pythonpath...)])
       default {
       }
     } ## end given
@@ -220,7 +223,7 @@ sub get_product_list {
         # version 2, it means, "when we have no qualifiers," and "-"
         # means, "always."
         $qualspec = ($pl_format == 1) ? q(-) : q();
-      } #-# End if ($qualspec and $qualspec...)
+      } ## end if ($qualspec and $qualspec...)
       $phash->{$prod}->{$qualspec} =
         { version => (($version eq q(-)) ? "-c" : $version),
           map { ($_ => 1) } @modifiers
@@ -314,7 +317,7 @@ sub get_table_fragment {
     m&\A\s*table_fragment_end&msx and undef $reading_frag;
     $reading_frag and push @fraglines, $_;
     m&\A\s*table_fragment_begin&msx and $reading_frag = 1;
-  } #-# End while (<$fh>)
+  } ## end while (<$fh>)
   $fh->close();
   return (scalar @fraglines) ? \@fraglines : undef;
 } ## end sub get_table_fragment
@@ -324,7 +327,7 @@ sub pathkey_is_valid {
   my ($pathkey) = @_;
   return $pathkey
     and List::MoreUtils::any { $_ eq $pathkey } @{$_valid_pathkeys};
-} #-# End sub pathkey_is_valid
+} ## end sub pathkey_is_valid
 
 
 sub sort_qual {
@@ -364,7 +367,8 @@ sub var_stem_for_dirkey {
   return
     uc($PATHSPEC_INFO->{$dirkey}->{project_var}
       || (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
-} #-# End sub var_stem_for_dirkey
+} ## end sub var_stem_for_dirkey
+
 ########################################################################
 # Private variables
 ########################################################################
@@ -391,6 +395,7 @@ $_chain_option_table = { '-c' => 'current',
     table_fragment_end
     ), sort keys %{$PATHSPEC_INFO});
 $_valid_pathkeys = [qw(product_dir fq_dir -)];
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -429,8 +434,8 @@ qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?
       exists $pathspec_cache->{$_}->{path}
         and $pathspec_cache->{$_}->{path} =
         $pathspec_cache->{$_}->{path}->[0];
-    } #-# End elsif (not $PATHSPEC_INFO... [ if (not defined $pathspec_cache...)])
-  } #-# End for (@{$dirkeys})
+    } ## end elsif (not $PATHSPEC_INFO... [ if (not defined $pathspec_cache...)])
+  } ## end for (@{$dirkeys})
   return;
 } ## end sub _pathspecs_for_keys
 
@@ -439,7 +444,7 @@ sub _unwanted_keyword {
   my ($keyword, @allowed) = @_;
   return (List::MoreUtils::any { $keyword eq $_ } @_known_keywords
       and List::MoreUtils::none { $keyword eq $_ } @allowed);
-} #-# End sub _unwanted_keyword
+} ## end sub _unwanted_keyword
 
 
 sub _validate_pathspec_entry {

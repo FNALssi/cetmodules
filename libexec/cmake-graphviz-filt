@@ -16,7 +16,7 @@ if (-f $opt_file) {
   close(OPTS);
   chomp @file_options;
   unshift @ARGV, @file_options;
-} #-# End if (-f $opt_file)
+} ## end if (-f $opt_file)
 GetOptions(
     $options, "dicts",
     "no-dicts" => sub { $options->{dicts} = 0; },
@@ -123,7 +123,7 @@ sub wanted {
       and $node->{label} =~ m&_(dict|map)$&
       and not $options->{dicts}) {
     $result = 0;
-  } #-# End elsif ($node->{type} eq "lib"... [ if ($node->{label} =~ ...)])
+  } ## end elsif ($node->{type} eq "lib"... [ if ($node->{label} =~ ...)])
   return $result;
 } ## end sub wanted
 

@@ -79,6 +79,7 @@ Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
 %EXPORT_TAGS = (
     CALL_HANDLERS  => ['@CALL_HANDLERS',  @CALL_HANDLERS],
     EVENT_HANDLERS => ['@EVENT_HANDLERS', @EVENT_HANDLERS]);
+
 ########################################################################
 # Private variables
 ########################################################################
@@ -86,6 +87,7 @@ my $_cml_state              = {};
 my $_cmake_required_version = _get_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
 my $_default_crv     = "3.19";
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -93,140 +95,140 @@ sub add_compile_definitions {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_compile_definitions
+} ## end sub add_compile_definitions
 
 
 sub add_compile_options {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_compile_options
+} ## end sub add_compile_options
 
 
 sub add_definitions {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_definitions
+} ## end sub add_definitions
 
 
 sub add_dependencies {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_dependencies
+} ## end sub add_dependencies
 
 
 sub add_link_options {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_link_options
+} ## end sub add_link_options
 
 
 sub add_subdirectory {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_subdirectory
+} ## end sub add_subdirectory
 
 
 sub add_test {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub add_test
+} ## end sub add_test
 
 
 sub art_dictionary {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub art_dictionary
+} ## end sub art_dictionary
 
 
 sub art_make {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub art_make
+} ## end sub art_make
 
 
 sub art_make_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub art_make_library
+} ## end sub art_make_library
 
 
 sub basic_plugin {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub basic_plugin
+} ## end sub basic_plugin
 
 
 sub build_dictionary {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub build_dictionary
+} ## end sub build_dictionary
 
 
 sub build_plugin {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub build_plugin
+} ## end sub build_plugin
 
 
 sub cet_cmake_config {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_cmake_config
+} ## end sub cet_cmake_config
 
 
 sub cet_cmake_env {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_cmake_env
+} ## end sub cet_cmake_env
 
 
 sub cet_find_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_find_library
+} ## end sub cet_find_library
 
 
 sub cet_make {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_make
+} ## end sub cet_make
 
 
 sub cet_make_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_make_library
+} ## end sub cet_make_library
 
 
 sub cet_make_executable {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_make_executable
+} ## end sub cet_make_executable
 
 
 sub cet_report_compiler_flags {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cet_report_compiler_flags
+} ## end sub cet_report_compiler_flags
 
 
 sub cmake_minimum_required {
@@ -245,7 +247,7 @@ ignoring $call_info->{name} at line $call_info->{start_line} in \
 definition of $_cml_state->{current_definition}->{name}()
 EOF
     return;
-  } #-# End elsif ($_cml_state->{current_definition... [ if ($_cml_state->{seen_calls...})]})
+  } ## end elsif ($_cml_state->{current_definition... [ if ($_cml_state->{seen_calls...})]})
   $_cml_state->{seen_calls}->{ $call_info->{name} } = $call_info;
   debug(<<"EOF");
 found top level $call_info->{name}() at line $call_info->{start_line}
@@ -278,7 +280,7 @@ EOF
 non-literal VERSION argument $req_version_int will not be modified
 EOF
         return;
-      } #-# End if (not $is_literal)
+      } ## end if (not $is_literal)
       my $policy;
       my ($vmin, $vmax) =
         ($req_version_int =~ m&\A(.*?)(?:[.]{3}(.*))?\z&msx);
@@ -295,7 +297,7 @@ EOF
             when (not($_ < 0)) {
               undef $vmax;
             }
-          } #-# End given
+          } ## end given
         } ## end else [ if (not $vmax) ]
 
         if ($policy) {
@@ -303,7 +305,7 @@ EOF
 $call_info->{pre_call_ws}\Ecmake_policy(VERSION $policy)
 EOF
           push @{$call_infos}, ${$lineref};
-        } #-# End if ($policy)
+        } ## end if ($policy)
         my $new_req_version =
           join(q(...), $_cmake_required_version, $vmax // ());
         $edit = sprintf("VERSION %s -> $new_req_version",
@@ -326,7 +328,7 @@ sub cmake_policy {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub cmake_policy
+} ## end sub cmake_policy
 
 
 sub comment_handler {
@@ -339,14 +341,14 @@ sub endfunction {
   my @args = @_;
   _end_call_definition(@args);
   return;
-} #-# End sub endfunction
+} ## end sub endfunction
 
 
 sub endmacro {
   my @args = @_;
   _end_call_definition(@args);
   return;
-} #-# End sub endmacro
+} ## end sub endmacro
 
 
 sub eof_handler {
@@ -354,21 +356,21 @@ sub eof_handler {
   verbose("[SUCCESS] processed $cml_data->{cmakelists} ($line_no lines)");
   undef $_cml_state;
   return;
-} #-# End sub eof_handler
+} ## end sub eof_handler
 
 
 sub function {
   my @args = @_;
   _call_definition(@args);
   return;
-} #-# End sub function
+} ## end sub function
 
 
 sub find_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub find_library
+} ## end sub find_library
 
 
 sub find_package {
@@ -389,13 +391,13 @@ removing late, redundant $call_info->{name}($1) at line $call_info->{start_line}
 EOF
     pop(@{$call_infos});
     return;
-  } #-# End if ($package_to_find =~...)
+  } ## end if ($package_to_find =~...)
 
   if ($package_to_find eq 'cetbuildtools') {
     tag_changed($call_info, "$package_to_find -> cetmodules");
     $package_to_find = 'cetmodules';
     replace_arg_at($call_info, 0, $package_to_find);
-  } #-# End if ($package_to_find eq...)
+  } ## end if ($package_to_find eq...)
   $_cml_state->{seen_calls}->{ $call_info->{name} }->{$package_to_find}
     ->{ $call_info->{start_line} } = $call_info;
   my @removed_keywords = map {
@@ -417,8 +419,8 @@ EOF
             "replaced obsolete keyword%s with EXPORT: %s",
             ($#obsolete_keywords) ? 's' : q(),
             join(q( ), @obsolete_keywords)));
-    } #-# End else [ if (defined find_keyword...)]
-  } #-# End if (my @obsolete_keywords...)
+    } ## end else [ if (defined find_keyword...)]
+  } ## end if (my @obsolete_keywords...)
   scalar @removed_keywords
     and tag_changed(
       $call_info,
@@ -427,21 +429,21 @@ EOF
         ($#removed_keywords) ? 's' : q(),
         join(q( ), @removed_keywords)));
   return;
-} #-# End sub find_package
+} ## end sub find_package
 
 
 sub find_ups_boost {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} #-# End sub find_ups_boost
+} ## end sub find_ups_boost
 
 
 sub find_ups_geant4 { ## no critic qw(Bangs::ProhibitNumberedNames)
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} #-# End sub find_ups_geant4
+} ## end sub find_ups_geant4
 
 
 sub find_ups_product {
@@ -476,49 +478,49 @@ sub find_ups_product {
         join(q( ), @old_bits),
         join(q( ), @new_bits)));
   return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} #-# End sub find_ups_product
+} ## end sub find_ups_product
 
 
 sub find_ups_root {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return find_package($pi, $call_infos, $call_info, $cmakelists, $options);
-} #-# End sub find_ups_root
+} ## end sub find_ups_root
 
 
 sub include_directories {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub include_directories
+} ## end sub include_directories
 
 
 sub link_directories {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub link_directories
+} ## end sub link_directories
 
 
 sub link_libraries {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub link_libraries
+} ## end sub link_libraries
 
 
 sub link_options {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub link_options
+} ## end sub link_options
 
 
 sub macro {
   my @args = @_;
   _call_definition(@args);
   return;
-} #-# End sub macro
+} ## end sub macro
 
 
 sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
@@ -539,7 +541,7 @@ EOF
           sprintf("%sfind_package(cetmodules REQUIRED)\n",
             $call_info->{pre_call_ws} // q()),
           "find_package(cetmodules) must precede project()") };
-  } #-# End elsif (not(exists $_cml_state... [ if ($_cml_state->{seen_calls...})]))
+  } ## end elsif (not(exists $_cml_state... [ if ($_cml_state->{seen_calls...})]))
   $_cml_state->{seen_calls}->{ $call_info->{name} } = $call_info;
   $_cml_state->{project_info}                       = my $project_info = {};
   $project_info->{first_pass}                       = my $cpi =
@@ -638,8 +640,8 @@ EOF
       add_args_after($call_info, 0, 'VERSION',
           $cpi->{CMAKE_PROJECT_VERSION_STRING});
       tag_changed($call_info, "set(CMAKE_PROJECT_VERSION_STRING) -> VERSION");
-    } #-# End else [ if ($vinfo->{extra}) ]
-  } ## end elsif (not defined $cpi->...)
+    } ## end else [ if ($vinfo->{extra}) ]
+  } ## end elsif (not defined $cpi->... [ if ($cpi->{CMAKE_PROJECT_VERSION_STRING...})])
   return;
 } ## end sub project
 
@@ -648,7 +650,7 @@ sub remove_definitions {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub remove_definitions
+} ## end sub remove_definitions
 my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
 );
 
@@ -685,14 +687,15 @@ sub simple_plugin {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub simple_plugin
+} ## end sub simple_plugin
 
 
 sub subdirs {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   debug("in handler for $call_info->{name}()");
   return;
-} #-# End sub subdirs
+} ## end sub subdirs
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -711,7 +714,7 @@ EOF
     debug("found definition of $type $name at line $call_info->{start_line}");
     $_cml_state->{current_definition} =
       { %{$call_info}, name => $name, type => $type };
-  } #-# End else [ if (exists $_cml_state...)]
+  } ## end else [ if (exists $_cml_state...)]
   return;
 } ## end sub _call_definition
 
@@ -733,7 +736,7 @@ EOF
     debug(<<"EOF");
 found $call_info->{name}() at line $call_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $call_info->{start_line}
 EOF
-  } #-# End else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
+  } ## end else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
   return;
 } ## end sub _end_call_definition
 my @_cmake_fp_kw;
@@ -761,18 +764,18 @@ EOF
         chomp;
         my @kw = split;
         @kw and @{$kw_in}{@kw} = (1) x scalar @kw;
-      } #-# End while (<$kw_pipe>)
+      } ## end while (<$kw_pipe>)
       @_cmake_fp_kw = sort keys %{$kw_in};
-    } #-# End if (not defined @_cmake_fp_kw)
+    } ## end if (not defined @_cmake_fp_kw)
     @{$result}{@_cmake_fp_kw} = (1) x scalar @_cmake_fp_kw;
-  } #-# End if ($types->{cmake} or...)
+  } ## end if ($types->{cmake} or...)
 
   if ($types->{cet} or $types->{all}) {
     @{$result}{@_cet_fp_kw} = (1) x scalar @_cet_fp_kw;
   }
   my @result = sort keys %{$result};
   return @result;
-} #-# End sub _find_package_keywords
+} ## end sub _find_package_keywords
 
 
 sub _get_cmake_required_version {
@@ -788,10 +791,10 @@ sub _get_cmake_required_version {
       m&\A\s*([0-9.]+)[\s#]*&msx or next;
       $result = $1;
       last;
-    } #-# End while (<$crv_fh>)
-  } #-# End if (my $crv_fh = IO::File...)
+    } ## end while (<$crv_fh>)
+  } ## end if (my $crv_fh = IO::File...)
   return $result;
-} ## end sub _read_cmake_required_version
+} ## end sub _get_cmake_required_version
 my $_product_to_package_table = { boost    => 'Boost',
                                   cppunit  => 'CppUnit',
                                   geant4   => 'Geant4',
@@ -808,6 +811,7 @@ sub _product_to_package {
   my ($product) = @_;
   return $_product_to_package_table->{$product} // $product;
 }
+
 ########################################################################
 # _set_X
 #
@@ -829,5 +833,6 @@ EOF
   pop @{$call_infos};
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
+
 ########################################################################
 1;

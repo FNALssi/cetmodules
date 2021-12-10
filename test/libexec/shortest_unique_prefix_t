@@ -34,7 +34,7 @@ sub compare_or_show {
   my $result = is_deeply($test, $expected, @args)
     or diag(explain($test), " != ", explain($expected));
   return $result;
-} #-# End sub compare_or_show
+} ## end sub compare_or_show
 my $ntests = 0;
 
 
@@ -42,7 +42,7 @@ sub more_tests {
   my ($more) = @_;
   $ntests += $more // 1;
   return;
-} #-# End sub more_tests
+} ## end sub more_tests
 
 
 sub verify_prefixes {

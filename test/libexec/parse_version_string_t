@@ -39,7 +39,7 @@ sub compare_or_show {
   my $result = is_deeply($test, $expected, @args)
     or diag(explain($test), " != ", explain($expected));
   return $result;
-} #-# End sub compare_or_show
+} ## end sub compare_or_show
 my $ntests = 0;
 
 
@@ -47,7 +47,7 @@ sub more_tests {
   my ($more) = @_;
   $ntests += $more // 1;
   return;
-} #-# End sub more_tests
+} ## end sub more_tests
 my $develop_ref = {qw(extra develop extra_text develop extra_type 101)};
 note('develop');
 more_tests(5);
@@ -226,5 +226,5 @@ while ($idx < $nshuffles) {
   compare_or_show(\@sorted, \@v_ref_list,
       sprintf("perl_version_cmp-%0-${nfigs}d", ++$idx))
     or last;
-} ## end while ($idx < $nshuffles ...)
+} ## end while ($idx < $nshuffles)
 done_testing($ntests);

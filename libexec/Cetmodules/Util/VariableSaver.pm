@@ -17,7 +17,7 @@ sub new {
     when ('SCALAR') { ${ $self->{saved_var} } = shift @args; }
     when ('ARRAY')  { @{ $self->{saved_var} } = @args; }
     default         { error_exit("unable to save data of unknown type $_"); }
-  } #-# End given
+  } ## end given
   return bless $self, $class;
 } ## end sub new
 
@@ -29,7 +29,7 @@ sub DESTROY {
     when ('HASH')   { %{ $self->{saved_var} } = %{ $self->{saved_val} }; }
     when ('SCALAR') { ${ $self->{saved_var} } = ${ $self->{saved_val} }; }
     when ('ARRAY')  { @{ $self->{saved_var} } = @{ $self->{saved_val} }; }
-  } #-# End given
+  } ## end given
   return;
 } ## end sub DESTROY
 1;

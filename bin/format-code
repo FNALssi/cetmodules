@@ -30,7 +30,7 @@ if (!defined $directory) {
   print "The 'directory|d' command-line option is required:\n";
   usage();
   exit 1;
-} #-# End if (!defined $directory)
+} ## end if (!defined $directory)
 
 if (defined $dry_run) {
   print "The 'dry-run' option is not yet supported.\n";
@@ -67,7 +67,7 @@ sub die_while_processing_options {
   usage();
   print "Type '$script_name --help' for more information.\n";
   exit 1;
-} #-# End sub die_while_processing_options
+} ## end sub die_while_processing_options
 
 
 sub check_for_clean_working_area {
@@ -82,7 +82,7 @@ sub check_for_clean_working_area {
       print "       Please commit them before running $script_name with\n";
       print "       the 'commit|c' program option.\n";
       exit 2;
-    } #-# End if ($commit)
+    } ## end if ($commit)
     print "\nWarning: Current working area has uncommitted changes.\n";
     print
       "         It may be difficult to distinguish between changes made\n";
@@ -95,7 +95,7 @@ sub find_files {
   my $cpp_files_str =
 `find -L $directory \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -printf "%p "`;
   return $cpp_files_str;
-} #-# End sub find_files
+} ## end sub find_files
 
 
 sub cleanup_whitespace {
@@ -169,7 +169,7 @@ sub report_changed_files {
     system(
 "cd $directory; git add .; git commit -m 'Apply clang-format $clang_version.'"
     );
-  } #-# End if ($commit)
+  } ## end if ($commit)
 } ## end sub report_changed_files
 
 unless (-d "$directory") {
@@ -177,7 +177,7 @@ unless (-d "$directory") {
     "Cannot access directory '$directory' from current working directory '",
     getcwd, "'\n";
   exit 3;
-} #-# End unless (-d "$directory")
+} ## end unless (-d "$directory")
 
 # Check that we are first in a git repository
 if (system("type git > /dev/null 2>&1") != 0) {
@@ -199,7 +199,7 @@ unless (-f "$git_top_level/.clang-format") {
   print
     "Error: the specified repository does not have a .clang-format file.\n";
   exit 5;
-} #-# End unless (-f "$git_top_level/.clang-format")
+} ## end unless (-f "$git_top_level/.clang-format")
 my $clang_format_program;
 my $clang_format_available =
   system("type clang-format > /dev/null 2>&1") == 0;
@@ -218,7 +218,7 @@ if ($clang_format_available) {
 "\nWarning: The 'use-available' option has been specified, which will use\n";
       print
 "         clang-format $available_version instead of the expected version ($clang_version).\n\n";
-    } #-# End if ($available_version...)
+    } ## end if ($available_version...)
     $clang_version = $available_version;
     $search_ups    = undef;
   } ## end if ($use_available)
@@ -227,7 +227,7 @@ if ($clang_format_available) {
 
     # No search necessary as the correct version is available
     $search_ups = undef;
-  } #-# End if ($available_version...)
+  } ## end if ($available_version...)
 } ## end if ($clang_format_available)
 
 if ($search_ups) {

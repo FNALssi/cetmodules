@@ -61,12 +61,14 @@
 --ignore-side-comment-lengths # -iscl
 --minimum-space-to-comment=1 # -msc=1
 --closing-side-comments # -csc
+# --delete-closing-side-comments # -csc
 --closing-side-comment-interval=5 # -csci=5
---closing-side-comment-prefix="#-# End" # -cscp="#-# End"
 --closing-side-comments-balanced # -cscb
 --closing-side-comment-else-flag=2 # -csce=2
---closing-side-comment-warnings # -cscw
+# --closing-side-comment-prefix="#-# End" # -cscp="#-# End"
+# --closing-side-comment-warnings # -cscw
 --static-block-comments # -sbc
+--static-block-comment-prefix=##(?:\s|$) # -sbcp=##(\s?:\s|$)
 --static-side-comments # -ssc
 
 ##################

@@ -48,18 +48,21 @@ my ($_cetmodules_top, $_product_deps_template);
 
 # Initialize private and exported non-customizable constants.
 _init_vars();
+
 ########################################################################
 # Private variables
 ########################################################################
 Readonly::Scalar my $_INIT_PRODUCT_TABLE_FORMAT   => 2;
 Readonly::Scalar my $_INIT_PRODUCT_DEPS_TAB_WIDTH => 8;
 Readonly::Scalar my $_DIVIDER_LENGTH              => 36;
+
 ########################################################################
 # Exported variables
 ########################################################################
 # Customizable constants.
 $PRODUCT_TABLE_FORMAT   = $_INIT_PRODUCT_TABLE_FORMAT;
 $PRODUCT_DEPS_TAB_WIDTH = $_INIT_PRODUCT_DEPS_TAB_WIDTH;
+
 ########################################################################
 # Exported functions
 ########################################################################
@@ -79,7 +82,7 @@ EOF
     for (keys %{$hash}) {
       $hash->{$_} or $hash->{$_} = '-nq-';
     }
-  } #-# End for (keys %{ $pdinfo->{...}})
+  } ## end for (keys %{ $pdinfo->{...}})
   $pdinfo->{qualifier_columns}->{notes} =
     { map { ($_ => $pdinfo->{notes}->{$_}); }
       keys %{ $pdinfo->{qualifier_rows} } };
@@ -115,34 +118,34 @@ EOF
             $pending = sub {
                 _write_parent_info($pdinfo->{parent_info}, $pd_out);
             };
-          } #-# End when ('Basic')
+          } ## end when ('Basic')
           when ('Directory') {
             $pending = sub {
                 _write_pathspecs($pdinfo->{pathspecs}, $pd_out);
             };
-          } #-# End when ('Directory')
+          } ## end when ('Directory')
           when ('Product') {
             $pending = sub {
                 _write_product_table($pdinfo->{products}, $pd_out);
             };
-          } #-# End when ('Product')
+          } ## end when ('Product')
           when ('Qualifier') {
             $pending = sub {
                 _write_qualifier_table($pdinfo->{qualifier_columns},
                   $pdinfo->{headers}, $pd_out);
             };
-          } #-# End when ('Qualifier')
+          } ## end when ('Qualifier')
           when ('Table') {
             $pending = sub {
                 _write_table_fragment($pdinfo->{table_fragment}, $pd_out);
             };
-          } #-# End when ('Table')
+          } ## end when ('Table')
           when ('Backmatter') { } # NOP.
           default {
             error_exit(<<"EOF");
 INTERNAL ERROR: don't know how to migrate section $label in $_product_deps_template
 EOF
-          } #-# End default
+          } ## end default
         } ## end given
       } ## end else [ if ($pending) ]
     } ## end if ($line eq "$divider\n")
@@ -180,9 +183,10 @@ EOF
     move("$pdinfo->{filename}.new", "$pdinfo->{filename}")
       or error_exit(
         "unable to install $pdinfo->{filename}.new as $pdinfo->{filename}");
-  } #-# End else [ if ($options->{"dry-run"...})]
+  } ## end else [ if ($options->{"dry-run"...})]
   return;
 } ## end sub write_product_deps
+
 ########################################################################
 # Private functions
 ########################################################################
@@ -221,7 +225,7 @@ sub _max_for_column {
     ? ceil(List::Util::max(map { length($_ // q()) + 1; } @args) /
       $PRODUCT_DEPS_TAB_WIDTH)
     : 0;
-} #-# End sub _max_for_column
+} ## end sub _max_for_column
 
 
 sub _pad_to {
@@ -375,5 +379,5 @@ sub _write_table_fragment {
   $fh->print("table_fragment_begin\n", map({ "$_\n"; } @{$table_fragment}),
       "table_fragment_end\n");
   return;
-} #-# End sub _write_table_fragment
+} ## end sub _write_table_fragment
 1;
