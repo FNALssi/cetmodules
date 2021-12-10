@@ -385,15 +385,44 @@ sub find_package {
 removing late, redundant $call_info->{name}($1) at line $call_info->{start_line}
 EOF
     pop(@{$call_infos});
-  } else {
-    if ($package_to_find eq 'cetbuildtools') {
-      tag_changed($call_info, "$package_to_find -> cetmodules");
-      $package_to_find = 'cetmodules';
-      replace_arg_at($call_info, 0, $package_to_find);
-    } #-# End if ($package_to_find eq...)
-    $_cml_state->{seen_calls}->{ $call_info->{name} }->{$package_to_find}
-      ->{ $call_info->{start_line} } = $call_info;
-  } #-# End else [ if ($package_to_find =~...)]
+    return;
+  } #-# End if ($package_to_find =~...)
+
+  if ($package_to_find eq 'cetbuildtools') {
+    tag_changed($call_info, "$package_to_find -> cetmodules");
+    $package_to_find = 'cetmodules';
+    replace_arg_at($call_info, 0, $package_to_find);
+  } #-# End if ($package_to_find eq...)
+  $_cml_state->{seen_calls}->{ $call_info->{name} }->{$package_to_find}
+    ->{ $call_info->{start_line} } = $call_info;
+  my @removed_keywords = map {
+      remove_keyword($call_info, $_, _find_package_keywords(qw(all))) // ();
+  } qw(BUILD_ONLY PRIVATE);
+
+  if (my @obsolete_keywords = map {
+        remove_keyword($call_info, $_, _find_package_keywords(qw(all))) // ();
+      } qw(INTERFACE PUBLIC)
+    ) {
+
+    if (defined find_keyword($call_info, 'EXPORT')) {
+      push @removed_keywords, @obsolete_keywords;
+    } else {
+      append_args($call_info, 'EXPORT');
+      tag_changed(
+          $call_info,
+          sprintf(
+            "replaced obsolete keyword%s with EXPORT: %s",
+            ($#obsolete_keywords) ? 's' : q(),
+            join(q( ), @obsolete_keywords)));
+    } #-# End else [ if (defined find_keyword...)]
+  } #-# End if (my @obsolete_keywords...)
+  scalar @removed_keywords
+    and tag_changed(
+      $call_info,
+      sprintf(
+        "removed obsolete keyword%s: %s",
+        ($#removed_keywords) ? 's' : q(),
+        join(q( ), @removed_keywords)));
   return;
 } #-# End sub find_package
 
@@ -647,6 +676,43 @@ EOF
   } #-# End else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
   return;
 } ## end sub _end_call_definition
+my @_cmake_fp_kw;
+my @_cet_fp_kw =
+  qw(BUILD_ONLY EXPORT INTERFACE NOP OPTIONAL PROJECT PUBLIC PRIVATE REQUIRED_BY);
+
+
+sub _find_package_keywords {
+  my @args = @_;
+  @args or @args = qw(cmake);
+  my $types = { map { lc $_ => 1; } @args };
+  my $result;
+
+  if ($types->{cmake} or $types->{all}) {
+    if (not defined @_cmake_fp_kw) {
+      my $kw_in   = {};
+      my $kw_pipe = IO::File->new(<<'EOF')
+cmake --help-command find_package | sed -E -n -e '/((Basic|Full) Signature( and Module Mode)?|signature is)$/,/\)$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\n&g; s&[^A-Z_\n]&\n&g; /^[A-Z_]{2,}(\n|$)/ ! D; P; D }' |
+EOF
+        or error_exit(
+"unable to obtain current list of accepted keywords to find_package() from CMake, \"$OS_ERROR\""
+        );
+
+      while (<$kw_pipe>) {
+        chomp;
+        my @kw = split;
+        @kw and @{$kw_in}{@kw} = (1) x scalar @kw;
+      } #-# End while (<$kw_pipe>)
+      @_cmake_fp_kw = sort keys %{$kw_in};
+    } #-# End if (not defined @_cmake_fp_kw)
+    @{$result}{@_cmake_fp_kw} = (1) x scalar @_cmake_fp_kw;
+  } #-# End if ($types->{cmake} or...)
+
+  if ($types->{cet} or $types->{all}) {
+    @{$result}{@_cet_fp_kw} = (1) x scalar @_cet_fp_kw;
+  }
+  my @result = sort keys %{$result};
+  return @result;
+} #-# End sub _find_package_keywords
 
 
 sub _get_cmake_required_version {
