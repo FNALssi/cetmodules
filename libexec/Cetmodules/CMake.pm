@@ -108,7 +108,7 @@ sub all_values_for {
 
 sub append_args {
   my ($call_info, @to_add) = @_;
-  return insert_args_at($call_info, $#{ $call_info->{arg_indexes} }, @to_add);
+  return add_args_after($call_info, $#{ $call_info->{arg_indexes} }, @to_add);
 }
 
 # Return specified argument. In list context, returns argument and any
