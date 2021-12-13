@@ -1210,6 +1210,13 @@ EOF
     my $call_infos = [$call_info];
 
     # Now see if someone is interested in this call.
+    if (my $func = $cml_data->{arg_handler}) {
+      debug(<<"EOF");
+invoking generic argument handler for CALL $call_info->{name}()
+EOF
+      &{$func}($call_info, $cmakelists, $options);
+    } ## end if (my $func = $cml_data...)
+
     if (my $func = $cml_data->{callbacks}->{ $call_info->{name} }) {
       debug(sprintf("invoking registered callback for CALL \%s()",
           $call_info->{name}));

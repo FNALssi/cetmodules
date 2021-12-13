@@ -10,7 +10,7 @@ use Readonly;
 use Storable qw(dclone);
 use Cetmodules::Util;
 use Cetmodules::CMake;
-use Cetmodules::UPS::Setup;
+use Cetmodules::UPS::Setup qw(:DEFAULT $PATH_VAR_TRANSLATION_TABLE);
 use Cetmodules::Migrate::Tagging;
 use strict;
 use warnings FATAL => qw(
@@ -73,7 +73,8 @@ Readonly::Array @CALL_HANDLERS => qw(
   simple_plugin
   subdirs
 );
-Readonly::Array @EVENT_HANDLERS => qw(comment_handler eof_handler);
+Readonly::Array @EVENT_HANDLERS =>
+  qw(comment_handler eof_handler arg_handler);
 @EXPORT_OK =
   (@CALL_HANDLERS, @EVENT_HANDLERS, qw(@CALL_HANDLERS @EVENT_HANDLERS));
 %EXPORT_TAGS = (
@@ -87,6 +88,7 @@ my $_cml_state              = {};
 my $_cmake_required_version = _get_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
 my $_default_crv     = "3.19";
+Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 
 ########################################################################
 # Exported functions
@@ -124,6 +126,91 @@ sub add_subdirectory {
 sub add_test {
   goto &_handler_placeholder; # Delegate.
 }
+my $_UPS_var_translation_table =
+  { version =>
+      { new => 'UPS_PRODUCT_VERSION', 'flag' => \&_flag_remove_UPS_vars },
+    UPSFLAVOR =>
+      { new => 'UPS_PRODUCT_FLAVOR', 'flag' => \&_flag_remove_UPS_vars },
+    flavorqual     => { new => 'EXEC_PREFIX' },
+    full_qualifier =>
+      { new => 'UPS_QUALIFIER_STRING', 'flag' => \&_flag_remove_UPS_vars },
+    %{$PATH_VAR_TRANSLATION_TABLE} };
+
+
+sub arg_handler {
+  my ($call_info, $cmakelists, $options) = @_;
+  scalar @{ $call_info->{arg_indexes} } or return;
+  my @arg_indexes = (0 .. scalar @{ $call_info->{arg_indexes} }); # Convenience
+                                                                  # Flag uses of CMAKE_INSTALL_PREFIX.
+  List::MoreUtils::any {
+    arg_at($call_info, $_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
+  }
+  @arg_indexes and flag_recommended($call_info, <<"EOF");
+avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
+EOF
+
+  # Flag uses of CMAKE_MODULE_PATH.
+  my $found_CMP = List::Util::first {
+    interpolated(arg_at($call_info, $_)) eq 'CMAKE_MODULE_PATH';
+  }
+  (0 .. scalar @{ $call_info->{arg_indexes} });
+
+  if (defined $found_CMP) {
+    if (List::MoreUtils::any {
+          arg_at($call_info, $_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
+        }
+        @arg_indexes[$found_CMP .. $_LAST_ELEM_IDX]
+      ) {
+      flag_required($call_info, <<"EOF");
+declare exportable CMake module directories with cet_cmake_module_directories()
+EOF
+    } else {
+      flag_recommended($call_info, <<"EOF");
+use find_package() to find external CMake modules
+EOF
+    } ## end else [ if (List::MoreUtils::any...)]
+  } ## end if (defined $found_CMP)
+
+  # Remove problematic and unnecessary install path fragments.
+  grep {
+      if (my @separated = arg_at($call_info, $_)) {
+        $separated[(scalar @separated > 1) ? 1 : 0] =~
+        s&\$\{product\}/+\$\{version\}/*&&gmsx
+        and replace_arg_at($call_info, $_, join(q(), @separated));
+    } else {
+        0;
+      }
+  } @arg_indexes and tag_changed($call_info, <<'EOF');
+${product}/+${version}/* -> ""
+EOF
+
+  # Migrate old UPS-style variables.
+  foreach my $arg_idx (@arg_indexes) {
+    my $flagged;
+    my @separated = arg_at($call_info, $arg_idx) or next;
+    my $argref    = \$separated[(scalar @separated > 1) ? 1 : 0];
+
+    foreach my $var (keys %{$_UPS_var_translation_table}) {
+      if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx) {
+        my $old = $LAST_PAREN_MATCH{translate};
+
+        if (defined(my $new = $_UPS_var_translation_table->{$var}->{new})) {
+          ${$argref} =~
+            s&\Q$old\E&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$new}&gmsx
+            and replace_arg_at($call_info, $arg_idx, join(q(), @separated))
+            and tag_changed($call_info,
+              "$old -> \${CETMODULES_CURRENT_PROJECT_NAME}_$new");
+        } ## end if (defined(my $new = ...))
+
+        if (exists $_UPS_var_translation_table->{$var}->{'flag'}) {
+          &{ $_UPS_var_translation_table->{$var}->{'flag'} }($call_info);
+          $flagged = 1;
+        }
+      } ## end if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx)
+    } ## end foreach my $var (keys %{$_UPS_var_translation_table...})
+  } ## end foreach my $arg_idx (@arg_indexes)
+  return;
+} ## end sub arg_handler
 
 
 sub art_dictionary {
@@ -763,6 +850,14 @@ EOF
   my @result = sort keys %{$result};
   return @result;
 } ## end sub _find_package_keywords
+
+
+sub _flag_remove_UPS_vars {
+  my ($call_info) = @_;
+  return flag_required($call_info, <<"EOF");
+remove UPS variables for Spack compatibility
+EOF
+} ## end sub _flag_remove_UPS_vars
 
 
 sub _get_cmake_required_version {

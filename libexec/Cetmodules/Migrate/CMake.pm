@@ -164,6 +164,7 @@ sub _upgrade_CML {
       %{generate_call_handlers($pi,
           @Cetmodules::Migrate::CMake::Handlers::CALL_HANDLERS)
        },
+      arg_handler     => \&Cetmodules::Migrate::CMake::Handlers::arg_handler,
       comment_handler =>
       \&Cetmodules::Migrate::CMake::Handlers::comment_handler,
       eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
