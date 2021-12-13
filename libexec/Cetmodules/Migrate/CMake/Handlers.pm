@@ -926,5 +926,14 @@ EOF
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
 
+
+sub _set_CMAKE_INSTALL_PREFIX { ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_required($call_info, <<"EOF");
+avoid setting CMAKE_INSTALL_PREFIX in CMake code
+EOF
+  return;
+} ## end sub _set_CMAKE_INSTALL_PREFIX
+
 ########################################################################
 1;
