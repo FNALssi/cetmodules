@@ -604,10 +604,9 @@ sub process_cmakelists {
     cml_in           => $cml_in,
     pending_comments => {} };
   $cml_out and $cml_data->{cml_out} = $cml_out;
-  $options->{comment_handler}
-    and $cml_data->{comment_handler} = delete $options->{comment_handler};
-  $options->{eof_handler}
-    and $cml_data->{eof_handler} = delete $options->{eof_handler};
+  grep {
+      m&_handler\z&msx and $cml_data->{$_} = delete $options->{$_};
+  } keys %{$options};
   $cml_data->{callback_regex} = join(q(|),
       map { quotemeta(sprintf('%s', $_)); } keys %{ $cml_data->{callbacks} });
 
