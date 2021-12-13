@@ -274,8 +274,11 @@ sub cet_make_executable {
 
 
 sub cet_report_compiler_flags {
-  goto &_handler_placeholder; # Delegate.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  scalar @{ $call_info->{arg_indexes} }
+    or flag_recommended($call_info, "report on VERBOSE only");
+  return;
+} ## end sub cet_report_compiler_flags
 
 
 sub cmake_minimum_required {
