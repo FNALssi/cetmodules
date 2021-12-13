@@ -24,7 +24,9 @@ use warnings FATAL => qw(
   void
 );
 
-our (@EXPORT);
+use vars qw($PATH_VAR_TRANSLATION_TABLE);
+
+our (@EXPORT, @EXPORT_OK);
 
 @EXPORT = qw(
   cetpkg_info_file
@@ -44,6 +46,12 @@ our (@EXPORT);
   write_table_deps
   write_table_frag
 );
+@EXPORT_OK = qw($PATH_VAR_TRANSLATION_TABLE);
+
+########################################################################
+# Exported variables
+########################################################################
+$PATH_VAR_TRANSLATION_TABLE = _path_var_translation_table();
 
 ########################################################################
 # Private variables for use within this module only
@@ -720,15 +728,9 @@ $_cqual_table =
 # Private functions
 ########################################################################
 sub _cmake_cetb_compat_defs {
-  return [
-      map {
-        my ($dirkey)   = ($_);
-        my $var_stem   = var_stem_for_dirkey($dirkey);
-        my $dirkey_ish = $dirkey;
-        $dirkey_ish =~ s&([^_])dir\z&${1}_dir&msx;
-        "-DCETB_COMPAT_${dirkey_ish}:STRING=${var_stem}";
-      } sort keys %{$PATHSPEC_INFO}];
-} ## end sub _cmake_cetb_compat_defs
+  return [map { "-DCETB_COMPAT_$_:STRING=$PATH_VAR_TRANSLATION_TABLE->{$_}"; }
+          sort keys $PATH_VAR_TRANSLATION_TABLE];
+}
 
 
 sub _cmake_defs_for_ups_config {
@@ -895,6 +897,15 @@ EOF
   }
   return { $found_pvar => @results };
 } ## end sub _get_info_from_set_calls
+
+
+sub _path_var_translation_table {
+  return {
+      map {
+        m&\A(.*?)(?|(?:[^_]?)(dir)|())\z&msx
+        and ("$1$2" => var_stem_for_dirkey($_));
+      } sort keys %{$PATHSPEC_INFO} };
+} ## end sub _path_var_translation_table
 
 
 sub _set_seen_cet_cmake_env {
