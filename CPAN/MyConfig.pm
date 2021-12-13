@@ -67,5 +67,7 @@ $CPAN::Config = { 'allow_installing_module_downgrades' => q[ask/no],
                   'yaml_load_code'            => q[0],
                   'yaml_module'               => q[YAML],
                 };
+
+########################################################################
 1;
 __END__

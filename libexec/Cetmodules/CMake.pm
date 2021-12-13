@@ -733,9 +733,6 @@ sub single_value_for {
 ########################################################################
 # Private functions
 ########################################################################
-my $_seen_unquoted_open_parens = 0;
-
-
 sub _index_for_arg_at {
   my ($call_info, $idx_idx) = @_;
   my $result;
@@ -743,7 +740,9 @@ sub _index_for_arg_at {
   return $result;
 } ## end sub _index_for_arg_at
 
-
+# Private state.
+my $_seen_unquoted_open_parens = 0;
+##
 sub _complete_call {
   my ($call_info, $cml_in, $cmakelists, $line, $line_no) = @_;
   my $current_linepos = length($call_info->{pre});
@@ -1326,5 +1325,7 @@ sub _separate_quotes {
            &msx
   ) ? @LAST_PAREN_MATCH{qw(q1 quoted q2)} : ($item);
 } ## end sub _separate_quotes
+
+########################################################################
 1;
 __END__

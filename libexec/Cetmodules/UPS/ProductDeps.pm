@@ -474,6 +474,8 @@ EOF
   }
   return ($dirkey, $pathkey, $dirname);
 } ## end sub _validate_pathspec_entry
+
+########################################################################
 1;
 __END__
 

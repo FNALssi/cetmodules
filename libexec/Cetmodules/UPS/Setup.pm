@@ -54,7 +54,7 @@ our (@EXPORT, @EXPORT_OK);
 $PATH_VAR_TRANSLATION_TABLE = _path_var_translation_table();
 
 ########################################################################
-# Private variables for use within this module only
+# Private variables
 ########################################################################
 my ($_cqual_table, $_seen_cet_cmake_env, $_seen_project);
 Readonly::Scalar my $_EXEC_MODE => oct(755);
@@ -999,4 +999,7 @@ sub _setup_from_libdir {
       "\n");
   return;
 } ## end sub _setup_from_libdir
+
+########################################################################
 1;
+__END__

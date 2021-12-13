@@ -358,7 +358,7 @@ sub warning {
 } ## end sub warning
 
 ########################################################################
-# Private variables and functions
+# Private functions
 ########################################################################
 sub _date_cmp {
   my ($a, $b) = @_;
@@ -456,4 +456,7 @@ sub _parse_extra {
   defined $enum and $vInfo->{extra_num} = $enum;
   return $vInfo;
 } ## end sub _parse_extra
+
+########################################################################
 1;
+__END__

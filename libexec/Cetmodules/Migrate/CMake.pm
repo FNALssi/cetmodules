@@ -35,7 +35,9 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_call_handlers);
 %EXPORT_TAGS = (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS,
                 HANDLER_TOOLS    => \@HANDLER_TOOLS);
 
-
+########################################################################
+# Exported functions
+########################################################################
 sub find_cmake {
   return (
       grep {
@@ -198,4 +200,7 @@ sub _upgrade_CML {
   } ## end else [ if ($changed) ]
   return;
 } ## end sub _upgrade_CML
+
+########################################################################
 1;
+__END__

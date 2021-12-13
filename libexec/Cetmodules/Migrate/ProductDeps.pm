@@ -380,4 +380,7 @@ sub _write_table_fragment {
       "table_fragment_end\n");
   return;
 } ## end sub _write_table_fragment
+
+########################################################################
 1;
+__END__

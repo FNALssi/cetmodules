@@ -17,4 +17,7 @@ CHECK {
   delete $SIG{__WARN__}; $_n_warnings
     and die "FAIL: counted $_n_warnings warnings during compilation\n";
 }
+
+########################################################################
 1;
+__END__
