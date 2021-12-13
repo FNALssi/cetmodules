@@ -11,7 +11,7 @@ use Storable qw(dclone);
 use Cetmodules::Util;
 use Cetmodules::CMake;
 use Cetmodules::UPS::Setup qw(:DEFAULT $PATH_VAR_TRANSLATION_TABLE);
-use Cetmodules::Migrate::Tagging;
+use Cetmodules::Migrate::CMake::Tagging;
 use strict;
 use warnings FATAL => qw(
   Cetmodules

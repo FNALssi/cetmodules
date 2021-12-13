@@ -12,7 +12,7 @@ use List::MoreUtils qw();
 use Readonly;
 use Cetmodules::CMake;
 use Cetmodules::Migrate::CMake::Handlers;
-use Cetmodules::Migrate::Tagging;
+use Cetmodules::Migrate::CMake::Tagging;
 use Cetmodules::Migrate::Util;
 use Cetmodules::Util;
 use strict;
@@ -84,8 +84,7 @@ sub generate_call_handlers {
         my $func_name = "Cetmodules::Migrate::CMake::Handlers\::$_";
         "${_}_callback" => sub {
           my ($call_infos, $call_info, $cmakelists, $options) = @_;
-          my $result;
-          has_ignore_directive($call_info) and return $result; # NOP
+          not ignored($call_info) or return; # NOP
           local $_; ## no critic qw(RequireInitializationForLocalVars)
           my $orig_call = reconstitute_code(@{ $call_infos // [] });
 
@@ -95,7 +94,7 @@ sub generate_call_handlers {
 
           # Invoke the real function.
           my $func_ref = \&{$func_name};
-          remove_all_directives($call_info);
+          untag_all($call_info);
           debug(<<"EOF");
 invoking wrapped migration handler $func_name\E() for CMake call $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}
 EOF
@@ -116,6 +115,7 @@ EOF
           my $new_call = reconstitute_code(@{ $call_infos // [] });
 
           if ($orig_call ne ($new_call // q())) {
+            my $result = {};
             @{$result}[qw(orig_call new_call)] =
             ($orig_call, $new_call // q());
             $options->{"dry-run"} and printf <<'EOF'
@@ -129,8 +129,8 @@ EOF
             , $call_info->{start_line},
             map { join("\n     ", split m&\n&msx); }
             ($orig_call, ($new_call) ? "\n$new_call" : q());
+            return $result;
           } ## end if ($orig_call ne ($new_call...))
-          return $result;
         };
       } @call_handlers };
 } ## end sub generate_call_handlers
@@ -153,11 +153,13 @@ sub _upgrade_CML {
   my $cml_in = IO::File->new("$cml", "<")
     or error_exit("unable to open $cml_full for read");
 
-  if (has_ignore_directive($cml_in->getline)) {
-    info("upgrading $cml -> $dest SKIPPED due to \"$1\" directive in line 1");
+  if (ignored($cml_in->getline)) {
+    info(<<"EOF");
+upgrading $cml -> $dest SKIPPED due to MIGRATE-NO-ACTION directive in line 1
+EOF
     $cml_in->close();
     return;
-  } ## end if (has_ignore_directive...)
+  } ## end if (ignored($cml_in->getline...))
   info("upgrading $cml_full -> $dest_full");
   my $cml_out = IO::File->new("$dest", ">")
     or error_exit("unable to open $dest_full for write");
