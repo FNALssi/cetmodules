@@ -1218,8 +1218,9 @@ EOF
     } ## end if (my $func = $cml_data...)
 
     if (my $func = $cml_data->{callbacks}->{ $call_info->{name} }) {
-      debug(sprintf("invoking registered callback for CALL \%s()",
-          $call_info->{name}));
+      debug(<<"EOF");
+invoking registered callback for CALL $call_info->{name}
+EOF
       my $tmp_result =
         &{$func}($call_infos, $call_info, $cmakelists, $options);
       defined $tmp_result
