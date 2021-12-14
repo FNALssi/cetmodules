@@ -139,6 +139,7 @@ EOF
             ($orig_call, ($new_call) ? "\n$new_call" : q());
             return $result;
           } ## end if ($orig_call ne ($new_call...))
+          return;
         };
       } @call_handlers };
 } ## end sub generate_call_handlers
