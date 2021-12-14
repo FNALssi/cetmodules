@@ -126,6 +126,8 @@ sub add_subdirectory {
 sub add_test {
   goto &_handler_placeholder; # Delegate.
 }
+
+# Lookup table used by arg_handler().
 my $_UPS_var_translation_table =
   { version =>
       { new => 'UPS_PRODUCT_VERSION', 'flag' => \&_flag_remove_UPS_vars },
@@ -135,13 +137,13 @@ my $_UPS_var_translation_table =
     full_qualifier =>
       { new => 'UPS_QUALIFIER_STRING', 'flag' => \&_flag_remove_UPS_vars },
     %{$PATH_VAR_TRANSLATION_TABLE} };
-
-
+##
 sub arg_handler {
   my ($call_info, $cmakelists, $options) = @_;
   scalar @{ $call_info->{arg_indexes} } or return;
   my @arg_indexes = (0 .. scalar @{ $call_info->{arg_indexes} }); # Convenience
-                                                                  # Flag uses of CMAKE_INSTALL_PREFIX.
+
+  # Flag uses of CMAKE_INSTALL_PREFIX.
   List::MoreUtils::any {
     arg_at($call_info, $_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
@@ -880,6 +882,15 @@ sub _get_cmake_required_version {
   } ## end if (my $crv_fh = IO::File...)
   return $result;
 } ## end sub _get_cmake_required_version
+
+
+sub _handler_placeholder {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  debug("in handler for $call_info->{name}()");
+  return;
+} ## end sub _handler_placeholder
+
+# Lookup table used by _product_to_package()
 my $_product_to_package_table = { boost    => 'Boost',
                                   cppunit  => 'CppUnit',
                                   geant4   => 'Geant4',
@@ -890,15 +901,7 @@ my $_product_to_package_table = { boost    => 'Boost',
                                   tbb      => 'TBB',
                                   xerces_c => 'XercesC',
                                 };
-
-
-sub _handler_placeholder {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  debug("in handler for $call_info->{name}()");
-  return;
-} ## end sub _handler_placeholder
-
-
+##
 sub _product_to_package {
   my ($product) = @_;
   return $_product_to_package_table->{$product} // $product;
