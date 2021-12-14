@@ -173,7 +173,7 @@ EOF
   scalar keys %handlers
     or %handlers = (
       %{generate_call_handlers($pi,
-          @Cetmodules::Migrate::CMake::Handlers::CALL_HANDLERS)
+          @Cetmodules::Migrate::CMake::Handlers::COMMAND_HANDLERS)
        },
       arg_handler     => \&Cetmodules::Migrate::CMake::Handlers::arg_handler,
       comment_handler =>

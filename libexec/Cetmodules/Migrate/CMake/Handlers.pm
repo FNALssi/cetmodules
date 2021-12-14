@@ -23,64 +23,279 @@ use warnings FATAL => qw(
   void
 );
 
-use vars qw(@CALL_HANDLERS @EVENT_HANDLERS);
+use vars qw(@COMMAND_HANDLERS @EVENT_HANDLERS);
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 
-########################################################################
-# Exported variables
-########################################################################
-Readonly::Array @CALL_HANDLERS => qw(
+my @_CMAKE_SCRIPTING_COMMAND_HANDLERS = qw(
+  -break
+  -cmake_host_system_information
+  -cmake_language
+  cmake_minimum_required
+  -cmake_parse_arguments
+  -cmake_path
+  -cmake_policy
+  -configure_file
+  -continue
+  -else
+  -elseif
+  -endforeach
+  endfunction
+  -endif
+  endmacro
+  -endwhile
+  -execute_process
+  -file
+  -find_file
+  find_library
+  find_package
+  -find_path
+  -find_program
+  -foreach
+  function
+  -get_cmake_property
+  -get_directory_property
+  -get_filename_component
+  -get_property
+  -if
+  -include
+  -include_guard
+  -list
+  macro
+  -mark_as_advanced
+  -math
+  -message
+  -option
+  -return
+  -separate_arguments
+  set
+  -set_directory_properties
+  -set_property
+  -site_name
+  -string
+  -unset
+  -variable_watch
+  -while
+);
+my @_CMAKE_PROJECT_COMMAND_HANDLERS = qw(
   add_compile_definitions
   add_compile_options
+  -add_custom_command
+  -add_custom_target
   add_definitions
-  add_dependencies
+  -add_dependencies
+  add_executable
+  add_library
   add_link_options
   add_subdirectory
   add_test
-  art_dictionary
+  -aux_source_directory
+  -build_command
+  -create_test_sourcelist
+  -define_property
+  -enable_language
+  -enable_testing
+  -export
+  -fltk_wrap_ui
+  -get_source_file_property
+  -get_target_property
+  -get_test_property
+  include_directories
+  -include_external_msproject
+  -include_regular_expression
+  -install
+  link_directories
+  link_libraries
+  -load_cache
+  project
+  remove_definitions
+  -set_source_files_properties
+  -set_target_properties
+  -set_tests_properties
+  -source_group
+  -target_compile_definitions
+  -target_compile_features
+  -target_compile_options
+  -target_include_directories
+  -target_link_directories
+  -target_link_libraries
+  -target_link_options
+  -target_precompile_headers
+  -target_sources
+  -try_compile
+  -try_run
+);
+my @_CMAKE_CTEST_COMMAND_HANDLERS = qw(
+  -ctest_build
+  -ctest_configure
+  -ctest_coverage
+  -ctest_empty_binary_directory
+  -ctest_memcheck
+  -ctest_read_custom_files
+  -ctest_run_script
+  -ctest_sleep
+  -ctest_start
+  -ctest_submit
+  -ctest_test
+  -ctest_update
+  -ctest_upload
+);
+my @_CMAKE_DEPRECATED_COMMAND_HANDLERS = qw(
+  -build_name
+  -exec_program
+  -export_library_dependencies
+  -install_files
+  -install_programs
+  -install_targets
+  -load_command
+  -make_directory
+  -output_required_files
+  -qt_wrap_cpp
+  -qt_wrap_ui
+  -remove
+  -subdir_depends
+  subdirs
+  -use_mangled_mesa
+  -utility_source
+  -variable_requires
+  -write_file
+);
+
+# This list made with:
+#
+#   ack --cmake -h -i '^\s*(?:function|macro)\(\s*+[^_$]' | \
+#     sed -Ene 's&^[[:space:]]*(function|macro)\(([^[:space:])]+).*$&\2&ip' | \
+#     sort -u
+my @_CET_COMMAND_HANDLERS = qw(
+  -ParseAndAddCatchTests
+  -ParseFile
+  -PrintDebugMessage
+  -RemoveComments
+  -art::module
+  -art::plugin
+  -art::service
+  -art::source
+  -art::tool
+  -art_dictionary
   art_make
-  art_make_library
+  art_make_exec
+  -art_make_library
   basic_plugin
-  build_dictionary
+  -build_dictionary
   build_plugin
-  cet_build_plugin
+  -cet_add_compiler_flags
+  -cet_add_to_library_list
+  -cet_armor_string
+  -cet_build_plugin
+  -cet_checkpoint_cmp
+  -cet_checkpoint_did
   cet_cmake_config
-  cet_cmake_env
+  -cet_cmake_env
+  -cet_cmake_module_directories
+  -cet_collect_plugin_builders
+  -cet_compare_versions
+  -cet_convert_target_args
+  -cet_disable_asserts
+  -cet_enable_asserts
+  -cet_exclude_files_from
+  -cet_export_alias
   cet_find_library
+  cet_find_package
+  cet_find_pkg_config_package
+  cet_find_simple_package
+  -cet_generate_sphinxdocs
+  -cet_get_pv_property
+  -cet_have_qual
+  -cet_installed_path
+  -cet_lib_alias
+  -cet_localize_pv
+  -cet_localize_pv_all
   cet_make
-  cet_make_library
-  cet_make_executable
+  -cet_make_completions
+  -cet_make_exec
+  -cet_make_library
+  -cet_make_plugin_builder
+  -cet_maybe_disable_asserts
+  -cet_package_path
+  cet_parse_args
+  -cet_passthrough
+  -cet_process_cmp
+  -cet_process_did
+  -cet_process_liblist
+  -cet_query_system
+  -cet_regex_escape
+  -cet_register_export_set
+  cet_remove_compiler_flags
   cet_report_compiler_flags
-  cmake_minimum_required
-  cmake_policy
-  endfunction
-  endmacro
-  find_library
-  find_package
+  -cet_rootcint
+  -cet_script
+  -cet_set_compiler_flags
+  -cet_set_pv_property
+  -cet_source_file_extensions
+  -cet_test
+  -cet_test_assertion
+  -cet_test_env
+  -cet_timestamp
+  -cet_version_cmp
+  -cet_without_deprecation_warnings
+  -cet_write_plugin_builder
+  -check_class_version
+  -check_prod_version
+  -check_ups_version
+  -filter_and_compare
+  -find_package
+  find_tbb_offloads
   find_ups_boost
   find_ups_geant4
   find_ups_product
   find_ups_root
-  function
-  include_directories
-  link_directories
-  link_libraries
-  link_options
-  macro
-  project
-  remove_definitions
-  set
+  -generate_from_fragments
+  -include
+  -install_fhicl
+  -install_fw
+  -install_gdml
+  -install_headers
+  -install_license
+  -install_perllib
+  -install_pkgmeta
+  -install_python
+  -install_scripts
+  -install_source
+  -install_wp
+  -make_simple_builder
+  -parse_ups_version
+  -process_smc
+  -process_ups_files
+  -product_to_project
+  -project_variable
+  -pvs_test
+  -set_dot_version
+  -set_install_root
+  -set_version_from_ups
   simple_plugin
-  subdirs
+  tbb_offload
+  -to_cmake_version
+  -to_dot_version
+  -to_ups_version
+  -to_version_string
+  -warn_deprecated
 );
+
+########################################################################
+# Exported variables
+########################################################################
+Readonly::Array
+  @COMMAND_HANDLERS => grep { not m&\A-&msx; }
+  @_CMAKE_SCRIPTING_COMMAND_HANDLERS,
+  @_CMAKE_PROJECT_COMMAND_HANDLERS,    @_CMAKE_CTEST_COMMAND_HANDLERS,
+  @_CMAKE_DEPRECATED_COMMAND_HANDLERS, @_CET_COMMAND_HANDLERS;
 Readonly::Array @EVENT_HANDLERS =>
   qw(comment_handler eof_handler arg_handler);
-@EXPORT_OK =
-  (@CALL_HANDLERS, @EVENT_HANDLERS, qw(@CALL_HANDLERS @EVENT_HANDLERS));
+@EXPORT_OK = (@COMMAND_HANDLERS, @EVENT_HANDLERS,
+              qw(@COMMAND_HANDLERS @EVENT_HANDLERS));
 %EXPORT_TAGS = (
-    CALL_HANDLERS  => ['@CALL_HANDLERS',  @CALL_HANDLERS],
-    EVENT_HANDLERS => ['@EVENT_HANDLERS', @EVENT_HANDLERS]);
+    COMMAND_HANDLERS => ['@COMMAND_HANDLERS', @COMMAND_HANDLERS],
+    EVENT_HANDLERS   => ['@EVENT_HANDLERS',   @EVENT_HANDLERS]);
 
 ########################################################################
 # Private variables
@@ -95,35 +310,65 @@ Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 # Exported functions
 ########################################################################
 sub add_compile_definitions {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_compile_definitions() or target_compile_features() whenever possible
+EOF
+  return;
+} ## end sub add_compile_definitions
 
 
 sub add_compile_options {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_compile_options() or target_compile_features() whenever possible
+EOF
+  return;
+} ## end sub add_compile_options
 
 
 sub add_definitions {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_compile_definitions() or target_compile_features() whenever possible
+EOF
+  return;
+} ## end sub add_definitions
 
 
-sub add_dependencies {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+sub add_executable {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+use cet_make_exec() for compactness and flexibility
+EOF
+  return;
+} ## end sub add_executable
+
+
+sub add_library {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+use cet_make_library() or cet_build_plugin() for compactness and flexibility
+EOF
+  return;
+} ## end sub add_library
 
 
 sub add_link_options {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_link_options() whenever possible
+EOF
+  return;
+} ## end sub add_link_options
 
 
 sub add_subdirectory {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
 
   if (interpolated(arg_at($call_info, 0)) eq 'ups') {
-    report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
+    report_removed($options->{cmakelists_short} // $cmakelists,
+        " (obsolete)", pop @{$call_infos});
   }
   return;
 } ## end sub add_subdirectory
@@ -224,53 +469,50 @@ EOF
 } ## end sub arg_handler
 
 
-sub art_dictionary {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
-
-
 sub art_make {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   flag_recommended($call_info, <<"EOF");
-deprecated: use art_make_library(), art_dictonary(), and cet_build_plugin() with explicit source lists and plugin types.
+deprecated: use art_make_library(), art_dictonary(), and cet_build_plugin() with explicit source lists and plugin base types
 EOF
   return;
 } ## end sub art_make
 
 
-sub art_make_library {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+sub art_make_exec {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  replace_call_with($call_info, 'cet_make_exec');
+  tag_changed($call_info, <<"EOF");
+art_make_exec() -> cet_make_exec()
+EOF
+  return;
+} ## end sub art_make_exec
 
 
 sub basic_plugin {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
-
-
-sub build_dictionary {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+use cet_build_plugin() with explicit plugin base types whenever possible
+EOF
+  return;
+} ## end sub basic_plugin
 
 
 sub build_plugin {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
-
-
-sub cet_build_plugin {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+deprecated: use cet_build_plugin() with explicit plugin base types
+EOF
+  return;
+} ## end sub build_plugin
 
 
 sub cet_cmake_config {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
-
-
-sub cet_cmake_env {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  report_removed($options->{cmakelists_short} // $cmakelists,
+      " (called automatically)",
+      pop @{$call_infos});
+  return;
+} ## end sub cet_cmake_config
 
 
 sub cet_find_library {
@@ -285,18 +527,18 @@ EOF
 sub cet_make {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   flag_recommended($call_info, <<"EOF");
-deprecated: use cet_make_library(), cet_dictonary(), cet_plugin() with explicit source lists and plugin types.
+deprecated: use cet_make_library(), build_dictonary(), cet_plugin() with explicit source lists and plugin base types
 EOF
   return;
 } ## end sub cet_make
 
 
-sub cet_make_library {
+sub cet_parse_args {
   goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
-sub cet_make_executable {
+sub cet_remove_compiler_flags {
   goto &_handler_placeholder; # Delegate to placeholder.
 }
 
@@ -400,11 +642,6 @@ EOF
   }
   return;
 } ## end sub cmake_minimum_required
-
-
-sub cmake_policy {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
 
 
 sub comment_handler {
@@ -513,8 +750,13 @@ EOF
 } ## end sub find_package
 
 
+sub find_tbb_offloads {
+  goto &_handler_placeholder; # Delegate to placeholder.
+}
+
+
 sub find_ups_boost {
-  goto &find_ups_product; # Delegate.
+  goto &find_ups_product;     # Delegate.
 }
 
 
@@ -615,27 +857,34 @@ sub find_ups_root {
 
 
 sub include_directories {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+EOF
+  return;
+} ## end sub include_directories
 
 
 sub link_directories {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+EOF
+  return;
+} ## end sub link_directories
 
 
 sub link_libraries {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
-
-
-sub link_options {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions: use target_link_libraries() whenever possible
+EOF
+  return;
+} ## end sub link_libraries
 
 
 sub macro {
-  goto &_call_definition;     # Delegate.
+  goto &_call_definition; # Delegate.
 }
 
 
@@ -763,8 +1012,12 @@ EOF
 
 
 sub remove_definitions {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+avoid directory-scope functions whenever possible
+EOF
+  return;
+} ## end sub remove_definitions
 
 ####################################
 # Private constants used by set()
@@ -804,7 +1057,7 @@ EOF
 sub simple_plugin {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   flag_recommended($call_info, <<"EOF");
-deprecated: use cet_build_plugin() with explicit source lists and plugin types.
+deprecated: use cet_build_plugin() with explicit source lists and plugin base types
 EOF
   return;
 } ## end sub simple_plugin
@@ -812,7 +1065,8 @@ EOF
 
 sub subdirs {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
+  report_removed($options->{cmakelists_short} // $cmakelists,
+      " (obsolete)", pop @{$call_infos});
   scalar @{ $call_info->{arg_indexes} } or return;
   my $mode               = q();
   my @preordered_subdirs = ();
@@ -852,6 +1106,11 @@ EOF
   }
   return;
 } ## end sub subdirs
+
+
+sub tbb_offload {
+  goto &_handler_placeholder; # Delegate to placeholder.
+}
 
 ########################################################################
 # Private functions
@@ -967,7 +1226,7 @@ sub _get_cmake_required_version {
 
 
 sub _handler_placeholder {
-  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  my ($dummy, $dummy, $call_info) = @_;
   debug("in handler for $call_info->{name}()");
   return;
 } ## end sub _handler_placeholder
@@ -1000,14 +1259,15 @@ sub _set_CMAKE_PROJECT_VERSION_STRING { ## no critic qw(Subroutines::ProhibitUnu
 
   if (not $_cml_state->{seen_calls}->{'project'}) { # Too early.
     warning(<<"EOF");
-Project variable CMAKE_PROJECT_VERSION_STRING set at $cmakelists:$call_info->{start_line} must follow project() and precede cet_cmake_env() - relocating.
+project variable CMAKE_PROJECT_VERSION_STRING set at $cmakelists:$call_info->{start_line} must follow project() and precede cet_cmake_env() - relocating
 EOF
   } elsif (not $_cml_state->{project_info}->{redundant_version_string}) {
     return;
   }
 
   # Don't need this call.
-  report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
+  report_removed($options->{cmakelists_short} // $cmakelists,
+      " (obsolete)", pop @{$call_infos});
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
 
