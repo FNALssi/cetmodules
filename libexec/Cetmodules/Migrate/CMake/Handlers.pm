@@ -94,27 +94,27 @@ Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 # Exported functions
 ########################################################################
 sub add_compile_definitions {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub add_compile_options {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub add_definitions {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub add_dependencies {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub add_link_options {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
@@ -129,7 +129,7 @@ sub add_subdirectory {
 
 
 sub add_test {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 # Lookup table used by arg_handler().
@@ -220,62 +220,62 @@ EOF
 
 
 sub art_dictionary {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub art_make {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub art_make_library {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub basic_plugin {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub build_dictionary {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub build_plugin {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_cmake_config {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_cmake_env {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_find_library {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_make {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_make_library {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub cet_make_executable {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
@@ -381,7 +381,7 @@ EOF
 
 
 sub cmake_policy {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
@@ -415,7 +415,7 @@ sub function {
 
 
 sub find_library {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
@@ -580,22 +580,22 @@ sub find_ups_root {
 
 
 sub include_directories {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub link_directories {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub link_libraries {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
 sub link_options {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
@@ -728,7 +728,7 @@ EOF
 
 
 sub remove_definitions {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 ####################################
@@ -767,7 +767,7 @@ EOF
 
 
 sub simple_plugin {
-  goto &_handler_placeholder; # Delegate.
+  goto &_handler_placeholder; # Delegate to placeholder.
 }
 
 
