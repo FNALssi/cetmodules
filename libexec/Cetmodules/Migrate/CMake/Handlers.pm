@@ -141,7 +141,7 @@ my $_UPS_var_translation_table =
 sub arg_handler {
   my ($call_info, $cmakelists, $options) = @_;
   scalar @{ $call_info->{arg_indexes} } or return;
-  my @arg_indexes = (0 .. scalar @{ $call_info->{arg_indexes} }); # Convenience
+  my @arg_indexes = (0 .. $#{ $call_info->{arg_indexes} }); # Convenience
 
   # Flag uses of CMAKE_INSTALL_PREFIX.
   List::MoreUtils::any {
@@ -155,7 +155,7 @@ EOF
   my $found_CMP = List::Util::first {
     interpolated(arg_at($call_info, $_)) eq 'CMAKE_MODULE_PATH';
   }
-  (0 .. scalar @{ $call_info->{arg_indexes} });
+  (0 .. $#{ $call_info->{arg_indexes} });
 
   if (defined $found_CMP) {
     if (List::MoreUtils::any {
