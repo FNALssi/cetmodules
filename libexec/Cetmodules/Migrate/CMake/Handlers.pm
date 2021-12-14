@@ -383,7 +383,7 @@ sub cmake_policy {
 
 sub comment_handler {
   my ($pi, $comments, $cmakelists, $options) = @_;
-  return {};
+  return;
 }
 
 
