@@ -34,6 +34,7 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_call_handlers);
 @EXPORT_OK = (@CMAKE_FILE_TOOLS, @HANDLER_TOOLS);
 %EXPORT_TAGS = (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS,
                 HANDLER_TOOLS    => \@HANDLER_TOOLS);
+Readonly::Scalar my $_LINE_LENGTH => 80;
 
 ########################################################################
 # Exported functions
@@ -116,14 +117,21 @@ EOF
 
           if ($orig_call ne ($new_call // q())) {
             my $result = {};
-            @{$result}[qw(orig_call new_call)] =
+            @{$result}{qw(orig_call new_call)} =
             ($orig_call, $new_call // q());
-            $options->{"dry-run"} and printf <<'EOF'
+            my $file_label = $options->{cmakelists_short} // $cmakelists;
+            my ($div, $filler) =
+              (length($file_label) > ($_LINE_LENGTH - 2))
+            ? (q(=), q())
+            : (
+              q(=) x (($_LINE_LENGTH - length($file_label)) / 2),
+              (length($file_label) % 2) ? q(=) : q());
+            $options->{"dry-run"} and printf <<"EOF"
 
----------------old------------------
+--------------------------------------old---------------------------------------
 % 4d %s
-====================================%s
-+++++++++++++++new++++++++++++++++++
+$div$file_label$div$filler%s
+++++++++++++++++++++++++++++++++++++++new+++++++++++++++++++++++++++++++++++++++
 
 EOF
             , $call_info->{start_line},
@@ -138,10 +146,8 @@ EOF
 
 sub write_top_CML {
   my ($pkgtop, $pi, $options) = @_;
-  return
-    _upgrade_CML("$pkgtop/CMakeLists.txt", "$pkgtop/CMakeLists.txt.new", $pi,
-      $options);
-} ## end sub write_top_CML
+  return _upgrade_CML("CMakeLists.txt", "CMakeLists.txt.new", $pi, $options);
+}
 
 ########################################################################
 # Private functions
@@ -160,7 +166,7 @@ EOF
     $cml_in->close();
     return;
   } ## end if (ignored($cml_in->getline...))
-  info("upgrading $cml_full -> $dest_full");
+  verbose("upgrading <$pi->{name}>/$cml_full -> <$pi->{name}>$dest_full");
   my $cml_out = IO::File->new("$dest", ">")
     or error_exit("unable to open $dest_full for write");
   scalar keys %handlers
@@ -175,7 +181,11 @@ EOF
     );
   my $cmakelists = [$cml_in,  $cml_full];
   my $output     = [$cml_out, $dest_full];
-  $options = { %{$options}, output => $output, %handlers };
+  $options = { %{$options},
+               cmakelists_short => "<$pi->{name}>/$cml_full",
+               output           => $output,
+               %handlers
+             };
   my $results = process_cmakelists($cmakelists, $options);
   $cml_out->close();
   my $changed = keys %{$results};

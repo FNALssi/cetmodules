@@ -18,6 +18,7 @@ our (@EXPORT);
   flag_required
   flagged
   ignored
+  report_removed
   tag
   tag_added
   tag_changed
@@ -58,6 +59,17 @@ sub ignored {
   my ($textish) = @_;
   return tagged($textish, 'NO-ACTION');
 }
+
+
+sub report_removed {
+  my ($cmakelists, $extra, @args) = @_;
+  defined $extra or $extra = q();
+  map {
+      info("call removed from $cmakelists:$_->{start_line}$extra:\n",
+        reconstitute_code($_));
+  } @args;
+  return;
+} ## end sub report_removed
 
 
 sub tag {

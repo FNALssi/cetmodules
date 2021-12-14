@@ -82,8 +82,7 @@ for my $pkgtop (@pkgdirs) {
   $pdinfo->{products}  = get_product_list($pdinfo->{filename});
   @{$pdinfo}{qw(ndeps qualifier_columns qualifier_rows notes headers)} =
     get_qualifier_matrix($pdinfo->{filename}, *STDERR);
-  info("attempting to read $pkg_path_label/$pdinfo->{filename}... DONE",
-      $pkg_path_label);
+  info("attempting to read $pkg_path_label/$pdinfo->{filename}... DONE");
   my $from = {
       map {
         (m&\A(cet(?:buildtools|modules))\z&msx)

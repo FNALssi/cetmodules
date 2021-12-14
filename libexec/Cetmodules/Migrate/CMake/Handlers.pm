@@ -922,7 +922,7 @@ EOF
   }
 
   # Don't need this call.
-  pop @{$call_infos};
+  report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
 
