@@ -119,8 +119,13 @@ sub add_link_options {
 
 
 sub add_subdirectory {
-  goto &_handler_placeholder; # Delegate.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+
+  if (interpolated(arg_at($call_info, 0)) eq 'ups') {
+    report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
+  }
+  return;
+} ## end sub add_subdirectory
 
 
 sub add_test {
@@ -768,8 +773,47 @@ sub simple_plugin {
 
 
 sub subdirs {
-  goto &_handler_placeholder; # Delegate.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  report_removed($cmakelists, " (obsolete)", pop @{$call_infos});
+  scalar @{ $call_info->{arg_indexes} } or return;
+  my $mode               = q();
+  my @preordered_subdirs = ();
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+arg: foreach my $arg_idx (0 .. $#{ $call_info->{arg_indexes} }) {
+    my $arg = arg_at($call_info, $arg_idx);
+    given (interpolated($arg)) {
+      when ('ups') { # Drop.
+        info(sprintf(<<"EOF", arg_location($call_info, $arg_idx)));
+subdirs(...) -> add_subdirectory(ups) omitted (no longer required)
+at $cmakelists:%s
+EOF
+        next arg;
+      } ## end when ('ups')
+      when ($_ eq 'EXCLUDE_FROM_ALL' or $_ eq 'PREORDER') {
+
+        # Keywords.
+        $mode = $_;
+        next arg;
+      } ## end when ($_ eq 'EXCLUDE_FROM_ALL'...)
+      default { } # Treat as normal.
+    } ## end given
+    my $new_call =
+      sprintf("$call_info->{pre_call_ws}add_subdirectory($arg%s)\n",
+        ($mode eq 'EXCLUDE_FROM_ALL') ? " $mode" : q());
+    tag_changed(\$new_call, "subdirs(...) -> add_subdirectory(...)");
+
+    if ($mode eq 'PREORDER') {
+      push @preordered_subdirs, $new_call;
+    } else {
+      push @{$call_infos}, $new_call;
+    }
+  } ## end arg: foreach my $arg_idx (0 .. $#...)
+
+  if (scalar @preordered_subdirs) {
+    unshift @{$call_infos}, @preordered_subdirs;
+  }
+  return;
+} ## end sub subdirs
 
 ########################################################################
 # Private functions
