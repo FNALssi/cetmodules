@@ -44,6 +44,7 @@ Readonly::Array @CALL_HANDLERS => qw(
   basic_plugin
   build_dictionary
   build_plugin
+  cet_build_plugin
   cet_cmake_config
   cet_cmake_env
   cet_find_library
@@ -245,6 +246,11 @@ sub build_dictionary {
 
 
 sub build_plugin {
+  goto &_handler_placeholder; # Delegate to placeholder.
+}
+
+
+sub cet_build_plugin {
   goto &_handler_placeholder; # Delegate to placeholder.
 }
 
