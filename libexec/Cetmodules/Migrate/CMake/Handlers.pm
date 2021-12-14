@@ -130,8 +130,12 @@ sub add_subdirectory {
 
 
 sub add_test {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+use cet_test() for flexibility and default test labels
+EOF
+  return;
+} ## end sub add_test
 
 # Lookup table used by arg_handler().
 my $_UPS_var_translation_table =
@@ -226,8 +230,12 @@ sub art_dictionary {
 
 
 sub art_make {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+deprecated: use art_make_library(), art_dictonary(), and cet_build_plugin() with explicit source lists and plugin types.
+EOF
+  return;
+} ## end sub art_make
 
 
 sub art_make_library {
@@ -266,13 +274,21 @@ sub cet_cmake_env {
 
 
 sub cet_find_library {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<'EOF');
+use find_package() with custom Find<pkg>.cmake
+EOF
+  return;
+} ## end sub cet_find_library
 
 
 sub cet_make {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+deprecated: use cet_make_library(), cet_dictonary(), cet_plugin() with explicit source lists and plugin types.
+EOF
+  return;
+} ## end sub cet_make
 
 
 sub cet_make_library {
@@ -421,8 +437,21 @@ sub function {
 
 
 sub find_library {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  if (has_keyword($call_info, 'ENV')
+      or List::MoreUtils::any { arg_at($call_info, $_) =~ m&\$ENV\{&msx; }
+      all_idx_idx($call_info)
+    ) {
+    flag_recommended($call_info, <<'EOF');
+use find_package() with custom Find<pkg>.cmake or cet_find_library() with ENV <x> instead of $ENV{<x>}
+EOF
+  } else {
+    flag_recommended($call_info, <<'EOF');
+use find_package() with custom Find<pkg>.cmake
+EOF
+  } ## end else [ if (has_keyword($call_info...))]
+  return;
+} ## end sub find_library
 
 
 sub find_package {
@@ -773,8 +802,12 @@ EOF
 
 
 sub simple_plugin {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  flag_recommended($call_info, <<"EOF");
+deprecated: use cet_build_plugin() with explicit source lists and plugin types.
+EOF
+  return;
+} ## end sub simple_plugin
 
 
 sub subdirs {
