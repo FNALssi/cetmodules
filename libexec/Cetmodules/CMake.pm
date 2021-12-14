@@ -28,6 +28,7 @@ our (@EXPORT);
 @EXPORT = qw(
   @PROJECT_KEYWORDS
   add_args_after
+  all_idx_idx
   all_values_for
   append_args
   arg_at
@@ -95,6 +96,14 @@ EOF
   }
   return insert_args_at($call_info, $idx_idx, @to_add);
 } ## end sub add_args_after
+
+
+sub all_idx_idx {
+  my ($call_info) = @_;
+  return (defined $call_info->{arg_indexes})
+    ? (0 .. $#{ $call_info->{arg_indexes} })
+    : ();
+} ## end sub all_idx_idx
 
 # Return a list of all arguments for a given keyword (assumes
 # multi-value keyword).

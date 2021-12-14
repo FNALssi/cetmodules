@@ -145,14 +145,13 @@ my $_UPS_var_translation_table =
 ##
 sub arg_handler {
   my ($call_info, $cmakelists, $options) = @_;
-  scalar @{ $call_info->{arg_indexes} } or return;
-  my @arg_indexes = (0 .. $#{ $call_info->{arg_indexes} }); # Convenience
+  my @arg_idx_idx = all_idx_idx($call_info) or return;
 
   # Flag uses of CMAKE_INSTALL_PREFIX.
   List::MoreUtils::any {
     arg_at($call_info, $_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
-  @arg_indexes and flag_recommended($call_info, <<"EOF");
+  @arg_idx_idx and flag_recommended($call_info, <<"EOF");
 avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
 EOF
 
@@ -160,13 +159,13 @@ EOF
   my $found_CMP = List::Util::first {
     interpolated(arg_at($call_info, $_)) eq 'CMAKE_MODULE_PATH';
   }
-  (0 .. $#{ $call_info->{arg_indexes} });
+  @arg_idx_idx;
 
   if (defined $found_CMP) {
     if (List::MoreUtils::any {
           arg_at($call_info, $_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
         }
-        @arg_indexes[$found_CMP .. $_LAST_ELEM_IDX]
+        @arg_idx_idx[$found_CMP .. $_LAST_ELEM_IDX]
       ) {
       flag_required($call_info, <<"EOF");
 declare exportable CMake module directories with cet_cmake_module_directories()
@@ -187,12 +186,12 @@ EOF
     } else {
         0;
       }
-  } @arg_indexes and tag_changed($call_info, <<'EOF');
+  } @arg_idx_idx and tag_changed($call_info, <<'EOF');
 ${product}/+${version}/* -> ""
 EOF
 
   # Migrate old UPS-style variables.
-  foreach my $arg_idx (@arg_indexes) {
+  foreach my $arg_idx (@arg_idx_idx) {
     my $flagged;
     my @separated = arg_at($call_info, $arg_idx) or next;
     my $argref    = \$separated[(scalar @separated > 1) ? 1 : 0];
@@ -215,7 +214,7 @@ EOF
         }
       } ## end if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx)
     } ## end foreach my $var (keys %{$_UPS_var_translation_table...})
-  } ## end foreach my $arg_idx (@arg_indexes)
+  } ## end foreach my $arg_idx (@arg_idx_idx)
   return;
 } ## end sub arg_handler
 
@@ -779,7 +778,7 @@ sub subdirs {
   my $mode               = q();
   my @preordered_subdirs = ();
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-arg: foreach my $arg_idx (0 .. $#{ $call_info->{arg_indexes} }) {
+arg: foreach my $arg_idx (all_idx_idx($call_info)) {
     my $arg = arg_at($call_info, $arg_idx);
     given (interpolated($arg)) {
       when ('ups') { # Drop.
@@ -807,7 +806,7 @@ EOF
     } else {
       push @{$call_infos}, $new_call;
     }
-  } ## end arg: foreach my $arg_idx (0 .. $#...)
+  } ## end arg: foreach my $arg_idx (all_idx_idx...)
 
   if (scalar @preordered_subdirs) {
     unshift @{$call_infos}, @preordered_subdirs;
