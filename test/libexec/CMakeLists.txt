@@ -9,17 +9,17 @@ set(PERL_TEST_SCRIPTS
 
 set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake/Handlers.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/ProductDeps.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/Tagging.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/Util.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/ProductDeps.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/Setup.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/LintWarn.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/VariableSaver.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/ProductDeps.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/Setup.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/Util.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake/Tagging.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake/Handlers.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/set_dev_products
   ${PROJECT_SOURCE_DIR}/tools/migrate
   ${PERL_TEST_SCRIPTS}
