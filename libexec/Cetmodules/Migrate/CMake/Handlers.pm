@@ -58,7 +58,7 @@ my @_CMAKE_SCRIPTING_COMMAND_HANDLERS = qw(
   -get_filename_component
   -get_property
   -if
-  -include
+  include
   -include_guard
   -list
   macro
@@ -339,7 +339,7 @@ EOF
 sub add_executable {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   flag_recommended($call_info, <<"EOF");
-use cet_make_exec() for compactness and flexibility
+use cet_make_exec() for transitivity
 EOF
   return;
 } ## end sub add_executable
@@ -347,8 +347,8 @@ EOF
 
 sub add_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  flag_recommended($call_info, <<"EOF");
-use cet_make_library() or cet_build_plugin() for compactness and flexibility
+  flag_required($call_info, <<"EOF");
+use cet_make_library() or cet_build_plugin() for automatic transitivity
 EOF
   return;
 } ## end sub add_library
@@ -401,7 +401,7 @@ sub arg_handler {
   List::MoreUtils::any {
     arg_at($call_info, $_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
-  @arg_idx_idx and flag_recommended($call_info, <<"EOF");
+  @arg_idx_idx and flag_required($call_info, <<"EOF");
 avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
 EOF
 
@@ -418,7 +418,7 @@ EOF
         @arg_idx_idx[$found_CMP .. $_LAST_ELEM_IDX]
       ) {
       flag_required($call_info, <<"EOF");
-declare exportable CMake module directories with cet_cmake_module_directories()
+declare CMake private and exportable module dirs with cet_cmake_module_directories()
 EOF
     } else {
       flag_recommended($call_info, <<"EOF");
@@ -517,8 +517,8 @@ sub cet_cmake_config {
 
 sub cet_find_library {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
-  flag_recommended($call_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake
+  flag_required($call_info, <<'EOF');
+use find_package() with custom Find<pkg>.cmake for Spack compatibility
 EOF
   return;
 } ## end sub cet_find_library
@@ -557,7 +557,7 @@ sub cet_remove_compiler_flags {
 sub cet_report_compiler_flags {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   scalar @{ $call_info->{arg_indexes} }
-    or flag_recommended($call_info, "report on VERBOSE only");
+    or flag_recommended($call_info,"add args: REPORT_THRESHOLD VERBOSE");
   return;
 } ## end sub cet_report_compiler_flags
 
@@ -691,11 +691,11 @@ sub find_library {
       all_idx_idx($call_info)
     ) {
     flag_recommended($call_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake or cet_find_library() with ENV <x> instead of $ENV{<x>}
+use find_package() with custom Find<pkg>.cmake or cet_find_library() with ENV <x> for transitivity, relocatability
 EOF
   } else {
     flag_recommended($call_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake
+use find_package() with custom Find<pkg>.cmake for transitivity, relocatability
 EOF
   } ## end else [ if (has_keyword($call_info...))]
   return;
@@ -866,6 +866,17 @@ sub find_ups_root {
   goto &find_ups_product; # Delegate.
 }
 
+sub include {
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  given (interpolated(arg_at($call_info, 0))) {
+    when ('CetParseArgs') {
+      report_removed($options->{cmakelists_short} // $cmakelists,
+                     " (obsolete)", pop @{$call_infos});
+    }
+    default { } # NOP.
+  }
+  return;
+}
 
 sub include_directories {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
@@ -1214,7 +1225,7 @@ EOF
 sub _flag_remove_UPS_vars {
   my ($call_info) = @_;
   return flag_required($call_info, <<"EOF");
-remove UPS variables for Spack compatibility
+remove/replace UPS variables for Spack compatibility
 EOF
 } ## end sub _flag_remove_UPS_vars
 
@@ -1288,7 +1299,7 @@ EOF
 sub _set_CMAKE_INSTALL_PREFIX { ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   flag_required($call_info, <<"EOF");
-avoid setting CMAKE_INSTALL_PREFIX in CMake code
+REMOVE: avoid setting CMAKE_INSTALL_PREFIX in CMake code
 EOF
   return;
 } ## end sub _set_CMAKE_INSTALL_PREFIX

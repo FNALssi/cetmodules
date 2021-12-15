@@ -836,7 +836,7 @@ EOF
   $call_info->{post}     = $line;
   chomp($line);
   debug(sprintf(<<"EOF", $call_info->{name}));
-read CALL \%s() POSTAMBLE "$line" from $cmakelists:$chunk_start_line:$current_linepos
+read COMMAND \%s() POSTAMBLE "$line" from $cmakelists:$chunk_start_line:$current_linepos
 EOF
   return $line_no;
 } ## end sub _complete_call
@@ -1171,7 +1171,7 @@ sub _process_cml_lines {
                     chunks          => [],
                     arg_indexes     => [] };
     debug(sprintf(<<"EOF", $call_info->{name}));
-reading CALL %s() at $cmakelists:$call_info->{start_line}:$call_info->{call_start_char}",
+reading COMMAND %s() at $cmakelists:$call_info->{start_line}:$call_info->{call_start_char}",
 EOF
     $line_no =
       _complete_call($call_info, $cml_in, $cmakelists, $line, $line_no,
@@ -1182,7 +1182,7 @@ EOF
         or scalar @{ $call_info->{comment_indexes} // [] }
         and exists $cml_data->{comment_handler}) {
       debug(sprintf(<<"EOF", $call_info->{name}));
-invoking registered comment handler for end-of-line comments for CALL \%s()
+invoking registered comment handler for end-of-line comments for COMMAND \%s()
 EOF
       &{ $cml_data->{comment_handler} }($call_info, $cmakelists, $options);
     } ## end if ($call_info->{post}...)
@@ -1191,14 +1191,14 @@ EOF
     # Now see if someone is interested in this call.
     if (my $func = $cml_data->{arg_handler}) {
       debug(<<"EOF");
-invoking generic argument handler for CALL $call_info->{name}()
+invoking generic argument handler for COMMAND $call_info->{name}()
 EOF
       &{$func}($call_info, $cmakelists, $options);
     } ## end if (my $func = $cml_data...)
 
     if (my $func = $cml_data->{callbacks}->{ $call_info->{name} }) {
       debug(<<"EOF");
-invoking registered callback for CALL $call_info->{name}
+invoking registered callback for COMMAND $call_info->{name}
 EOF
       my $tmp_result =
         &{$func}($call_infos, $call_info, $cmakelists, $options);
