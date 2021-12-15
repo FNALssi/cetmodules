@@ -742,13 +742,6 @@ sub single_value_for {
 ########################################################################
 # Private functions
 ########################################################################
-sub _index_for_arg_at {
-  my ($call_info, $idx_idx) = @_;
-  my $result;
-  $result = $call_info->{arg_indexes}->[$idx_idx // return $result];
-  return $result;
-} ## end sub _index_for_arg_at
-
 # Private state.
 my $_seen_unquoted_open_parens = 0;
 ##
@@ -1060,6 +1053,14 @@ m&\A(?P<q>(?|(?P<qs>["])(?P<qmarker>)|(?P<qs>[[])(?P<qmarker>=*)[[]))\z&msx
     and $result = {%LAST_PAREN_MATCH};
   return $result;
 } ## end sub _has_open_quote
+
+
+sub _index_for_arg_at {
+  my ($call_info, $idx_idx) = @_;
+  my $result;
+  $result = $call_info->{arg_indexes}->[$idx_idx // return $result];
+  return $result;
+} ## end sub _index_for_arg_at
 
 
 sub _prepare_cml_io {
