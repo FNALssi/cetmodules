@@ -1181,11 +1181,12 @@ EOF
 "unable to obtain current list of accepted keywords to find_package() from CMake, \"$OS_ERROR\""
         );
 
-      while (<$kw_pipe>) {
-        chomp;
-        my @kw = split;
+      while (my $line = <$kw_pipe>) {
+        chomp $line;
+        my @kw = split qq( ), $line;
         @kw and @{$kw_in}{@kw} = (1) x scalar @kw;
-      } ## end while (<$kw_pipe>)
+      } ## end while (my $line = <$kw_pipe>)
+      $kw_pipe->close();
       @_cmake_fp_kw = sort keys %{$kw_in};
     } ## end if (not defined @_cmake_fp_kw)
     @{$result}{@_cmake_fp_kw} = (1) x scalar @_cmake_fp_kw;
