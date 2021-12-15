@@ -848,34 +848,6 @@ EOF
   return $line_no;
 } ## end sub _complete_call
 
-
-sub _dquote_postprocess {
-  my ($pm, $lref) = @_;
-  $pm->{q1} eq q(") or return;
-  $pm->{quoted} eq q() and return 1; # Reprocess.
-                                     # If we have embedded, unescaped semicolons in a double-quoted
-                                     # string, we must treat the string as if it were multiple
-                                     # space-separated double-quoted strings.
-  my @splitcheck = ();
-
-  # Can't use split here because we need the semicolons to be not
-  # escaped in order to split on them.
-  while ($pm->{quoted} =~ m&$_not_escape;+&msxp) {
-    push @splitcheck, "${^PREMATCH}$LAST_PAREN_MATCH{not_escape}";
-    $pm->{quoted} = "${^POSTMATCH}";
-  }
-
-  if (scalar @splitcheck) {
-
-    # Quote each part, then prepend to $line and send it back for
-    # reprocessing.
-    ${$lref} = sprintf("$pm->{q1}%s$pm->{q2}${$lref}",
-        join("$pm->{q2} $pm->{q1}", @splitcheck, $pm->{quoted}));
-    return 1; # Reprocess.
-  } ## end if (scalar @splitcheck)
-  return;
-} ## end sub _dquote_postprocess
-
 # Look for pre-argument whitespace, an unquoted argument,
 # complete quoted argument ("..." or [={n}[...]={n}]), or an
 # end-of-line comment.
@@ -913,8 +885,6 @@ sub _extract_args_from_string {
     my $pm = {%LAST_PAREN_MATCH}; # Save in case it gets clobbered.
 
     if (defined $pm->{quoted}) {
-      _dquote_postprocess($pm, \$line) and next;
-
       if ($expect_whitespace) {
 
         # Missing whitespace between quoted / unquoted strings: insert
