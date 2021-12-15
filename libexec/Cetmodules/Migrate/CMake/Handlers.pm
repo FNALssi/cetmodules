@@ -534,8 +534,19 @@ EOF
 
 
 sub cet_parse_args {
-  goto &_handler_placeholder; # Delegate to placeholder.
-}
+  my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
+  replace_call_with($call_info, 'cmake_parse_arguments');
+  my $flags = arg_at($call_info, 2);
+  insert_args_at($call_info, 1, $flags);
+  remove_args_at($call_info, 3); ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
+  tag_changed($call_info, <<"EOF");
+cet_parse_args(<prefix> <args> <opts> ...) -> cmake_parse_arguments(<prefix> <flags> <single-value-opts> <opts> ...)
+EOF
+  flag_recommended($call_info, <<"EOF");
+separate <opts> into <single-value-opts> <opts>
+EOF
+  return;
+} ## end sub cet_parse_args
 
 
 sub cet_remove_compiler_flags {
