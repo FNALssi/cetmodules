@@ -1158,7 +1158,7 @@ sub _process_cml_lines {
       $line =~ s&\A # anchor to string start
                (?P<pre>(?P<pre_call_ws>\s*) # save whitespace
                  (?P<command>(?i:$cml_data->{callback_regex})) # Interesting function calls
-                 [(] # function argument start (*no whitespace before*)
+                 \s*[(] # function argument start
                )&&msx # swallow
     ) {
     # We've found the beginning of an interesting call.
