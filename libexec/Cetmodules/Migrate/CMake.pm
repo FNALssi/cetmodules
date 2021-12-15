@@ -30,7 +30,7 @@ our (@EXPORT_OK, %EXPORT_TAGS);
 
 Readonly::Array my @CMAKE_FILE_TOOLS =>
   qw(find_cmake fix_cmake write_top_CML);
-Readonly::Array my @HANDLER_TOOLS => qw(generate_call_handlers);
+Readonly::Array my @HANDLER_TOOLS => qw(generate_cmd_handlers);
 @EXPORT_OK = (@CMAKE_FILE_TOOLS, @HANDLER_TOOLS);
 %EXPORT_TAGS = (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS,
                 HANDLER_TOOLS    => \@HANDLER_TOOLS);
@@ -78,29 +78,30 @@ sub fix_cmake_one {
 } ## end sub fix_cmake_one
 
 
-sub generate_call_handlers {
-  my ($pi, @call_handlers) = @_;
+sub generate_cmd_handlers {
+  my ($pi, @cmd_handlers) = @_;
   return {
       map {
         my $func_name = "Cetmodules::Migrate::CMake::Handlers\::$_";
-        "${_}_callback" => sub {
-          my ($call_infos, $call_info, $cmakelists, $options) = @_;
-          not ignored($call_info) or return; # NOP
+        "${_}_cmd" => sub {
+          my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+          not ignored($cmd_info) or return; # NOP
           local $_; ## no critic qw(RequireInitializationForLocalVars)
-          my $orig_call = reconstitute_code(@{ $call_infos // [] });
+          my $orig_cmd = reconstitute_code(@{ $cmd_infos // [] });
 
           # Save for diagnostics in case they get changed:
-          my $saved_info = { name       => $call_info->{name},
-                             start_line => $call_info->{start_line} };
+          my $saved_info = { name       => $cmd_info->{name},
+                             start_line => $cmd_info->{start_line} };
 
           # Invoke the real function.
           my $func_ref = \&{$func_name};
-          untag_all($call_info);
+          untag_all($cmd_info);
           debug(<<"EOF");
-invoking wrapped migration handler $func_name\E() for CMake call $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}
+invoking wrapped migration handler $func_name\E() for CMake command $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}
 EOF
           eval {
-            &{$func_ref}($pi, $call_infos, $call_info, $cmakelists, $options);
+            &{$func_ref}
+            ($pi, $cmd_infos, $cmd_info, $cmakelists, $options);
           } or 1;
 
           if (my $err = $EVAL_ERROR) {
@@ -108,17 +109,17 @@ EOF
             $err =~ s&^\s*&&msxg;
             $err =~ s&^&   &msxg;
             error_exit(<<"EOF");
-error calling handler $func_name\E() for CMake call $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}:
+error calling handler $func_name\E() for CMake command $saved_info->{name}\E() at $cmakelists:$saved_info->{start_line}:
 
 $err
 EOF
           } ## end if (my $err = $EVAL_ERROR)
-          my $new_call = reconstitute_code(@{ $call_infos // [] });
+          my $new_cmd = reconstitute_code(@{ $cmd_infos // [] });
 
-          if ($orig_call ne ($new_call // q())) {
+          if ($orig_cmd ne ($new_cmd // q())) {
             my $result = {};
-            @{$result}{qw(orig_call new_call)} =
-            ($orig_call, $new_call // q());
+            @{$result}{qw(orig_cmd new_cmd)} =
+            ($orig_cmd, $new_cmd // q());
             my $file_label = $options->{cmakelists_short} // $cmakelists;
             my ($div, $filler) =
               (length($file_label) > ($_LINE_LENGTH - 2))
@@ -134,15 +135,15 @@ $div$file_label$div$filler%s
 ++++++++++++++++++++++++++++++++++++++new+++++++++++++++++++++++++++++++++++++++
 
 EOF
-            , $call_info->{start_line},
+            , $cmd_info->{start_line},
             map { join("\n     ", split m&\n&msx); }
-            ($orig_call, ($new_call) ? "\n$new_call" : q());
+            ($orig_cmd, ($new_cmd) ? "\n$new_cmd" : q());
             return $result;
-          } ## end if ($orig_call ne ($new_call...))
+          } ## end if ($orig_cmd ne ($new_cmd...))
           return;
         };
-      } @call_handlers };
-} ## end sub generate_call_handlers
+      } @cmd_handlers };
+} ## end sub generate_cmd_handlers
 
 
 sub write_top_CML {
@@ -172,7 +173,7 @@ EOF
     or error_exit("unable to open $dest_full for write");
   scalar keys %handlers
     or %handlers = (
-      %{generate_call_handlers($pi,
+      %{generate_cmd_handlers($pi,
           @Cetmodules::Migrate::CMake::Handlers::COMMAND_HANDLERS)
        },
       arg_handler     => \&Cetmodules::Migrate::CMake::Handlers::arg_handler,

@@ -255,9 +255,9 @@ sub get_cmake_project_info {
                       process_cmakelists(
                         $cmakelists,
                         { %options,
-                          project_callback => \&_get_info_from_project_call,
-                          set_callback     => \&_get_info_from_set_calls,
-                          cet_cmake_env_callback => \&_set_seen_cet_cmake_env
+                          project_cmd       => \&_get_info_from_project_cmd,
+                          set_cmd           => \&_get_info_from_set_cmds,
+                          cet_cmake_env_cmd => \&_set_seen_cet_cmake_env
                         }) } };
   return $proj_info;
 } ## end sub get_cmake_project_info
@@ -827,40 +827,40 @@ sub _fq_path_for {
 } ## end sub _fq_path_for
 
 
-sub _get_info_from_project_call {
-  my ($call_infos, $call_info, $cmakelists, $options) = @_;
+sub _get_info_from_project_cmd {
+  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
   $_seen_cet_cmake_env and warning(<<"EOF")
-Ignoring project() call at line $call_info->{start_line} following previous call to cet_cmake_env() at line $_seen_cet_cmake_env
+Ignoring project() at line $cmd_info->{start_line} following previous cet_cmake_env() at line $_seen_cet_cmake_env
 EOF
     and return;
   $_seen_project and info(<<"EOF")
-Ignoring superfluous project() call at line $call_info->{start_line} following previous call on line $_seen_project
+Ignoring superfluous project() at line $cmd_info->{start_line}: previously seen at line $_seen_project
 EOF
     and return;
-  $_seen_project = $call_info->{start_line};
-  my ($project_name, $is_literal) = interpolated($call_info, 0);
+  $_seen_project = $cmd_info->{start_line};
+  my ($project_name, $is_literal) = interpolated($cmd_info, 0);
   $project_name or error_exit(<<"EOF");
-unable to find name in project() call at $cmakelists:$call_info->{start_line}
+unable to find name in project() at $cmakelists:$cmd_info->{start_line}
 EOF
   $is_literal or do {
       warning(<<"EOF");
-unable to interpret $project_name as a literal CMake project name in $call_info->{name}() at $cmakelists:$call_info->{chunk_locations}->{$call_info->{arg_indexes}->[0]}
+unable to interpret $project_name as a literal CMake project name in $cmd_info->{name}() at $cmakelists:$cmd_info->{chunk_locations}->{$cmd_info->{arg_indexes}->[0]}
 EOF
       return;
   };
   my $result = { cmake_project_name => $project_name };
   my $version_idx =
-    find_single_value_for($call_info, 'VERSION', @PROJECT_KEYWORDS)
+    find_single_value_for($cmd_info, 'VERSION', @PROJECT_KEYWORDS)
     // return $result;
 
   # We have a VERSION keyword and value.
   my $version;
-  ($version, $is_literal) = interpolated($call_info, $version_idx);
+  ($version, $is_literal) = interpolated($cmd_info, $version_idx);
   $is_literal or do {
-      my $version_arg_location = arg_location($call_info, $version_idx);
+      my $version_arg_location = arg_location($cmd_info, $version_idx);
       warning(<<"EOF");
 nonliteral version "$version" found at $cmakelists:$version_arg_location
 EOF
@@ -869,21 +869,21 @@ EOF
   @{$result}{qw(cmake_project_version cmake_project_version_info)} =
     ($version, parse_version_string($version));
   return $result;
-} ## end sub _get_info_from_project_call
+} ## end sub _get_info_from_project_cmd
 
 
-sub _get_info_from_set_calls {
-  my ($call_infos, $call_info, $cmakelists, $options) = @_;
+sub _get_info_from_set_cmds {
+  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
   my $wanted_pvar = 'CMAKE_PROJECT_VERSION_STRING';
   my ($found_pvar) =
-    (interpolated($call_info, 0) // return) =~ m&_(\Q$wanted_pvar\E)\z&msx
+    (interpolated($cmd_info, 0) // return) =~ m&_(\Q$wanted_pvar\E)\z&msx
     or return;
   $_seen_cet_cmake_env and do {
       warning(<<"EOF");
-$call_info->{name}() ignored at line $call_info->{start_line} due to previous call to cet_cmake_env() at line $_seen_cet_cmake_env
+$cmd_info->{name}() ignored at line $cmd_info->{start_line} due to previous cet_cmake_env() at line $_seen_cet_cmake_env
 EOF
       return;
   };
@@ -891,12 +891,12 @@ EOF
   my @results = ();
   my $arg_idx = 1;
 
-  while (defined($value = interpolated($call_info, $arg_idx++))
+  while (defined($value = interpolated($cmd_info, $arg_idx++))
       and $value ne 'CACHE') {
     push @results, $value;
   }
   return { $found_pvar => @results };
-} ## end sub _get_info_from_set_calls
+} ## end sub _get_info_from_set_cmds
 
 
 sub _path_var_translation_table {
@@ -909,18 +909,18 @@ sub _path_var_translation_table {
 
 
 sub _set_seen_cet_cmake_env {
-  my ($call_infos, $call_info, $cmakelists, $options) = @_;
-  my $call_line = $call_info->{start_line};
+  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my $cmd_line = $cmd_info->{start_line};
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
   $_seen_project or error_exit(<<"EOF");
-$call_info->{name}() call at line $call_line MUST follow a project() call"
+$cmd_info->{name}() at line $cmd_line MUST follow project()"
 EOF
   $_seen_cet_cmake_env and error_exit(<<"EOF");
-prohibited call to $call_info->{name}() at line $call_line after previous call at line $_seen_cet_cmake_env
+prohibited duplicate $cmd_info->{name}() at line $cmd_line: already seen at line $_seen_cet_cmake_env
 EOF
-  $_seen_cet_cmake_env = $call_line;
+  $_seen_cet_cmake_env = $cmd_line;
   return;
 } ## end sub _set_seen_cet_cmake_env
 

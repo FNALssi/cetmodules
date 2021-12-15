@@ -56,13 +56,13 @@ my $count = 0;
 sub string_tester {
   my ($test_string, $open_hash_refs, $close_hash_refs, @separated_refs) = @_;
   return sub {
-      my ($dummy, $call_info) = @_;
+      my ($dummy, $cmd_info) = @_;
       my $result = {};
-      note("Tests for: ", reconstitute_code($call_info));
+      note("Tests for: ", reconstitute_code($cmd_info));
       my $expected_substrings = scalar @separated_refs;
       ++$count;
       cmp_ok(
-        scalar @{ $call_info->{arg_indexes} },
+        scalar @{ $cmd_info->{arg_indexes} },
         q(==),
         $expected_substrings,
         sprintf(
@@ -84,15 +84,15 @@ sub string_tester {
           );
           plan tests => 3;
           my $open_test =
-          Cetmodules::CMake::_has_open_quote($call_info, $idx_idx);
+          Cetmodules::CMake::_has_open_quote($cmd_info, $idx_idx);
           my $close_test =
-          Cetmodules::CMake::_has_close_quote($call_info, $idx_idx);
-          my $index = _index_for_arg_at($call_info, $idx_idx);
+          Cetmodules::CMake::_has_close_quote($cmd_info, $idx_idx);
+          my $index = _index_for_arg_at($cmd_info, $idx_idx);
           my $joined =
           join(q(),
               (defined $open_test)
-            ? (@{ $call_info->{chunks} }[$index - 1 .. $index + 1])
-            : ($call_info->{chunks}->[$index]));
+            ? (@{ $cmd_info->{chunks} }[$index - 1 .. $index + 1])
+            : ($cmd_info->{chunks}->[$index]));
           $result->{$subtest_count} =
           { open      => compare_or_show($open_test,  $open_ref,  'open'),
             close     => compare_or_show($close_test, $close_ref, 'close'),
@@ -121,7 +121,7 @@ sub test_string {
     or die "unable to open input stream for string $test_string";
   my $cmakelists = [$fh_in, 'TEST_STRING'];
   process_cmakelists($cmakelists,
-      { test_string_callback => string_tester($test_string, @args) });
+      { test_string_cmd => string_tester($test_string, @args) });
   $fh_in->close();
   return;
 } ## end sub test_string
@@ -235,18 +235,18 @@ martin\
 Hinckley-Eckley-"Flugelstucker
 EOF
 test_bad_string("(martin\\",
-qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 1:12\E&msx
+qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 1:12\E&msx
 ); # 21
 test_bad_string(
     '(codswallop ',
-qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 1:22\E&msx
+qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 1:22\E&msx
 ); # 22
 test_bad_string(
     "(codswallop\nbalderdash\n       crikey ",
-qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 3:13\E&msx
+qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 3:13\E&msx
 ); # 23
 test_bad_string("(codswallop\nbalderdash\ncrikey\n",
-qr&^\QFATAL_ERROR: incomplete call to test_string() at TEST_STRING:1:0 runs into EOF at 3:6\E&msx
+qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 3:6\E&msx
 ); # 24
 test_string(' CM "EXCLUDE;DEPENDS" "" ${ARGN}',
     ([(undef, $dqbit, $dqbit, undef)]) x 2,

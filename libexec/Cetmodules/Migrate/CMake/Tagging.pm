@@ -65,7 +65,7 @@ sub report_removed {
   my ($cmakelists, $extra, @args) = @_;
   defined $extra or $extra = q();
   map {
-      info("call removed from $cmakelists:$_->{start_line}$extra:\n",
+      info("command removed from $cmakelists:$_->{start_line}$extra:\n",
         reconstitute_code($_));
   } @args;
   return;
