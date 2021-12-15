@@ -132,7 +132,7 @@ sub arg_at {
   defined $index
     and @result =
     _has_close_quote($call_info, $idx_idx)
-    ? ($call_info->{chunks}->[($index - 1) .. ($index + 1)])
+    ? @{ $call_info->{chunks} }[($index - 1) .. ($index + 1)]
     : ($call_info->{chunks}->[$index]);
   return wantarray ? @result : join(q(), @result);
 } ## end sub arg_at
