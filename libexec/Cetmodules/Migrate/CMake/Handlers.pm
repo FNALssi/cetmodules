@@ -1120,7 +1120,7 @@ sub _call_definition {
   my $name = interpolated($call_info, 0);
   my $type = $call_info->{name};
 
-  if (exists $_cml_state->{current_definition}) {
+  if ($_cml_state->{current_definition}) {
     my $cd_info = $_cml_state->{current_definition};
     error(<<"EOF");
 found nested definition of $type $name at line $call_info->{start_line}:
@@ -1130,7 +1130,7 @@ EOF
     debug("found definition of $type $name at line $call_info->{start_line}");
     $_cml_state->{current_definition} =
       { %{$call_info}, name => $name, type => $type };
-  } ## end else [ if (exists $_cml_state...)]
+  } ## end else [ if ($_cml_state->{current_definition...})]
   return;
 } ## end sub _call_definition
 
@@ -1138,7 +1138,7 @@ EOF
 sub _end_call_definition {
   my ($pi, $call_infos, $call_info, $cmakelists, $options) = @_;
   my ($type) = ($call_info->{name} =~ m&\Aend(.*)\z&msx);
-  my $cd_info = $_cml_state->{current_definition} // undef;
+  my $cd_info = $_cml_state->{current_definition};
 
   if (not defined $cd_info) {
     error(<<"EOF");
@@ -1150,9 +1150,10 @@ found $call_info->{name}() at line $call_info->{start_line} in definition of $cd
 EOF
   } else {
     debug(<<"EOF");
-found $call_info->{name}() at line $call_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $call_info->{start_line}
+found $call_info->{name}() at line $call_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $cd_info->{start_line}
 EOF
   } ## end else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
+  delete $_cml_state->{current_definition};
   return;
 } ## end sub _end_call_definition
 
