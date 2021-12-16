@@ -99,9 +99,10 @@ sub info { ## no critic qw(Bangs::ProhibitVagueNames)
 sub is_ups_version {
   my ($maybe_ups_version) = @_;
   defined $maybe_ups_version
-    and return $maybe_ups_version =~ m&\Av(?:[^[:digit:]].{2,}|[[:digit:]])&msx;
+    and return $maybe_ups_version =~
+    m&\Av(?:[^[:digit:]].{2,}|[[:digit:]])&msx;
   return;
-}
+} ## end sub is_ups_version
 
 
 sub notify {

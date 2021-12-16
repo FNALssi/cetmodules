@@ -11,7 +11,8 @@ use Cetmodules::CMake::CommandInfo qw();
 use Cetmodules::CMake::Util qw(interpolated);
 use Cetmodules::Migrate::CMake::Tagging
   qw(flag_recommended flag_required report_removed tag_added tag_changed);
-use Cetmodules::UPS::Setup qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
+use Cetmodules::UPS::Setup
+  qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
 use Cetmodules::Util
   qw(debug error error_exit info to_cmake_version to_dot_version is_ups_version parse_version_string verbose version_cmp warning);
 use Cwd qw(abs_path chdir getcwd);
@@ -1222,7 +1223,7 @@ EOF
   if ($types->{cet} or $types->{all}) {
     @{$result}{@_cet_fp_kw} = (1) x scalar @_cet_fp_kw;
   }
-  my @result = sort keys %{$result};
+  my @result = sort keys %{$result}; # tmp var due to sort cmd parsing
   return @result;
 } ## end sub _find_package_keywords
 

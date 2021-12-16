@@ -623,8 +623,8 @@ sub _process_pending_comments {
   ));
 
   # Call the comment handler.
-  $cmake_file_data->{comment_handler}->
-    ($pending_comments, $cmake_file, $options);
+  $cmake_file_data->{comment_handler}
+    ->($pending_comments, $cmake_file, $options);
 
   # Output the (possibly-changed) comment lines, if we care.
   my @tmp_lines = reconstitute_code(@{ $pending_comments->{chunks} });

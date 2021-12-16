@@ -621,7 +621,7 @@ sub ups_to_cmake {
   ##################
   # Pathspec-related CMake configuration.
   push @cmake_args,
-    (map { _cmake_project_var_for_pathspec($pi, $_) || (); }
+    (map { _cmake_project_var_for_pathspec($pi, $_) // (); }
       keys %{$PATHSPEC_INFO});
   my @arch_pathspecs   = ();
   my @noarch_pathspecs = ();
@@ -767,11 +767,11 @@ sub _cmake_defs_for_ups_config {
 sub _cmake_project_var_for_pathspec {
   my ($pi, $dirkey) = @_;
   my $pathspec = get_pathspec($pi, $dirkey);
-  $pathspec and $pathspec->{key} or return ();
+  $pathspec and $pathspec->{key} or return;
   my $var_stem = $pathspec->{var_stem} || var_stem_for_dirkey($dirkey);
   $pathspec->{var_stem} = $var_stem;
   my $pv_prefix = "CET_PV_$pi->{project_variable_prefix}";
-  exists $pathspec->{path} or return ("-D${pv_prefix}_${var_stem}=");
+  exists $pathspec->{path} or return "-D${pv_prefix}_${var_stem}=";
   my @result_elements = ();
 
   if (ref $pathspec->{key}) { # PATH-like.
@@ -804,9 +804,10 @@ sub _cmake_project_var_for_pathspec {
     # Single non-elided value.
     push @result_elements, $pathspec->{path};
   } ## end else [ if (ref $pathspec->{key...})]
-  return (scalar @result_elements != 1 or $result_elements[0])
-    ? sprintf("-D${pv_prefix}_${var_stem}=%s", join(q(;), @result_elements))
-    : undef;
+  (scalar @result_elements != 1 or $result_elements[0])
+    and return
+    sprintf("-D${pv_prefix}_${var_stem}=%s", join(q(;), @result_elements));
+  return;
 } ## end sub _cmake_project_var_for_pathspec
 
 

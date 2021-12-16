@@ -62,9 +62,8 @@ EOF
 
 sub all_idx_idx {
   my ($self) = @_;
-  return (defined $self->{arg_indexes})
-    ? (0 .. $#{ $self->{arg_indexes} })
-    : ();
+  defined $self->{arg_indexes} and return (0 .. $#{ $self->{arg_indexes} });
+  return;
 } ## end sub all_idx_idx
 
 # Return a list of all arguments for a given keyword (assumes

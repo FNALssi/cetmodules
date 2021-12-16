@@ -319,7 +319,8 @@ sub get_table_fragment {
     m&\A\s*table_fragment_begin&msx and $reading_frag = 1;
   } ## end while (<$fh>)
   $fh->close();
-  return (scalar @fraglines) ? \@fraglines : undef;
+  (scalar @fraglines) and return \@fraglines;
+  return;
 } ## end sub get_table_fragment
 
 
@@ -365,8 +366,9 @@ sub sort_qual {
 sub var_stem_for_dirkey {
   my $dirkey = shift;
   return
-    uc($PATHSPEC_INFO->{$dirkey}->{project_var}
-      || (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
+    uc(
+      $PATHSPEC_INFO->{$dirkey}->{project_var}
+      or (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
 } ## end sub var_stem_for_dirkey
 
 ########################################################################
