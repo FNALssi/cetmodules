@@ -2,47 +2,31 @@
 package Cetmodules::CMake;
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules::CMake::CommandInfo qw();
+use Cetmodules::Util qw(debug error_exit);
 use Cwd qw(abs_path);
+use Digest::SHA qw(sha256_hex);
 use English qw(-no_match_vars);
 use Exporter qw(import);
 use Fcntl qw(:seek);
-use File::Spec;
-use IO::File;
-use List::MoreUtils qw();
-use List::Util qw();
-use Readonly;
-use Cetmodules::Util;
-use strict;
-use warnings FATAL => qw(
-  Cetmodules
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use File::Spec qw();
+use IO::File qw();
+use Readonly qw();
+use Scalar::Util qw(blessed);
+
+##
+use warnings FATAL => qw(Cetmodules);
 
 our (@EXPORT);
 
 @EXPORT = qw(
   @PROJECT_KEYWORDS
-  add_args_after
-  all_idx_idx
-  all_values_for
-  append_args
-  arg_at
-  arg_location
   can_interpolate
-  find_all_args_for
-  find_args_for
-  find_args_matching
-  find_first_arg_matching
-  find_keyword
-  find_single_value_for
   get_CMakeLists_hash
-  has_keyword
-  insert_args_at
   interpolated
   is_bracket_quoted
   is_comment
@@ -50,282 +34,30 @@ our (@EXPORT);
   is_quoted
   is_unquoted
   is_whitespace
-  keyword_arg_append_position
-  keyword_arg_insert_position
-  normalize_args_for
-  prepend_args
-  process_cmakelists
+  process_cmake_file
   reconstitute_code
-  remove_args_at
-  remove_args_for
-  remove_keyword
-  replace_arg_at
-  replace_cmd_with
-  single_value_for
 );
 
-use Digest::SHA qw(sha256_hex);
-
 ########################################################################
-# Private variables
+# Exported variables
 ########################################################################
-Readonly::Scalar my $_NO_MATCH      => -1;
-Readonly::Scalar my $_NO_LIMIT      => -1;
-Readonly::Scalar my $_LAST_CHAR_IDX => -1;
-Readonly::Scalar my $_LAST_ELEM_IDX => -1;
-my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
-
 use vars qw(@PROJECT_KEYWORDS);
 
 @PROJECT_KEYWORDS = qw(DESCRIPTION HOMEPAGE_URL VERSION LANGUAGES);
 
 ########################################################################
+# Private variables
+########################################################################
+my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
+Readonly::Scalar my $_LAST_CHAR_IDX => -1;
+
+########################################################################
 # Exported functions
 ########################################################################
-sub add_args_after {
-  my ($cmd_info, $idx_idx, @to_add) = @_;
-  my $n_args = scalar @{ $cmd_info->{arg_indexes} };
-
-  if (defined $idx_idx) {
-    $idx_idx < $n_args or error_exit(<<"EOF");
-arg_index $idx_idx out of bounds ($n_args arguments found)
-EOF
-    ++$idx_idx;
-  } else {
-    $idx_idx = 0;
-  }
-  return insert_args_at($cmd_info, $idx_idx, @to_add);
-} ## end sub add_args_after
-
-
-sub all_idx_idx {
-  my ($cmd_info) = @_;
-  return (defined $cmd_info->{arg_indexes})
-    ? (0 .. $#{ $cmd_info->{arg_indexes} })
-    : ();
-} ## end sub all_idx_idx
-
-# Return a list of all arguments for a given keyword (assumes
-# multi-value keyword).
-sub all_values_for {
-  my ($cmd_info, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my $result;
-  $result = map { arg_at($cmd_info, $_) }
-    (find_all_args_for($cmd_info, @args) // return $result);
-  return $result;
-} ## end sub all_values_for
-
-
-sub append_args {
-  my ($cmd_info, @to_add) = @_;
-  return add_args_after($cmd_info, $#{ $cmd_info->{arg_indexes} },
-      @to_add);
-} ## end sub append_args
-
-# Return specified argument. In list context, returns argument and any
-# quotes as separate list elements, otherwise returns the
-# possibly-quoted argument as a single string.
-sub arg_at {
-  my ($cmd_info, $idx_idx) = @_;
-  my @result;
-  my $index = _index_for_arg_at($cmd_info, $idx_idx);
-  defined $index
-    and @result =
-    _has_close_quote($cmd_info, $idx_idx)
-    ? @{ $cmd_info->{chunks} }[($index - 1) .. ($index + 1)]
-    : ($cmd_info->{chunks}->[$index]);
-  return wantarray ? @result : join(q(), @result);
-} ## end sub arg_at
-
-
-sub arg_location {
-  my ($cmd_info, $idx_idx) = @_;
-  my $result;
-  $result = $cmd_info->{chunk_locations}
-    ->{ _index_for_arg_at($cmd_info, $idx_idx) // return $result };
-  return $result;
-} ## end sub arg_location
-
-# Check whether we can make this a truly literal CMake string, or
-# whether there are CMake- or Make-style variable references or
-# generator expressions.
-sub can_interpolate {
-  my ($candidate_string) = @_;
-  return not(
-      $candidate_string =~
-m&$_not_escape(?:)(?<![\$])[\$] # an unescaped '$' not immediately preceded by an unescaped '$' followed by either:
-      (?:<| # '>' (generator expression), or...
-        (?:(?P<paren>[(])|(?P<brace>[{])) # a Make- ('(') or CMake-style ('{')
-        [A-Za-z0-9_]+ # variable reference
-        (?(<paren>)[)]|(?(<brace>)[}]))) # with matching closer
-     &msx);
-} ## end sub can_interpolate
-
-# Return a list of arg indexes for all arguments (including comments) to
-# given keyword (assumes multi-value keyword).
-sub find_all_args_for {
-  my ($cmd_info, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my $found_args = find_args_for($cmd_info, @args);
-  return (defined $found_args)
-    ? map { @{ $found_args->{$_} }; } sort keys %{$found_args}
-    : undef;
-} ## end sub find_all_args_for
-
-# Return arg indexes of all arguments to given keyword, grouped by
-# keyword location.
-sub find_args_for {
-  my ($cmd_info, $wanted_keyword, @all_keywords) = @_;
-  $wanted_keyword or return;
-  my $offset =
-    (scalar @all_keywords and $all_keywords[0] =~ m&\A[[:digit:]]+\z&msx)
-    ? shift @all_keywords
-    : 0;
-  scalar @all_keywords or @all_keywords = ($wanted_keyword);
-  my $other_kw_re = sprintf('\A%s\z', join(q(|), @all_keywords));
-  my $results;
-
-  while (defined(
-      my $kw_idx = find_keyword($cmd_info, $wanted_keyword, $offset)
-    )) {
-    $results->{$kw_idx} = [];
-    $kw_idx < $#{ $cmd_info->{arg_indexes} } or last;
-    my $end =
-      find_first_arg_matching($cmd_info, qr&$other_kw_re&msx,
-        ($offset = $kw_idx + 1)) // scalar @{ $cmd_info->{arg_indexes} };
-    $end == $offset and next;
-    $results->{$kw_idx} = [$offset .. $end - 1];
-  } ## end while (defined(my $kw_idx...))
-  return $results;
-} ## end sub find_args_for
-
-# Return all arg_indexes matching supplied regex.
-sub find_args_matching {
-  my ($cmd_info, $re, $offset) = @_;
-  return
-    grep { interpolated($cmd_info, $_) =~ $re; }
-    (($offset // 0) .. $#{ $cmd_info->{arg_indexes} });
-} ## end sub find_args_matching
-
-# Find arg_index for first argument matching regex.
-sub find_first_arg_matching {
-  my ($cmd_info, $re, $offset) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  return
-    List::MoreUtils::first_value { interpolated($cmd_info, $_) =~ $re; }
-  (($offset // 0) .. $#{ $cmd_info->{arg_indexes} });
-} ## end sub find_first_arg_matching
-
-# Return arg_index of first instance of keyword.
-sub find_keyword {
-  my ($cmd_info, $kw, $offset) = @_;
-  return find_first_arg_matching($cmd_info, qr&\A\Q$kw\E\z&msx, $offset);
-}
-
-# Return the arg_index of the overriding value single-value keyword.
-sub find_single_value_for {
-  my ($cmd_info, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my $found_args = find_args_for($cmd_info, @args);
-  my $value;
-
-  if (defined $found_args) {
-    foreach my $kw_idx (reverse sort keys %{$found_args}) {
-      $value = $found_args->{$kw_idx}->[0] and last;
-    }
-  } ## end if (defined $found_args)
-  return $value;
-} ## end sub find_single_value_for
-
-
 sub get_CMakeLists_hash {
   return sha256_hex(
       abs_path(File::Spec->catfile(shift // q(), 'CMakeLists.txt')));
 }
-
-# Check for the presence of a given keyword
-sub has_keyword {
-  my @args = @_;
-  return defined find_keyword(@args);
-}
-
-
-sub insert_args_at {
-  my ($cmd_info, $idx_idx, @to_add) = @_;
-  my ($point_index_start, $line_no_init);
-  my $n_arg_indexes = scalar @{ $cmd_info->{arg_indexes} };
-  my ($need_preceding_whitespace, $need_following_whitespace);
-
-  if (($idx_idx // $n_arg_indexes) < $n_arg_indexes) {
-    $point_index_start = $cmd_info->{arg_indexes}->[$idx_idx];
-    $line_no_init = $cmd_info->{chunk_locations}->{$point_index_start};
-    _has_open_quote($cmd_info, $idx_idx) and --$point_index_start;
-    $need_following_whitespace = 1;
-  } else { # appending
-    $idx_idx           = $n_arg_indexes;
-    $point_index_start = scalar @{ $cmd_info->{chunks} };
-    $line_no_init      = $cmd_info->{end_line};
-    $need_following_whitespace =
-      (scalar @{ $cmd_info->{chunks} }
-        and is_whitespace($cmd_info->{chunks}->[$_LAST_ELEM_IDX]));
-    $need_preceding_whitespace =
-      ($n_arg_indexes
-        and not is_whitespace($cmd_info->{chunks}->[$_LAST_ELEM_IDX]));
-  } ## end else [ if (($idx_idx // $n_arg_indexes...))]
-  my (@new_chunks, @new_indexes, @new_locations);
-  $need_preceding_whitespace and push @new_chunks, q( );
-  my $n_newlines_tot = 0;
-  my $point_index    = $point_index_start;
-
-  foreach my $item (@to_add) {
-    push @new_locations, $line_no_init + $n_newlines_tot;
-    my $ws;
-    ($item, $ws) = ($item =~ m&\A(.*?)(\s*)\z&msx);
-
-    if (is_comment($item)) {
-      push @new_chunks, $item, ($ws =~ m&\n\z&msx) ? $ws : "$ws\n";
-      ++$n_newlines_tot;
-      $point_index += 2;
-    } else {
-      my @item_chunks = _separate_quotes($item);
-      push @new_chunks,  @item_chunks, ($ws eq q()) ? q( ) : $ws;
-      push @new_indexes, $point_index + ((@item_chunks > 1) ? 1 : 0);
-      $point_index += scalar @item_chunks + 1;
-      my $n_newlines =()= $item =~ m&\n&msgx;
-      $n_newlines_tot += $n_newlines;
-    } ## end else [ if (is_comment($item))]
-  } ## end foreach my $item (@to_add)
-
-  if (not(
-      $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace)) {
-    pop @new_chunks;
-    --$point_index;
-  } ## end if (not($new_chunks[$_LAST_ELEM_IDX...]))
-  my $n_new_chunks = scalar @new_chunks;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-
-  for (reverse($idx_idx .. $#{ $cmd_info->{arg_indexes} })) {
-    my $index = $cmd_info->{arg_indexes}->[$_];
-    $cmd_info->{arg_indexes}->[$_] += $n_new_chunks;
-    $cmd_info->{chunk_locations}->{ $index + $n_new_chunks } =
-      $cmd_info->{chunk_locations}->{$index} + $n_newlines_tot;
-  } ## end for (reverse($idx_idx .....))
-  $cmd_info->{end_line} += $n_newlines_tot;
-
-  # Splice in the new arg_index entries.
-  splice(@{ $cmd_info->{arg_indexes} }, $idx_idx, 0, @new_indexes);
-
-  # Fill in the locations of the new arguments.
-  @{ $cmd_info->{chunk_locations} }{@new_indexes} = @new_locations;
-
-  # Add the arguments (and any whitespace, etc.) to the chunks list.
-  splice(@{ $cmd_info->{chunks} }, $point_index_start, 0, @new_chunks);
-
-  # Recalculate comment indexes.
-  _recalculate_comment_indexes($cmd_info);
-  return $idx_idx;
-} ## end sub insert_args_at
 
 ########################################################################
 # Return a *partial* interpolation of the CMake function/macro
@@ -356,83 +88,36 @@ sub insert_args_at {
 # (undef).
 ########################################################################
 sub interpolated {
-  my @args = @_;
-  my (@separated);
-
-  if (((ref $args[0]) // q()) eq 'HASH') {
-    @separated = arg_at(@args);
-  } elsif (scalar @args > 1) {
-    @separated = @args;
-  } else {
-    @separated = _separate_quotes(@args);
-  }
-  my ($interpolated_string, $is_literal);
-
-  if (defined @separated) {
-    if (scalar @separated > 1) {
-      $interpolated_string = $separated[1];
-      given ($separated[0]) {
-        when (q(")) { # double-quoted
-          $interpolated_string =~ s&$_not_escape\\\n&\k<not_escape>&msgx; # line continuation
-        }
-        default {                                                         # bracket-quoted
-          $interpolated_string =~ m&\A(?>\n?)(.*)\z&msx;
-          return ($interpolated_string, 1)
-        }
-      } ## end given
-    } else {
-      $interpolated_string = $separated[0] || q();
-    }
-
-    if (can_interpolate($interpolated_string)) {
-      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $interpolated_string =~ s&$_not_escape\\t&\k<not_escape>\t&msgx; # tab
-      $interpolated_string =~ s&$_not_escape\\r&\k<not_escape>\r&msgx; # carriage return
-      $interpolated_string =~ s&$_not_escape\\n&\k<not_escape>\n&msgx; # newline
-      $interpolated_string =~                                          # "identity" escape sequences: \X -> X
-s&$_not_escape\\(?P<identity>[^A-Za-z0-9_\$\\}{<])&\k<not_escape>\k<identity>&msgx;
-      $interpolated_string =~                                          # remaining identity escape sequences
-s&$_not_escape\\(?P<identity>[\$\\}{<])&\k<not_escape>\k<identity>&msgx;
-      $is_literal = 1;
-    } ## end if (can_interpolate($interpolated_string...))
-  } ## end if (defined @separated)
-  return
-    wantarray ? ($interpolated_string, $is_literal) : $interpolated_string;
+  my ($first_arg, @rest) = @_;
+  return (blessed($first_arg)
+      and $first_arg->isa('Cetmodules::CMake::CommandInfo'))
+    ? $first_arg->interpolate(@rest)
+    : Cetmodules::CMake::Util::interpolated($first_arg, @rest);
 } ## end sub interpolated
 
 
 sub is_bracket_quoted {
-  my $quote = is_quoted(@_) // q();
-  return (not $quote or $quote eq q(")) ? undef : $quote;
-}
-
-
-sub is_comment {
-  return join(q(), @_) =~ m&\A\s*[#]&msx;
-}
+  my @args  = @_;
+  my $quote = is_quoted(@args) // q();
+  $quote and $quote ne q(") and return $quote;
+  return;
+} ## end sub is_bracket_quoted
 
 
 sub is_double_quoted {
-  my $quote = is_quoted(@_) // q();
-  return ($quote eq q(")) ? $quote : undef;
-}
+  my @args  = @_;
+  my $quote = is_quoted(@args) // q();
+  $quote eq q(") and return $quote;
+  return;
+} ## end sub is_double_quoted
 
 
 sub is_quoted {
-  my @args = @_;
-  my $result;
-
-  if (((ref $args[0]) // q()) eq 'HASH') { # ($cmd_info, $idx_idx)
-    my $search_result = _has_close_quote(@args) // return $result;
-    $result =
-      ($search_result->{qs} eq q(]))
-      ? "[$search_result->{qmarker}\E["
-      : $search_result->{q};
-  } else {
-    my @separated = _separate_quotes(@args);
-    scalar @separated > 1 and $result = $separated[0];
-  }
-  return $result;
+  my ($first_arg, @rest) = @_;
+  return (blessed($first_arg)
+      and $first_arg->isa('Cetmodules::CMake::CommandInfo'))
+    ? $first_arg->is_quoted(@rest)
+    : Cetmodules::CMake::Util::is_quoted($first_arg, @rest);
 } ## end sub is_quoted
 
 
@@ -440,78 +125,12 @@ sub is_unquoted {
   return is_quoted(@_) ? 0 : 1;
 }
 
-
-sub is_whitespace {
-  return join(q(), @_) =~ m&\A\s*\z&msx;
-}
-
-
-sub keyword_arg_append_position {
-  my ($cmd_info, $keyword, @all_keywords) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my $found_args = find_args_for($cmd_info, $keyword, @all_keywords);
-
-  if (defined $found_args) {
-    my $kw_idx = List::Util::max keys %{$found_args};
-    return
-      add_args_after($cmd_info,
-        $found_args->{kw_idx}->[$_LAST_ELEM_IDX] // $kw_idx);
-  } else {
-    return keyword_arg_insert_position($cmd_info, $keyword);
-  }
-} ## end sub keyword_arg_append_position
-
-
-sub keyword_arg_insert_position {
-  my ($cmd_info, $keyword) = @_;
-  my $kw_idx = find_keyword($cmd_info, $keyword)
-    // append_args($cmd_info, $keyword);
-  return add_args_after($cmd_info, $kw_idx);
-} ## end sub keyword_arg_insert_position
-
-# Consolidate arguments for a given keyword, returning the arg index of
-# the first argument or undef if missing or not applicable.
-sub normalize_args_for {
-  my ($cmd_info, $kw, @all_keywords) = @_;
-  has_keyword($cmd_info, $kw) or return;
-  my $n_args =
-    (scalar @all_keywords and $all_keywords[0] =~ m&\A[[:digit:]]+\z&msx)
-    ? shift @all_keywords
-    : undef;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-
-  if ($n_args // 1) {
-
-    # One or more arguments to save and reinsert after removal.
-    my @saved_args = (defined $n_args)
-      ?
-
-      # single-value case
-      single_value_for($cmd_info, $kw, @all_keywords)
-      :
-
-      # standard case: multiple arguments
-      remove_args_for($cmd_info, $kw, @all_keywords);
-    scalar @saved_args and return
-      insert_args_at($cmd_info,
-        keyword_arg_append_position($cmd_info, $kw, @all_keywords),
-        @saved_args);
-  } ## end if ($n_args // 1)
-  return;
-} ## end sub normalize_args_for
-
-
-sub prepend_args {
-  my ($cmd_info, @to_add) = @_;
-  return insert_args_at($cmd_info, 0, @to_add);
-}
-
 # Process a CMakeLists file statement-wise, dealing correctly with
 # multi-line statements with zero or more end-of-line comments.
 #
 # Invokes configured handlers which may change or add statements.
 #
-# usage: process_cmakelists(<in>, <kw-options>...)
+# usage: process_cmake_file(<in>, <kw-options>...)
 #
 # Options:
 #
@@ -598,12 +217,13 @@ sub prepend_args {
 #     line following the last argument to func (including the closing
 #     parenthesis).
 ########################################################################
-sub process_cmakelists {
-  my ($cmakelists, $options) = @_;
-  my ($cml_in, $cml_out);
-  ($cml_in, $cml_out, $cmakelists) = _prepare_cml_io($cmakelists, $options);
+sub process_cmake_file {
+  my ($cmake_file, $options) = @_;
+  my ($cmake_file_in, $cmake_file_out);
+  ($cmake_file_in, $cmake_file_out, $cmake_file) =
+    _prepare_cmake_file_io($cmake_file, $options);
   my $line_no = 0;
-  my $cml_data =
+  my $cmake_file_data =
     {
     cmd_handler_results => {},
     cmd_handlers        => {
@@ -611,136 +231,48 @@ sub process_cmakelists {
           m&\A(.*)_cmd\z&msx ? ((lc $1) => delete $options->{$_}) : ();
         } keys %{$options}
     },
-    cmakelists       => $cmakelists,
-    cml_in           => $cml_in,
+    cmake_file       => $cmake_file,
+    cmake_file_in    => $cmake_file_in,
     pending_comments => {} };
-  $cml_out and $cml_data->{cml_out} = $cml_out;
+  $cmake_file_out and $cmake_file_data->{cmake_file_out} = $cmake_file_out;
   grep {
-      m&_handler\z&msx and $cml_data->{$_} = delete $options->{$_};
+      m&_handler\z&msx and $cmake_file_data->{$_} = delete $options->{$_};
   } keys %{$options};
-  $cml_data->{cmd_handler_regex} = join(q(|),
+  $cmake_file_data->{cmd_handler_regex} =
+    join(q(|),
       map { quotemeta(sprintf('%s', $_)); }
-      keys %{ $cml_data->{cmd_handlers} });
+      keys %{ $cmake_file_data->{cmd_handlers} });
 
-  while (my $line = <$cml_in>) {
-    $line_no = _process_cml_lines($line, ++$line_no, $cml_data, $options);
+  while (my $line = <$cmake_file_in>) {
+    $line_no = _process_cmake_file_lines($line, ++$line_no, $cmake_file_data,
+        $options);
   } # Reading file.
 
   # Process any pending full-line comments.
-  _process_pending_comments($cml_data, $line_no, $options);
+  _process_pending_comments($cmake_file_data, $line_no, $options);
 
   # If we have an EOF handler, call it.
-  if ($cml_data->{eof_handler}) {
-    debug("invoking registered EOF handler for $cmakelists");
-    &{ $cml_data->{eof_handler} }($cml_data, $line_no, $options);
-  }
+  if ($cmake_file_data->{eof_handler}) {
+    debug("invoking registered EOF handler for $cmake_file");
+    &{ $cmake_file_data->{eof_handler} }
+      ($cmake_file_data, $line_no, $options);
+  } ## end if ($cmake_file_data->...)
 
   # Close and return.
-  $cml_out and not ref $options->{output} and $cml_out->close();
-  return $cml_data->{cmd_handler_results};
-} ## end sub process_cmakelists
+  $cmake_file_out and not ref $options->{output} and $cmake_file_out->close();
+  return $cmake_file_data->{cmd_handler_results};
+} ## end sub process_cmake_file
 
 
 sub reconstitute_code {
   return join(
       q(),
       map {
-        (ref)
-        ? sprintf('%s%s%s',
-          $_->{pre} // q(),
-          join(q(), map { $_ // (); } @{ $_->{chunks} // [] }),
-          $_->{post} // q())
+        (blessed($_) and $_->isa('Cetmodules::CMake::CommandInfo'))
+        ? $_->reconstitute()
         : $_;
       } @_);
 } ## end sub reconstitute_code
-
-# Remove specified arguments from CMake command by arg_index.
-#
-# Returns a list of removed arguments *with* any quotes.
-sub remove_args_at {
-  my ($cmd_info, @arg_indexes) = @_;
-  @arg_indexes = sort { $a <=> $b } @arg_indexes or return;
-  my @removers = ();
-
-  # Compact into contiguous sections to reduce the need for offset
-  # correction.
-  while (@arg_indexes) {
-    my $idx_idx      = shift @arg_indexes;
-    my $n_items      = 1;
-    my $last_idx_idx = $idx_idx;
-
-    while (defined $last_idx_idx
-        and ($arg_indexes[0] // $_NO_MATCH) == $last_idx_idx + 1) {
-      ++$n_items;
-      $last_idx_idx = shift @arg_indexes;
-    } ## end while (defined $last_idx_idx...)
-    push @removers,
-      sub { return _remove_args($cmd_info, $idx_idx, $n_items); };
-  } ## end while (@arg_indexes)
-
-  # Execute the removers in descending order to avoid invalidating
-  # indexes in the remaining calls.
-  return map { &{$_}; } reverse @removers;
-} ## end sub remove_args_at
-
-# Remove all arguments for a given keyword while leaving all instances
-# of said keyword in place. Returns a list of removed arguments *with*
-# any quotes.
-sub remove_args_for {
-  my ($cmd_info, $kw, @args) = @_;
-  my $found_args = find_args_for($cmd_info, $kw, @args);
-  return (defined $found_args)
-    ? remove_args_at($cmd_info,
-      map { @{ $found_args->{$_} }; } keys %{$found_args})
-    : undef;
-} ## end sub remove_args_for
-
-# Remove all instances of keyword and any arguments thereto, and return
-# a list of removed items *with* any quotes.
-sub remove_keyword {
-  my ($cmd_info, $kw, @args) = @_;
-  my $found_args = find_args_for($cmd_info, $kw, @args);
-  return (defined $found_args)
-    ? remove_args_at($cmd_info,
-      map { ($_, @{ $found_args->{$_} }); } keys %{$found_args})
-    : undef;
-} ## end sub remove_keyword
-
-
-sub replace_arg_at {
-  my ($cmd_info, $idx_idx, @replacements) = @_;
-  my @removed = _remove_args($cmd_info, $idx_idx, 1);
-
-  if (scalar @replacements) {
-    insert_args_at($cmd_info, (defined $idx_idx) ? $idx_idx : undef,
-        @replacements);
-  }
-  return @removed;
-} ## end sub replace_arg_at
-
-
-sub replace_cmd_with {
-  my ($cmd_info, $new_cmd, @args) = @_;
-  my $old_cmd = $cmd_info->{name};
-
-  if (@args) {
-    remove_args_at($cmd_info, 0 .. $#{ $cmd_info->{arg_indexes} });
-
-    if ($args[0] ne q()) {
-      insert_args_at($cmd_info, 0, @args);
-    }
-  } ## end if (@args)
-  $cmd_info->{name} = $new_cmd;
-  $cmd_info->{pre} =~ s&\b\Q$old_cmd\E\b&$new_cmd&imsx;
-  return;
-} ## end sub replace_cmd_with
-
-# Return the overriding value for a single-value keyword.
-sub single_value_for {
-  my ($cmd_info, @args) = @_;
-  my $sv_idx = find_single_value_for($cmd_info, @args) or return;
-  return arg_at($cmd_info, $sv_idx);
-} ## end sub single_value_for
 
 ########################################################################
 # Private functions
@@ -749,7 +281,7 @@ sub single_value_for {
 my $_seen_unquoted_open_parens = 0;
 ##
 sub _complete_cmd {
-  my ($cmd_info, $cml_in, $cmakelists, $line, $line_no) = @_;
+  my ($cmd_info, $cmake_file_in, $cmake_file, $line, $line_no) = @_;
   my $current_linepos = length($cmd_info->{pre});
 
   # Now we loop over multiple lines if necessary, separating
@@ -772,7 +304,7 @@ sub _complete_cmd {
      $expect_whitespace, $in_quote)
       = @{
         _extract_args_from_string(
-          $cmakelists,
+          $cmake_file,
           { line              => $line,
             chunk_start_line  => $chunk_start_line,
             line_no           => $line_no,
@@ -801,11 +333,11 @@ sub _complete_cmd {
       $in_quote = $LAST_PAREN_MATCH{q};
       my $current_line_no = $line_no;
 
-      while (my $next_line = <$cml_in>) {
+      while (my $next_line = <$cmake_file_in>) {
         $line = join(q(), $line, $next_line);
         ++$line_no;
         $next_line =~ m&\A\s*\z&msx or last;
-      } ## end while (my $next_line = <$cml_in>)
+      } ## end while (my $next_line = <$cmake_file_in>)
       $line_no > $current_line_no and next; # Reprocess what we have.
     } ## end if ( $line =~ m&\A # anchor to string start )
 
@@ -813,12 +345,12 @@ sub _complete_cmd {
       last;                                 # found end of function call
     } elsif (not $in_quote and $line =~ m&$_not_escape\\\n\z&msx) {
       error_exit(<<"EOF");
-illegal escaped vertical whitespace as part of unquoted string starting at $cmakelists:$chunk_start_line:$current_linepos:
+illegal escaped vertical whitespace as part of unquoted string starting at $cmake_file:$chunk_start_line:$current_linepos:
   \Q$line\E
 EOF
-    } elsif ($cml_in->eof()) {
+    } elsif ($cmake_file_in->eof()) {
       _eof_error(
-          $cmakelists,
+          $cmake_file,
           { line             => $line,
             line_no          => $line_no,
             chunk_start_line => $chunk_start_line,
@@ -828,10 +360,10 @@ EOF
           $cmd_info);
     } else {
       error_exit(<<"EOF");
-unknown error at $cmakelists:$chunk_start_line parsing:
+unknown error at $cmake_file:$chunk_start_line parsing:
   \Q$line\E
 EOF
-    } ## end else [ if ($line =~ m&\A([)])&msx) [... [elsif ($cml_in->eof()) ]](([(]))]
+    } ## end else [ if ($line =~ m&\A([)])&msx) [... [elsif ($cmake_file_in->eof...)]](([(]))]
   } ## end while (1)
 
   # Found the end of the call.
@@ -839,7 +371,7 @@ EOF
   $cmd_info->{post}     = $line;
   chomp($line);
   debug(sprintf(<<"EOF", $cmd_info->{name}));
-read COMMAND \%s() POSTAMBLE "$line" from $cmakelists:$chunk_start_line:$current_linepos
+read COMMAND \%s() POSTAMBLE "$line" from $cmake_file:$chunk_start_line:$current_linepos
 EOF
   return $line_no;
 } ## end sub _complete_cmd
@@ -848,7 +380,7 @@ EOF
 # complete quoted argument ("..." or [={n}[...]={n}]), or an
 # end-of-line comment.
 sub _extract_args_from_string {
-  my ($cmakelists, $state_data, $cmd_info) = @_;
+  my ($cmake_file, $state_data, $cmd_info) = @_;
   my ($line, $chunk_start_line, $line_no, $current_linepos,
       $expect_whitespace, $in_quote)
     = @{$state_data}{
@@ -892,7 +424,7 @@ sub _extract_args_from_string {
       debug(sprintf(
           'read `%s\'-style quoted argument %s to %s() at %s',
           $pm->{qs}, $pm->{chunk}, $cmd_info->{name},
-          "$cmakelists:$chunk_start_line:$current_linepos"
+          "$cmake_file:$chunk_start_line:$current_linepos"
       ));
       push @{ $cmd_info->{chunks} }, $pm->{q1}, $pm->{quoted}, $pm->{q2};
       $value_index = $#{ $cmd_info->{chunks} } - 1;
@@ -916,7 +448,7 @@ sub _extract_args_from_string {
       debug(sprintf(
           'read unquoted argument %s to %s() at %s',
           $pm->{chunk}, $cmd_info->{name},
-          "$cmakelists:$chunk_start_line:$current_linepos"
+          "$cmake_file:$chunk_start_line:$current_linepos"
       ));
       push @{ $cmd_info->{chunks} }, $pm->{chunk};
       $value_index = $#{ $cmd_info->{chunks} };
@@ -933,7 +465,7 @@ sub _extract_args_from_string {
       push @{ $cmd_info->{chunks} }, $pm->{chunk};
       $value_index = $#{ $cmd_info->{chunks} };
       debug(<<"EOF");
-read end-of-line comment "$pm->{comment}" at $cmakelists:$chunk_start_line:$current_linepos
+read end-of-line comment "$pm->{comment}" at $cmake_file:$chunk_start_line:$current_linepos
 EOF
       push @{ $cmd_info->{comment_indexes} }, $value_index;
     } else {
@@ -944,7 +476,7 @@ EOF
         print STDERR "oops\n";
       }
       debug(<<"EOF");
-read inter-argument delimiter "$pm->{delim}" while parsing $cmd_info->{name}\E() arguments at $cmakelists:$chunk_start_line:$current_linepos
+read inter-argument delimiter "$pm->{delim}" while parsing $cmd_info->{name}\E() arguments at $cmake_file:$chunk_start_line:$current_linepos
 EOF
 
       # Skip adding to chunk_locations for whitespace and quotes.
@@ -954,8 +486,7 @@ EOF
     # Keep track of the line numbers on which we find each
     # argument or end-of-line comment.
     defined $value_index
-      and $cmd_info->{chunk_locations}->{$value_index} =
-      $chunk_start_line;
+      and $cmd_info->{chunk_locations}->{$value_index} = $chunk_start_line;
 
     # Update line position for next read attempt.
     if ($pm->{chunk} =~ m&\n([^\n]*)\z&msx) {
@@ -974,7 +505,7 @@ EOF
 
 
 sub _eof_error {
-  my ($cmakelists, $state_data, $cmd_info) = @_;
+  my ($cmake_file, $state_data, $cmd_info) = @_;
   my ($line, $chunk_start_line, $line_no, $current_linepos, $in_quote) =
     @{$state_data}
     {qw(line chunk_start_line line_no current_linepos in_quote)};
@@ -984,7 +515,7 @@ sub _eof_error {
 
   if (($in_quote // q()) =~ m&\A[\"\[]&msx) {
     $error_message = <<"EOF";
-unclosed quote '$in_quote' at $cmakelists:$chunk_start_line:$current_linepos
+unclosed quote '$in_quote' at $cmake_file:$chunk_start_line:$current_linepos
 EOF
   } elsif (length($in_quote) and $in_quote !~ m&\A(?:\s*|\[(?>=*)\[)\z&msx) {
     my $quote_start_line    = $chunk_start_line;
@@ -1003,23 +534,22 @@ EOF
     if (substr($in_quote, $_LAST_CHAR_IDX) eq q(")) {
       --$quote_start_linepos;
       my $msg_fmt = <<"EOF";
-unclosed quoted adjunct at $cmakelists:\%d:\%d to unquoted string starting at \%d:\%d\n\%s"
+unclosed quoted adjunct at $cmake_file:\%d:\%d to unquoted string starting at \%d:\%d\n\%s"
 EOF
       $error_message = sprintf($msg_fmt,
           $quote_start_line, $quote_start_linepos, $chunk_start_line,
-          $current_linepos,
-          join(q(), reconstitute_code($cmd_info), $line));
+          $current_linepos,  join(q(), reconstitute_code($cmd_info), $line));
     } else {
       $error_message =
         sprintf(<<"EOF", join(q(), reconstitute_code($cmd_info), $line));
-unquoted string at $cmakelists:$chunk_start_line:$current_linepos runs into EOF at $quote_start_line:$quote_start_linepos
+unquoted string at $cmake_file:$chunk_start_line:$current_linepos runs into EOF at $quote_start_line:$quote_start_linepos
 %s
 EOF
     } ## end else [ if (substr($in_quote, ...))]
   } else {
     $error_message =
       sprintf(<<"EOF", join(q(), reconstitute_code($cmd_info), $line));
-incomplete command $cmd_info->{name}() at $cmakelists:$cmd_info->{start_line}:$cmd_info->{cmd_start_char} runs into EOF at $line_no:$current_linepos
+incomplete command $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line}:$cmd_info->{cmd_start_char} runs into EOF at $line_no:$current_linepos
 %s
 EOF
   } ## end else [ if (($in_quote // q())... [elsif (length($in_quote) ...)])]
@@ -1027,93 +557,53 @@ EOF
   return;
 } ## end sub _eof_error
 
-# Detect whether the referenced argument has a close quote to match an
-# opening quote: returns the match hash ref if so, else undef.
-sub _has_close_quote {
-  ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-  my ($cmd_info, $idx_idx) = @_;
-  my $result;
-  my $index     = $cmd_info->{arg_indexes}->[$idx_idx] // return $result;
-  my $open_info = _has_open_quote($cmd_info, $idx_idx) // return $result;
-  $index < $#{ $cmd_info->{chunks} }
-    and (
-      (     $open_info->{qs} eq q(")
-        and $cmd_info->{chunks}->[$index + 1] =~
-        m&\A(?P<q>(?P<qs>")(?P<qmarker>))\z&msx)
-      or $cmd_info->{chunks}->[$index + 1] =~
-      m&\A(?P<q>(?P<qs>[]])(?P<qmarker>\Q$open_info->{qmarker}\E)[]])\z&msx)
-    and $result = {%LAST_PAREN_MATCH};
-  return $result;
-} ## end sub _has_close_quote
 
-# Detect whether the referenced argument has a valid close quote:
-# returns the match hash ref if so, else undef.
-sub _has_open_quote {
-  ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-  my ($cmd_info, $idx_idx) = @_;
-  my $result;
-  my $index = _index_for_arg_at($cmd_info, $idx_idx) // return $result;
-  $cmd_info->{chunks}->[$index - 1] =~
-m&\A(?P<q>(?|(?P<qs>["])(?P<qmarker>)|(?P<qs>[[])(?P<qmarker>=*)[[]))\z&msx
-    and $result = {%LAST_PAREN_MATCH};
-  return $result;
-} ## end sub _has_open_quote
+sub _prepare_cmake_file_io {
+  my ($cmake_file, $options) = @_;
+  my ($cmake_file_in, $cmake_file_out);
 
-
-sub _index_for_arg_at {
-  my ($cmd_info, $idx_idx) = @_;
-  my $result;
-  $result = $cmd_info->{arg_indexes}->[$idx_idx // return $result];
-  return $result;
-} ## end sub _index_for_arg_at
-
-
-sub _prepare_cml_io {
-  my ($cmakelists, $options) = @_;
-  my ($cml_in, $cml_out);
-
-  if (ref $cmakelists) {
-    ref $cmakelists eq "ARRAY"
+  if (ref $cmake_file) {
+    ref $cmake_file eq "ARRAY"
       or
       error_exit("expect <filename> or ARRAY [ <fh>, <filename> ] for input");
-    ($cml_in, $cmakelists) = @{$cmakelists};
-    debug("reading from pre-opened CMake file $cmakelists");
-    $cml_in->opened() and $cml_in->seek(0, Fcntl::SEEK_SET)
+    ($cmake_file_in, $cmake_file) = @{$cmake_file};
+    debug("reading from pre-opened CMake file $cmake_file");
+    $cmake_file_in->opened() and $cmake_file_in->seek(0, Fcntl::SEEK_SET)
       or error_exit(
-      "input filehandle provided for $cmakelists must be open and rewindable"
+      "input filehandle provided for $cmake_file must be open and rewindable"
       );
   } else {
-    debug("opening CMake file $cmakelists");
-    $cml_in = IO::File->new("$cmakelists", "<")
-      or error_exit("unable to open $cmakelists for read");
-  } ## end else [ if (ref $cmakelists) ]
+    debug("opening CMake file $cmake_file");
+    $cmake_file_in = IO::File->new("$cmake_file", "<")
+      or error_exit("unable to open $cmake_file for read");
+  } ## end else [ if (ref $cmake_file) ]
 
   if ($options->{output}) {
     if (ref $options->{output}) {
       ref $options->{output} eq "ARRAY"
         or error_exit(
           "expect <filename> or ARRAY [ <fh>, <filename> ] for output");
-      ($cml_out, $options->{output}) = @{ $options->{output} };
-      $cml_out->opened
+      ($cmake_file_out, $options->{output}) = @{ $options->{output} };
+      $cmake_file_out->opened
         or error_exit(
 "filehandle provided by \"output\" option must be already open for write"
         );
     } else {
-      $cml_out = IO::File->new(">$options->{output}")
+      $cmake_file_out = IO::File->new(">$options->{output}")
         or error_exit("failure to open \"$options->{output}\" for write");
     }
   } ## end if ($options->{output})
-  return ($cml_in, $cml_out, $cmakelists);
-} ## end sub _prepare_cml_io
+  return ($cmake_file_in, $cmake_file_out, $cmake_file);
+} ## end sub _prepare_cmake_file_io
 
 # Process a comment block.
 sub _process_pending_comments {
-  my ($cml_data, $line_no, $options) = @_;
-  my ($cmakelists, $cml_out, $pending_comments) =
-    @{$cml_data}{qw(cmakelists cml_out pending_comments)};
+  my ($cmake_file_data, $line_no, $options) = @_;
+  my ($cmake_file, $cmake_file_out, $pending_comments) =
+    @{$cmake_file_data}{qw(cmake_file cmake_file_out pending_comments)};
   $pending_comments
     and $pending_comments->{start_line}
-    and exists $cml_data->{comment_handler}
+    and exists $cmake_file_data->{comment_handler}
     or return;
 
   # Make our comment block hash look like a "real" $cmd_info.
@@ -1125,7 +615,7 @@ sub _process_pending_comments {
     );
   debug(sprintf(
       'processing comments from %s:%s%s',
-      $cmakelists,
+      $cmake_file,
       $pending_comments->{start_line},
       ($pending_comments->{end_line} != $pending_comments->{start_line})
       ? qq(--$pending_comments->{end_line})
@@ -1133,183 +623,101 @@ sub _process_pending_comments {
   ));
 
   # Call the comment handler.
-  &{ $cml_data->{comment_handler} }($pending_comments, $cmakelists, $options);
+  $cmake_file_data->{comment_handler}->
+    ($pending_comments, $cmake_file, $options);
 
   # Output the (possibly-changed) comment lines, if we care.
-  my @tmp_lines = reconstitute_code($pending_comments);
-  $cml_out and scalar @tmp_lines and $cml_out->print(@tmp_lines);
+  my @tmp_lines = reconstitute_code(@{ $pending_comments->{chunks} });
+  $cmake_file_out
+    and scalar @tmp_lines
+    and $cmake_file_out->print(@tmp_lines);
   %{$pending_comments} = ();
   return;
 } ## end sub _process_pending_comments
 
 
-sub _process_cml_lines {
-  my ($line, $line_no, $cml_data, $options) = @_;
-  my ($cmakelists, $cml_in, $cml_out, $pending_comments) =
-    @{$cml_data}{qw(cmakelists cml_in cml_out pending_comments)}; # Convenience.
+sub _process_cmake_file_lines {
+  my ($line, $line_no, $cmake_file_data, $options) = @_;
+  my ($cmake_file, $cmake_file_in, $cmake_file_out, $pending_comments) =
+    @{$cmake_file_data}
+    {qw(cmake_file cmake_file_in cmake_file_out pending_comments)}; # Convenience.
   my $current_linepos = 0;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
-  if ($line =~ m&\A\s*[#].*\z&msx) {                              # Full-line comment.
-    debug("read COMMENT from $cmakelists:$line_no: $line");
+  if ($line =~ m&\A\s*[#].*\z&msx) {                                # Full-line comment.
+    debug("read COMMENT from $cmake_file:$line_no: $line");
     push @{ $pending_comments->{chunks} }, $line;
     exists $pending_comments->{start_line}
       or $pending_comments->{start_line} = $line_no;
     return $line_no;
   } ## end if ($line =~ m&\A\s*[#].*\z&msx)
-  _process_pending_comments($cml_data, $line_no, $options);
+  _process_pending_comments($cmake_file_data, $line_no, $options);
 
   if (
       ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
       $line =~ s&\A # anchor to string start
                (?P<pre>(?P<pre_cmd_ws>\s*) # save whitespace
-                 (?P<command>(?i:$cml_data->{cmd_handler_regex})) # Interesting function calls
+                 (?P<command>(?i:$cmake_file_data->{cmd_handler_regex})) # Interesting function calls
                  \s*[(] # function argument start
                )&&msx # swallow
     ) {
     # We've found the beginning of an interesting call.
-    my $cmd_info = {
-                      %LAST_PAREN_MATCH,
-                      cmd_start_char => length($LAST_PAREN_MATCH{pre_cmd_ws}),
-                      name           => lc $LAST_PAREN_MATCH{command},
-                      start_line     => $line_no,
-                      chunks         => [],
-                      arg_indexes    => [] };
+    my $cmd_info =
+      Cetmodules::CMake::CommandInfo->new(
+        %LAST_PAREN_MATCH,
+        cmd_start_char => length($LAST_PAREN_MATCH{pre_cmd_ws}),
+        name           => lc $LAST_PAREN_MATCH{command},
+        start_line     => $line_no,
+        chunks         => [],
+        arg_indexes    => []);
     debug(sprintf(<<"EOF", $cmd_info->{name}));
-reading COMMAND %s() at $cmakelists:$cmd_info->{start_line}:$cmd_info->{cmd_start_char}",
+reading COMMAND %s() at $cmake_file:$cmd_info->{start_line}:$cmd_info->{cmd_start_char}",
 EOF
     $line_no =
-      _complete_cmd($cmd_info, $cml_in, $cmakelists, $line, $line_no,
+      _complete_cmd($cmd_info, $cmake_file_in, $cmake_file, $line, $line_no,
         $options);
 
     # If we have end-of-line comments, process them first.
     if ($cmd_info->{post} =~ m&[)]\s*[#]&msx
         or scalar @{ $cmd_info->{comment_indexes} // [] }
-        and exists $cml_data->{comment_handler}) {
+        and exists $cmake_file_data->{comment_handler}) {
       debug(sprintf(<<"EOF", $cmd_info->{name}));
 invoking registered comment handler for end-of-line comments for COMMAND \%s()
 EOF
-      &{ $cml_data->{comment_handler} }($cmd_info, $cmakelists, $options);
-    } ## end if ($cmd_info->{post...})
+      &{ $cmake_file_data->{comment_handler} }
+        ($cmd_info, $cmake_file, $options);
+    } ## end if ($cmd_info->{post} ...)
     my $cmd_infos = [$cmd_info];
 
     # Now see if someone is interested in this call.
-    if (my $func = $cml_data->{arg_handler}) {
+    if (my $func = $cmake_file_data->{arg_handler}) {
       debug(<<"EOF");
 invoking generic argument handler for COMMAND $cmd_info->{name}()
 EOF
-      &{$func}($cmd_info, $cmakelists, $options);
-    } ## end if (my $func = $cml_data...)
+      &{$func}($cmd_info, $cmake_file, $options);
+    } ## end if (my $func = $cmake_file_data...)
 
-    if (my $func = $cml_data->{cmd_handlers}->{ $cmd_info->{name} }) {
+    if (my $func = $cmake_file_data->{cmd_handlers}->{ $cmd_info->{name} }) {
       debug(<<"EOF");
 invoking registered handler for COMMAND $cmd_info->{name}
 EOF
-      my $tmp_result =
-        &{$func}($cmd_infos, $cmd_info, $cmakelists, $options);
+      my $tmp_result = &{$func}($cmd_infos, $cmd_info, $cmake_file, $options);
       defined $tmp_result
-        and $cml_data->{cmd_handler_results}->{ $cmd_info->{start_line} }
+        and
+        $cmake_file_data->{cmd_handler_results}->{ $cmd_info->{start_line} }
         = $tmp_result;
-    } ## end if (my $func = $cml_data...)
+    } ## end if (my $func = $cmake_file_data...)
 
     # Reconstitute the command information.
-    if ($cml_out) {
+    if ($cmake_file_out) {
       my @tmp_lines = reconstitute_code(@{$cmd_infos});
-      scalar @tmp_lines and $cml_out->print(@tmp_lines);
+      scalar @tmp_lines and $cmake_file_out->print(@tmp_lines);
     }
   } else { # Not interesting.
-    $cml_out and $cml_out->print($line);
+    $cmake_file_out and $cmake_file_out->print($line);
   }        # Line analysis.
   return $line_no;
-} ## end sub _process_cml_lines
-
-
-sub _recalculate_comment_indexes {
-  my ($cmd_info) = @_;
-  @{ $cmd_info->{comment_indexes} } =
-    List::MoreUtils::indexes { is_comment($_); } @{ $cmd_info->{chunks} };
-  return;
-} ## end sub _recalculate_comment_indexes
-
-# Removes $n_args contiguous CMake arguments starting at $idx_idx.
-# See remove_args_at() for possibly-non-contiguous arguments.
-#
-# Returns a list of removed arguments *with* any quotes and trailing
-# whitespace/comments.
-sub _remove_args {
-  my ($cmd_info, $idx_idx, $n_args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my @removed;
-  my $last_arg_idx =
-    List::Util::min(
-      ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
-      $#{ $cmd_info->{arg_indexes} });
-  my $index      = $cmd_info->{arg_indexes}->[$idx_idx];
-  my $last_index = $cmd_info->{arg_indexes}->[$last_arg_idx];
-
-  # Remove any preceding quote.
-  _has_open_quote($cmd_info, $idx_idx) and --$index;
-
-  # Remove any trailing quote.
-  _has_close_quote($cmd_info, $last_arg_idx) and ++$last_index;
-
-  # Remove any trailing whitespace or comments
-  while (
-      $last_index < $#{ $cmd_info->{chunks} }
-      and (is_whitespace($cmd_info->{chunks}->[$last_index + 1])
-        or is_comment($cmd_info->{chunks}->[$last_index + 1]))
-    ) {
-    ++$last_index;
-  } ## end while ($last_index < $#{ ...})
-  my $chunks_to_remove = $last_index - $index + 1;
-
-  # Remove all relevant chunks.
-  my @removed_chunks =
-    splice(@{ $cmd_info->{chunks} }, $index, $chunks_to_remove);
-
-  # Remove corresponding arg_indexes.
-  splice(@{ $cmd_info->{arg_indexes} }, $idx_idx, $n_args);
-
-  # Recalculate indexes for remaining args.
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-
-  for ($idx_idx .. $#{ $cmd_info->{arg_indexes} }) {
-    $cmd_info->{arg_indexes}->[$_] -= $chunks_to_remove;
-  }
-
-  # Recalculate comment indexes.
-  _recalculate_comment_indexes($cmd_info);
-  my $prev_index    = 0;
-  my $in_whitespace = 0;
-  @removed = map { join(q(), $removed_chunks[$prev_index .. ($_ - 1)]); }
-    List::MoreUtils::indexes {
-    my $prev_in_whitespace = $in_whitespace;
-    $in_whitespace = is_whitespace($_);
-    $prev_in_whitespace and not $in_whitespace;
-  } ## end List::MoreUtils::indexes
-  @removed_chunks;
-  return @removed;
-} ## end sub _remove_args
-
-
-sub _separate_quotes {
-  my $item = join(q(), @_);
-  return (
-      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $item =~ m&\A # anchor to string start
-            (?| # reset alternation to allow capture groups in multiple scenarios
-              (?P<q1>(?P<qs>["]) # open double-quote
-                (?P<qmarker>) # empty group to preserve consistency of capture groups in reset alternation
-              ) # ...followed by...
-              (?P<quoted>(?>(?:(?>[^"\\]+)|\\.)*)) # ...non-special or escaped special characters, followed by...
-              (?P<q2>(?P=q1)) # matching closing double-quote -> (1) double-quoted argument OR
-              |(?P<q1>(?P<qs>[[])(?>(?P<qmarker>=*))[[]) # open quoting bracket followed by...
-                (?P<quoted>.*?) # anything followed by...
-                (?P<q2>[]](?P=qmarker)[]]) # close quoting bracket -> (2) bracket-quoted argument
-              )\z # anchor to string end
-           &msx
-  ) ? @LAST_PAREN_MATCH{qw(q1 quoted q2)} : ($item);
-} ## end sub _separate_quotes
+} ## end sub _process_cmake_file_lines
 
 ########################################################################
 1;

@@ -3,29 +3,23 @@
 ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
-# Should be first unless we're in a module.
-use FindBin;
+##
 use Cwd qw(abs_path);
-use File::Spec;
+use FindBin qw();
+
+##
+use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
+
+##
+use Cetmodules::Util qw($DEFAULT_PREFIX_MIN_LENGTH shortest_unique_prefix);
+use File::Spec qw();
 use List::Util qw(shuffle);
 use Test::More;
-use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
 
-use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
-use Cetmodules::Util qw(
-  $DEFAULT_PREFIX_MIN_LENGTH
-  shortest_unique_prefix
-);
-
+##
 use warnings FATAL => qw(Cetmodules);
 
 

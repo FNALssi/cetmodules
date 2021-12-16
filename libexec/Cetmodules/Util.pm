@@ -3,12 +3,18 @@ package Cetmodules::Util;
 
 use 5.016;
 use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules qw(:DIAG_VARS);
 use English qw(-no_match_vars);
 use Exporter qw(import);
-use Readonly;
-use Cetmodules qw(:DIAG_VARS);
-use warnings FATAL =>
-  qw(Cetmodules io regexp severe syntax uninitialized void);
+use Readonly qw();
+
+##
+use warnings FATAL => qw(Cetmodules);
+
+##
 use vars qw($DEFAULT_PREFIX_MIN_LENGTH);
 
 our (@EXPORT);

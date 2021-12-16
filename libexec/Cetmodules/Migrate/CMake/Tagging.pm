@@ -2,12 +2,17 @@
 package Cetmodules::Migrate::CMake::Tagging;
 
 use 5.016;
-use Exporter qw(import);
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
-use Cetmodules::CMake;
+
+##
+use Cetmodules::CMake qw(reconstitute_code);
 use Cetmodules::Migrate::ProductDeps qw($CETMODULES_VERSION);
-use Cetmodules::Util;
+use Cetmodules::Util qw(error_exit info);
+use Exporter qw(import);
+use Scalar::Util qw(blessed);
+
+##
 use warnings FATAL => qw(Cetmodules);
 
 our (@EXPORT);
@@ -62,10 +67,10 @@ sub ignored {
 
 
 sub report_removed {
-  my ($cmakelists, $extra, @args) = @_;
+  my ($cmake_file, $extra, @args) = @_;
   defined $extra or $extra = q();
   map {
-      info("command removed from $cmakelists:$_->{start_line}$extra:\n",
+      info("command removed from $cmake_file:$_->{start_line}$extra:\n",
         reconstitute_code($_));
   } @args;
   return;
@@ -130,20 +135,19 @@ sub untag_all {
 sub _to_textref {
   my ($textish) = @_;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  my ($result);
-  given (ref $textish) {
-    when ('SCALAR') { $result = $textish; }
-    when ('HASH') {
-      defined $textish->{post} or continue;
-      $result = \$textish->{post};
-    }
-    when (q()) { $result = \$textish; }
-    default {
-      error_exit(<<"EOF");
+  my $result;
+
+  if (blessed($textish) and $textish->isa('Cetmodules::CMake::CommandInfo')) {
+    $result = \$textish->{post};
+  } elsif (ref $textish eq 'SCALAR') {
+    $result = $textish;
+  } elsif (not ref $textish) {
+    $result = \$textish;
+  } else {
+    error_exit(<<"EOF");
 cannot identify tag text from unknown entity $textish
 EOF
-    } ## end default
-  } ## end given
+  } ## end else [ if (blessed($textish) ... [... [elsif (not ref $textish) ]])]
   return $result;
 } ## end sub _to_textref
 

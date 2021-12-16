@@ -1,25 +1,15 @@
 #!/usr/bin/env perl
 # -*- cperl -*-
+## no critic qw(Subroutines::ProtectPrivateSubs RegularExpressions::ProhibitComplexRegexes ValuesAndExpressions::ProhibitMagicNumbers)
 
 use 5.016;
-
-## no critic qw(Subroutines::ProtectPrivateSubs RegularExpressions::ProhibitComplexRegexes ValuesAndExpressions::ProhibitMagicNumbers)
-# Should be first unless we're in a module.
-use FindBin;
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Spec;
-use IO::File;
-use Test::More;
 use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cwd qw(abs_path);
+use FindBin qw();
+
 my $_libexec;
 
 
@@ -28,11 +18,16 @@ BEGIN {
 }
 
 use lib $_libexec;
-use Cetmodules::CMake qw(
-  process_cmakelists
-  reconstitute_code
-);
 
+##
+use Cetmodules::CMake qw(process_cmake_file reconstitute_code);
+use Cetmodules::CMake::Util qw(separate_quotes);
+use English qw(-no_match_vars);
+use File::Spec qw();
+use IO::File qw();
+use Test::More;
+
+##
 use warnings FATAL => qw(Cetmodules);
 
 
@@ -83,11 +78,9 @@ sub string_tester {
 "Test $count: (subtest $subtest_count (\$idx_idx=$idx_idx) for '$test_string')"
           );
           plan tests => 3;
-          my $open_test =
-          Cetmodules::CMake::_has_open_quote($cmd_info, $idx_idx);
-          my $close_test =
-          Cetmodules::CMake::_has_close_quote($cmd_info, $idx_idx);
-          my $index = _index_for_arg_at($cmd_info, $idx_idx);
+          my $open_test  = $cmd_info->_has_open_quote($idx_idx);
+          my $close_test = $cmd_info->_has_close_quote($idx_idx);
+          my $index      = $cmd_info->_index_for_arg_at($idx_idx);
           my $joined =
           join(q(),
               (defined $open_test)
@@ -98,7 +91,7 @@ sub string_tester {
             close     => compare_or_show($close_test, $close_ref, 'close'),
             separated =>
             compare_or_show(
-              [Cetmodules::CMake::_separate_quotes($joined)],
+              [separate_quotes($joined)],
               $separated_ref, 'separate'
             ) };
         };
@@ -119,8 +112,8 @@ sub test_string {
   $test_string = "test_string$test_string";
   open(my $fh_in, "<", \$test_string)
     or die "unable to open input stream for string $test_string";
-  my $cmakelists = [$fh_in, 'TEST_STRING'];
-  process_cmakelists($cmakelists,
+  my $cmake_file = [$fh_in, 'TEST_STRING'];
+  process_cmake_file($cmake_file,
       { test_string_cmd => string_tester($test_string, @args) });
   $fh_in->close();
   return;

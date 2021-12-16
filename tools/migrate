@@ -7,27 +7,14 @@
 # Preamble.
 
 use 5.016;
-
-# Should be first unless we're in a module.
-use FindBin;
-use Cwd qw(abs_path chdir getcwd);
-use File::Copy;
-use File::Find;
-use File::Path qw(make_path);
-use File::Spec;
-use Getopt::Long qw(:config no_ignore_case bundling require_order);
-use IO qw(File Handle);
-use POSIX qw(strftime);
-use Pod::Usage;
 use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cwd qw(abs_path chdir getcwd);
+use File::Spec qw();
+use FindBin qw();
+
 my $_cetmodules_top;
 
 
@@ -36,14 +23,26 @@ BEGIN {
 }
 
 use lib File::Spec->catfile($_cetmodules_top, "libexec");
+
+##
 use Cetmodules qw(:DIAG_VARS);
-use Cetmodules::CMake;
+use Cetmodules::CMake qw();
 use Cetmodules::Migrate::CMake qw(:CMAKE_FILE_TOOLS);
-use Cetmodules::Migrate::ProductDeps qw(:DEFAULT $CETMODULES_VERSION);
-use Cetmodules::Migrate::Util;
+use Cetmodules::Migrate::ProductDeps
+  qw($CETMODULES_VERSION write_product_deps);
+use Cetmodules::Migrate::Util qw(gentime);
 use Cetmodules::UPS::ProductDeps
   qw(get_parent_info get_pathspec get_product_list get_qualifier_matrix $PATHSPEC_INFO);
-use Cetmodules::Util;
+use Cetmodules::Util qw(error_exit info notify to_string verbose warning);
+use File::Copy qw(copy);
+use File::Find qw();
+use File::Path qw(make_path);
+use Getopt::Long qw(:config no_ignore_case bundling require_order);
+use IO qw(File Handle);
+use POSIX qw(strftime);
+use Pod::Usage qw(pod2usage);
+
+##
 use warnings FATAL => qw(Cetmodules);
 
 our ($PATHSPEC_INFO);
@@ -102,7 +101,7 @@ EOF
     warning("refusing to touch our own ups/ or CMake files!");
   } else {
     _upgrade_ups_dir("ups");
-    write_top_CML($pkgtop, $pdinfo->{parent_info}, $options);
+    write_top_CMakeLists($pkgtop, $pdinfo->{parent_info}, $options);
     fix_cmake($pdinfo->{parent_info}, $options);
   } ## end else [ if ($pdinfo->{parent_info...})]
 } ## end for my $pkgtop (@pkgdirs)
@@ -170,7 +169,7 @@ sub _backup_files {
   make_path("$backupdir");
   system(qq(cp -pR ups $backupdir/ups)) == 0
     or error_exit("unable to back up UPS directory ups to $backupdir");
-  find(
+  File::Find::find(
       { preprocess => \&find_cmake,
         wanted     => sub {
           -f or return;

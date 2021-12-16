@@ -3,17 +3,11 @@ package Cetmodules;
 
 use 5.016;
 use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
-use warnings::register;
+##
 use Exporter qw(import);
+use warnings::register;
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 

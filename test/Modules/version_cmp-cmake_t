@@ -2,16 +2,17 @@
 # -*- cperl -*-
 
 use 5.016;
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Basename;
-use File::Spec;
-use List::Util qw(shuffle);
-use Readonly;
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
-my ($_mydir, $_pmdir);
+##
+use Cwd qw(abs_path);
+use English qw(-no_match_vars);
+use File::Basename qw(dirname);
+use File::Spec qw();
+use FindBin qw();
+
+my ($_mydir);
 
 
 BEGIN {
@@ -23,10 +24,10 @@ BEGIN {
     $_me = abs_path(File::Spec->catfile(dirname($PROGRAM_NAME), $_me));
   }
   $_mydir = abs_path(dirname($_me));
-  $_pmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'libexec'));
 } ## end BEGIN
-
-use lib $_pmdir;
+##
+use List::Util qw(shuffle);
+use Readonly qw();
 use Test::More;
 
 
@@ -58,6 +59,7 @@ sub cmake_version_cmp {
   } ## end else [ if (exists $ans_cache->... [elsif (exists $ans_cache->...)])]
   return $ans;
 } ## end sub cmake_version_cmp
+##
 my @v_ref_list = qw(
   1
   1.2

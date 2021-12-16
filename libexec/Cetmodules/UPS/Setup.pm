@@ -2,28 +2,30 @@
 package Cetmodules::UPS::Setup;
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules qw(:DIAG_VARS);
+use Cetmodules::CMake
+  qw(@PROJECT_KEYWORDS get_CMakeLists_hash process_cmake_file);
+use Cetmodules::CMake::CommandInfo qw();
+use Cetmodules::UPS::ProductDeps
+  qw($BTYPE_TABLE $PATHSPEC_INFO get_pathspec get_table_fragment pathkey_is_valid sort_qual var_stem_for_dirkey);
+use Cetmodules::Util
+  qw(error_exit info parse_version_string to_cmake_version to_product_name to_ups_version to_version_string verbose warning);
+use Cetmodules::Util::VariableSaver qw();
 use English qw(-no_match_vars);
 use Exporter qw(import);
-use File::Spec;
-use IO::File;
-use List::MoreUtils;
-use Readonly;
-use Cetmodules qw(:DIAG_VARS);
-use Cetmodules::CMake;
-use Cetmodules::UPS::ProductDeps qw(:DEFAULT $BTYPE_TABLE $PATHSPEC_INFO);
-use Cetmodules::Util;
-use Cetmodules::Util::VariableSaver;
-use strict;
-use warnings FATAL => qw(
-  Cetmodules
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use File::Spec qw();
+use IO::File qw();
+use List::MoreUtils qw();
+use Readonly qw();
 
+##
+use warnings FATAL => qw(Cetmodules);
+
+##
 use vars qw($PATH_VAR_TRANSLATION_TABLE);
 
 our (@EXPORT, @EXPORT_OK);
@@ -249,11 +251,11 @@ sub get_cmake_project_info {
   my ($pkgtop, %options) = @_;
   undef $_seen_cet_cmake_env;
   undef $_seen_project;
-  my $cmakelists = File::Spec->catfile($pkgtop, "CMakeLists.txt");
+  my $cmake_file = File::Spec->catfile($pkgtop, "CMakeLists.txt");
   my $proj_info = { map { %{$_}; }
                     values %{
-                      process_cmakelists(
-                        $cmakelists,
+                      process_cmake_file(
+                        $cmake_file,
                         { %options,
                           project_cmd       => \&_get_info_from_project_cmd,
                           set_cmd           => \&_get_info_from_set_cmds,
@@ -828,7 +830,7 @@ sub _fq_path_for {
 
 
 sub _get_info_from_project_cmd {
-  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
@@ -841,28 +843,28 @@ Ignoring superfluous project() at line $cmd_info->{start_line}: previously seen 
 EOF
     and return;
   $_seen_project = $cmd_info->{start_line};
-  my ($project_name, $is_literal) = interpolated($cmd_info, 0);
+  my ($project_name, $is_literal) = $cmd_info->interpolated_arg_at(0);
   $project_name or error_exit(<<"EOF");
-unable to find name in project() at $cmakelists:$cmd_info->{start_line}
+unable to find name in project() at $cmake_file:$cmd_info->{start_line}
 EOF
   $is_literal or do {
       warning(<<"EOF");
-unable to interpret $project_name as a literal CMake project name in $cmd_info->{name}() at $cmakelists:$cmd_info->{chunk_locations}->{$cmd_info->{arg_indexes}->[0]}
+unable to interpret $project_name as a literal CMake project name in $cmd_info->{name}() at $cmake_file:$cmd_info->{chunk_locations}->{$cmd_info->{arg_indexes}->[0]}
 EOF
       return;
   };
   my $result = { cmake_project_name => $project_name };
   my $version_idx =
-    find_single_value_for($cmd_info, 'VERSION', @PROJECT_KEYWORDS)
+    $cmd_info->find_single_value_for('VERSION', @PROJECT_KEYWORDS)
     // return $result;
 
   # We have a VERSION keyword and value.
   my $version;
-  ($version, $is_literal) = interpolated($cmd_info, $version_idx);
+  ($version, $is_literal) = $cmd_info->interpolated_arg_at($version_idx);
   $is_literal or do {
-      my $version_arg_location = arg_location($cmd_info, $version_idx);
+      my $version_arg_location = $cmd_info->arg_location($version_idx);
       warning(<<"EOF");
-nonliteral version "$version" found at $cmakelists:$version_arg_location
+nonliteral version "$version" found at $cmake_file:$version_arg_location
 EOF
       return $result;
   };
@@ -873,13 +875,13 @@ EOF
 
 
 sub _get_info_from_set_cmds {
-  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
-  my $wanted_pvar = 'CMAKE_PROJECT_VERSION_STRING';
-  my ($found_pvar) =
-    (interpolated($cmd_info, 0) // return) =~ m&_(\Q$wanted_pvar\E)\z&msx
+  my $found_pvar = $cmd_info->interpolated_arg_at(0) // return;
+  $found_pvar =~ m&(?:\A|_)(?P<wanted>CMAKE_PROJECT_VERSION_STRING)\z&msx
+    and $found_pvar = $LAST_PAREN_MATCH{wanted}
     or return;
   $_seen_cet_cmake_env and do {
       warning(<<"EOF");
@@ -887,15 +889,7 @@ $cmd_info->{name}() ignored at line $cmd_info->{start_line} due to previous cet_
 EOF
       return;
   };
-  my $value;
-  my @results = ();
-  my $arg_idx = 1;
-
-  while (defined($value = interpolated($cmd_info, $arg_idx++))
-      and $value ne 'CACHE') {
-    push @results, $value;
-  }
-  return { $found_pvar => @results };
+  return { $found_pvar => $cmd_info->interpolated_arg_at(1) };
 } ## end sub _get_info_from_set_cmds
 
 
@@ -909,7 +903,7 @@ sub _path_var_translation_table {
 
 
 sub _set_seen_cet_cmake_env {
-  my ($cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $cmd_line = $cmd_info->{start_line};
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,

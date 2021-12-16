@@ -2,22 +2,22 @@
 package Cetmodules::UPS::ProductDeps;
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
 use English qw(-no_match_vars);
 use Exporter qw(import);
-use File::Spec;
-use IO::File;
-use List::MoreUtils;
-use Readonly;
-use Cetmodules::Util;
-use strict;
-use warnings FATAL => qw(
-  Cetmodules
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void);
+use File::Spec qw();
+use IO::File qw();
+use List::MoreUtils qw();
+use Readonly qw();
+use Cetmodules::Util qw(error_exit warning);
+
+##
+use warnings FATAL => qw(Cetmodules);
+
+##
 use vars qw($BTYPE_TABLE $PATHSPEC_INFO @EXPORT @EXPORT_OK);
 
 @EXPORT = qw(

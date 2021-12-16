@@ -13,23 +13,13 @@
 ########################################################################
 
 use 5.016;
-use FindBin;
-use Cwd qw(abs_path);
-use English qw(-no_match_vars);
-use File::Basename qw(basename dirname);
-use File::Spec;
-use IO qw(File Handle);
-use Getopt::Long;
-use List::MoreUtils;
 use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cwd qw(abs_path);
+use FindBin qw();
+
 my ($_cetmodules_top, $_libexec);
 
 
@@ -39,11 +29,25 @@ BEGIN {
 }
 
 use lib $_libexec;
-use Cetmodules::CMake;
-use Cetmodules::UPS::ProductDeps qw(:DEFAULT $BTYPE_TABLE);
-use Cetmodules::UPS::Setup;
-use Cetmodules::Util;
+
+##
+use Cetmodules::UPS::ProductDeps
+  qw($BTYPE_TABLE get_parent_info get_product_list get_qualifier_matrix);
+use Cetmodules::UPS::Setup
+  qw(cetpkg_info_file classify_deps deps_for_quals get_derived_parent_data print_dep_setup print_dev_setup ups_to_cmake write_table_deps write_table_frag);
+use Cetmodules::Util qw(error_exit shortest_unique_prefix warning);
+use English qw(-no_match_vars);
+use File::Basename qw(basename dirname);
+use File::Spec qw();
+use Getopt::Long qw(GetOptions);
+use IO::File qw();
+use IO::Handle qw();
+use List::MoreUtils qw();
+
+##
 use warnings FATAL => qw(Cetmodules);
+
+##
 use vars qw($BTYPE_TABLE);
 
 my $_failscript = abs_path(File::Spec->catfile($_libexec, 'fail'));

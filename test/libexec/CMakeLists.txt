@@ -12,6 +12,8 @@ set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/LintWarn.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/VariableSaver.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Util.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/CommandInfo.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/Setup.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake.pm

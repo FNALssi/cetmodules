@@ -16,11 +16,13 @@ cpan() {
 }
 
 needed_modules() {
-  { PERL5LIB="$CETPKG_SOURCE/libexec${PERL5LIB:+:$PERL5LIB}" \
-            scandeps.pl -c -R -V -T -C "$CETPKG_BUILD/scandeps-cache.dat" "$@" | \
-      sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
-  } 2>/dev/null
-}
+  # Do *NOT* use "-c" option to scandeps.pl: it will stall indefinitely
+  # processing Tagging.pm, which has a function executed at
+  # compile-time.
+  PERL5LIB="$CETPKG_SOURCE/libexec${PERL5LIB:+:$PERL5LIB}" \
+          scandeps.pl -R -V -T -C "$CETPKG_BUILD/scandeps-cache.dat" "$@" | \
+    sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
+} 2>/dev/null
 
 install_modules_for() {
   local needed_modules=($(needed_modules "$@"))

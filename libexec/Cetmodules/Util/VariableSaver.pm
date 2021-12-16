@@ -3,10 +3,14 @@ package Cetmodules::Util::VariableSaver;
 
 use 5.016;
 use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules::Util qw(error_exit);
 use Storable qw(dclone);
-use Cetmodules::Util;
-use warnings FATAL =>
-  qw(Cetmodules io regexp severe syntax uninitialized void);
+
+##
+use warnings FATAL => qw(Cetmodules);
 
 
 sub new {

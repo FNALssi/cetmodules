@@ -3,7 +3,9 @@ package Cetmodules::Util::LintWarn;
 
 use 5.016;
 use strict;
-use warnings;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
 use English qw(-no_match_vars);
 
 my $_n_warnings;

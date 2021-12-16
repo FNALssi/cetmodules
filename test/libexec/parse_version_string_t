@@ -3,34 +3,24 @@
 ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers TestingAndDebugging::RequireTestLabels)
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
-# Should be first unless we're in a module.
-use FindBin;
+##
 use Cwd qw(abs_path);
-use File::Spec;
+use FindBin qw();
+
+##
+use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
+
+##
+use Cetmodules::Util
+  qw(parse_version_string to_cmake_version to_dot_version to_ups_version to_version_string version_cmp);
+use File::Spec qw();
 use List::Util qw(shuffle);
 use Test::More;
-use strict;
-use warnings FATAL => qw(
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
 
-use lib File::Spec->catfile($FindBin::Bin, q(..), q(..), 'libexec');
-use Cetmodules::Util qw(
-  parse_version_string
-  to_cmake_version
-  to_dot_version
-  to_string
-  to_ups_version
-  to_version_string
-  version_cmp
-);
-
+##
 use warnings FATAL => qw(Cetmodules);
 
 
@@ -221,7 +211,7 @@ more_tests($nshuffles);
 my $sort_func = \&perl_version_cmp;
 
 while ($idx < $nshuffles) {
-  my @to_sort = List::Util::shuffle(@v_ref_list);
+  my @to_sort = shuffle(@v_ref_list);
   my @sorted  = sort $sort_func @to_sort;
   compare_or_show(\@sorted, \@v_ref_list,
       sprintf("perl_version_cmp-%0-${nfigs}d", ++$idx))

@@ -2,10 +2,16 @@
 package Cetmodules::Migrate::Util;
 
 use 5.016;
-use Exporter qw(import);
-use POSIX qw(strftime);
 use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules qw();
+use Exporter qw(import);
+use POSIX qw(strftime);
+
+##
+use warnings FATAL => qw(Cetmodules);
 
 our (@EXPORT);
 

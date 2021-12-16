@@ -2,27 +2,29 @@
 package Cetmodules::Migrate::CMake::Handlers;
 
 use 5.016;
+use strict;
+use warnings FATAL => qw(io regexp severe syntax uninitialized void);
+
+##
+use Cetmodules::CMake qw(@PROJECT_KEYWORDS);
+use Cetmodules::CMake::CommandInfo qw();
+use Cetmodules::CMake::Util qw(interpolated);
+use Cetmodules::Migrate::CMake::Tagging
+  qw(flag_recommended flag_required report_removed tag_added tag_changed);
+use Cetmodules::UPS::Setup qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
+use Cetmodules::Util
+  qw(debug error error_exit info to_cmake_version to_dot_version is_ups_version parse_version_string verbose version_cmp warning);
 use Cwd qw(abs_path chdir getcwd);
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
-use File::Spec;
-use Readonly;
+use File::Spec qw();
+use Readonly qw();
 use Storable qw(dclone);
-use Cetmodules::Util;
-use Cetmodules::CMake;
-use Cetmodules::UPS::Setup qw(:DEFAULT $PATH_VAR_TRANSLATION_TABLE);
-use Cetmodules::Migrate::CMake::Tagging;
-use strict;
-use warnings FATAL => qw(
-  Cetmodules
-  io
-  regexp
-  severe
-  syntax
-  uninitialized
-  void
-);
 
+##
+use warnings FATAL => qw(Cetmodules);
+
+##
 use vars qw(@COMMAND_HANDLERS @EVENT_HANDLERS);
 
 our (@EXPORT_OK, %EXPORT_TAGS);
@@ -300,17 +302,18 @@ Readonly::Array @EVENT_HANDLERS =>
 ########################################################################
 # Private variables
 ########################################################################
-my $_cml_state              = {};
+my $_default_crv = "3.19";
+##
+my $_cm_state               = {};
 my $_cmake_required_version = _get_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
-my $_default_crv     = "3.19";
 Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 
 ########################################################################
 # Exported functions
 ########################################################################
 sub add_compile_definitions {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_compile_definitions() or target_compile_features() whenever possible
 EOF
@@ -319,7 +322,7 @@ EOF
 
 
 sub add_compile_options {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_compile_options() or target_compile_features() whenever possible
 EOF
@@ -328,7 +331,7 @@ EOF
 
 
 sub add_definitions {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_compile_definitions() or target_compile_features() whenever possible
 EOF
@@ -337,25 +340,25 @@ EOF
 
 
 sub add_executable {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
-use cet_make_exec() for transitivity
+prefer cet_make_exec() for transitivity
 EOF
   return;
 } ## end sub add_executable
 
 
 sub add_library {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_required($cmd_info, <<"EOF");
-use cet_make_library() or cet_build_plugin() for automatic transitivity
+avoid: use cet_make_library() or cet_build_plugin() for automatic transitivity
 EOF
   return;
 } ## end sub add_library
 
 
 sub add_link_options {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_link_options() whenever possible
 EOF
@@ -364,10 +367,10 @@ EOF
 
 
 sub add_subdirectory {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
 
-  if (interpolated(arg_at($cmd_info, 0)) eq 'ups') {
-    report_removed($options->{cmakelists_short} // $cmakelists,
+  if ($cmd_info->interpolated_arg_at(0) eq 'ups') {
+    report_removed($options->{cmake_filename_short} // $cmake_file,
         " (obsolete)", pop @{$cmd_infos});
   }
   return;
@@ -375,9 +378,9 @@ sub add_subdirectory {
 
 
 sub add_test {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
-use cet_test() for flexibility and default test labels
+prefer cet_test() for flexibility and default test labels
 EOF
   return;
 } ## end sub add_test
@@ -394,12 +397,12 @@ my $_UPS_var_translation_table =
     %{$PATH_VAR_TRANSLATION_TABLE} };
 ##
 sub arg_handler {
-  my ($cmd_info, $cmakelists, $options) = @_;
-  my @arg_idx_idx = all_idx_idx($cmd_info) or return;
+  my ($cmd_info, $cmake_file, $options) = @_;
+  my @arg_idx_idx = $cmd_info->all_idx_idx() or return;
 
   # Flag uses of CMAKE_INSTALL_PREFIX.
   List::MoreUtils::any {
-    arg_at($cmd_info, $_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
+    $cmd_info->arg_at($_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
   @arg_idx_idx and flag_required($cmd_info, <<"EOF");
 avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
@@ -407,13 +410,13 @@ EOF
 
   # Flag uses of CMAKE_MODULE_PATH.
   my $found_CMP = List::Util::first {
-    interpolated(arg_at($cmd_info, $_)) eq 'CMAKE_MODULE_PATH';
+    $cmd_info->interpolated_arg_at($_) eq 'CMAKE_MODULE_PATH';
   }
   @arg_idx_idx;
 
   if (defined $found_CMP) {
     if (List::MoreUtils::any {
-          arg_at($cmd_info, $_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
+          $cmd_info->arg_at($_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
         }
         @arg_idx_idx[$found_CMP .. $_LAST_ELEM_IDX]
       ) {
@@ -422,17 +425,17 @@ declare CMake private and exportable module dirs with cet_cmake_module_directori
 EOF
     } else {
       flag_recommended($cmd_info, <<"EOF");
-use find_package() to find external CMake modules
+prefer find_package() to find external CMake modules
 EOF
     } ## end else [ if (List::MoreUtils::any...)]
   } ## end if (defined $found_CMP)
 
   # Remove problematic and unnecessary install path fragments.
   grep {
-      if (my @separated = arg_at($cmd_info, $_)) {
+      if (my @separated = $cmd_info->arg_at($_)) {
         $separated[(scalar @separated > 1) ? 1 : 0] =~
         s&\$\{product\}/+\$\{version\}/*&&gmsx
-        and replace_arg_at($cmd_info, $_, join(q(), @separated));
+        and $cmd_info->replace_arg_at($_, join(q(), @separated));
     } else {
         0;
       }
@@ -443,7 +446,7 @@ EOF
   # Migrate old UPS-style variables.
   foreach my $arg_idx (@arg_idx_idx) {
     my $flagged;
-    my @separated = arg_at($cmd_info, $arg_idx) or next;
+    my @separated = $cmd_info->arg_at($arg_idx) or next;
     my $argref    = \$separated[(scalar @separated > 1) ? 1 : 0];
 
     foreach my $var (keys %{$_UPS_var_translation_table}) {
@@ -453,7 +456,7 @@ EOF
         if (defined(my $new = $_UPS_var_translation_table->{$var}->{new})) {
           ${$argref} =~
             s&\Q$old\E&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$new}&gmsx
-            and replace_arg_at($cmd_info, $arg_idx, join(q(), @separated))
+            and $cmd_info->replace_arg_at($arg_idx, join(q(), @separated))
             and tag_changed($cmd_info,
               "$old -> \${CETMODULES_CURRENT_PROJECT_NAME}_$new");
         } ## end if (defined(my $new = ...))
@@ -470,7 +473,7 @@ EOF
 
 
 sub art_make {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 deprecated: use art_make_library(), art_dictonary(), and cet_build_plugin() with explicit source lists and plugin base types
 EOF
@@ -479,8 +482,8 @@ EOF
 
 
 sub art_make_exec {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  replace_cmd_with($cmd_info, 'cet_make_exec');
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $cmd_info->replace_cmd_with('cet_make_exec');
   tag_changed($cmd_info, <<"EOF");
 art_make_exec() -> cet_make_exec()
 EOF
@@ -489,16 +492,16 @@ EOF
 
 
 sub basic_plugin {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
-use cet_build_plugin() with explicit plugin base types whenever possible
+prefer cet_build_plugin() with explicit plugin base types whenever possible
 EOF
   return;
 } ## end sub basic_plugin
 
 
 sub build_plugin {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 deprecated: use cet_build_plugin() with explicit plugin base types
 EOF
@@ -507,8 +510,8 @@ EOF
 
 
 sub cet_cmake_config {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  report_removed($options->{cmakelists_short} // $cmakelists,
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  report_removed($options->{cmake_filename_short} // $cmake_file,
       " (called automatically)",
       pop @{$cmd_infos});
   return;
@@ -516,16 +519,16 @@ sub cet_cmake_config {
 
 
 sub cet_find_library {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_required($cmd_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake for Spack compatibility
+avoid: use find_package() with custom Find<pkg>.cmake for Spack compatibility
 EOF
   return;
 } ## end sub cet_find_library
 
 
 sub cet_make {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 deprecated: use cet_make_library(), build_dictonary(), cet_plugin() with explicit source lists and plugin base types
 EOF
@@ -534,11 +537,11 @@ EOF
 
 
 sub cet_parse_args {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  replace_cmd_with($cmd_info, 'cmake_parse_arguments');
-  my $flags = arg_at($cmd_info, 2);
-  insert_args_at($cmd_info, 1, $flags);
-  remove_args_at($cmd_info, 3); ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $cmd_info->replace_cmd_with('cmake_parse_arguments');
+  my $flags = $cmd_info->arg_at(2);
+  $cmd_info->insert_args_at(1, $flags);
+  $cmd_info->remove_args_at(3); ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
   tag_changed($cmd_info, <<"EOF");
 cet_parse_args(<prefix> <args> <opts> ...) -> cmake_parse_arguments(<prefix> <flags> <single-value-opts> <opts> ...)
 EOF
@@ -555,7 +558,7 @@ sub cet_remove_compiler_flags {
 
 
 sub cet_report_compiler_flags {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   scalar @{ $cmd_info->{arg_indexes} }
     or flag_recommended($cmd_info, "add args: REPORT_THRESHOLD VERBOSE");
   return;
@@ -563,51 +566,48 @@ sub cet_report_compiler_flags {
 
 
 sub cmake_minimum_required {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $edit;
 
-  if ($_cml_state->{seen_cmds}->{ $cmd_info->{name} }) {
+  if ($_cm_state->{seen_cmds}->{ $cmd_info->{name} }) {
     debug(<<"EOF");
 ignoring duplicate $cmd_info->{name}() at line $cmd_info->{start_line} \
-previously seen at $_cml_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
+previously seen at $_cm_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
 EOF
     return;
-  } elsif ($_cml_state->{current_definition}) {
+  } elsif ($_cm_state->{current_definition}) {
     debug(<<"EOF");
 ignoring $cmd_info->{name} at line $cmd_info->{start_line} in \
-definition of $_cml_state->{current_definition}->{name}()
+definition of $_cm_state->{current_definition}->{name}()
 EOF
     return;
-  } ## end elsif ($_cml_state->{current_definition... [ if ($_cml_state->{seen_cmds...})]})
-  $_cml_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
+  } ## end elsif ($_cm_state->{current_definition... [ if ($_cm_state->{seen_cmds...})]})
+  $_cm_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
   debug(<<"EOF");
 found top level $cmd_info->{name}() at line $cmd_info->{start_line}
 EOF
 
-  if (not has_keyword($cmd_info, 'VERSION')) {
+  if (not $cmd_info->has_keyword('VERSION')) {
     warning(<<"EOF");
 ill-formed $cmd_info->{name}() at line $cmd_info->{start_line} (no VERSION) will be corrected
 EOF
-    append_args($cmd_info, 'VERSION', $_cmake_required_version);
+    $cmd_info->append_args('VERSION', $_cmake_required_version);
     $edit = "added missing keyword VERSION";
   } else {
     my ($req_version_idx) =
-      find_single_value_for($cmd_info, qw(VERSION FATAL_ERROR));
+      $cmd_info->find_single_value_for(qw(VERSION FATAL_ERROR));
 
     if (not $req_version_idx) {
       warning(<<"EOF");
 ill-formed $cmd_info->{name}() at line $cmd_info->{start_line} (VERSION keyword missing value) will be corrected
 EOF
-      insert_args_at(
-          $cmd_info,
-          keyword_arg_append_position(
-            $cmd_info, 'VERSION', 'FATAL_ERROR'
-          ),
+      $cmd_info->insert_args_at(
+          $cmd_info->keyword_arg_append_position('VERSION', 'FATAL_ERROR'),
           $_cmake_required_version);
       $edit = "VERSION keyword missing value";
     } else {
-      my $req_version = arg_at($cmd_info, $req_version_idx);
-      my ($req_version_int, $is_literal) = interpolated($req_version);
+      my ($req_version_int, $is_literal) =
+        $cmd_info->interpolated_arg_at($req_version_idx);
 
       if (not $is_literal) {
         warning(<<"EOF");
@@ -643,15 +643,15 @@ EOF
         my $new_req_version =
           join(q(...), $_cmake_required_version, $vmax // ());
         $edit = sprintf("VERSION %s -> $new_req_version",
-            arg_at($cmd_info, $req_version_idx));
-        replace_arg_at($cmd_info, $req_version_idx, $new_req_version);
+            $cmd_info->arg_at($req_version_idx));
+        $cmd_info->replace_arg_at($req_version_idx, $new_req_version);
       } ## end if (version_cmp($vmin,...))
     } ## end else [ if (not $req_version_idx)]
-  } ## end else [ if (not has_keyword($cmd_info...))]
+  } ## end else [ if (not $cmd_info->has_keyword...)]
   defined $edit and tag_changed($cmd_info, $edit || ());
 
-  if (not has_keyword($cmd_info, 'FATAL_ERROR')) {
-    append_args($cmd_info, 'FATAL_ERROR');
+  if (not $cmd_info->has_keyword('FATAL_ERROR')) {
+    $cmd_info->append_args('FATAL_ERROR');
     tag_changed($cmd_info, "added FATAL_ERROR");
   }
   return;
@@ -659,7 +659,7 @@ EOF
 
 
 sub comment_handler {
-  my ($pi, $comments, $cmakelists, $options) = @_;
+  my ($pi, $comments, $cmake_file, $options) = @_;
   return;
 }
 
@@ -675,9 +675,10 @@ sub endmacro {
 
 
 sub eof_handler {
-  my ($cml_data, $line_no, $options) = @_;
-  verbose("[SUCCESS] processed $cml_data->{cmakelists} ($line_no lines)");
-  undef $_cml_state;
+  my ($cmake_file_data, $line_no, $options) = @_;
+  verbose(
+      "[SUCCESS] processed $cmake_file_data->{cmake_file} ($line_no lines)");
+  undef $_cm_state;
   return;
 } ## end sub eof_handler
 
@@ -688,34 +689,34 @@ sub function {
 
 
 sub find_library {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  if (has_keyword($cmd_info, 'ENV')
-      or List::MoreUtils::any { arg_at($cmd_info, $_) =~ m&\$ENV\{&msx; }
-      all_idx_idx($cmd_info)
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  if ($cmd_info->has_keyword('ENV')
+      or List::MoreUtils::any { $cmd_info->arg_at($_) =~ m&\$ENV\{&msx; }
+      $cmd_info->all_idx_idx()
     ) {
     flag_recommended($cmd_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake or cet_find_library() with ENV <x> for transitivity, relocatability
+prefer find_package() with custom Find<pkg>.cmake or cet_find_library() with ENV <x> for transitivity, relocatability
 EOF
   } else {
     flag_recommended($cmd_info, <<'EOF');
-use find_package() with custom Find<pkg>.cmake for transitivity, relocatability
+prefer find_package() with custom Find<pkg>.cmake for transitivity, relocatability
 EOF
-  } ## end else [ if (has_keyword($cmd_info...))]
+  } ## end else [ if ($cmd_info->has_keyword...)]
   return;
 } ## end sub find_library
 
 
 sub find_package {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  my $package_to_find = interpolated(arg_at($cmd_info, 0));
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  my $package_to_find = $cmd_info->interpolated_arg_at(0);
 
   if ($package_to_find =~ m&\A(cet(?:modules|buildtools))\z&msx
       and (
-        exists $_cml_state->{project_info}
-        or (  exists $_cml_state->{seen_cmds}
-          and exists $_cml_state->{seen_cmds}->{ $cmd_info->{name} }
-          and scalar keys $_cml_state->{seen_cmds}->{ $cmd_info->{name} }
-          ->{cetmodules}))
+        exists $_cm_state->{project_info}
+        or (  exists $_cm_state->{seen_cmds}
+          and exists $_cm_state->{seen_cmds}->{ $cmd_info->{name} }
+          and scalar
+          keys $_cm_state->{seen_cmds}->{ $cmd_info->{name} }->{cetmodules}))
     ) {
     info(<<"EOF");
 removing late, redundant $cmd_info->{name}($1) at line $cmd_info->{start_line}
@@ -727,30 +728,30 @@ EOF
   if ($package_to_find eq 'cetbuildtools') {
     tag_changed($cmd_info, "$package_to_find -> cetmodules");
     $package_to_find = 'cetmodules';
-    replace_arg_at($cmd_info, 0, $package_to_find);
+    $cmd_info->replace_arg_at(0, $package_to_find);
   } ## end if ($package_to_find eq...)
-  $_cml_state->{seen_cmds}->{ $cmd_info->{name} }->{$package_to_find}
+  $_cm_state->{seen_cmds}->{ $cmd_info->{name} }->{$package_to_find}
     ->{ $cmd_info->{start_line} } = $cmd_info;
   my @removed_keywords = map {
-      remove_keyword($cmd_info, $_, _find_package_keywords()) // ();
+      $cmd_info->remove_keyword($_, _find_package_keywords()) // ();
   } qw(BUILD_ONLY PRIVATE);
 
   if (my @obsolete_keywords = map {
-        remove_keyword($cmd_info, $_, _find_package_keywords()) // ();
+        $cmd_info->remove_keyword($_, _find_package_keywords()) // ();
       } qw(INTERFACE PUBLIC)
     ) {
 
-    if (defined find_keyword($cmd_info, 'EXPORT')) {
+    if (defined $cmd_info->find_keyword('EXPORT')) {
       push @removed_keywords, @obsolete_keywords;
     } else {
-      append_args($cmd_info, 'EXPORT');
+      $cmd_info->append_args('EXPORT');
       tag_changed(
           $cmd_info,
           sprintf(
             "replaced obsolete keyword%s with EXPORT: %s",
             ($#obsolete_keywords) ? 's' : q(),
             join(q( ), @obsolete_keywords)));
-    } ## end else [ if (defined find_keyword...)]
+    } ## end else [ if (defined $cmd_info->...)]
   } ## end if (my @obsolete_keywords...)
   scalar @removed_keywords
     and tag_changed(
@@ -779,55 +780,55 @@ sub find_ups_geant4 { ## no critic qw(Bangs::ProhibitNumberedNames)
 
 
 sub find_ups_product {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $old_cmd = $cmd_info->{name};
   my ($product_to_find, $package_to_find, $had_project_kw);
 
   # Handle OPTIONAL keyword.
-  my $add_required = not remove_keyword($cmd_info, "OPTIONAL");
+  my $add_required = not $cmd_info->remove_keyword("OPTIONAL");
 
   # Rename the function.
-  replace_cmd_with($cmd_info, 'find_package');
+  $cmd_info->replace_cmd_with('find_package');
 
   # Behavior specific to the function we're replacing.
   given ($old_cmd) {
     when ('find_ups_product') {
-      $product_to_find = interpolated(arg_at($cmd_info, 0));
+      $product_to_find = $cmd_info->interpolated_arg_at(0);
 
       # Determine package name for product and replace args.
       $had_project_kw =
-        remove_keyword($cmd_info, "PROJECT", _find_package_keywords());
-      $package_to_find = single_value_for($cmd_info, 'PROJECT', 1)
+        $cmd_info->remove_keyword("PROJECT", _find_package_keywords());
+      $package_to_find = $cmd_info->single_value_for('PROJECT', 1)
         // _product_to_package($product_to_find);
 
       if ($package_to_find ne $product_to_find) {
-        replace_arg_at($cmd_info, 0, $package_to_find);
+        $cmd_info->replace_arg_at(0, $package_to_find);
       }
     } ## end when ('find_ups_product')
     when (m&\Afind_ups_(?P<product>boost|geant4|root)\z&msx) {
       $package_to_find = _product_to_package($LAST_PAREN_MATCH{product});
-      prepend_args($cmd_info, $package_to_find);
+      $cmd_info->prepend_args($package_to_find);
     }
     default { # Unknown command delegated to us.
       error_exit(<<"EOF");
-[INTERNAL] unrecognized command $old_cmd at $cmakelists:$cmd_info->{start_line}
+[INTERNAL] unrecognized command $old_cmd at $cmake_file:$cmd_info->{start_line}
 EOF
     } ## end default
   } ## end given
 
   # Translate minimum version requirement if necessary.
-  my $minv = interpolated(arg_at($cmd_info, 1));
+  my $minv = $cmd_info->interpolated_arg_at(1);
   is_ups_version($minv) or undef $minv;
 
   # Remove arguments to find_ups_boost() not already handled.
   if (not defined $product_to_find and $package_to_find eq 'Boost') {
-    remove_args_at($cmd_info,
+    $cmd_info->remove_args_at(
         ((defined $minv) ? 2 : 1) .. $#{ $cmd_info->{arg_indexes} });
   }
   $add_required
-    and not has_keyword($cmd_info, 'REQUIRED')
-    and append_args($cmd_info, "REQUIRED");
+    and not $cmd_info->has_keyword('REQUIRED')
+    and $cmd_info->append_args("REQUIRED");
 
   ####################################
   # Compose and add the annotation.
@@ -846,7 +847,7 @@ EOF
   # Handling of $minv delayed to when we no longer need the UPS version.
   if (defined $minv) {
     $minv = to_dot_version($minv);
-    replace_arg_at($cmd_info, 1, $minv);
+    $cmd_info->replace_arg_at(1, $minv);
     unshift @new_bits, $minv;
   } ## end if (defined $minv)
   scalar @old_bits and unshift @new_bits, $package_to_find;
@@ -860,8 +861,7 @@ EOF
         join(q( ), @new_bits)));
   ##
   ####################################
-  return find_package($pi, $cmd_infos, $cmd_info, $cmakelists,
-      $options);
+  return find_package($pi, $cmd_infos, $cmd_info, $cmake_file, $options);
 } ## end sub find_ups_product
 
 
@@ -871,10 +871,10 @@ sub find_ups_root {
 
 
 sub include {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  given (interpolated(arg_at($cmd_info, 0))) {
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  given ($cmd_info->interpolated_arg_at(0)) {
     when ('CetParseArgs') {
-      report_removed($options->{cmakelists_short} // $cmakelists,
+      report_removed($options->{cmake_filename_short} // $cmake_file,
           " (obsolete)", pop @{$cmd_infos});
     }
     default { } # NOP.
@@ -884,7 +884,7 @@ sub include {
 
 
 sub include_directories {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 EOF
@@ -893,7 +893,7 @@ EOF
 
 
 sub link_directories {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
 EOF
@@ -902,7 +902,7 @@ EOF
 
 
 sub link_libraries {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions: use target_link_libraries() whenever possible
 EOF
@@ -916,28 +916,28 @@ sub macro {
 
 
 sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
-  if ($_cml_state->{seen_cmds}->{ $cmd_info->{name} }) {
+  if ($_cm_state->{seen_cmds}->{ $cmd_info->{name} }) {
     info(<<"EOF");
 ignoring subsequent $cmd_info->{name}() at line $cmd_info->{start_line} \
-previously seen at $_cml_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
+previously seen at $_cm_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
 EOF
     return;
   } elsif (not(
-      exists $_cml_state->{seen_cmds}->{'find_package'}
-      and $_cml_state->{seen_cmds}->{'find_package'}->{cetmodules})) {
+      exists $_cm_state->{seen_cmds}->{'find_package'}
+      and $_cm_state->{seen_cmds}->{'find_package'}->{cetmodules})) {
     unshift @{$cmd_infos},
       ${tag_added(
           sprintf("%sfind_package(cetmodules REQUIRED)\n",
             $cmd_info->{pre_cmd_ws} // q()),
           "find_package(cetmodules) must precede project()") };
-  } ## end elsif (not(exists $_cml_state... [ if ($_cml_state->{seen_cmds...})]))
-  $_cml_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
-  $_cml_state->{project_info}                         = my $project_info = {};
-  $project_info->{first_pass}                         = my $cpi =
-    get_cmake_project_info(dirname($cmakelists, $options),
+  } ## end elsif (not(exists $_cm_state... [ if ($_cm_state->{seen_cmds...})]))
+  $_cm_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
+  $_cm_state->{project_info}                     = my $project_info = {};
+  $project_info->{first_pass}                    = my $cpi =
+    get_cmake_project_info(dirname($cmake_file, $options),
       quiet_warnings => 1);
   $project_info->{name} = $cpi->{cmake_project_name};
   my $n_args = scalar @{ $cmd_info->{arg_indexes} };
@@ -945,13 +945,13 @@ EOF
 
   if ( # Identify old-style project().
       $n_args > 1 and List::MoreUtils::all {
-        my $arg = interpolated($cmd_info, $_);
+        my $arg = $cmd_info->interpolated_arg_at($_);
         List::MoreUtils::any { $arg eq $_; } @_cmake_languages;
       }
       1 .. ($n_args - 1)
     ) {
     # Old-style command with only name and languages (no keywords).
-    add_args_after($cmd_info, 0, 'LANGUAGES');
+    $cmd_info->add_args_after(0, 'LANGUAGES');
   } ## end if (  $n_args > 1 and ...)
 
   if ($cpi->{CMAKE_PROJECT_VERSION_STRING}) {
@@ -967,7 +967,7 @@ project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overrid
 EOF
 
       # Delete any VERSIONs from project() to avoid confusion.
-      remove_keyword($cmd_info, 'VERSION', @PROJECT_KEYWORDS);
+      $cmd_info->remove_keyword('VERSION', @PROJECT_KEYWORDS);
       $project_info->{cmake_project_version} =
         $cpi->{CMAKE_PROJECT_VERSION_STRING};
       $project_info->{cmake_project_version_info} = $vsinfo;
@@ -975,7 +975,7 @@ EOF
           "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
 
       if (my $vs_cmd_info =
-          $_cml_state->{seen_cmds}->{'set'}->{CMAKE_PROJECT_VERSION_STRING}) {
+          $_cm_state->{seen_cmds}->{'set'}->{CMAKE_PROJECT_VERSION_STRING}) {
 
         # This was seen too early and removed: reinstate it here with
         # the correct indentation.
@@ -989,7 +989,7 @@ EOF
         tag_changed($vs_cmd_info,
             "moved from line $vs_cmd_info->{start_line}");
         push @{$cmd_infos}, $vs_cmd_info;
-      } ## end if (my $vs_cmd_info...)
+      } ## end if (my $vs_cmd_info = ...)
     } else {
       $project_info->{redundant_version_string} = 1;
 
@@ -1000,8 +1000,8 @@ project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overrid
 EOF
 
         # Delete any VERSIONs from project() to avoid confusion.
-        remove_keyword($cmd_info, 'VERSION', @PROJECT_KEYWORDS);
-        add_args_after($cmd_info, 0, 'VERSION',
+        $cmd_info->remove_keyword('VERSION', @PROJECT_KEYWORDS);
+        $cmd_info->add_args_after(0, 'VERSION',
             $cpi->{CMAKE_PROJECT_VERSION_STRING});
         tag_changed($cmd_info,
             "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
@@ -1010,7 +1010,7 @@ EOF
   } elsif (defined $cpi->{cmake_project_version} and defined $pi->{version})
   { # we override product_deps
     warning(<<"EOF");
-UPS product version $pi->{version} overridden by project($project_info->{name} ... VERSION $cpi->{cmake_project_version} ...) at $cmakelists:$cmd_info->{start_line}
+UPS product version $pi->{version} overridden by project($project_info->{name} ... VERSION $cpi->{cmake_project_version} ...) at $cmake_file:$cmd_info->{start_line}
 EOF
   } elsif (not defined $cpi->{cmake_project_version}
       and defined $pi->{version}) { # Take version from product_deps
@@ -1026,13 +1026,12 @@ EOF
       push @{$cmd_infos}, ${$lineref};
 
       # Remove any empty VERSION keywords.
-      remove_keyword($cmd_info, 'VERSION', @PROJECT_KEYWORDS);
+      $cmd_info->remove_keyword('VERSION', @PROJECT_KEYWORDS);
     } else {
-      remove_keyword($cmd_info, 'VERSION', @PROJECT_KEYWORDS);
-      add_args_after($cmd_info, 0, 'VERSION',
+      $cmd_info->remove_keyword('VERSION', @PROJECT_KEYWORDS);
+      $cmd_info->add_args_after(0, 'VERSION',
           $cpi->{CMAKE_PROJECT_VERSION_STRING});
-      tag_changed($cmd_info,
-          "set(CMAKE_PROJECT_VERSION_STRING) -> VERSION");
+      tag_changed($cmd_info, "set(CMAKE_PROJECT_VERSION_STRING) -> VERSION");
     } ## end else [ if ($vinfo->{extra}) ]
   } ## end elsif (not defined $cpi->... [ if ($cpi->{CMAKE_PROJECT_VERSION_STRING...})])
   return;
@@ -1040,7 +1039,7 @@ EOF
 
 
 sub remove_definitions {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 avoid directory-scope functions whenever possible
 EOF
@@ -1055,9 +1054,10 @@ my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
 
 
 sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   debug("in handler for $cmd_info->{name}()");
-  my ($set_var_name, $is_literal) = interpolated($cmd_info, 0) // return;
+  my ($set_var_name, $is_literal) = $cmd_info->interpolated_arg_at(0)
+    // return;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
   if ($set_var_name = List::MoreUtils::first_value {
@@ -1066,17 +1066,14 @@ sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
       @_HANDLED_SET_VARS
     ) {
     # We have a match and (hopefully) a handler therefor.
-    push @{ $_cml_state->{seen_cmds}->{'set'}->{$set_var_name} },
-      $cmd_info;
+    push @{ $_cm_state->{seen_cmds}->{'set'}->{$set_var_name} }, $cmd_info;
     local $EVAL_ERROR; ## no critic qw(RequireInitializationForLocalVars)
     my $func_name = "Cetmodules::Migrate::CMake::Handlers\::_$set_var_name";
     my $func_ref  = \&{$func_name};
-    eval {
-        &{$func_ref}
-        ($pi, $cmd_infos, $cmd_info, $cmakelists, $options);
-    } or 1;
+    eval { &{$func_ref}($pi, $cmd_infos, $cmd_info, $cmake_file, $options); }
+      or 1;
     $EVAL_ERROR and error_exit(<<"EOF");
-error calling SET handler for matched variable $set_var_name at $cmakelists:$cmd_info->{start_line}:
+error calling SET handler for matched variable $set_var_name at $cmake_file:$cmd_info->{start_line}:
 $EVAL_ERROR
 EOF
   } ## end if ($set_var_name = List::MoreUtils::first_value...)
@@ -1085,7 +1082,7 @@ EOF
 
 
 sub simple_plugin {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_recommended($cmd_info, <<"EOF");
 deprecated: use cet_build_plugin() with explicit source lists and plugin base types
 EOF
@@ -1094,20 +1091,20 @@ EOF
 
 
 sub subdirs {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  report_removed($options->{cmakelists_short} // $cmakelists,
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  report_removed($options->{cmake_filename_short} // $cmake_file,
       " (obsolete)", pop @{$cmd_infos});
   scalar @{ $cmd_info->{arg_indexes} } or return;
   my $mode               = q();
   my @preordered_subdirs = ();
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-arg: foreach my $arg_idx (all_idx_idx($cmd_info)) {
-    my $arg = arg_at($cmd_info, $arg_idx);
+arg: foreach my $arg_idx ($cmd_info->all_idx_idx()) {
+    my $arg = $cmd_info->arg_at($arg_idx);
     given (interpolated($arg)) {
       when ('ups') { # Drop.
-        info(sprintf(<<"EOF", arg_location($cmd_info, $arg_idx)));
+        info(sprintf(<<"EOF", $cmd_info->arg_location($arg_idx)));
 subdirs(...) -> add_subdirectory(ups) omitted (no longer required)
-at $cmakelists:%s
+at $cmake_file:%s
 EOF
         next arg;
       } ## end when ('ups')
@@ -1129,7 +1126,7 @@ EOF
     } else {
       push @{$cmd_infos}, $new_cmd;
     }
-  } ## end arg: foreach my $arg_idx (all_idx_idx...)
+  } ## end arg: foreach my $arg_idx ($cmd_info...)
 
   if (scalar @preordered_subdirs) {
     unshift @{$cmd_infos}, @preordered_subdirs;
@@ -1146,31 +1143,29 @@ sub tbb_offload {
 # Private functions
 ########################################################################
 sub _cmd_definition {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
-  my $name = interpolated($cmd_info, 0);
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  my $name = $cmd_info->interpolated_arg_at(0);
   my $type = $cmd_info->{name};
 
-  if ($_cml_state->{current_definition}) {
-    my $cd_info = $_cml_state->{current_definition};
+  if ($_cm_state->{current_definition}) {
+    my $cd_info = $_cm_state->{current_definition};
     error(<<"EOF");
 found nested definition of $type $name at line $cmd_info->{start_line}:
 already in definition of $cd_info->{type} $cd_info->{name} since line $cd_info->{start_line}
 EOF
   } else {
-    debug(
-        "found definition of $type $name at line $cmd_info->{start_line}"
-    );
-    $_cml_state->{current_definition} =
+    debug("found definition of $type $name at line $cmd_info->{start_line}");
+    $_cm_state->{current_definition} =
       { %{$cmd_info}, name => $name, type => $type };
-  } ## end else [ if ($_cml_state->{current_definition...})]
+  } ## end else [ if ($_cm_state->{current_definition...})]
   return;
 } ## end sub _cmd_definition
 
 
 sub _end_cmd_definition {
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my ($type) = ($cmd_info->{name} =~ m&\Aend(.*)\z&msx);
-  my $cd_info = $_cml_state->{current_definition};
+  my $cd_info = $_cm_state->{current_definition};
 
   if (not defined $cd_info) {
     error(<<"EOF");
@@ -1185,7 +1180,7 @@ EOF
 found $cmd_info->{name}() at line $cmd_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $cd_info->{start_line}
 EOF
   } ## end else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
-  delete $_cml_state->{current_definition};
+  delete $_cm_state->{current_definition};
   return;
 } ## end sub _end_cmd_definition
 
@@ -1289,25 +1284,25 @@ sub _product_to_package {
 #
 ########################################################################
 sub _set_CMAKE_PROJECT_VERSION_STRING { ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
 
-  if (not $_cml_state->{seen_cmds}->{'project'}) { # Too early.
+  if (not $_cm_state->{seen_cmds}->{'project'}) { # Too early.
     warning(<<"EOF");
-project variable CMAKE_PROJECT_VERSION_STRING set at $cmakelists:$cmd_info->{start_line} must follow project() and precede cet_cmake_env() - relocating
+project variable CMAKE_PROJECT_VERSION_STRING set at $cmake_file:$cmd_info->{start_line} must follow project() and precede cet_cmake_env() - relocating
 EOF
-  } elsif (not $_cml_state->{project_info}->{redundant_version_string}) {
+  } elsif (not $_cm_state->{project_info}->{redundant_version_string}) {
     return;
   }
 
   # Don't need this command.
-  report_removed($options->{cmakelists_short} // $cmakelists,
+  report_removed($options->{cmake_filename_short} // $cmake_file,
       " (obsolete)", pop @{$cmd_infos});
   return;
 } ## end sub _set_CMAKE_PROJECT_VERSION_STRING
 
 
 sub _set_CMAKE_INSTALL_PREFIX { ## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
-  my ($pi, $cmd_infos, $cmd_info, $cmakelists, $options) = @_;
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   flag_required($cmd_info, <<"EOF");
 REMOVE: avoid setting CMAKE_INSTALL_PREFIX in CMake code
 EOF
