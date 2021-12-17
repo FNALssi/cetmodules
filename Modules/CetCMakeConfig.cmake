@@ -100,14 +100,16 @@ function(_cet_cmake_config_impl)
   if (NOT CCC_NO_CMAKE_CONFIG)
     if (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH)
       set(ARCH_INDEPENDENT ARCH_INDEPENDENT)
-      set(config_out_default_var DATA_ROOT_DIR)
-    else()
-      set(config_out_default_var LIBRARY_DIR)
     endif()
-    project_variable(CONFIG_OUTPUT_ROOT_DIR
-      ${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}
+    if (${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY AND NOT
+        ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH)
+      set(config_out_default_var LIBRARY_DIR)
+    else()
+      set(config_out_default_var DATA_ROOT_DIR)
+    endif()
+    project_variable(CONFIG_OUTPUT_ROOT_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_${config_out_default_var}}"
       DOCSTRING "Output location for CMake Config files, etc. for find_package()")
-    get_project_variable_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
+    cet_get_pv_property(origin CONFIG_OUTPUT_ROOT_DIR PROPERTY ORIGIN)
     set(distdir "${${CETMODULES_CURRENT_PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR}")
     if ("${distdir}" STREQUAL "") # Oops.
       if (origin STREQUAL "<initial-value>") # Defaulted...
@@ -201,8 +203,11 @@ macro(_configure_cpack)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CETMODULES_CURRENT_PROJECT_SOURCE_DIR)
     if (CMAKE_PROJECT_NAME STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
       if (CETMODULES_CONFIG_CPACK_MACRO)
-        # Make sure we include non-numeric version components.
-        set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+        parse_version_string(${PROJECT_VERSION} CPACK_PACKAGE_VERSION SEP . NO_EXTRA EXTRA_VAR _cc_extra)
+        # Make sure we include non-numeric version components, removing unwanted characters.
+        string(REGEX REPLACE "[ -]" "_" _cc_extra "${_cc_extra}")
+        string(APPEND CPACK_PACKAGE_VERSION "${_cc_extra}")
+        unset(_cc_extra)
         # Configure everything else.
         cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
         # invoke CPack.
@@ -322,15 +327,15 @@ function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
     # We can check for nullity and lack of CONFIG now; path
     # existence and directory content must be delayed to find_package()
     # time.
-    get_project_variable_property(${VAR_NAME} PROPERTY CONFIG)
-    get_project_variable_property(${VAR_NAME} PROPERTY OMIT_IF_NULL)
+    cet_get_pv_property(${VAR_NAME} PROPERTY CONFIG)
+    cet_get_pv_property(${VAR_NAME} PROPERTY OMIT_IF_NULL)
     if (NOT CONFIG OR (OMIT_IF_NULL AND (NOT VAL_DEFINED OR VAR_VAL
         STREQUAL "")))
       continue()
     endif()
     list(APPEND defs_list "# ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}")
-    get_project_variable_property(${VAR_NAME} PROPERTY OMIT_IF_MISSING)
-    get_project_variable_property(${VAR_NAME} PROPERTY OMIT_IF_EMPTY)
+    cet_get_pv_property(${VAR_NAME} PROPERTY OMIT_IF_MISSING)
+    cet_get_pv_property(${VAR_NAME} PROPERTY OMIT_IF_EMPTY)
     # Add logic for conditional definitions.
     if (OMIT_IF_MISSING OR OMIT_IF_EMPTY)
       set(indent "  ")
@@ -344,7 +349,7 @@ function(_generate_pvar_defs RESULTS_VAR PATH_VARS_VAR)
       set(indent)
     endif()
     # Logic for handling paths and path fragments.
-    get_project_variable_property(${VAR_NAME} PROPERTY IS_PATH)
+    cet_get_pv_property(${VAR_NAME} PROPERTY IS_PATH)
     if (IS_PATH)
       list(APPEND _GPD_${PATH_VARS_VAR} ${VAR_NAME})
       if (VAL_DEFINED)

@@ -6,3 +6,6 @@ add_test(NAME parse_version_string-cmake_t
 
 add_test(NAME version_cmp-cmake_t
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version_cmp-cmake_t)
+
+set_tests_properties(parse_version_string-cmake_t version_cmp-cmake_t
+  PROPERTIES LABELS "DEFAULT;RELEASE")

@@ -261,7 +261,7 @@ function(_project_var_to_ups_path VAR_NAME RESULT_VAR)
     unset(${RESULT_VAR} PARENT_SCOPE)
     return()
   endif()
-  get_project_variable_property(pv_type ${VAR_NAME} PROPERTY TYPE)
+  cet_get_pv_property(pv_type ${VAR_NAME} PROPERTY TYPE)
   if (pv_type MATCHES [=[^(FILE)?PATH]=]) # Eligible for tweak.
     set(result "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}}")
     cmake_parse_arguments(PARSE_ARGV 2 _PVUPS "REVERSE" "" "")
