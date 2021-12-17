@@ -203,8 +203,11 @@ macro(_configure_cpack)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CETMODULES_CURRENT_PROJECT_SOURCE_DIR)
     if (CMAKE_PROJECT_NAME STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
       if (CETMODULES_CONFIG_CPACK_MACRO)
-        # Make sure we include non-numeric version components.
-        set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+        parse_version_string(${PROJECT_VERSION} CPACK_PACKAGE_VERSION SEP . NO_EXTRA EXTRA_VAR _cc_extra)
+        # Make sure we include non-numeric version components, removing unwanted characters.
+        string(REGEX REPLACE "[ -]" "_" _cc_extra "${_cc_extra}")
+        string(APPEND CPACK_PACKAGE_VERSION "${_cc_extra}")
+        unset(_cc_extra)
         # Configure everything else.
         cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
         # invoke CPack.
