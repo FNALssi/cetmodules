@@ -23,6 +23,7 @@ my @_incoming_keywords = qw(
   chunks
   cmd_start_char
   command
+  end_line
   name
   pre
   pre_cmd_ws
@@ -213,57 +214,61 @@ sub insert_args_at {
       ($n_arg_indexes
         and not is_whitespace($self->{chunks}->[$_LAST_ELEM_IDX]));
   } ## end else [ if (($idx_idx // $n_arg_indexes...))]
-  my (@new_chunks, @new_indexes, @new_locations);
-  $need_preceding_whitespace and push @new_chunks, q( );
-  my $n_newlines_tot = 0;
-  my $point_index    = $point_index_start;
 
-  foreach my $item (@to_add) {
-    push @new_locations, $line_no_init + $n_newlines_tot;
-    my $ws;
-    ($item, $ws) = ($item =~ m&\A(.*?)(\s*)\z&msx);
+  if (scalar @to_add) {
+    my (@new_chunks, @new_indexes, @new_locations);
+    $need_preceding_whitespace and push @new_chunks, q( );
+    my $n_newlines_tot = 0;
+    my $point_index    = $point_index_start;
 
-    if (is_comment($item)) {
-      push @new_chunks, $item, ($ws =~ m&\n\z&msx) ? $ws : "$ws\n";
-      ++$n_newlines_tot;
-      $point_index += 2;
-    } else {
-      my @item_chunks = separate_quotes($item);
-      push @new_chunks,  @item_chunks, ($ws eq q()) ? q( ) : $ws;
-      push @new_indexes, $point_index + ((@item_chunks > 1) ? 1 : 0);
-      $point_index += scalar @item_chunks + 1;
-      my $n_newlines =()= $item =~ m&\n&msgx;
-      $n_newlines_tot += $n_newlines;
-    } ## end else [ if (is_comment($item))]
-  } ## end foreach my $item (@to_add)
+    foreach my $item (@to_add) {
+      push @new_locations, $line_no_init + $n_newlines_tot;
+      my $ws;
+      ($item, $ws) = ($item =~ m&\A(.*?)(\s*)\z&msx);
 
-  if (not(
-      $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace)) {
-    pop @new_chunks;
-    --$point_index;
-  } ## end if (not($new_chunks[$_LAST_ELEM_IDX...]))
-  my $n_new_chunks = scalar @new_chunks;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+      if (is_comment($item)) {
+        push @new_chunks, $item, ($ws =~ m&\n\z&msx) ? $ws : "$ws\n";
+        ++$n_newlines_tot;
+        $point_index += 2;
+      } else {
+        my @item_chunks = separate_quotes($item);
+        push @new_chunks,  @item_chunks, ($ws eq q()) ? q( ) : $ws;
+        push @new_indexes, $point_index + ((@item_chunks > 1) ? 1 : 0);
+        $point_index += scalar @item_chunks + 1;
+        my $n_newlines =()= $item =~ m&\n&msgx;
+        $n_newlines_tot += $n_newlines;
+      } ## end else [ if (is_comment($item))]
+    } ## end foreach my $item (@to_add)
 
-  for (reverse($idx_idx .. $#{ $self->{arg_indexes} })) {
-    my $index = $self->{arg_indexes}->[$_];
-    $self->{arg_indexes}->[$_] += $n_new_chunks;
-    $self->{chunk_locations}->{ $index + $n_new_chunks } =
-      $self->{chunk_locations}->{$index} + $n_newlines_tot;
-  } ## end for (reverse($idx_idx .....))
-  $self->{end_line} += $n_newlines_tot;
+    if (not(
+        $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace))
+    {
+      pop @new_chunks;
+      --$point_index;
+    } ## end if (not($new_chunks[$_LAST_ELEM_IDX...]))
+    my $n_new_chunks = scalar @new_chunks;
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
-  # Splice in the new arg_index entries.
-  splice(@{ $self->{arg_indexes} }, $idx_idx, 0, @new_indexes);
+    for (reverse($idx_idx .. $#{ $self->{arg_indexes} })) {
+      my $index = $self->{arg_indexes}->[$_];
+      $self->{arg_indexes}->[$_] += $n_new_chunks;
+      $self->{chunk_locations}->{ $index + $n_new_chunks } =
+        $self->{chunk_locations}->{$index} + $n_newlines_tot;
+    } ## end for (reverse($idx_idx .....))
+    $self->{end_line} += $n_newlines_tot;
 
-  # Fill in the locations of the new arguments.
-  @{ $self->{chunk_locations} }{@new_indexes} = @new_locations;
+    # Splice in the new arg_index entries.
+    splice(@{ $self->{arg_indexes} }, $idx_idx, 0, @new_indexes);
 
-  # Add the arguments (and any whitespace, etc.) to the chunks list.
-  splice(@{ $self->{chunks} }, $point_index_start, 0, @new_chunks);
+    # Fill in the locations of the new arguments.
+    @{ $self->{chunk_locations} }{@new_indexes} = @new_locations;
 
-  # Recalculate comment indexes.
-  $self->$_recalculate_comment_indexes();
+    # Add the arguments (and any whitespace, etc.) to the chunks list.
+    splice(@{ $self->{chunks} }, $point_index_start, 0, @new_chunks);
+
+    # Recalculate comment indexes.
+    $self->$_recalculate_comment_indexes();
+  } ## end if (scalar @to_add)
   return $idx_idx;
 } ## end sub insert_args_at
 
