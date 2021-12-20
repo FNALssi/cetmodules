@@ -166,8 +166,11 @@ sub compiler_for_quals {
   $compilers->{$qualspec}
     and $compilers->{$qualspec} ne q(-)
     and return $compilers->{$qualspec};
-  my $compiler = 'cc'; # Default to native.
-  given (${ sort_qual($qualspec) }[0] // q()) {
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+  my $compiler     = 'cc'; # Default to native.
+  my @sorted_quals = ();
+  sort_qual(\@sorted_quals, $qualspec);
+  given ($sorted_quals[0] // q()) {
     when (m&\A(?:e13|c(?:lang)?\d+)\z&msx) {
       $compiler = "clang";
     }

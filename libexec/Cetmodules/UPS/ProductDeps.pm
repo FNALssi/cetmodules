@@ -342,7 +342,7 @@ sub sort_qual {
   my @extquals = ();
 
   foreach my $q (map { (m&\A\+(.*)?&msx) or $_; } @resplit_args) {
-    if ($q =~ m&\A[ce]\d+z&msx) {
+    if ($q =~ m&\A[ce]\d+\z&msx) {
       $cqual
         and error_exit("multiple primary qualifiers encountered: $cqual, $q")
         or $cqual = $q;
