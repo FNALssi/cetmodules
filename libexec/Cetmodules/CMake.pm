@@ -601,10 +601,7 @@ sub _process_pending_comments {
   my ($cmake_file_data, $line_no, $options) = @_;
   my ($cmake_file, $cmake_file_out, $pending_comments) =
     @{$cmake_file_data}{qw(cmake_file cmake_file_out pending_comments)};
-  $pending_comments
-    and $pending_comments->{start_line}
-    and exists $cmake_file_data->{comment_handler}
-    or return;
+  $pending_comments and $pending_comments->{start_line} or return;
 
   # Make our comment block hash look like a "real" $cmd_info.
   @{$pending_comments}
@@ -624,6 +621,7 @@ sub _process_pending_comments {
 
   # Call the comment handler.
   $cmake_file_data->{comment_handler}
+    and $cmake_file_data->{comment_handler}
     ->($pending_comments, $cmake_file, $options);
 
   # Output the (possibly-changed) comment lines, if we care.
@@ -678,15 +676,16 @@ EOF
         $options);
 
     # If we have end-of-line comments, process them first.
-    if ($cmd_info->{post} =~ m&[)]\s*[#]&msx
-        or scalar @{ $cmd_info->{comment_indexes} // [] }
-        and exists $cmake_file_data->{comment_handler}) {
+    if (exists $cmake_file_data->{comment_handler}
+        and ($cmd_info->{post} =~ m&[)]\s*[#]&msx
+          or scalar @{ $cmd_info->{comment_indexes} // [] })
+      ) {
       debug(sprintf(<<"EOF", $cmd_info->{name}));
 invoking registered comment handler for end-of-line comments for COMMAND \%s()
 EOF
       &{ $cmake_file_data->{comment_handler} }
         ($cmd_info, $cmake_file, $options);
-    } ## end if ($cmd_info->{post} ...)
+    } ## end if (exists $cmake_file_data...)
     my $cmd_infos = [$cmd_info];
 
     # Now see if someone is interested in this call.
