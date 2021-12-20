@@ -255,16 +255,15 @@ sub get_cmake_project_info {
   undef $_seen_cet_cmake_env;
   undef $_seen_project;
   my $cmake_file = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  my $proj_info = { map { %{$_}; }
-                    values %{
-                      process_cmake_file(
-                        $cmake_file,
-                        { %options,
-                          project_cmd       => \&_get_info_from_project_cmd,
-                          set_cmd           => \&_get_info_from_set_cmds,
-                          cet_cmake_env_cmd => \&_set_seen_cet_cmake_env
-                        }) } };
-  return $proj_info;
+  my ($results) =
+    process_cmake_file(
+      $cmake_file,
+      { %options,
+        project_cmd       => \&_get_info_from_project_cmd,
+        set_cmd           => \&_get_info_from_set_cmds,
+        cet_cmake_env_cmd => \&_set_seen_cet_cmake_env
+      });
+  return { map { %{$_}; } values %{$results} };
 } ## end sub get_cmake_project_info
 
 

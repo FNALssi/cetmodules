@@ -30,7 +30,6 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_cmd_handlers);
 @EXPORT_OK = (@CMAKE_FILE_TOOLS, @HANDLER_TOOLS);
 %EXPORT_TAGS = (CMAKE_FILE_TOOLS => \@CMAKE_FILE_TOOLS,
                 HANDLER_TOOLS    => \@HANDLER_TOOLS);
-Readonly::Scalar my $_LINE_LENGTH => 80;
 
 ########################################################################
 # Exported functions
@@ -109,32 +108,6 @@ error calling handler $func_name\E() for CMake command $saved_info->{name}\E() a
 $err
 EOF
           } ## end if (my $err = $EVAL_ERROR)
-          my $new_cmd = reconstitute_code(@{ $cmd_infos // [] });
-
-          if ($orig_cmd ne ($new_cmd // q())) {
-            my $result = {};
-            @{$result}{qw(orig_cmd new_cmd)} =
-            ($orig_cmd, $new_cmd // q());
-            my $file_label = $options->{cmake_filename_short} // $cmake_file;
-            my ($div, $filler) =
-              (length($file_label) > ($_LINE_LENGTH - 2))
-            ? (q(=), q())
-            : (
-              q(=) x (($_LINE_LENGTH - length($file_label)) / 2),
-              (length($file_label) % 2) ? q(=) : q());
-            $options->{"dry-run"} and printf <<"EOF"
-
---------------------------------------old---------------------------------------
-% 4d %s
-$div$file_label$div$filler%s
-++++++++++++++++++++++++++++++++++++++new+++++++++++++++++++++++++++++++++++++++
-
-EOF
-            , $cmd_info->{start_line},
-            map { join("\n     ", split m&\n&msx); }
-            ($orig_cmd, ($new_cmd) ? "\n$new_cmd" : q());
-            return $result;
-          } ## end if ($orig_cmd ne ($new_cmd...))
           return;
         };
       } @cmd_handlers };
@@ -186,9 +159,9 @@ EOF
                output               => $output,
                %handlers
              };
-  my $results = process_cmake_file($cmake_file, $options);
+  my ($results, $status) = process_cmake_file($cmake_file, $options);
   $cmake_file_out->close();
-  my $changed = keys %{$results};
+  my $changed = keys %{$status};
 
   if ($changed) {
     if ($options->{"dry-run"}) {

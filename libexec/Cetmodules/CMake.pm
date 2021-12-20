@@ -36,6 +36,7 @@ our (@EXPORT);
   is_whitespace
   process_cmake_file
   reconstitute_code
+  report_code_diffs
 );
 
 ########################################################################
@@ -50,6 +51,7 @@ use vars qw(@PROJECT_KEYWORDS);
 ########################################################################
 my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
 Readonly::Scalar my $_LAST_CHAR_IDX => -1;
+Readonly::Scalar my $_LINE_LENGTH   => 80;
 
 ########################################################################
 # Exported functions
@@ -260,7 +262,8 @@ sub process_cmake_file {
 
   # Close and return.
   $cmake_file_out and not ref $options->{output} and $cmake_file_out->close();
-  return $cmake_file_data->{cmd_handler_results};
+  return $cmake_file_data->{cmd_handler_results},
+    $cmake_file_data->{cmd_status};
 } ## end sub process_cmake_file
 
 
@@ -273,6 +276,31 @@ sub reconstitute_code {
         : $_;
       } @_);
 } ## end sub reconstitute_code
+
+
+sub report_code_diffs {
+  my ($file_label, $start_line, $orig_cmd, $new_cmd, $options) = @_;
+  $orig_cmd ne ($new_cmd // q()) or return;
+  my $result = { orig_cmd => $orig_cmd, new_cmd => $new_cmd // q() };
+  my ($div, $filler) =
+      (length($file_label) > ($_LINE_LENGTH - 2))
+    ? (q(=), q())
+    : (
+      q(=) x (($_LINE_LENGTH - length($file_label)) / 2),
+      (length($file_label) % 2) ? q(=) : q());
+  ($options->{"dry-run"} or $options->{verbose}) and printf <<"EOF",
+
+--------------------------------------old---------------------------------------
+% 4d %s
+$div$file_label$div$filler%s
+++++++++++++++++++++++++++++++++++++++new+++++++++++++++++++++++++++++++++++++++
+
+EOF
+    $start_line,
+    map { join("\n     ", split m&\n&msx); }
+    ($orig_cmd, ($new_cmd) ? "\n$new_cmd" : q());
+  return $result;
+} ## end sub report_code_diffs
 
 ########################################################################
 # Private functions
@@ -655,7 +683,7 @@ sub _process_cmake_file_lines {
       ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
       $line =~ s&\A # anchor to string start
                (?P<pre>(?P<pre_cmd_ws>\s*) # save whitespace
-                 (?P<command>(?i:$cmake_file_data->{cmd_handler_regex})) # Interesting function calls
+                 (?P<command>[-\w]+) # Interesting function calls
                  \s*[(] # function argument start
                )&&msx # swallow
     ) {
@@ -674,6 +702,10 @@ EOF
     $line_no =
       _complete_cmd($cmd_info, $cmake_file_in, $cmake_file, $line, $line_no,
         $options);
+    my $saved_info =
+      { name => $cmd_info->{name}, start_line => $cmd_info->{start_line} };
+    my $cmd_infos = [$cmd_info];
+    my $orig_cmd  = reconstitute_code(@{ $cmd_infos // [] });
 
     # If we have end-of-line comments, process them first.
     if (exists $cmake_file_data->{comment_handler}
@@ -686,7 +718,6 @@ EOF
       &{ $cmake_file_data->{comment_handler} }
         ($cmd_info, $cmake_file, $options);
     } ## end if (exists $cmake_file_data...)
-    my $cmd_infos = [$cmd_info];
 
     # Now see if someone is interested in this call.
     if (my $func = $cmake_file_data->{arg_handler}) {
@@ -703,15 +734,22 @@ EOF
       my $tmp_result = &{$func}($cmd_infos, $cmd_info, $cmake_file, $options);
       defined $tmp_result
         and
-        $cmake_file_data->{cmd_handler_results}->{ $cmd_info->{start_line} }
+        $cmake_file_data->{cmd_handler_results}->{ $saved_info->{start_line} }
         = $tmp_result;
     } ## end if (my $func = $cmake_file_data...)
+    my $new_cmd = reconstitute_code(@{ $cmd_infos // [] });
 
-    # Reconstitute the command information.
-    if ($cmake_file_out) {
-      my @tmp_lines = reconstitute_code(@{$cmd_infos});
-      scalar @tmp_lines and $cmake_file_out->print(@tmp_lines);
-    }
+    # Compose and (if configured) output the new command(s).
+    $cmake_file_out and $cmake_file_out->print($new_cmd);
+
+    # Compose and (if configured) report on changes.
+    my $cmd_status =
+      report_code_diffs($options->{cmake_filename_short} // $cmake_file,
+        $saved_info->{start_line},
+        $orig_cmd, $new_cmd, $options);
+    $cmd_status
+      and $cmake_file_data->{cmd_status}->{ $saved_info->{start_line} } =
+      $cmd_status;
   } else { # Not interesting.
     $cmake_file_out and $cmake_file_out->print($line);
   }        # Line analysis.
