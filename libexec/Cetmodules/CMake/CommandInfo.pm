@@ -295,7 +295,7 @@ sub keyword_arg_append_position {
 
   if (defined $found_args) {
     my $kw_idx = List::Util::max keys %{$found_args};
-    return $self->add_args_after($found_args->{kw_idx}->[$_LAST_ELEM_IDX]
+    return $self->add_args_after($found_args->{$kw_idx}->[$_LAST_ELEM_IDX]
         // $kw_idx);
   } else {
     return $self->keyword_arg_insert_position($keyword);
