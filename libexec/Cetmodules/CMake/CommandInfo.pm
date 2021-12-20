@@ -309,6 +309,30 @@ sub keyword_arg_insert_position {
   return $self->add_args_after($kw_idx);
 } ## end sub keyword_arg_insert_position
 
+
+sub last_arg_idx {
+  my ($self) = @_;
+  return $#{ $self->{arg_indexes} // [] };
+}
+
+
+sub last_chunk_idx {
+  my ($self) = @_;
+  return $#{ $self->{chunks} // [] };
+}
+
+
+sub n_args {
+  my ($self) = @_;
+  return scalar @{ $self->{arg_indexes} // [] };
+}
+
+
+sub n_chunks {
+  my ($self) = @_;
+  return scalar @{ $self->{chunks} // [] };
+}
+
 # Consolidate arguments for a given keyword, returning the arg index of
 # the first argument or undef if missing or not applicable.
 sub normalize_args_for {
