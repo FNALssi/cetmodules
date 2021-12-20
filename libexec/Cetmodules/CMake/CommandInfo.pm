@@ -414,10 +414,10 @@ sub remove_args_at {
 sub remove_args_for {
   my ($self, $kw, @args) = @_;
   my $found_args = $self->find_args_for($kw, @args);
-  return (defined $found_args)
-    ? $self->remove_args_at(map { @{ $found_args->{$_} }; }
-      keys %{$found_args})
-    : undef;
+  defined $found_args
+    and return $self->remove_args_at(map { @{ $found_args->{$_} }; }
+      keys %{$found_args});
+  return;
 } ## end sub remove_args_for
 
 # Remove all instances of keyword and any arguments thereto, and return
@@ -425,10 +425,10 @@ sub remove_args_for {
 sub remove_keyword {
   my ($self, $kw, @args) = @_;
   my $found_args = $self->find_args_for($kw, @args);
-  return (defined $found_args)
-    ? $self->remove_args_at(map { ($_, @{ $found_args->{$_} }); }
-      keys %{$found_args})
-    : undef;
+  defined $found_args
+    and return $self->remove_args_at(map { ($_, @{ $found_args->{$_} }); }
+      keys %{$found_args});
+  return;
 } ## end sub remove_keyword
 
 
@@ -525,7 +525,7 @@ $_remove_args = sub {
     List::Util::min(
       ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
       $#{ $self->{arg_indexes} });
-    my $index      = $self->{arg_indexes}->[$idx_idx];
+    my $index      = $self->{arg_indexes}->[$idx_idx] // return;
     my $last_index = $self->{arg_indexes}->[$last_arg_idx];
 
     # Remove any preceding quote.
