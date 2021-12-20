@@ -6,11 +6,11 @@ use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
-use Cetmodules::CMake qw(@PROJECT_KEYWORDS);
+use Cetmodules::CMake qw(@PROJECT_KEYWORDS reconstitute_code);
 use Cetmodules::CMake::CommandInfo qw();
-use Cetmodules::CMake::Util qw(interpolated);
+use Cetmodules::CMake::Util qw(interpolated is_comment);
 use Cetmodules::Migrate::CMake::Tagging
-  qw(flag_recommended flag_required report_removed tag_added tag_changed);
+  qw(flag_error flag_recommended flag_required report_removed tag_added tag_changed);
 use Cetmodules::UPS::Setup
   qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
 use Cetmodules::Util
@@ -204,7 +204,7 @@ my @_CET_COMMAND_HANDLERS = qw(
   -cet_export_alias
   cet_find_library
   cet_find_package
-  cet_find_pkg_config_package
+  -cet_find_pkg_config_package
   cet_find_simple_package
   -cet_generate_sphinxdocs
   -cet_get_pv_property
@@ -386,89 +386,20 @@ EOF
   return;
 } ## end sub add_test
 
-# Lookup table used by arg_handler().
-my $_UPS_var_translation_table =
-  { version =>
-      { new => 'UPS_PRODUCT_VERSION', 'flag' => \&_flag_remove_UPS_vars },
-    UPSFLAVOR =>
-      { new => 'UPS_PRODUCT_FLAVOR', 'flag' => \&_flag_remove_UPS_vars },
-    flavorqual     => { new => 'EXEC_PREFIX' },
-    full_qualifier =>
-      { new => 'UPS_QUALIFIER_STRING', 'flag' => \&_flag_remove_UPS_vars },
-    %{$PATH_VAR_TRANSLATION_TABLE} };
-##
+
 sub arg_handler {
   my ($cmd_info, $cmake_file, $options) = @_;
   my @arg_idx_idx = $cmd_info->all_idx_idx() or return;
+  _ah_flag_CMAKE_INSTALL_PREFIX($cmd_info, \@arg_idx_idx);
+  _ah_flag_CMAKE_MODULE_PATH($cmd_info, \@arg_idx_idx);
+  _ah_fix_install_paths($cmd_info, \@arg_idx_idx);
+  $cmd_info->{name} eq 'macro'
+    or not scalar @{ $_cm_state->{current_macro_args} // [] }
+    or _ah_flag_macro_arg_errors($cmd_info, \@arg_idx_idx, $cmake_file,
+      $options);
+  _ah_update_UPS_vars($cmd_info, \@arg_idx_idx);
 
-  # Flag uses of CMAKE_INSTALL_PREFIX.
-  List::MoreUtils::any {
-    $cmd_info->arg_at($_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
-  }
-  @arg_idx_idx and flag_required($cmd_info, <<"EOF");
-avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
-EOF
-
-  # Flag uses of CMAKE_MODULE_PATH.
-  my $found_CMP = List::Util::first {
-    $cmd_info->interpolated_arg_at($_) eq 'CMAKE_MODULE_PATH';
-  }
-  @arg_idx_idx;
-
-  if (defined $found_CMP) {
-    if (List::MoreUtils::any {
-          $cmd_info->arg_at($_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
-        }
-        @arg_idx_idx[$found_CMP .. $_LAST_ELEM_IDX]
-      ) {
-      flag_required($cmd_info, <<"EOF");
-declare CMake private and exportable module dirs with cet_cmake_module_directories()
-EOF
-    } else {
-      flag_recommended($cmd_info, <<"EOF");
-prefer find_package() to find external CMake modules
-EOF
-    } ## end else [ if (List::MoreUtils::any...)]
-  } ## end if (defined $found_CMP)
-
-  # Remove problematic and unnecessary install path fragments.
-  grep {
-      if (my @separated = $cmd_info->arg_at($_)) {
-        $separated[(scalar @separated > 1) ? 1 : 0] =~
-        s&\$\{product\}/+\$\{version\}/*&&gmsx
-        and $cmd_info->replace_arg_at($_, join(q(), @separated));
-    } else {
-        0;
-      }
-  } @arg_idx_idx and tag_changed($cmd_info, <<'EOF');
-${product}/+${version}/* -> ""
-EOF
-
-  # Migrate old UPS-style variables.
-  foreach my $arg_idx (@arg_idx_idx) {
-    my $flagged;
-    my @separated = $cmd_info->arg_at($arg_idx) or next;
-    my $argref    = \$separated[(scalar @separated > 1) ? 1 : 0];
-
-    foreach my $var (keys %{$_UPS_var_translation_table}) {
-      if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx) {
-        my $old = $LAST_PAREN_MATCH{translate};
-
-        if (defined(my $new = $_UPS_var_translation_table->{$var}->{new})) {
-          ${$argref} =~
-            s&\Q$old\E&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$new}&gmsx
-            and $cmd_info->replace_arg_at($arg_idx, join(q(), @separated))
-            and tag_changed($cmd_info,
-              "$old -> \${CETMODULES_CURRENT_PROJECT_NAME}_$new");
-        } ## end if (defined(my $new = ...))
-
-        if (exists $_UPS_var_translation_table->{$var}->{'flag'}) {
-          &{ $_UPS_var_translation_table->{$var}->{'flag'} }($cmd_info);
-          $flagged = 1;
-        }
-      } ## end if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx)
-    } ## end foreach my $var (keys %{$_UPS_var_translation_table...})
-  } ## end foreach my $arg_idx (@arg_idx_idx)
+  ########################################################################
   return;
 } ## end sub arg_handler
 
@@ -512,9 +443,17 @@ EOF
 
 sub cet_cmake_config {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
-  report_removed($options->{cmake_filename_short} // $cmake_file,
-      " (called automatically)",
-      pop @{$cmd_infos});
+
+  if ($_cm_state->{seen_cmds}->{ $cmd_info->{name} }) {
+    report_removed($options->{cmake_filename_short} // $cmake_file,
+        " (redundant)", pop @{$cmd_infos});
+  } elsif (not $_cm_state->{seen_cmds}->{'cet_cmake_env'}) {
+    flag_required($cmd_info, <<"EOF");
+MOVE to the end of a CMakeLists.txt file with a cet_cmake_env() cmd
+EOF
+  } else {
+    $_cm_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
+  }
   return;
 } ## end sub cet_cmake_config
 
@@ -671,14 +610,30 @@ sub endfunction {
 
 
 sub endmacro {
+  delete $_cm_state->{current_macro_args};
   goto &_end_cmd_definition; # Delegate.
 }
 
 
 sub eof_handler {
   my ($cmake_file_data, $line_no, $options) = @_;
-  verbose(
-      "[SUCCESS] processed $cmake_file_data->{cmake_file} ($line_no lines)");
+
+  if ($_cm_state->{seen_cmds}->{'cet_cmake_env'}
+      and not $_cm_state->{seen_cmds}->{'cet_cmake_config'}) {
+    if ($cmake_file_data->{cmake_file_out}) {
+      my $lineref = tag_added(<<"EOF", "required cmd");
+cet_cmake_config()
+EOF
+      $cmake_file_data->{cmake_file_out}->print(reconstitute_code($lineref));
+    } else {
+      warning(<<"EOF");
+cet_cmake_config() missing: no CMake config file or UPS packaging info
+EOF
+    } ## end else [ if ($cmake_file_data->...)]
+  } ## end if ($_cm_state->{seen_cmds...})
+  verbose(<<"EOF");
+[SUCCESS] processed $cmake_file_data->{cmake_file} ($line_no lines)
+EOF
   undef $_cm_state;
   return;
 } ## end sub eof_handler
@@ -912,8 +867,17 @@ EOF
 
 
 sub macro {
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $_cm_state->{current_macro_args} = [qw(ARGV ARGN)];
+
+  if ($cmd_info->n_args() > 1) {
+    my @all_idx_idx = $cmd_info->all_idx_idx();
+    shift @all_idx_idx;
+    push @{ $_cm_state->{current_macro_args} },
+      map { scalar $cmd_info->interpolated_arg_at($_); } @all_idx_idx;
+  } ## end if ($cmd_info->n_args(...))
   goto &_cmd_definition; # Delegate.
-}
+} ## end sub macro
 
 
 sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
@@ -1143,6 +1107,137 @@ sub tbb_offload {
 ########################################################################
 # Private functions
 ########################################################################
+# Remove problematic and unnecessary install path fragments.
+sub _ah_fix_install_paths {
+  my ($cmd_info, $arg_idx_idx) = @_;
+  grep {
+      if (my @separated = $cmd_info->arg_at($_)) {
+        $separated[(scalar @separated > 1) ? 1 : 0] =~
+        s&\$\{product\}/+\$\{version\}/*&&gmsx
+        and $cmd_info->replace_arg_at($_, join(q(), @separated));
+      } ## end if (my @separated = $cmd_info...)
+  } @{$arg_idx_idx} and tag_changed($cmd_info, <<'EOF');
+${product}/+${version}/* -> ""
+EOF
+  return;
+} ## end sub _ah_fix_install_paths
+
+# Flag uses of CMAKE_INSTALL_PREFIX.
+sub _ah_flag_CMAKE_INSTALL_PREFIX {
+  my ($cmd_info, $arg_idx_idx) = @_;
+  List::MoreUtils::any {
+    $cmd_info->arg_at($_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
+  }
+  @{$arg_idx_idx} and flag_required($cmd_info, <<"EOF");
+avoid CMAKE_INSTALL_PREFIX: not necesssary for install()-like commands
+EOF
+  return;
+} ## end sub _ah_flag_CMAKE_INSTALL_PREFIX
+
+# Flag uses of CMAKE_MODULE_PATH.
+sub _ah_flag_CMAKE_MODULE_PATH {
+  my ($cmd_info, $arg_idx_idx) = @_;
+  my $found_CMP = List::Util::first {
+    $cmd_info->interpolated_arg_at($_) eq 'CMAKE_MODULE_PATH';
+  }
+  @{$arg_idx_idx};
+
+  if (defined $found_CMP) {
+    if (List::MoreUtils::any {
+          $cmd_info->arg_at($_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
+        }
+        @{$arg_idx_idx}[$found_CMP .. $_LAST_ELEM_IDX]
+      ) {
+      flag_required($cmd_info, <<"EOF");
+declare CMake private and exportable module dirs with cet_cmake_module_directories()
+EOF
+    } else {
+      flag_recommended($cmd_info, <<"EOF");
+prefer find_package() to find external CMake modules
+EOF
+    } ## end else [ if (List::MoreUtils::any...)]
+  } ## end if (defined $found_CMP)
+  return;
+} ## end sub _ah_flag_CMAKE_MODULE_PATH
+
+# Flag incorrect uses of macro arguments.
+sub _ah_flag_macro_arg_errors {
+  my ($cmd_info, $arg_idx_idx, $cmake_file, $options) = @_;
+  my $add_args = {};
+
+  foreach my $arg_idx (@{$arg_idx_idx}) {
+    if (not $cmd_info->is_quoted($arg_idx)) {
+      my $arg = $cmd_info->arg_at($arg_idx);
+      is_comment($arg) and continue;
+      my @bad_macro_args =
+        grep { $arg =~ m&(?<!\$\{)\Q$_\E\b&msx; }
+        @{ $_cm_state->{current_macro_args} };
+
+      if (scalar @bad_macro_args) {
+        my $textref = flag_error(
+            undef,
+            sprintf(
+              <<'EOF',
+possible incorrect use of macro arguments (%s) by name at %s:%s - quote or use ${}
+EOF
+              join(", ", @bad_macro_args),
+              $options->{cmake_filename_short} // $cmake_file,
+              $cmd_info->arg_location($arg_idx)));
+        $add_args->{$arg_idx} = [${$textref} =~ m&\A(\s*+)(.*?\Z)&msx];
+      } ## end if (scalar @bad_macro_args)
+    } ## end if (not $cmd_info->is_quoted...)
+  } ## end foreach my $arg_idx (@{$arg_idx_idx...})
+
+  # Insert comments in appropriate places.
+  foreach my $arg_idx (reverse sort keys %{$add_args}) {
+    $cmd_info->add_args_after($arg_idx, @{ $add_args->{$arg_idx} });
+  }
+  return;
+} ## end sub _ah_flag_macro_arg_errors
+
+# Lookup table.
+my $_UPS_var_translation_table =
+  { version =>
+      { new => 'UPS_PRODUCT_VERSION', 'flag' => \&_flag_remove_UPS_vars },
+    UPSFLAVOR =>
+      { new => 'UPS_PRODUCT_FLAVOR', 'flag' => \&_flag_remove_UPS_vars },
+    flavorqual     => { new => 'EXEC_PREFIX' },
+    full_qualifier =>
+      { new => 'UPS_QUALIFIER_STRING', 'flag' => \&_flag_remove_UPS_vars },
+    %{$PATH_VAR_TRANSLATION_TABLE} };
+##
+# Update old UPS-style variables.
+sub _ah_update_UPS_vars {
+  my ($cmd_info, $arg_idx_idx) = @_;
+
+  foreach my $arg_idx (@{$arg_idx_idx}) {
+    my $flagged;
+    my @separated = $cmd_info->arg_at($arg_idx) or next;
+    my $argref    = \$separated[(scalar @separated > 1) ? 1 : 0];
+
+    foreach my $var (keys %{$_UPS_var_translation_table}) {
+      if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx) {
+        my $old = $LAST_PAREN_MATCH{translate};
+
+        if (defined(my $new = $_UPS_var_translation_table->{$var}->{new})) {
+          ${$argref} =~
+            s&\Q$old\E&\${\${CETMODULES_CURRENT_PROJECT_NAME}_$new}&gmsx
+            and $cmd_info->replace_arg_at($arg_idx, join(q(), @separated))
+            and tag_changed($cmd_info,
+              "$old -> \${CETMODULES_CURRENT_PROJECT_NAME}_$new");
+        } ## end if (defined(my $new = ...))
+
+        if (exists $_UPS_var_translation_table->{$var}->{'flag'}) {
+          &{ $_UPS_var_translation_table->{$var}->{'flag'} }($cmd_info);
+          $flagged = 1;
+        }
+      } ## end if (${$argref} =~ m&(?<translate>\$\{\Q$var\E\})&msx)
+    } ## end foreach my $var (keys %{$_UPS_var_translation_table...})
+  } ## end foreach my $arg_idx (@{$arg_idx_idx...})
+  return;
+} ## end sub _ah_update_UPS_vars
+
+
 sub _cmd_definition {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $name = $cmd_info->interpolated_arg_at(0);
