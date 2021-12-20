@@ -30,11 +30,20 @@
 # Required to keep CMake happy.
 cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
+####################################
 # Project information.
 project(cetmodules VERSION 2.30.00 LANGUAGES NONE)
-set(cetmodules_CMAKE_PROJECT_VERSION_STRING 2.30.00-beta1)
-set(cetmodules_EXTENDED_VERSION_SEMANTICS TRUE)
-set(cetmodules_CONFIG_OUTPUT_ROOT_DIR share)
+
+# Version handling.
+set(${PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS TRUE)
+
+# Installed file locations.
+list(APPEND ${PROJECT_NAME}_ADD_ARCH_DIRS CPAN_DIR)
+list(APPEND ${PROJECT_NAME}_ADD_NOARCH_DIRS BIN_DIR LIBEXEC_DIR)
+set(${PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR share)
+set(${PROJECT_NAME}_FHICL_DIR "") # Don't need.
+set(${PROJECT_NAME}_INCLUDE_DIR "") # Don't need.
+set(${PROJECT_NAME}_LIBRARY_DIR "") # Don't need.
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
@@ -42,13 +51,9 @@ list(PREPEND CMAKE_MODULE_PATH
   ${PROJECT_BINARY_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
-# Other configuration.
-set(${PROJECT_NAME}_FHICL_DIR "")
-set(${PROJECT_NAME}_INCLUDE_DIR "")
-set(${PROJECT_NAME}_LIBRARY_DIR "")
-
 # Temporary for CI
 set(BUILD_DOCS FALSE)
+####################################
 
 # Basic build environment.
 include(CetCMakeEnv)
@@ -70,12 +75,6 @@ add_subdirectory(tools)
 add_subdirectory(bin)
 add_subdirectory(src)
 add_subdirectory(ups-templates)
-if (WANT_UPS)
-  # Bundle required Perl modules.
-  add_subdirectory(CPAN)
-  # Install scriptlets required by generated table file.
-  add_subdirectory(ups)
-endif()
 include(CTest)
 if (BUILD_TESTING)
   add_subdirectory(test)

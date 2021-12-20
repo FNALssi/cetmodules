@@ -128,7 +128,7 @@ macro(_ups_set_variables)
 
   ##################
   # UPS table file directory.
-  list(APPEND ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS ups)
+  list(APPEND ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS UPS_PRODUCT_TABLE_SUBDIR)
   project_variable(UPS_PRODUCT_TABLE_SUBDIR ups DOCSTRING
     "Table file subdirectory for UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 

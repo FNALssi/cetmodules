@@ -2,7 +2,14 @@
 # Scripts for internal use only.
 ##################
 
+project_variable(CPAN_DIR CONFIG ${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}/CPAN)
 project_variable(LIBEXEC_DIR CONFIG ${CMAKE_INSTALL_LIBEXECDIR})
+
+if (WANT_UPS)
+  # Bundle required Perl modules.
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/${${CETMODULES_CURRENT_PROJECT_NAME}_CPAN_DIR}/
+    DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_CPAN_DIR})
+endif()
 
 set(private_programs
   bootstrap-perl-env

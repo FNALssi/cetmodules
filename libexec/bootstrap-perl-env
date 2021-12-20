@@ -17,10 +17,10 @@ cpan() {
 
 needed_modules() {
   # Do *NOT* use "-c" option to scandeps.pl: it will stall indefinitely
-  # processing Tagging.pm, which has a function executed at
+  # processing Tagging.pm, which has a function that is executed at
   # compile-time.
   PERL5LIB="$CETPKG_SOURCE/libexec${PERL5LIB:+:$PERL5LIB}" \
-          scandeps.pl -R -V -T -C "$CETPKG_BUILD/scandeps-cache.dat" "$@" | \
+          scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" "$@" | \
     sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
 } 2>/dev/null
 
@@ -37,10 +37,12 @@ install_modules_for() {
 # Sanity check
 [ -n "$CETPKG_SOURCE" ] || { echo "ERROR: CETPKG_SOURCE must be defined" 1>&2; exit 1; }
 [ -n "$CETPKG_BUILD" ] || { echo "ERROR: CETPKG_BUILD must be defined" 1>&2; exit 1; }
+[ -n "$CET_SUBDIR" ] || { echo "ERROR: CET_SUBDIR must be defined - missing cetpkgsupport?" 1>&2; exit 1; }
 
-cpan_build="$CETPKG_BUILD/cpan_build"
-cpan_export="$CETPKG_BUILD/CPAN"
-cpan_tmp="$CETPKG_BUILD/.cpan/tmp"
+cpan_base="$CETPKG_BUILD/$CET_SUBDIR"
+cpan_build="$cpan_base/cpan_build"
+cpan_export="$cpan_base/CPAN"
+cpan_tmp="$cpan_base/.cpan/tmp"
 
 (( TIME_TOTAL = 0 ))
 echo "bootstrapping Perl environment for cetmodules (may take >=15 minutes for a pristine install)..." 1>&2
@@ -52,7 +54,7 @@ if ! [ -e "$cpan_build/lib/perl5/local/lib.pm" ]; then
   echo "bootstrapping a local::lib Perl environment for cetmodules..." 1>&2
   # Copy our CPAN configuration into a place where it will be found.
   mkdir -p "$cpan_build/lib/perl5/CPAN"
-  cp "$CETPKG_SOURCE/CPAN/MyConfig.pm" "$cpan_build/lib/perl5/CPAN/"
+  cp "$CETPKG_SOURCE/config/MyConfig.pm" "$cpan_build/lib/perl5/CPAN/"
 
   # Bootstrap local::lib (also CPAN if missing).
   local_lib_url="https://metacpan.org/pod/local::lib"

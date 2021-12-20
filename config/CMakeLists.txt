@@ -17,4 +17,6 @@ endforeach()
 install(FILES ${install_files}
   DESTINATION ${${PROJECT_NAME}_CONFIG_DIR})
 
-add_subdirectory(ups)
+if (WANT_UPS)
+  add_subdirectory(ups)
+endif()

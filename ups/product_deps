@@ -1,7 +1,7 @@
 parent cetmodules
 
-no_fq_dir
-fcldir -
+bindir	product_dir
+fcldir	-
 incdir	-
 libdir	-
 
@@ -18,7 +18,7 @@ end_qualifier_list
 
 table_fragment_begin
     # Make sure we can see our bundled Perl modules.
-    sourceRequired(${UPS_PROD_DIR}/ups/perl-env.${UPS_SHELL}, UPS_ENV)
+    sourceRequired(${UPS_PROD_DIR}/config/ups/perl-env.${UPS_SHELL}, UPS_ENV)
     # Masquerade as cetbuildtools.
     envSet(CETBUILDTOOLS_DIR,${CETMODULES_DIR})
 table_fragment_end
