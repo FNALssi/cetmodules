@@ -432,6 +432,29 @@ sub remove_keyword {
 } ## end sub remove_keyword
 
 
+sub remove_single_valued_keyword {
+  my ($self, $kw, @args) = @_;
+  my $found_args = $self->find_args_for($kw, @args);
+  my @to_remove  = ();
+
+  foreach my $arg_idx (sort keys %{$found_args}) {
+    my $num_nc_args   = 0;
+    my $num_to_remove = 0;
+
+    foreach my $arg_arg_idx (@{ $found_args->{$arg_idx} }) {
+      is_comment($self->arg_at($arg_arg_idx)) or not $num_nc_args++ or break;
+      ++$num_to_remove;
+    }
+
+    if ($num_to_remove) {
+      splice @{ $found_args->{$arg_idx} }, $num_to_remove;
+      push @to_remove, $arg_idx, @{ $found_args->{$arg_idx} };
+    }
+  } ## end foreach my $arg_idx (sort keys...)
+  return $self->remove_args_at(@to_remove);
+} ## end sub remove_single_valued_keyword
+
+
 sub replace_arg_at {
   my ($self, $idx_idx, @replacements) = @_;
   my @removed = $self->$_remove_args($idx_idx, 1);
