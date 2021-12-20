@@ -19,6 +19,7 @@ our (@EXPORT);
 
 @EXPORT = qw(
   flag
+  flag_error
   flag_recommended
   flag_required
   flagged
@@ -37,32 +38,37 @@ our (@EXPORT);
 # Exported functions
 ########################################################################
 sub flag {
-  my ($textish, $type, $extra) = @_;
-  return tag($textish, "ACTION-$type", $extra // ());
+  my ($textish, $type, @extra) = @_;
+  return tag($textish, "ACTION-$type", @extra);
+}
+
+
+sub flag_error {
+  my ($textish, @extra) = @_;
+  return flag($textish, "ERROR", @extra);
 }
 
 
 sub flag_recommended {
-  my ($textish, $extra) = @_;
-  return flag($textish, "RECOMMENDED", $extra // ());
+  my ($textish, @extra) = @_;
+  return flag($textish, "RECOMMENDED", @extra);
 }
 
 
 sub flag_required {
-  my ($textish, $extra) = @_;
-  return flag($textish, "REQUIRED", $extra // ());
+  my ($textish, @extra) = @_;
+  return flag($textish, "REQUIRED", @extra);
 }
 
 
 sub flagged {
-  my ($textish, $type, $extra) = @_;
-  return tagged($textish, "ACTION-$type", $extra // ());
+  my ($textish, $type, @extra) = @_;
+  return tagged($textish, "ACTION-$type", @extra);
 }
 
 
 sub ignored {
-  my ($textish) = @_;
-  return tagged($textish, 'NO-ACTION');
+  return tagged(@_, 'NO-ACTION');
 }
 
 
@@ -78,37 +84,48 @@ sub report_removed {
 
 
 sub tag {
-  my ($textish, $type, $extra) = @_;
-  not ignored($textish) or return;
+  my ($textish, $type, @extra) = @_;
+  not(ignored($textish, @extra) or tagged($textish, $type, @extra)) or return;
+  my $textref = _to_textref($textish);
   $type or $type = 'UNKNOWN';
-  not tagged($textish, $type, $extra // ()) or return;
-  my $textref  = _to_textref($textish);
-  my $tag_text = sprintf(" ### MIGRATE-$type (migrate-$CETMODULES_VERSION)%s",
+  my $extra    = join(q(), @extra);
+  my $tag_text = sprintf("### MIGRATE-$type (migrate-$CETMODULES_VERSION)%s",
       $extra ? " - $extra" : q());
-  ${$textref} =~ s&[ \t]*(\Z)&$tag_text$1&msx;
+  my $line_end = qq(\n) x chomp ${$textref};
+  my ($text, $space) =
+    (${$textref} =~ m&\A(.*?)([ \t]*)\z&msx);
+
+  if (length($text)) {
+    length($space) or $space = q( );
+  } else {
+    $space = q();
+  }
+  ${$textref} = "$text$space$tag_text$line_end";
   return $textref;
 } ## end sub tag
 
 
 sub tag_added {
-  my ($textish, $extra) = @_;
-  return tag($textish, "ADDED", $extra // ());
+  my ($textish, @extra) = @_;
+  return tag($textish, "ADDED", @extra);
 }
 
 
 sub tag_changed {
-  my ($textish, $extra) = @_;
-  return tag($textish, "CHANGED", $extra // ());
+  my ($textish, @extra) = @_;
+  return tag($textish, "CHANGED", @extra);
 }
 
 
 sub tagged {
-  my ($textish, $type, $extra) = @_;
-  my $type_re  = (defined $type)  ? qr&\Q-$type\E&msx    : q();
-  my $extra_re = (defined $extra) ? qr&\Q - $extra\E&msx : q();
-  my $textref  = _to_textref($textish);
-  return ${ ${textref} } =~
-    m& [#]{3} MIGRATE$type_re(?: \(migrate-[^)]+\)\s*?)?$extra_re&msx;
+  my ($textish, $type, @extra) = @_;
+  my $textref = _to_textref($textish);
+  length(${$textref}) or return;
+  my $type_re  = length($type // q()) ? qr&\Q-$type\E&msx : qr&(?:-\S*)?&msx;
+  my $extra    = join(q(), @extra);
+  my $extra_re = length($extra) ? qr&\Q - $extra\E&msx : q();
+  return ${$textref} =~
+m&(\A|[ \t])[#]{3} MIGRATE$type_re(?: \(migrate-[^)]+\)\s*?)?$extra_re&msx;
 } ## end sub tagged
 
 
@@ -134,6 +151,7 @@ sub untag_all {
 ########################################################################
 sub _to_textref {
   my ($textish) = @_;
+  defined $textish or $textish = q();
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $result;
 
