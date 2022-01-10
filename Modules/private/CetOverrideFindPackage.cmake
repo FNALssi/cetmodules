@@ -154,6 +154,11 @@ macro(find_package PKG)
         set(${PKG}_VERSION ${${PKG}_CMAKE_PROJECT_VERSION_STRING})
       endif()
     endif()
+    if (NOT "${PKG}" STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
+      # Localize all project variables for PKG in this directory scope
+      cet_localize_pv(${PKG} ALL)
+    endif()
+    # Record that we "found" this package.
     set(${_fp_PKG_UC}_FOUND ${PKG}_FOUND)
     unset(_fp_PKG_UC)
   else()
