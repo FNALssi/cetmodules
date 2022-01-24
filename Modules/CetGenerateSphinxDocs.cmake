@@ -26,7 +26,7 @@ function(cet_generate_sphinxdocs)
   endif()
   if (NOT "SPHINX_DOC_FORMATS" IN_LIST
       CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(SPHINX_DOC_FORMATS html
+    project_variable(SPHINX_DOC_FORMATS TYPE STRING html
       DOCSTRING "Output formats in which Sphinx should generate documentation")
   endif()
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
