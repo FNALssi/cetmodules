@@ -9,12 +9,11 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 function(cet_register_export_set)
   cmake_parse_arguments(PARSE_ARGV 0 CRES
     "SET_DEFAULT" "NAMESPACE;NAMESPACE_VAR;SET_NAME;SET_VAR" "")
-  if (NOT DEFAULT_EXPORT_SET IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(DEFAULT_EXPORT_SET TYPE BOOL DOCSTRING
-      "Default export set to use for targets installed by CET commands. \
+  project_variable(DEFAULT_EXPORT_SET TYPE BOOL NO_WARN_DUPLICATE
+    DOCSTRING "\
+Default export set to use for targets installed by CET commands. \
 Also used for determining namespace for local aliases\
 ")
-  endif()
   if (CRES_SET_NAME)
     set(EXPORT_SET "${CRES_SET_NAME}")
   else()
