@@ -59,14 +59,14 @@ sub maybe_convert_cetbuildtools_args {
   my $options = shift;
   if (basename(dirname($0)) eq 'bin') {
     # cetbuildtools-style setup_for_development.
-    my ($s, $b) = (shift, shift); # Not needed by cetmodules.
-    if ($s ne $ENV{CETPKG_SOURCE}) {
-      if (not $s or $s eq $ENV{CETPKG_BUILD}) {
+    my ($s, $b) = (abs_path(shift), abs_path(shift)); # Not needed by cetmodules.
+    if ($s ne abs_path($ENV{CETPKG_SOURCE})) {
+      if (not $s or $s eq abs_path($ENV{CETPKG_BUILD})) {
         error_exit("missing argument \$CETPKG_SOURCE for \$1");
       } else {
         error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
       }
-    } elsif ($b ne $ENV{CETPKG_BUILD}) {
+    } elsif ($b ne abs_path($ENV{CETPKG_BUILD})) {
       error_exit("expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }
     if ($_[0] eq "noarch") {

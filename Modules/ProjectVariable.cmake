@@ -235,24 +235,23 @@ set(_CPV_FLAGS CONFIG IS_PATH MISSING_OK OMIT_IF_EMPTY OMIT_IF_MISSING
 set(_CPV_OPTIONS ORIGIN TYPE)
 
 function(project_variable VAR_NAME)
-  # Audit requested variable name for collisions with CMake.
-  if (VAR_NAME IN_LIST _CPV_RESERVED_NAMES)
-    message(SEND_ERROR "project variable name ${VAR_NAME} would clash with a variable defined by CMake")
-  else()
-    message(VERBOSE "defining project variable ${VAR_NAME} for ${CETMODULES_CURRENT_PROJECT_NAME}")
-  endif()
   cmake_parse_arguments(PARSE_ARGV 1 CPV
-    "CONFIG;MISSING_OK;NO_WARN_REDUNDANT;OMIT_IF_EMPTY;OMIT_IF_MISSING;OMIT_IF_NULL;PUBLIC"
+    "CONFIG;MISSING_OK;NO_WARN_DUPLICATE;NO_WARN_REDUNDANT;OMIT_IF_EMPTY;OMIT_IF_MISSING;OMIT_IF_NULL;PUBLIC"
     "DOCSTRING;TYPE" "BACKUP_DEFAULT")
   if (NOT DEFINED CACHE{CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
     # Cache variable listing all the project variables for the current project.
     set(CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE INTERNAL
       "Valid project variables")
-  endif()
-  if (VAR_NAME IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    message(WARNING
-      "duplicate definition of project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} ignored")
+  elseif (VAR_NAME IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    if (NOT CPV_NO_WARN_DUPLICATE)
+      message(WARNING
+        "duplicate definition of project variable ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME} ignored")
+    endif()
     return()
+  elseif (VAR_NAME IN_LIST _CPV_RESERVED_NAMES) # Audit requested variable name.
+    message(SEND_ERROR "project variable name ${VAR_NAME} would clash with a variable defined by CMake")
+  else()
+    message(VERBOSE "defining project variable ${VAR_NAME} for ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   if (NOT (CPV_CONFIG OR CPV_NO_WARN_REDUNDANT))
     foreach (var IN ITEMS MISSING_OK OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL)

@@ -521,7 +521,7 @@ function(cet_test CET_TARGET)
   cmake_parse_arguments(PARSE_ARGV 1 CET
     "DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
     "EXPORT_SET;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
-    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
+    "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;REQUIRED_FIXTURES;REQUIRED_TESTS;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
     message(FATAL_ERROR "OUTPUT_FILTERS is incompatible with FILTER_ARGS:\nEither use the singular OUTPUT_FILTER or use double-quoted strings in OUTPUT_FILTERS\nE.g. OUTPUT_FILTERS \"filter1 -x -y\" \"filter2 -y -z\"")
   endif()
@@ -704,6 +704,33 @@ function(cet_test CET_TARGET)
     set_tests_properties(${ALL_TEST_TARGETS} PROPERTIES LABELS "${CET_OPTIONAL_GROUPS}")
     if (CET_TEST_PROPERTIES)
       set_tests_properties(${ALL_TEST_TARGETS} PROPERTIES ${CET_TEST_PROPERTIES})
+    endif()
+    if (CET_REQUIRED_TESTS)
+      project_variable(TEST_DEPS_AS_FIXTURES TYPE BOOL
+        DOCSTRING "\
+If TRUE, test dependencies identified via cet_test(... REQUIRED_TESTS) are treated as REQUIRED_FIXTURES and added to the test selection if missing; otherwise REQUIRED_TESTS only specifies execution order if dependencies are selected\
+" FALSE)
+      if (${CETMODULES_CURRENT_PROJECT_NAME}_TEST_DEPS_AS_FIXTURES)
+        list(APPEND CET_REQUIRED_FIXTURES ${CET_REQUIRED_TESTS})
+      else()
+        set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY DEPENDS "${CET_REQUIRED_TESTS}")
+      endif()
+    endif()
+    if (CET_REQUIRED_FIXTURES)
+      foreach (test IN LISTS CET_REQUIRED_FIXTURES)
+        if (NOT TEST ${test})
+          message(FATAL_ERROR "\
+test ${test} must be defined already to be specified as a fixture for ${CET_TARGET}\
+")
+        endif()
+        get_property(fixture_name TEST ${test} PROPERTY FIXTURES_SETUP)
+        if (NOT fixture_name)
+          set(fixture_name "${test}")
+          set_property(TEST ${test} PROPERTY FIXTURES_SETUP "${fixture_name}")
+        endif()
+        set_property(TEST ${ALL_TEST_TARGETS} APPEND
+          PROPERTY FIXTURES_REQUIRED "${fixture_name}")
+      endforeach()
     endif()
     if (CETB_SANITIZER_PRELOADS)
       set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY

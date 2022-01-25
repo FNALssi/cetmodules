@@ -36,12 +36,10 @@ include_guard()
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(install_pkgmeta)
-  if (NOT "PKG_META_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(PKG_META_DIR .
-      NO_WARN_REDUNDANT OMIT_IF_NULL
-      DOCSTRING "Directory below prefix to install package metadata such as INSTALL, README and LICENSE files."
-      )
-  endif()
+  project_variable(PKG_META_DIR .
+    NO_WARN_DUPLICATE NO_WARN_REDUNDANT OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install package metadata such as INSTALL, README and LICENSE files."
+    )
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.  
   cmake_parse_arguments(PARSE_ARGV 0 _IP ""
     "INSTALLER_LICENSE;INSTALLER_README;INSTALLER_WELCOME" "")
