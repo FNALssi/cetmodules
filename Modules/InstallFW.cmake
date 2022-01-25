@@ -24,7 +24,7 @@ function(install_fw)
   project_variable(FW_DIR CONFIG NO_WARN_DUPLICATE
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Directory below prefix to install FW files")
-  if (product AND "$CACHE{${product}_fwdir}" MATCHES "^\$") # Resolve placeholder.
+  if (product AND "$CACHE{${product}_fwdir}" MATCHES "^\\\$") # Resolve placeholder.
     set_property(CACHE ${product}_fwdir PROPERTY VALUE
       "${$CACHE{${product}_fwdir}}")
   endif()

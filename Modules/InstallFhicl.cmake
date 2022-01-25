@@ -26,7 +26,7 @@ function(install_fhicl)
   project_variable(FHICL_DIR "fcl" CONFIG NO_WARN_DUPLICATE
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Directory below prefix to install FHiCL files")
-  if (product AND "$CACHE{${product}_fcldir}" MATCHES "^\$") # Resolve placeholder.
+  if (product AND "$CACHE{${product}_fcldir}" MATCHES "^\\\$") # Resolve placeholder.
     set_property(CACHE ${product}_fcldir PROPERTY VALUE
       "${$CACHE{${product}_fcldir}}")
   endif()

@@ -28,7 +28,7 @@ function(install_gdml)
   project_variable(GDML_DIR gdml CONFIG NO_WARN_DUPLICATE
     OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
     DOCSTRING "Directory below prefix to install GDML geometry description files")
-  if (product AND "$CACHE{${product}_gdmldir}" MATCHES "^\$") # Resolve placeholder.
+  if (product AND "$CACHE{${product}_gdmldir}" MATCHES "^\\\$") # Resolve placeholder.
     set_property(CACHE ${product}_gdmldir PROPERTY VALUE
       "${$CACHE{${product}_gdmldir}}")
   endif()
