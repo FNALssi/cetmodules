@@ -11,8 +11,8 @@ macro(parse_ups_version _puv_ups_version)
   parse_version_string(${_puv_ups_version} VMAJ VMIN VPRJ VPT VEXTRA)
 endmacro()
 
-macro(to_ups_version _tuv_ups_version _tuv_outvar)
-  parse_version_string("${_tuv_ups_version}" PREAMBLE SEP _ ${_tuv_outvar})
+macro(to_ups_version _tuv_dot_version _tuv_outvar)
+  parse_version_string("${_tuv_dot_version}" PREAMBLE v SEP _ ${_tuv_outvar})
 endmacro()
 
 function(set_dot_version PRODUCTNAME UPS_VERSION)

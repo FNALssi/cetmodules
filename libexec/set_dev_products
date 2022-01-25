@@ -176,16 +176,16 @@ sub _maybe_convert_cetbuildtools_args {
   if (basename($FindBin::Bin) eq 'bin') {
 
     # cetbuildtools-style setup_for_development.
-    my ($s, $b) = splice(@{$args}, 0, 2); # Not needed by cetmodules.
+    my ($s, $b) = map { abs_path($_); } splice(@{$args}, 0, 2);
 
-    if ($s ne $ENV{CETPKG_SOURCE}) {
-      if (not $s or $s eq $ENV{CETPKG_BUILD}) {
+    if ($s ne abs_path($ENV{CETPKG_SOURCE})) {
+      if (not $s or $s eq abs_path($ENV{CETPKG_BUILD})) {
         error_exit("missing argument \$CETPKG_SOURCE for \$1");
       } else {
         error_exit(
             "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
       }
-    } elsif ($b ne $ENV{CETPKG_BUILD}) {
+    } elsif ($b ne abs_path($ENV{CETPKG_BUILD})) {
       error_exit(
           "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }

@@ -18,17 +18,13 @@ function(cet_generate_sphinxdocs)
   set(flags NITPICKY NO_ALL NO_COLOR NO_CONF NO_INSTALL QUIET VERBOSE)
   set(one_arg_opts CACHE_DIR CONF_DIR SOURCE_DIR TARGET_STEM TARGETS_VAR VERBOSITY)
   set(options EXTRA_ARGS OUTPUT_FORMATS)
-  if (NOT "SPHINX_DOC_DIR" IN_LIST
-      CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
-      BACKUP_DEFAULT ${CMAKE_INSTALL_DOCDIR}
-      DOCSTRING "Location of installed Sphinx-generated documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
-  endif()
-  if (NOT "SPHINX_DOC_FORMATS" IN_LIST
-      CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(SPHINX_DOC_FORMATS html
-      DOCSTRING "Output formats in which Sphinx should generate documentation")
-  endif()
+  project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
+    NO_WARN_DUPLICATE
+    BACKUP_DEFAULT ${CMAKE_INSTALL_DOCDIR}
+    DOCSTRING "Location of installed Sphinx-generated documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
+  project_variable(SPHINX_DOC_FORMATS TYPE STRING html
+    NO_WARN_DUPLICATE
+    DOCSTRING "Output formats in which Sphinx should generate documentation")
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
   list(TRANSFORM ARGV REPLACE "\\<NO_" "" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX
@@ -73,6 +69,7 @@ function(cet_generate_sphinxdocs)
     return()
   elseif ("man" IN_LIST CGS_OUTPUT_FORMATS)
     project_variable(MAN_DIR ${CMAKE_INSTALL_MANDIR}
+      NO_WARN_DUPLICATE
       DOCSTRING "Location of installed U**X [GT]ROFF-format manuals for \
 ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()

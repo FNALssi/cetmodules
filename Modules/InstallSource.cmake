@@ -36,11 +36,10 @@ include(CetPackagePath)
 include(ProjectVariable)
 
 function(install_source) 
-  if (NOT "INSTALLED_SOURCE_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(INSTALLED_SOURCE_DIR "source" CONFIG
-      OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
-      DOCSTRING "Directory below prefix to install source files for debug and other purposes")
-  endif()
+  project_variable(INSTALLED_SOURCE_DIR "source" CONFIG
+    NO_WARN_DUPLICATE
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install source files for debug and other purposes")
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   cmake_parse_arguments(PARSE_ARGV 0 IS "" "SUBDIRNAME" "")
   cet_package_path(CURRENT_SUBDIR)

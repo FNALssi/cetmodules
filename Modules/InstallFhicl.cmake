@@ -23,16 +23,12 @@ include (CetInstall)
 include (ProjectVariable)
 
 function(install_fhicl)
-  if (NOT "FHICL_DIR" IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    project_variable(FHICL_DIR "fcl" CONFIG
-      OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
-      DOCSTRING "Directory below prefix to install FHiCL files")
-    if (product AND ${product}_fcldir MATCHES "^\$") # Placeholder
-      cmake_language(EVAL CODE
-        "set_property(CACHE ${CETMODULES_CURRENT_PROJECT_NAME}_fcldir PROPERTY VALUE \
-\"${${CETMODULES_CURRENT_PROJECT_NAME}_fcldir}\"\
-")
-    endif()
+  project_variable(FHICL_DIR "fcl" CONFIG NO_WARN_DUPLICATE
+    OMIT_IF_EMPTY OMIT_IF_MISSING OMIT_IF_NULL
+    DOCSTRING "Directory below prefix to install FHiCL files")
+  if (product AND "$CACHE{${product}_fcldir}" MATCHES "^\\\$") # Resolve placeholder.
+    set_property(CACHE ${product}_fcldir PROPERTY VALUE
+      "${$CACHE{${product}_fcldir}}")
   endif()
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
   if ("LIST" IN_LIST ARGN)
