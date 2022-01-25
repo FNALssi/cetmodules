@@ -255,10 +255,10 @@ sub get_qualifier_list {
       last; # Done.
     } elsif ($get_quals) {
       _unwanted_keyword($keyword) and error_exit(<<"EOF");
-unexpected keyword $keyword at $pfile:$INPUT_LINE_NUMBER - missing end_qualifier_list?
+unexpected keyword $keyword at $pfile:$fh->input_line_number - missing end_qualifier_list?
 EOF
       scalar @words < $qlen and error_exit(<<"EOF");
-require $qlen qualifier_list entries for $keyword at $pfile:$INPUT_LINE_NUMBER - found only $#words
+require $qlen qualifier_list entries for $keyword at $pfile:$fh->input_line_number - found only $#words
 EOF
       push @notes, $words[$qlen + 1] || q();
       push @qlist,
@@ -452,22 +452,21 @@ sub _unwanted_keyword {
 sub _validate_pathspec_entry {
   my ($pfile, $pathspec_cache, $dirkey, $pathkey, $dirname) = @_;
   $pathkey or error_exit(<<"EOF");
-dangling directory key $dirkey seen in $pfile at line $INPUT_LINE_NUMBER:
+dangling directory key $dirkey seen at $pfile:$INPUT_LINE_NUMBER:
 path key is required
 EOF
   pathkey_is_valid($pathkey) or error_exit(<<"EOF");
-unrecognized path key $pathkey for directory key $dirkey in $pfile
-at line $INPUT_LINE_NUMBER
+unrecognized path key $pathkey for directory key $dirkey at $pfile:$INPUT_LINE_NUMBER
 EOF
   my $multiple_ok = $PATHSPEC_INFO->{$dirkey}->{multiple_ok} // 0;
 
   if (exists $pathspec_cache->{$dirkey}->{seen_at}) {
     $multiple_ok or error_exit(<<"EOF");
-illegal duplicate directory key $dirkey seen in $pfile
-at line $INPUT_LINE_NUMBER (first seen at line $pathspec_cache->{$dirkey}->{seen_at})
+illegal duplicate directory key $dirkey seen at $pfile:$INPUT_LINE_NUMBER
+(first seen at line $pathspec_cache->{$dirkey}->{seen_at})
 EOF
     $pathkey eq q(-) and not $dirname and error_exit(<<"EOF");
-elision request (pathkey '-' with no path) at line $INPUT_LINE_NUMBER
+elision request (pathkey '-' with no path) at $pfile:$INPUT_LINE_NUMBER
 is only valid for the first mention of a directory key
 ($dirkey first seen at line $pathspec_cache->{$dirkey}->{seen_at})
 EOF

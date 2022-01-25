@@ -203,7 +203,7 @@ sub deps_for_quals {
     # and save it.
     my $default = delete $matches->{"-default-"}; # undef if missing.
     scalar keys %{$matches} > 1 and error_exit(<<"EOF");
-ambiguous result matching version for dependency $prod against parent qualifiers $qualspec
+ambiguous result matching version for dependency $prod against parent qualifiers $qualspec in $pfile
 EOF
 
     # Use $default if we need to.
@@ -227,19 +227,15 @@ EOF
       } ## end else [ if ($qhash->{$prod}->{... [elsif ($qhash->{$prod}->{...})]})]
     } elsif (not $result->{only_for_build}) {
       if (not exists $qhash->{$prod}) {
-        error_exit("dependency $prod has no column in the qualifier table.",
-            "Please check $pfile");
+        error_exit(<<"EOF");
+dependency $prod has no column in the qualifier table in $pfile
+EOF
       } else {
-        error_exit(
-            sprintf(
-              "dependency %s has no entry in the qualifier table for %s.",
-              $prod,
-              ( $qualspec
-                ? "parent qualifier $qualspec"
-                : "unqualified parent"
-              )
-            ),
-            "Please check $pfile");
+        my $qualspec_msg =
+          $qualspec ? "parent qualifier $qualspec" : "unqualified parent";
+        error_exit(sprintf(<<"EOF", $prod, $qualspec_msg));
+dependency %s has no entry in the qualifier table for %s in $pfile
+EOF
       } ## end else [ if (not exists $qhash->...)]
     } else {
       $result->{qualspec} = $qhash->{$prod}->{$qualspec} || q();
@@ -584,7 +580,9 @@ sub ups_to_cmake {
         $cc,           $cxx, $compiler_id, $compiler_version,
         $cxx_standard, $fc,  $fc_id,       $fc_version)
       = @{ $_cqual_table->{ $pi->{cqual} } }
-      or error_exit("unrecognized compiler qualifier $pi->{cqual}"));
+      or error_exit(<<"EOF"));
+unrecognized compiler qualifier $pi->{cqual} in $pi->{pfile}"
+EOF
   my @cmake_args = ();
 
   ##################
@@ -837,14 +835,18 @@ sub _get_info_from_project_cmd {
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
-  $_seen_cet_cmake_env and warning(<<"EOF")
-Ignoring project() at line $cmd_info->{start_line} following previous cet_cmake_env() at line $_seen_cet_cmake_env
+
+  if ($_seen_project) {
+    info(\*STDERR, <<"EOF");
+ignoring superfluous project() at $cmake_file:$cmd_info->{start_line}: previously seen at line $_seen_project
 EOF
-    and return;
-  $_seen_project and info(<<"EOF")
-Ignoring superfluous project() at line $cmd_info->{start_line}: previously seen at line $_seen_project
+    return;
+  } elsif ($_seen_cet_cmake_env) {
+    warning(<<"EOF");
+ignoring project() at $cmake_file:$cmd_info->{start_line} following previous cet_cmake_env() at line $_seen_cet_cmake_env
 EOF
-    and return;
+    return;
+  } ## end elsif ($_seen_cet_cmake_env) [ if ($_seen_project) ]
   $_seen_project = $cmd_info->{start_line};
   my ($project_name, $is_literal) = $cmd_info->interpolated_arg_at(0);
   $project_name or error_exit(<<"EOF");
@@ -888,7 +890,7 @@ sub _get_info_from_set_cmds {
     or return;
   $_seen_cet_cmake_env and do {
       warning(<<"EOF");
-$cmd_info->{name}() ignored at line $cmd_info->{start_line} due to previous cet_cmake_env() at line $_seen_cet_cmake_env
+$cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_seen_cet_cmake_env
 EOF
       return;
   };
@@ -912,10 +914,10 @@ sub _set_seen_cet_cmake_env {
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
   $_seen_project or error_exit(<<"EOF");
-$cmd_info->{name}() at line $cmd_line MUST follow project()"
+$cmd_info->{name}() at $cmake_file:$cmd_line MUST follow project()"
 EOF
   $_seen_cet_cmake_env and error_exit(<<"EOF");
-prohibited duplicate $cmd_info->{name}() at line $cmd_line: already seen at line $_seen_cet_cmake_env
+prohibited duplicate $cmd_info->{name}() at $cmake_file:$cmd_line: already seen at line $_seen_cet_cmake_env
 EOF
   $_seen_cet_cmake_env = $cmd_line;
   return;

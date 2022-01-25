@@ -511,25 +511,25 @@ sub cmake_minimum_required {
 
   if ($_cm_state->{seen_cmds}->{ $cmd_info->{name} }) {
     debug(<<"EOF");
-ignoring duplicate $cmd_info->{name}() at line $cmd_info->{start_line} \
+ignoring duplicate $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} \
 previously seen at $_cm_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
 EOF
     return;
   } elsif ($_cm_state->{current_definition}) {
     debug(<<"EOF");
-ignoring $cmd_info->{name} at line $cmd_info->{start_line} in \
+ignoring $cmd_info->{name} at $cmake_file:$cmd_info->{start_line} in \
 definition of $_cm_state->{current_definition}->{name}()
 EOF
     return;
   } ## end elsif ($_cm_state->{current_definition... [ if ($_cm_state->{seen_cmds...})]})
   $_cm_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
   debug(<<"EOF");
-found top level $cmd_info->{name}() at line $cmd_info->{start_line}
+found top level $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line}
 EOF
 
   if (not $cmd_info->has_keyword('VERSION')) {
     warning(<<"EOF");
-ill-formed $cmd_info->{name}() at line $cmd_info->{start_line} (no VERSION) will be corrected
+ill-formed $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} (no VERSION) will be corrected
 EOF
     $cmd_info->append_args('VERSION', $_cmake_required_version);
     $edit = "added missing keyword VERSION";
@@ -539,7 +539,7 @@ EOF
 
     if (not $req_version_idx) {
       warning(<<"EOF");
-ill-formed $cmd_info->{name}() at line $cmd_info->{start_line} (VERSION keyword missing value) will be corrected
+ill-formed $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} (VERSION keyword missing value) will be corrected
 EOF
       $cmd_info->insert_args_at(
           $cmd_info->keyword_arg_append_position('VERSION', 'FATAL_ERROR'),
@@ -550,8 +550,8 @@ EOF
         $cmd_info->interpolated_arg_at($req_version_idx);
 
       if (not $is_literal) {
-        warning(<<"EOF");
-non-literal VERSION argument $req_version_int will not be modified
+        warning(sprintf(<<"EOF", $cmd_info->arg_location($req_version_idx)));
+non-literal VERSION argument $req_version_int at $cmake_file:%d will not be modified
 EOF
         return;
       } ## end if (not $is_literal)
@@ -627,7 +627,7 @@ EOF
       $cmake_file_data->{cmake_file_out}->print(reconstitute_code($lineref));
     } else {
       warning(<<"EOF");
-cet_cmake_config() missing: no CMake config file or UPS packaging info
+cet_cmake_config() missing from $cmake_file_data->{cmake_file}: no CMake config file or UPS packaging info
 EOF
     } ## end else [ if ($cmake_file_data->...)]
   } ## end if ($_cm_state->{seen_cmds...})
@@ -675,7 +675,7 @@ sub find_package {
           keys $_cm_state->{seen_cmds}->{ $cmd_info->{name} }->{cetmodules}))
     ) {
     info(<<"EOF");
-removing late, redundant $cmd_info->{name}($1) at line $cmd_info->{start_line}
+removing late, redundant $cmd_info->{name}($1) at $cmake_file:$cmd_info->{start_line}
 EOF
     pop(@{$cmd_infos});
     return;
@@ -886,7 +886,7 @@ sub project { ## no critic qw(Subroutines::ProhibitExcessComplexity)
 
   if ($_cm_state->{seen_cmds}->{ $cmd_info->{name} }) {
     info(<<"EOF");
-ignoring subsequent $cmd_info->{name}() at line $cmd_info->{start_line} \
+ignoring subsequent $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} \
 previously seen at $_cm_state->{seen_cmds}->{$cmd_info->{name}}->{start_line}
 EOF
     return;
@@ -928,7 +928,7 @@ EOF
 
     if ($vsinfo->{extra}) { # non-alphanumeric component(s)
       defined $cpi->{cmake_project_version} and info(<<"EOF");
-project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}: removing VERSION in project()
+project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) at $cmake_file:$cmd_info->{start_line} overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}): removing VERSION in project()
 EOF
 
       # Delete any VERSIONs from project() to avoid confusion.
@@ -961,7 +961,7 @@ EOF
       if (defined $cpi->{cmake_project_version}
           and version_cmp($cpi->{cmake_project_version_info}, $vsinfo) != 0) {
         info(<<"EOF");
-project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}: updating project($project_info->{name} VERSION ...)
+project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) at $cmake_file:$cmd_info->{start_line} overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}: updating project($project_info->{name} VERSION ...)
 EOF
 
         # Delete any VERSIONs from project() to avoid confusion.
@@ -1020,7 +1020,9 @@ my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
 
 sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
-  debug("in handler for $cmd_info->{name}()");
+  debug(<<"EOF");
+in handler for $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line}
+EOF
   my ($set_var_name, $is_literal) = $cmd_info->interpolated_arg_at(0)
     // return;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
@@ -1246,11 +1248,13 @@ sub _cmd_definition {
   if ($_cm_state->{current_definition}) {
     my $cd_info = $_cm_state->{current_definition};
     error(<<"EOF");
-found nested definition of $type $name at line $cmd_info->{start_line}:
+found nested definition of $type $name at $cmake_file:$cmd_info->{start_line}:
 already in definition of $cd_info->{type} $cd_info->{name} since line $cd_info->{start_line}
 EOF
   } else {
-    debug("found definition of $type $name at line $cmd_info->{start_line}");
+    debug(<<"EOF");
+found definition of $type $name at $cmake_file:$cmd_info->{start_line}
+EOF
     $_cm_state->{current_definition} =
       { %{$cmd_info}, name => $name, type => $type };
   } ## end else [ if ($_cm_state->{current_definition...})]
@@ -1265,15 +1269,15 @@ sub _end_cmd_definition {
 
   if (not defined $cd_info) {
     error(<<"EOF");
-found $cmd_info->{name}\(\) while not in $type definition
+found $cmd_info->{name}\(\) at $cmake_file:$cmd_info->{start_line} while not in $type definition
 EOF
   } elsif ($type ne $cd_info->{type}) {
     error(<<"EOF");
-found $cmd_info->{name}() at line $cmd_info->{start_line} in definition of $cd_info->{type} $cd_info->{name}\(\) definition
+found $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} in definition of $cd_info->{type} $cd_info->{name}\(\)
 EOF
   } else {
     debug(<<"EOF");
-found $cmd_info->{name}() at line $cmd_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $cd_info->{start_line}
+found $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line} matching $cd_info->{type}($cd_info->{name}) at line $cd_info->{start_line}
 EOF
   } ## end else [ if (not defined $cd_info) [elsif ($type ne $cd_info->...)]]
   delete $_cm_state->{current_definition};
@@ -1301,7 +1305,7 @@ sub _find_package_keywords {
 cmake --help-command find_package | sed -E -n -e '/((Basic|Full) Signature( and Module Mode)?|signature is)$/,/\)$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\n&g; s&[^A-Z_\n]&\n&g; /^[A-Z_]{2,}(\n|$)/ ! D; P; D }' |
 EOF
         or error_exit(
-"unable to obtain current list of accepted keywords to find_package() from CMake, \"$OS_ERROR\""
+"unable to obtain current list of accepted keywords to find_package() from \`cmake --help-command find_package\`, \"$OS_ERROR\""
         );
 
       while (my $line = <$kw_pipe>) {
@@ -1351,8 +1355,10 @@ sub _get_cmake_required_version {
 
 
 sub _handler_placeholder {
-  my ($dummy, $dummy, $cmd_info) = @_;
-  debug("in handler for $cmd_info->{name}()");
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  debug(<<"EOF");
+in handler for $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line}
+EOF
   return;
 } ## end sub _handler_placeholder
 

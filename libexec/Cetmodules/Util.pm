@@ -107,8 +107,9 @@ sub is_ups_version {
 
 sub notify {
   my (@msg) = @_;
+  my $fh = (ref $msg[0]) ? shift @msg : \*STDOUT;
   chomp @msg;
-  print map { "INFO: $_\n"; } map { split(m&\n&msx) } @msg;
+  print $fh map { "INFO: $_\n"; } map { split(m&\n&msx) } @msg;
   return;
 } ## end sub notify
 
