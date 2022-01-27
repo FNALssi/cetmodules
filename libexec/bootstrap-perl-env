@@ -10,9 +10,86 @@
 # Functions
 ########################################################################
 
+bootstrap_local_lib() {
+  [ -f "$cpan_export/lib/perl5/local/lib.pm" ] && \
+    [ -f "$cpan_export/lib/perl5/CPAN/MyConfig.pm" ] && return
+
+  # Copy our CPAN configuration into a place where it will be found.
+  mkdir -p "$cpan_export/lib/perl5/CPAN"
+  cp "$CETPKG_SOURCE/config/MyConfig.pm" "$cpan_export/lib/perl5/CPAN/"
+
+  # Bootstrap local::lib (also CPAN if missing).
+  local local_lib_url="https://metacpan.org/pod/local::lib"
+  local local_lib_download_url="$({ curl --insecure --fail "$local_lib_url" || \
+wget --no-check-certificate "$local_lib_url"; } 2>/dev/null | \
+sed -nEe '/itemprop="downloadUrl"/ s&^.*href="([^"]+)".*$&\1&p')"
+
+  [ -n "$local_lib_download_url" ] || \
+    error "unable to locate download URL for local::lib on CPAN" || return
+
+  { curl --insecure --fail "$local_lib_download_url" || \
+      wget --no-check-certificate "$local_lib_download_url"; } 2>/dev/null | \
+    tar zx || \
+    error "unable to download local::lib from $local_lib_download_url" || \
+    return
+
+  cd "$(basename "$local_lib_download_url" .tar.gz)"
+  sed -Ei'' \
+      -e '/^\s*system.*-MCPANBootstrapper=init_config/ d' \
+      Makefile.PL
+  sed -Ei'' \
+      -e 's&CPAN::Config->load&CPAN::HandleConfig->load&g' \
+      inc/CPANBootstrapper.pm
+  { perl Makefile.PL --bootstrap="$cpan_export" && make test && make install; } 2>&1 \
+    || return;
+  cd - >/dev/null
+}
+
 # Install packages without running all the tests.
 cpan() {
   perl -MCPAN ${*:+-e 'CPAN::Shell->notest(@ARGV)' "$@"} 2>&1
+}
+
+double_print() {
+  local prefix="$(printf "$1")"; shift
+  local msg="$(printf "$@")"
+  msg="${msg%$'\n'}"
+  if [ -z "$msg" ]; then
+    echo "${prefix/%: /!}"
+    echo "${prefix/%: /!}" 1>&2
+  else
+    echo "$prefix${msg//$'\n'/$'\n'$prefix}"
+    echo "$prefix${msg//$'\n'/$'\n'$prefix}" 1>&2
+  fi
+}
+
+error() {
+  local $status=$?
+  double_print "ERROR: " ${*:+"$@"}
+  return $status
+}
+
+error_exit() {
+  local status=$?
+  (( status == 0 )) && status=1
+  (( TIME_TOTAL += SECONDS ))
+  [ -n "$*" ] && double_print "ERROR: "
+  double_print "ERROR: " \
+               "exit with status $status after (%d:%02d)" \
+               $((TIME_TOTAL / 60)) $((TIME_TOTAL % 60))
+  exit $status
+}
+
+info() {
+  local status=$?
+  [ -n "$*" ] && double_print "INFO: " "$@"
+  return $status
+}
+
+install_modules_for() {
+  local needed_modules=($(needed_modules "$@"))
+  (( ${#needed_modules[@]} == 0)) || \
+    cpan install ${needed_modules[*]:+"${needed_modules[@]}"}
 }
 
 needed_modules() {
@@ -24,143 +101,119 @@ needed_modules() {
     sed -Ene "s/^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$/\\1/p"
 } 2>/dev/null
 
-install_modules_for() {
-  local needed_modules=($(needed_modules "$@"))
-  (( ${#needed_modules[@]} == 0 )) || \
-    cpan install ${needed_modules[*]:+"${needed_modules[@]}"}
+time_and_check() {
+  local msg="$1"; shift
+  local status_flag=OK
+  (( TIME_TOTAL += SECONDS ))
+  (( SECONDS = 0 ))
+  info "$msg..."
+  eval "$@"
+  local status=$?
+  (( status == 0 )) || status_flag=FAILED
+  local time=$(( SECONDS ))
+  (( TIME_TOTAL += time ))
+  info "$msg...$status_flag (%d:%02d)" $((time / 60)) $((time % 60))
+  (( status == 0 )) || error_exit
 }
 
 ########################################################################
 # Main
 ########################################################################
 
+(( TIME_TOTAL = 0 ))
+(( SECONDS = 0 ))
+
 # Sanity check
-[ -n "$CETPKG_SOURCE" ] || { echo "ERROR: CETPKG_SOURCE must be defined" 1>&2; exit 1; }
-[ -n "$CETPKG_BUILD" ] || { echo "ERROR: CETPKG_BUILD must be defined" 1>&2; exit 1; }
-[ -n "$CET_SUBDIR" ] || { echo "ERROR: CET_SUBDIR must be defined - missing cetpkgsupport?" 1>&2; exit 1; }
+[ -n "$CETPKG_SOURCE" ] || error_exit "CETPKG_SOURCE must be defined"
+[ -n "$CETPKG_BUILD" ] || error_exit "CETPKG_BUILD must be defined"
+[ -n "$CET_SUBDIR" ] || error_exit "CET_SUBDIR must be defined - missing cetpkgsupport?"
 
 cpan_base="$CETPKG_BUILD/$CET_SUBDIR"
 cpan_build="$cpan_base/cpan_build"
 cpan_export="$cpan_base/CPAN"
 cpan_tmp="$cpan_base/.cpan/tmp"
 
-(( TIME_TOTAL = 0 ))
-echo "bootstrapping Perl environment for cetmodules (may take >=15 minutes for a pristine install)..." 1>&2
+info "bootstrapping Perl environment for cetmodules (may take >=15 minutes for a pristine install)..."
 mkdir -p "$cpan_tmp" && cd "$cpan_tmp" || \
-    { echo "ERROR: unable to prepare temporary work area $cpan_tmp" 1>&2; exit 1; }
+    error_exit "unable to prepare temporary work area $cpan_tmp"
 
-if ! [ -e "$cpan_build/lib/perl5/local/lib.pm" ]; then
-  (( SECONDS = 0 ))
-  echo "bootstrapping a local::lib Perl environment for cetmodules..." 1>&2
-  # Copy our CPAN configuration into a place where it will be found.
-  mkdir -p "$cpan_build/lib/perl5/CPAN"
-  cp "$CETPKG_SOURCE/config/MyConfig.pm" "$cpan_build/lib/perl5/CPAN/"
+####################################
+# Bootstrap CPAN, etc.
+####################################
 
-  # Bootstrap local::lib (also CPAN if missing).
-  local_lib_url="https://metacpan.org/pod/local::lib"
-  local_lib_download_url="$({ curl --insecure --fail "$local_lib_url" || \
-wget --no-check-certificate "$local_lib_url"; } 2>/dev/null | \
-sed -nEe '/itemprop="downloadUrl"/ s&^.*href="([^"]+)".*$&\1&p')"
-
-  [ -n "$local_lib_download_url" ] || \
-    { echo "ERROR: unable to locate download URL for local::lib on CPAN" 1>&2; }
-
-  { curl --insecure --fail "$local_lib_download_url" || \
-      wget --no-check-certificate "$local_lib_download_url"; } 2>/dev/null | \
-    tar zx || \
-    { echo "ERROR: unable to download local::lib from $local_lib_download_url" 1>&2; exit 1; }
-
-  cd "$(basename "$local_lib_download_url" .tar.gz)"
-  sed -Ei'' \
-      -e '/^\s*system.*-MCPANBootstrapper=init_config/ d' \
-      Makefile.PL
-  sed -Ei'' \
-      -e 's&CPAN::Config->load&CPAN::HandleConfig->load&g' \
-      inc/CPANBootstrapper.pm
-  { perl Makefile.PL --bootstrap="$cpan_build" && make test && make install; } 2>&1 \
-    || status=FAILED
-  cd - >/dev/null
-  (( TIME = SECONDS ))
-  (( TIME_TOTAL += TIME ))
-  printf "bootstrapping a local::lib Perl environment for cetmodules...${status:-OK} (%d:%02d)\n" \
-         $((TIME / 60)) $((TIME % 60)) 1>&2
-  [ -z "${status}" ] || exit 1
-fi
+time_and_check   "bootstrapping a local::lib Perl environment for cetmodules"
 
 # Set up the environment to use our installed Perl modules.
-eval "$(perl -I"$cpan_build/lib/perl5" -Mlocal::lib="$cpan_build")" || \
-  { echo "ERROR: unable to set up environment to find locally-installed Perl modules" 1>&2; exit 1; }
+eval "$(perl -I"$cpan_export/lib/perl5" -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
+  error_exit "unable to set up environment to find locally-installed Perl modules"
 
-# Install modules we need to examine what is needed to run
-# set_dev_products and friends.
+####################################
+# Update and enhance CPAN.
 (( SECONDS = 0 ))
-echo "install/verify Perl distribution tools for cetmodules..." 1>&2
-cpan install YAML CPAN::SQLite && \
-  cpan install Log::Log4perl ExtUtils::CBuilder CPAN CPANPLUS Module::ScanDeps \
-     || status=FAILED
+info "install/verify Perl distribution tools for cetmodules..."
+{ cpan install YAML CPAN::SQLite && \
+  cpan install Log::Log4perl ExtUtils::CBuilder CPAN; } </dev/null || status=FAILED
 (( TIME = SECONDS ))
 (( TIME_TOTAL += TIME ))
-printf "install/verify Perl distribution tools for cetmodules...${status:-OK} (%d:%02d)\n" \
-       $((TIME / 60)) $((TIME % 60)) 1>&2
+info "install/verify Perl distribution tools for cetmodules...${status:-OK} (%d:%02d)" \
+       $((TIME / 60)) $((TIME % 60))
+[ -z "${status}" ] || exit 1
+####################################
+
+eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
+  error_exit "unable to set up environment to install Perl modules for development"
+
+####################################
+# Build-only CPAN tools
+(( SECONDS = 0 ))
+info "install/verify build-only CPAN tools"
+{ cpan install CPANPLUS Module::ScanDeps App::pmuninstall; } </dev/null || status=FAILED
+(( TIME = SECONDS ))
+(( TIME_TOTAL += TIME ))
+info "install/verify build-only CPAN tools...${status:-OK} (%d:%02d)" \
+       $((TIME / 60)) $((TIME % 60))
 [ -z "${status}" ] || exit 1
 
 # Set up the environment to install Perl modules for export.
-eval "$(perl -I"$cpan_build" -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
-  { echo "ERROR: unable to set up environment to install Perl modules for export" 1>&2; exit 1; }
+eval "$(perl -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
+  error_exit "unable to set up environment to install required Perl modules for export"
 
-# Install local::lib for export.
+####################################
+# Modules required for operation.
 (( SECONDS = 0 ))
-echo "install/verify local::lib for export..." 1>&2
-cpan install local::lib || status=FAILED
-(( TIME = SECONDS ))
-(( TIME_TOTAL += TIME ))
-printf "install/verify local::lib for export...${status:-OK} (%d:%02d)\n" \
-       $((TIME / 60)) $((TIME % 60)) 1>&2
-[ -z "${status}" ] || exit 1
-
-# Install Perl modules needed by set_dev_products and migrate.
-(( SECONDS = 0 ))
-echo "install/verify Perl modules required by cetmodules tools for export..." 1>&2
+info "install/verify Perl modules required by cetmodules tools for export..."
 install_modules_for \
   $(find  "$CETPKG_SOURCE/libexec" -name '*.pm') \
   "$CETPKG_SOURCE/libexec/set_dev_products" \
   "$CETPKG_SOURCE/tools/migrate" || status=FAILED
 (( TIME = SECONDS ))
 (( TIME_TOTAL += TIME ))
-printf "install/verify Perl modules required by cetmodules tools for export...${status:-OK} (%d:%02d)\n" \
-       $((TIME / 60)) $((TIME % 60)) 1>&2
+info "install/verify Perl modules required by cetmodules tools for export...${status:-OK} (%d:%02d)" \
+       $((TIME / 60)) $((TIME % 60))
 [ -z "${status}" ] || exit 1
+####################################
 
 # Revert environment for dev/build/test requirements.
-eval "$(perl -I"$cpan_build" -Mlocal::lib=--deactivate,"$cpan_export")" || \
-  { echo "ERROR: unable to revert to environment for installation of build-only Perl modules" 1>&2; exit 1; }
+eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
+  error_exit "unable to reset environment for installation of build-only Perl modules"
 
-# Install modules to aid development
+####################################
+# Modules for development, build and test.
 (( SECONDS = 0 ))
-echo "install/verify Perl modules for cetmodules development..." 1>&2
-cpan install Perl::Tidy || status=FAILED
-install_modules_for "$CETPKG_SOURCE/test/libexec/"*_t
-(( TIME = SECONDS ))
-(( TIME_TOTAL += TIME ))
-printf "install/verify Perl modules for cetmodules development...${status:-OK} (%d:%02d)\n" \
-       $((TIME / 60)) $((TIME % 60)) 1>&2
-[ -z "${status}" ] || exit 1
-
-# Install modules for build/test
-(( SECONDS = 0 ))
-echo "install/verify Perl modules for cetmodules build/test..." 1>&2
-cpan install B::Lint {Test,Task}::Perl::Critic \
+info "install/verify Perl modules for cetmodules development/build/test..."
+cpan install Perl::Tidy B::Lint {Test,Task}::Perl::Critic \
   && install_modules_for "$CETPKG_SOURCE/test/"{Modules,libexec}/*_t \
     || status=FAILED
 (( TIME = SECONDS ))
 (( TIME_TOTAL += TIME ))
-printf "install/verify Perl modules for cetmodules build/test...${status:-OK} (%d:%02d)\n" \
-       $((TIME / 60)) $((TIME % 60)) 1>&2
+info "install/verify Perl modules for cetmodules development/build/test...${status:-OK} (%d:%02d)" \
+       $((TIME / 60)) $((TIME % 60))
 [ -z "${status}" ] || exit 1
+####################################
 
 # Done.
-printf "bootstrapping Perl environment for cetmodules...COMPLETE (%d:%02d)\n" \
-       $((TIME_TOTAL / 60)) $((TIME_TOTAL % 60)) 1>&2
+info "bootstrapping Perl environment for cetmodules...COMPLETE (%d:%02d)" \
+       $((TIME_TOTAL / 60)) $((TIME_TOTAL % 60))
 
 ### Local Variables:
 ### mode: sh
