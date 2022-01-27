@@ -689,11 +689,11 @@ EOF
   $_cm_state->{seen_cmds}->{ $cmd_info->{name} }->{$package_to_find}
     ->{ $cmd_info->{start_line} } = $cmd_info;
   my @removed_keywords = map {
-      $cmd_info->remove_keyword($_, _find_package_keywords()) // ();
+      $cmd_info->remove_keyword($_, _find_package_keywords());
   } qw(BUILD_ONLY PRIVATE);
 
   if (my @obsolete_keywords = map {
-        $cmd_info->remove_keyword($_, _find_package_keywords()) // ();
+        $cmd_info->remove_keyword($_, _find_package_keywords());
       } qw(INTERFACE PUBLIC)
     ) {
 

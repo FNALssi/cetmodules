@@ -543,7 +543,7 @@ $_recalculate_comment_indexes = sub {
 $_remove_args = sub {
     my ($self, $idx_idx, $n_args) = @_;
     local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-    my @removed;
+    my @removed = ();
     my $last_arg_idx =
     List::Util::min(
       ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
