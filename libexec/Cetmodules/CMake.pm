@@ -7,7 +7,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
 use Cetmodules::CMake::CommandInfo qw();
-use Cetmodules::Util qw(debug error_exit);
+use Cetmodules::Util qw(debug info error_exit);
 use Cwd qw(abs_path);
 use Digest::SHA qw(sha256_hex);
 use English qw(-no_match_vars);
@@ -17,6 +17,7 @@ use File::Spec qw();
 use IO::File qw();
 use Readonly qw();
 use Scalar::Util qw(blessed);
+use Text::Diff qw(diff);
 
 ##
 use warnings FATAL => qw(Cetmodules);
@@ -50,8 +51,10 @@ use vars qw(@PROJECT_KEYWORDS);
 # Private variables
 ########################################################################
 my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
-Readonly::Scalar my $_LAST_CHAR_IDX => -1;
-Readonly::Scalar my $_LINE_LENGTH   => 80;
+Readonly::Scalar my $_DIFF_LINE_FILLER_SPACES => 4;
+Readonly::Scalar my $_LAST_CHAR_IDX           => -1;
+Readonly::Scalar my $_LINE_LENGTH             => 80;
+Readonly::Scalar my $_QUARTER                 => 1 / 4;
 
 ########################################################################
 # Exported functions
@@ -282,23 +285,23 @@ sub report_code_diffs {
   my ($file_label, $start_line, $orig_cmd, $new_cmd, $options) = @_;
   $orig_cmd ne ($new_cmd // q()) or return;
   my $result = { orig_cmd => $orig_cmd, new_cmd => $new_cmd // q() };
-  my ($div, $filler) =
-      (length($file_label) > ($_LINE_LENGTH - 2))
-    ? (q(=), q())
-    : (
-      q(=) x (($_LINE_LENGTH - length($file_label)) / 2),
-      (length($file_label) % 2) ? q(=) : q());
-  ($options->{"dry-run"} or $options->{verbose}) and printf <<"EOF",
-
---------------------------------------old---------------------------------------
-% 4d %s
-$div$file_label$div$filler%s
-++++++++++++++++++++++++++++++++++++++new+++++++++++++++++++++++++++++++++++++++
-
-EOF
-    $start_line,
-    map { join("\n     ", split m&\n&msx); }
-    ($orig_cmd, ($new_cmd) ? "\n$new_cmd" : q());
+  $options->{"dry-run"} or $options->{verbose} or return $result;
+  my ($n_lines_orig, $n_lines_new) = map { scalar split m&\n&msx; } $orig_cmd,
+    $new_cmd;
+  my $diff = diff(
+      \$orig_cmd,
+      \$new_cmd,
+      { STYLE   => "Context",
+        CONTEXT => List::Util::max($n_lines_orig, $n_lines_new) });
+  my $fh = IO::File->new(\$diff, q(<))
+    or error_exit("unable to open variable for stream input");
+  my $offset = $start_line - 1;
+  my $line   = <$fh>;                                      # Drop first line.
+  print _labeled_divider($file_label, q(*)),               # Header.
+    _format_diff_lines($fh, $offset, $n_lines_orig, q(-)), # Orig.
+    _format_diff_lines($fh, $offset, $n_lines_new,  q(+)), # New.
+    _labeled_divider(q(), q(*));                           # Footer.
+  $fh->close();
   return $result;
 } ## end sub report_code_diffs
 
@@ -584,6 +587,46 @@ EOF
   error_exit($error_message);
   return;
 } ## end sub _eof_error
+
+
+sub _format_diff_lines {
+  my ($fh, $offset, $n_lines, $divider_char, $divider_length) = @_;
+  my $result;
+  my $fh_out = IO::File->new(\$result, q(>))
+    or error_exit("unable to open stream variable for write");
+  defined $divider_length or $divider_length = $_LINE_LENGTH * $_QUARTER;
+  my $line = <$fh>;
+  my ($diff_start, $diff_length) =
+    ($line =~ m&([-[:digit:]]*)(?:,\s*([-[:digit:]]+))?&msx);
+  print $fh_out _labeled_divider(
+      sprintf("%d,%d", $diff_start + $offset, $diff_length // $n_lines),
+      $divider_char, $divider_length);
+  my $line_counter = 0;
+  my $filler       = q( ) x $_DIFF_LINE_FILLER_SPACES;
+
+  while ($line_counter++ < $n_lines and $line = <$fh>) {
+    chomp $line;
+    my ($prefix, $indent, $content) = ($line =~ m&\A(.) (\s*)(.*)\z&msx);
+    print $fh_out "  $prefix$filler$indent$content\n";
+  } ## end while ($line_counter++ < ...)
+  $fh_out->close();
+  return $result;
+} ## end sub _format_diff_lines
+
+
+sub _labeled_divider {
+  my ($label, $fill_char, $line_length) = @_;
+  defined $fill_char   or $fill_char   = q(=);
+  defined $line_length or $line_length = $_LINE_LENGTH;
+  $label eq q()        or $label       = " $label ";
+  my ($div, $filler) =
+      (length($label) > ($line_length - 2))
+    ? ($fill_char, q())
+    : (
+      $fill_char x (($line_length - length($label)) / 2),
+      (length($label) % 2) ? $fill_char : q());
+  return "$div$label$div$filler\n";
+} ## end sub _labeled_divider
 
 
 sub _prepare_cmake_file_io {
