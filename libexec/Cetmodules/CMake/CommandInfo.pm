@@ -8,7 +8,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 ##
 use Cetmodules::CMake::Util
   qw(interpolated is_comment is_whitespace separate_quotes);
-use Cetmodules::Util qw(error_exit);
+use Cetmodules::Util qw(error_exit $LAST_ELEM_IDX $NO_MATCH);
 use English qw(-no_match_vars);
 use List::MoreUtils qw();
 use List::Util qw();
@@ -29,8 +29,6 @@ my @_incoming_keywords = qw(
   pre_cmd_ws
   start_line
 );
-Readonly::Scalar my $_NO_MATCH      => -1;
-Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 my ($_has_close_quote, $_has_open_quote, $_index_for_arg_at,
     $_recalculate_comment_indexes, $_remove_args);
 
@@ -209,10 +207,10 @@ sub insert_args_at {
     $line_no_init      = $self->{end_line};
     $need_following_whitespace =
       (scalar @{ $self->{chunks} }
-        and is_whitespace($self->{chunks}->[$_LAST_ELEM_IDX]));
+        and is_whitespace($self->{chunks}->[$LAST_ELEM_IDX]));
     $need_preceding_whitespace =
       ($n_arg_indexes
-        and not is_whitespace($self->{chunks}->[$_LAST_ELEM_IDX]));
+        and not is_whitespace($self->{chunks}->[$LAST_ELEM_IDX]));
   } ## end else [ if (($idx_idx // $n_arg_indexes...))]
 
   if (scalar @to_add) {
@@ -241,11 +239,11 @@ sub insert_args_at {
     } ## end foreach my $item (@to_add)
 
     if (not(
-        $new_chunks[$_LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace))
+        $new_chunks[$LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace))
     {
       pop @new_chunks;
       --$point_index;
-    } ## end if (not($new_chunks[$_LAST_ELEM_IDX...]))
+    } ## end if (not($new_chunks[$LAST_ELEM_IDX...]))
     my $n_new_chunks = scalar @new_chunks;
     local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
@@ -295,7 +293,7 @@ sub keyword_arg_append_position {
 
   if (defined $found_args) {
     my $kw_idx = List::Util::max keys %{$found_args};
-    return $self->add_args_after($found_args->{$kw_idx}->[$_LAST_ELEM_IDX]
+    return $self->add_args_after($found_args->{$kw_idx}->[$LAST_ELEM_IDX]
         // $kw_idx);
   } else {
     return $self->keyword_arg_insert_position($keyword);
@@ -396,7 +394,7 @@ sub remove_args_at {
     my $last_idx_idx = $idx_idx;
 
     while (defined $last_idx_idx
-        and ($arg_indexes[0] // $_NO_MATCH) == $last_idx_idx + 1) {
+        and ($arg_indexes[0] // $NO_MATCH) == $last_idx_idx + 1) {
       ++$n_items;
       $last_idx_idx = shift @arg_indexes;
     } ## end while (defined $last_idx_idx...)

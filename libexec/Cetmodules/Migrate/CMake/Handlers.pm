@@ -14,7 +14,7 @@ use Cetmodules::Migrate::CMake::Tagging
 use Cetmodules::UPS::Setup
   qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
 use Cetmodules::Util
-  qw(debug error error_exit info to_cmake_version to_dot_version is_ups_version parse_version_string verbose version_cmp warning);
+  qw(debug error error_exit info to_cmake_version to_dot_version is_ups_version parse_version_string verbose version_cmp warning $LAST_ELEM_IDX);
 use Cwd qw(abs_path chdir getcwd);
 use English qw(-no_match_vars);
 use File::Basename qw(dirname);
@@ -308,7 +308,6 @@ my $_default_crv = "3.19";
 my $_cm_state               = {};
 my $_cmake_required_version = _get_cmake_required_version();
 my @_cmake_languages = qw(NONE CXX C Fortran CUDA ISPC OBJC OBJCXX ASM);
-Readonly::Scalar my $_LAST_ELEM_IDX => -1;
 
 ########################################################################
 # Exported functions
@@ -1148,7 +1147,7 @@ sub _ah_flag_CMAKE_MODULE_PATH {
     if (List::MoreUtils::any {
           $cmd_info->arg_at($_) =~ m&\$\{.*?_(SOURCE|BINARY)_DIR\}&smx;
         }
-        @{$arg_idx_idx}[$found_CMP .. $_LAST_ELEM_IDX]
+        @{$arg_idx_idx}[$found_CMP .. $LAST_ELEM_IDX]
       ) {
       flag_required($cmd_info, <<"EOF");
 declare CMake private and exportable module dirs with cet_cmake_module_directories()

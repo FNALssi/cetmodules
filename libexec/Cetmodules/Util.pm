@@ -15,12 +15,21 @@ use Readonly qw();
 use warnings FATAL => qw(Cetmodules);
 
 ##
-use vars qw($DEFAULT_PREFIX_MIN_LENGTH);
+use vars qw($DEFAULT_PREFIX_MIN_LENGTH
+  $KEYWORD_NOT_PRESENT
+  $LAST_CHAR_IDX
+  $LAST_ELEM_IDX
+  $NO_MATCH
+);
 
 our (@EXPORT);
 
 @EXPORT = qw(
   $DEFAULT_PREFIX_MIN_LENGTH
+  $KEYWORD_NOT_PRESENT
+  $LAST_CHAR_IDX
+  $LAST_ELEM_IDX
+  $NO_MATCH
   debug
   error
   error_exit
@@ -61,6 +70,10 @@ Readonly::Scalar my $_VERSION_EXTRA_TYPE_ALPHA   => -4;
 # Exported variables
 ########################################################################
 $DEFAULT_PREFIX_MIN_LENGTH = $_INIT_DEFAULT_PREFIX_MIN_LENGTH;
+Readonly::Scalar $LAST_CHAR_IDX       => -1;
+Readonly::Scalar $LAST_ELEM_IDX       => -1;
+Readonly::Scalar $NO_MATCH            => -1;
+Readonly::Scalar $KEYWORD_NOT_PRESENT => $NO_MATCH - 1;
 
 ########################################################################
 # Exported functions

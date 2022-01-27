@@ -7,7 +7,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
 use Cetmodules::CMake::CommandInfo qw();
-use Cetmodules::Util qw(debug info error_exit);
+use Cetmodules::Util qw(debug info error_exit $LAST_CHAR_IDX);
 use Cwd qw(abs_path);
 use Digest::SHA qw(sha256_hex);
 use English qw(-no_match_vars);
@@ -52,7 +52,6 @@ use vars qw(@PROJECT_KEYWORDS);
 ########################################################################
 my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
 Readonly::Scalar my $_DIFF_LINE_FILLER_SPACES => 4;
-Readonly::Scalar my $_LAST_CHAR_IDX           => -1;
 Readonly::Scalar my $_LINE_LENGTH             => 80;
 Readonly::Scalar my $_QUARTER                 => 1 / 4;
 
@@ -562,7 +561,7 @@ EOF
       $quote_start_linepos = length($in_quote) - pos($in_quote);
     }
 
-    if (substr($in_quote, $_LAST_CHAR_IDX) eq q(")) {
+    if (substr($in_quote, $LAST_CHAR_IDX) eq q(")) {
       --$quote_start_linepos;
       my $msg_fmt = <<"EOF";
 unclosed quoted adjunct at $cmake_file:\%d:\%d to unquoted string starting at \%d:\%d\n\%s"
