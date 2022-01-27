@@ -583,15 +583,21 @@ $_remove_args = sub {
 
     # Recalculate comment indexes.
     $self->$_recalculate_comment_indexes();
-    my $prev_index    = 0;
-    my $in_whitespace = 0;
-    @removed = map { join(q(), $removed_chunks[$prev_index .. ($_ - 1)]); }
-    List::MoreUtils::indexes {
+    my $in_whitespace = 1;
+    my $current       = q();
+
+    foreach my $item (@removed_chunks) {
       my $prev_in_whitespace = $in_whitespace;
-      $in_whitespace = is_whitespace($_);
-      $prev_in_whitespace and not $in_whitespace;
-    } ## end List::MoreUtils::indexes
-    @removed_chunks;
+      $in_whitespace = is_whitespace($item);
+
+      if ($in_whitespace and not $prev_in_whitespace and $current ne q()) {
+        push @removed, $current;
+        $current = q();
+    } elsif (not $in_whitespace) {
+        $current = "$current$item";
+      }
+    } ## end foreach my $item (@removed_chunks)
+    $current ne q() and push @removed, $current;
     return @removed;
 }; ## end sub _remove_args
 
