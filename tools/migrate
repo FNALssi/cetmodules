@@ -29,7 +29,7 @@ use Cetmodules qw(:DIAG_VARS);
 use Cetmodules::CMake qw();
 use Cetmodules::Migrate::CMake qw(:CMAKE_FILE_TOOLS);
 use Cetmodules::Migrate::ProductDeps
-  qw($CETMODULES_VERSION write_product_deps);
+  qw(write_product_deps $CETMODULES_VERSION);
 use Cetmodules::Migrate::Util qw(gentime);
 use Cetmodules::UPS::ProductDeps
   qw(get_parent_info get_pathspec get_product_list get_qualifier_matrix $PATHSPEC_INFO);
