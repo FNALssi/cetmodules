@@ -6,7 +6,7 @@ use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
-use Cetmodules::Migrate::Util qw(gentime trimline);
+use Cetmodules::Migrate::Util qw(gentime trim_lines);
 use Cetmodules::UPS::ProductDeps qw(get_table_fragment);
 use Cetmodules::UPS::Setup qw(get_cmake_project_info);
 use Cetmodules::Util qw(error_exit info notify to_ups_version version_cmp);
@@ -227,7 +227,7 @@ sub _max_for_column {
 
 sub _pad_to {
   my ($ntabs, $content) = @_;
-  $content = trimline($content // q());
+  $content = trim_lines($content // q());
   my $column_width = $ntabs * $PRODUCT_DEPS_TAB_WIDTH;
   $column_width or return $content;
   my $tabs_to_add = List::Util::max(0,
@@ -245,13 +245,13 @@ sub _write_parent_info {
      (exists $pi->{default_qual}) ? (defaultqual => $pi->{default_qual}) : (),
      (exists $pi->{chains} and scalar @{ $pi->{chains} })
      ? (chains => join('\t', @{ $pi->{chains} }))
-     : () };
-  @{$translate}{ List::MoreUtils::all { defined $pi->{$_} } @flags } = q();
+     : (), map { defined $pi->{$_} ? ($_ => q()) : () } @flags
+    };
   my $ntabs = _max_for_column(keys %{$translate});
   $fh->print(
       map {
         exists $translate->{$_}
-        ? trimline(_pad_to($ntabs, $_), "$translate->{$_}\n")
+        ? (trim_lines(_pad_to($ntabs, $_), "$translate->{$_}"), "\n")
         : ();
       } @directives,
       @flags);
@@ -289,7 +289,10 @@ sub _write_pathspecs {
   $fh->print(
       map {
         my $row = $_;
-        trimline(map({ _pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns));
+        ( trim_lines(
+            map({ _pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns)
+          ),
+          "\n");
       } @{$table});
   return;
 } ## end sub _write_pathspecs
@@ -334,7 +337,10 @@ sub _write_product_table {
   $fh->print(
       map {
         my $row = $_;
-        trimline(map({ _pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns));
+        ( trim_lines(
+            map({ _pad_to($ntabs->{$_} // 0, $row->{$_}); } @columns)
+          ),
+          "\n");
       } sort {
            $max_flags->{ $a->{product} } <=> $max_flags->{ $b->{product} }
         or $a->{product} cmp $b->{product}
@@ -353,11 +359,12 @@ sub _write_qualifier_table {
         ($_ => _max_for_column(values %{ $qualifier_table->{$_} }, $_));
       } @{$headers}[0 .. ($#{$headers} - 1)] };
   $ntabs->{ $headers->[-1] } = 0; # No padding at end of table.
-  $fh->print(trimline(map { _pad_to($ntabs->{$_}, $_); } @{$headers}));
+  $fh->print(trim_lines(map { _pad_to($ntabs->{$_}, $_); } @{$headers}),
+      "\n");
   grep {
       my $qualifier = $_;
       $fh->print(
-        trimline(
+        trim_lines(
           map {
             my $hash = $qualifier_table->{$_};
             _pad_to($ntabs->{$_}, $hash->{$qualifier});

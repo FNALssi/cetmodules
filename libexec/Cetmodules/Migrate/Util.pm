@@ -17,7 +17,7 @@ our (@EXPORT);
 
 @EXPORT = qw(
   gentime
-  trimline
+  trim_lines
 );
 
 ########################################################################
@@ -29,12 +29,12 @@ sub gentime {
 }
 
 
-sub trimline {
+sub trim_lines {
   my @text = @_;
-  my $line = join(q(), @text);
-  $line =~ s&(?-s:\s+)$&&msgx;
-  return "$line\n";
-} ## end sub trimline
+  my $text = join(q(), @text);
+  $text =~ s&(?-s:\s+)$&&msgx;
+  return $text;
+} ## end sub trim_lines
 
 ########################################################################
 1;
