@@ -835,7 +835,7 @@ sub find_ups_root {
 sub include {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   given ($cmd_info->interpolated_arg_at(0)) {
-    when ('CetParseArgs') {
+    when ($_ eq 'CetParseArgs' or $_ eq 'UseCPack') {
       report_removed($options->{cmake_filename_short} // $cmake_file,
           " (obsolete)", pop @{$cmd_infos});
     }
