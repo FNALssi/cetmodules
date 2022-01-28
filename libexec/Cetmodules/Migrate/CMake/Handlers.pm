@@ -630,7 +630,7 @@ sub eof_handler {
       my $lineref = tag_added(<<"EOF", "required cmd");
 cet_cmake_config()
 EOF
-      $cmake_file_data->{cmake_file_out}->print(reconstitute_code($lineref));
+      $cmake_file_data->{cmake_file_out}->print(reconstitute_code(${$lineref}));
     } else {
       warning(<<"EOF");
 cet_cmake_config() missing from $cmake_file_data->{cmake_file}: no CMake config file or UPS packaging info
