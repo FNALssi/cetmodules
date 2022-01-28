@@ -193,7 +193,7 @@ my @_CET_COMMAND_HANDLERS = qw(
   -cet_checkpoint_cmp
   -cet_checkpoint_did
   cet_cmake_config
-  -cet_cmake_env
+  cet_cmake_env
   -cet_cmake_module_directories
   -cet_collect_plugin_builders
   -cet_compare_versions
@@ -455,6 +455,13 @@ EOF
   }
   return;
 } ## end sub cet_cmake_config
+
+
+sub cet_cmake_env {
+  my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $_cm_state->{seen_cmds}->{ $cmd_info->{name} } = $cmd_info;
+  return;
+}
 
 
 sub cet_find_library {
