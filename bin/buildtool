@@ -1131,9 +1131,11 @@ if (( clean )); then
               \( -type d -name "$CET_SUBDIR" \) -o \
               \( \( -type d -o -name 'build.ninja' -o -name '.ninja_deps' -o \
               -name '*.cmake' -o -name '*.cmake.in' -o -name 'DartConfiguration.tcl' -o \
-              -name 'CMakeCache.txt' -o -name install_manifest.txt -o \
-              -name 'Makefile' \) -print0 \) | \
-    xargs -0 rm -rf; }; then
+              -name 'CMakeCache.txt' -o -name 'install_manifest.txt' -o \
+              -name 'Makefile' \) -print0 \)
+         find "$CETPKG_BUILD/$CET_SUBDIR" -mindepth 1 -maxdepth 1 \
+              \( -name 'CPAN' -o -name 'cpan_build' \) -o -print0
+       } 2>/dev/null | xargs -0 rm -rf; then
     fatal_error "unable to clean directory \"$CETPKG_BUILD\""
   fi
   if [ -r "$setup_files_backup" ]; then
