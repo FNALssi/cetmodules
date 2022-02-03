@@ -64,7 +64,7 @@ sub interpolated {
         }
         default {                                                         # bracket-quoted
           $interpolated_string =~ m&\A(?>\n?)(.*)\z&msx;
-          return ($interpolated_string, 1)
+          return wantarray ? ($interpolated_string, 1) : $interpolated_string;
         }
       } ## end given
     } else {
