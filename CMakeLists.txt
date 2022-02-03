@@ -32,9 +32,13 @@ cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 ####################################
 # Project information.
-project(cetmodules VERSION 3.02.01 LANGUAGES NONE)
+project(cetmodules LANGUAGES NONE)
 
 # Version handling.
+file(READ "${PROJECT_SOURCE_DIR}/VERSION"
+  cetmodules_CMAKE_PROJECT_VERSION_STRING)
+string(STRIP "${cetmodules_CMAKE_PROJECT_VERSION_STRING}"
+  cetmodules_CMAKE_PROJECT_VERSION_STRING)
 set(${PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS TRUE)
 
 # Installed file locations.

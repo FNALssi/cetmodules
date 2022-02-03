@@ -13,8 +13,9 @@ use Cetmodules::CMake::CommandInfo qw();
 use Cetmodules::UPS::ProductDeps
   qw($BTYPE_TABLE $PATHSPEC_INFO get_pathspec get_table_fragment pathkey_is_valid sort_qual var_stem_for_dirkey);
 use Cetmodules::Util
-  qw(error_exit info parse_version_string to_cmake_version to_product_name to_ups_version to_version_string verbose warning);
+  qw(debug error_exit info parse_version_string to_cmake_version to_product_name to_ups_version to_version_string verbose warning);
 use Cetmodules::Util::VariableSaver qw();
+use Cwd qw(abs_path);
 use English qw(-no_match_vars);
 use Exporter qw(import);
 use File::Spec qw();
@@ -58,7 +59,7 @@ $PATH_VAR_TRANSLATION_TABLE = _path_var_translation_table();
 ########################################################################
 # Private variables
 ########################################################################
-my ($_cqual_table, $_seen_cet_cmake_env, $_seen_project);
+my ($_cqual_table, $_cm_state);
 Readonly::Scalar my $_EXEC_MODE => oct(755);
 
 ########################################################################
@@ -248,18 +249,17 @@ EOF
 
 sub get_cmake_project_info {
   my ($pkgtop, %options) = @_;
-  undef $_seen_cet_cmake_env;
-  undef $_seen_project;
+  undef $_cm_state;
   my $cmake_file = File::Spec->catfile($pkgtop, "CMakeLists.txt");
-  my ($results) =
-    process_cmake_file(
+  process_cmake_file(
       $cmake_file,
       { %options,
+        cet_cmake_env_cmd => \&_set_seen_cet_cmake_env,
         project_cmd       => \&_get_info_from_project_cmd,
-        set_cmd           => \&_get_info_from_set_cmds,
-        cet_cmake_env_cmd => \&_set_seen_cet_cmake_env
+        file_cmd          => \&_get_info_from_file_cmd,
+        set_cmd           => \&_get_info_from_set_cmds
       });
-  return { map { %{$_}; } values %{$results} };
+  return { %{ $_cm_state->{cmake_info} // {} } };
 } ## end sub get_cmake_project_info
 
 
@@ -830,24 +830,64 @@ sub _fq_path_for {
 } ## end sub _fq_path_for
 
 
+sub _get_info_from_file_cmd {
+  my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $_cm_state->{seen_cmds}->{project}
+    and not $_cm_state->{seen_cmds}->{cet_cmake_env}
+    or return;
+  my $cmake_project_name = $_cm_state->{cmake_info}->{cmake_project_name};
+  my $cmd                = $cmd_info->interpolated_arg_at(0);
+  $cmd eq 'READ' or return;
+  my $result_var = $cmd_info->interpolated_arg_at($cmd_info->last_arg_idx);
+  $result_var eq "${cmake_project_name}_CMAKE_PROJECT_VERSION_STRING"
+    or $result_var eq '${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING'
+    or return;
+  my $file = $cmd_info->interpolated_arg_at(1);
+  my ($project_source_dir, $project_binary_dir) =
+    (defined $ENV{MRB_SOURCE}
+      and abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE}))
+    ? (
+      File::Spec->catfile($ENV{CETPKG_SOURCE}, $cmake_project_name),
+      File::Spec->catfile($ENV{CETPKG_BUILD},  $cmake_project_name))
+    : ($ENV{CETPKG_SOURCE}, $ENV{CETPKG_BUILD});
+  my $dirvar_start =
+qr&\A\$\{(?:(?:CMAKE_)?PROJECT|\$\{PROJECT_NAME\}|\Q$cmake_project_name\E)&msx;
+  my $dirvar_end = qr&DIR\}&msx;
+  $file =~ s&${dirvar_start}_SOURCE_${dirvar_end}&$project_source_dir&msx;
+  $file =~ s&${dirvar_start}_BINARY_${dirvar_end}&$project_binary_dir&msx;
+  debug(<<"EOF");
+attempting to read $cmake_project_name version from $file
+EOF
+  my $fh = IO::File->new($file, q(<)) or warning(<<"EOF")
+unable to read $cmake_project_name version from $file per $cmake_file:$cmd_info->{start_line}
+EOF
+    or return;
+  my $version = $fh->getline();
+  chomp $version;
+  $fh->close();
+  $_cm_state->{cmake_info}->{CMAKE_PROJECT_VERSION_STRING} = $version;
+  return;
+} ## end sub _get_info_from_file_cmd
+
+
 sub _get_info_from_project_cmd {
   my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
 
-  if ($_seen_project) {
+  if ($_cm_state->{seen_cmds}->{project}) {
     info(\*STDERR, <<"EOF");
-ignoring superfluous project() at $cmake_file:$cmd_info->{start_line}: previously seen at line $_seen_project
+ignoring superfluous project() at $cmake_file:$cmd_info->{start_line}: previously seen at line $_cm_state->{seen_cmds}->{project}
 EOF
     return;
-  } elsif ($_seen_cet_cmake_env) {
+  } elsif ($_cm_state->{seen_cmds}->{cet_cmake_env}) {
     warning(<<"EOF");
-ignoring project() at $cmake_file:$cmd_info->{start_line} following previous cet_cmake_env() at line $_seen_cet_cmake_env
+ignoring project() at $cmake_file:$cmd_info->{start_line} following previous cet_cmake_env() at line $_cm_state->{seen_cmds}->{cet_cmake_env}
 EOF
     return;
-  } ## end elsif ($_seen_cet_cmake_env) [ if ($_seen_project) ]
-  $_seen_project = $cmd_info->{start_line};
+  } ## end elsif ($_cm_state->{seen_cmds... [ if ($_cm_state->{seen_cmds...})]})
+  $_cm_state->{seen_cmds}->{project} = $cmd_info->{start_line};
   my ($project_name, $is_literal) = $cmd_info->interpolated_arg_at(0);
   $project_name or error_exit(<<"EOF");
 unable to find name in project() at $cmake_file:$cmd_info->{start_line}
@@ -858,10 +898,9 @@ unable to interpret $project_name as a literal CMake project name in $cmd_info->
 EOF
       return;
   };
-  my $result = { cmake_project_name => $project_name };
+  $_cm_state->{cmake_info}->{cmake_project_name} = $project_name;
   my $version_idx =
-    $cmd_info->find_single_value_for('VERSION', @PROJECT_KEYWORDS)
-    // return $result;
+    $cmd_info->find_single_value_for('VERSION', @PROJECT_KEYWORDS) // return;
 
   # We have a VERSION keyword and value.
   my $version;
@@ -871,11 +910,12 @@ EOF
       warning(<<"EOF");
 nonliteral version "$version" found at $cmake_file:$version_arg_location
 EOF
-      return $result;
+      return;
   };
-  @{$result}{qw(cmake_project_version cmake_project_version_info)} =
+  @{ $_cm_state->{cmake_info} }
+    {qw(cmake_project_version cmake_project_version_info)} =
     ($version, parse_version_string($version));
-  return $result;
+  return;
 } ## end sub _get_info_from_project_cmd
 
 
@@ -887,14 +927,12 @@ sub _get_info_from_set_cmds {
   my $found_pvar = $cmd_info->interpolated_arg_at(0) // return;
   $found_pvar =~ m&(?:\A|_)(?P<wanted>CMAKE_PROJECT_VERSION_STRING)\z&msx
     and $found_pvar = $LAST_PAREN_MATCH{wanted}
-    or return;
-  $_seen_cet_cmake_env and do {
-      warning(<<"EOF");
-$cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_seen_cet_cmake_env
+    and not($_cm_state->{seen_cmds}->{cet_cmake_env} and warning(<<"EOF"))
+$cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_cm_state->{seen_cmds}->{cet_cmake_env}
 EOF
-      return;
-  };
-  return { $found_pvar => $cmd_info->interpolated_arg_at(1) };
+    and $_cm_state->{cmake_info}->{$found_pvar} =
+    $cmd_info->interpolated_arg_at(1);
+  return;
 } ## end sub _get_info_from_set_cmds
 
 
@@ -913,13 +951,13 @@ sub _set_seen_cet_cmake_env {
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
-  $_seen_project or error_exit(<<"EOF");
+  $_cm_state->{seen_cmds}->{project} or error_exit(<<"EOF");
 $cmd_info->{name}() at $cmake_file:$cmd_line MUST follow project()"
 EOF
-  $_seen_cet_cmake_env and error_exit(<<"EOF");
-prohibited duplicate $cmd_info->{name}() at $cmake_file:$cmd_line: already seen at line $_seen_cet_cmake_env
+  $_cm_state->{seen_cmds}->{cet_cmake_env} and error_exit(<<"EOF");
+prohibited duplicate $cmd_info->{name}() at $cmake_file:$cmd_line: already seen at line $_cm_state->{seen_cmds}->{cet_cmake_env}
 EOF
-  $_seen_cet_cmake_env = $cmd_line;
+  $_cm_state->{seen_cmds}->{cet_cmake_env} = $cmd_line;
   return;
 } ## end sub _set_seen_cet_cmake_env
 
