@@ -204,8 +204,9 @@ EOF
     while (my $dir_item = readdir $dh) {
       $dir_item !~ m&\A\.&msx
         and -d $dir_item
-        and push @pkg_list, File::Spec->catfile($ENV{CETPKG_SOURCE}, $dir_item);
-    }
+        and push @pkg_list,
+        File::Spec->catfile($ENV{CETPKG_SOURCE}, $dir_item);
+    } ## end while (my $dir_item = readdir...)
     closedir $dh;
   } ## end if (not scalar @pkg_list)
   @pkg_list = grep {
