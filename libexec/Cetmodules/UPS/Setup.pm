@@ -10,6 +10,7 @@ use Cetmodules qw(:DIAG_VARS);
 use Cetmodules::CMake
   qw(@PROJECT_KEYWORDS get_CMakeLists_hash process_cmake_file);
 use Cetmodules::CMake::CommandInfo qw();
+use Cetmodules::CMake::Util qw(interpolated);
 use Cetmodules::UPS::ProductDeps
   qw($BTYPE_TABLE $PATHSPEC_INFO get_pathspec get_table_fragment pathkey_is_valid sort_qual var_stem_for_dirkey);
 use Cetmodules::Util
@@ -254,10 +255,11 @@ sub get_cmake_project_info {
   process_cmake_file(
       $cmake_file,
       { %options,
-        cet_cmake_env_cmd => \&_set_seen_cet_cmake_env,
-        project_cmd       => \&_get_info_from_project_cmd,
-        file_cmd          => \&_get_info_from_file_cmd,
-        set_cmd           => \&_get_info_from_set_cmds
+        cet_cmake_env_cmd             => \&_set_seen_cet_cmake_env,
+        cet_set_version_from_file_cmd => \&_get_info_from_csvf_cmd,
+        project_cmd                   => \&_get_info_from_project_cmd,
+        file_cmd                      => \&_get_info_from_file_cmd,
+        set_cmd                       => \&_get_info_from_set_cmds
       });
   return { %{ $_cm_state->{cmake_info} // {} } };
 } ## end sub get_cmake_project_info
@@ -830,6 +832,26 @@ sub _fq_path_for {
 } ## end sub _fq_path_for
 
 
+sub _get_info_from_csvf_cmd {
+  my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  $_cm_state->{seen_cmds}->{project}
+    and not $_cm_state->{seen_cmds}->{cet_cmake_env}
+    or return;
+  my $cmake_project_name =
+    $cmd_info->has_keyword('PROJECT')
+    ? interpolated($cmd_info->single_value_for('PROJECT'))
+    : $_cm_state->{cmake_info}->{cmake_project_name};
+  my $version_file =
+    interpolated($cmd_info->single_value_for('VERSION_FILE'))
+    // "\${${cmake_project_name}_SOURCE_DIR}/VERSION";
+  $cmd_info->has_keyword('EXTENDED_VERSION_SEMANTICS')
+    and $_cm_state->{cmake_info}->{EXTENDED_VERSION_SEMANTICS} = 1;
+  return
+    _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
+      $version_file);
+} ## end sub _get_info_from_csvf_cmd
+
+
 sub _get_info_from_file_cmd {
   my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   $_cm_state->{seen_cmds}->{project}
@@ -842,31 +864,10 @@ sub _get_info_from_file_cmd {
   $result_var eq "${cmake_project_name}_CMAKE_PROJECT_VERSION_STRING"
     or $result_var eq '${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING'
     or return;
-  my $file = $cmd_info->interpolated_arg_at(1);
-  my ($project_source_dir, $project_binary_dir) =
-    (defined $ENV{MRB_SOURCE}
-      and abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE}))
-    ? (
-      File::Spec->catfile($ENV{CETPKG_SOURCE}, $cmake_project_name),
-      File::Spec->catfile($ENV{CETPKG_BUILD},  $cmake_project_name))
-    : ($ENV{CETPKG_SOURCE}, $ENV{CETPKG_BUILD});
-  my $dirvar_start =
-qr&\A\$\{(?:(?:CMAKE_)?PROJECT|\$\{PROJECT_NAME\}|\Q$cmake_project_name\E)&msx;
-  my $dirvar_end = qr&DIR\}&msx;
-  $file =~ s&${dirvar_start}_SOURCE_${dirvar_end}&$project_source_dir&msx;
-  $file =~ s&${dirvar_start}_BINARY_${dirvar_end}&$project_binary_dir&msx;
-  debug(<<"EOF");
-attempting to read $cmake_project_name version from $file
-EOF
-  my $fh = IO::File->new($file, q(<)) or warning(<<"EOF")
-unable to read $cmake_project_name version from $file per $cmake_file:$cmd_info->{start_line}
-EOF
-    or return;
-  my $version = $fh->getline();
-  chomp $version;
-  $fh->close();
-  $_cm_state->{cmake_info}->{CMAKE_PROJECT_VERSION_STRING} = $version;
-  return;
+  my $version_file = $cmd_info->interpolated_arg_at(1);
+  return
+    _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
+      $version_file);
 } ## end sub _get_info_from_file_cmd
 
 
@@ -921,17 +922,32 @@ EOF
 
 sub _get_info_from_set_cmds {
   my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
-  my $found_pvar = $cmd_info->interpolated_arg_at(0) // return;
-  $found_pvar =~ m&(?:\A|_)(?P<wanted>CMAKE_PROJECT_VERSION_STRING)\z&msx
-    and $found_pvar = $LAST_PAREN_MATCH{wanted}
-    and not($_cm_state->{seen_cmds}->{cet_cmake_env} and warning(<<"EOF"))
+  my ($found_pvar) =
+    (($cmd_info->interpolated_arg_at(0) // return) =~
+      m&(?:\A|_)(EXTENDED_VERSION_SEMANTCS|CMAKE_PROJECT_VERSION_STRING)\z&msx
+    );
+  $found_pvar or return;
+
+  if ($_cm_state->{seen_cmds}->{cet_cmake_env}) {
+    warning(<<"EOF");
 $cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_cm_state->{seen_cmds}->{cet_cmake_env}
 EOF
-    and $_cm_state->{cmake_info}->{$found_pvar} =
-    $cmd_info->interpolated_arg_at(1);
+    return;
+  } ## end if ($_cm_state->{seen_cmds...})
+  given ($found_pvar) {
+    when ('CMAKE_PROJECT_VERSION_STRING') {
+      $_cm_state->{cmake_info}->{$found_pvar} =
+        $cmd_info->interpolated_arg_at(1);
+    }
+    when ('EXTENDED_VERSION_SEMANTICS') {
+      $_cm_state->{cmake_info}->{$found_pvar} = 1;
+    }
+    default { }
+  } ## end given
   return;
 } ## end sub _get_info_from_set_cmds
 
@@ -1009,6 +1025,38 @@ sub _setup_err {
   $out->print("  return 1 || true\n");
   return;
 } ## end sub _setup_err
+
+
+sub _set_version_from_file {
+  my ($cmd_info, $cmake_file, $cmake_project_name, $version_file) = @_;
+  my ($project_source_dir, $project_binary_dir) =
+    (defined $ENV{MRB_SOURCE}
+      and abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE}))
+    ? (
+      File::Spec->catfile($ENV{CETPKG_SOURCE}, $cmake_project_name),
+      File::Spec->catfile($ENV{CETPKG_BUILD},  $cmake_project_name))
+    : ($ENV{CETPKG_SOURCE}, $ENV{CETPKG_BUILD});
+  my $dirvar_start =
+qr&\A\$\{(?:(?:CMAKE_)?PROJECT|\$\{PROJECT_NAME\}|\Q$cmake_project_name\E)&msx;
+  my $dirvar_end = qr&DIR\}&msx;
+  $version_file =~
+    s&${dirvar_start}_SOURCE_${dirvar_end}&$project_source_dir&msx;
+  $version_file =~
+    s&${dirvar_start}_BINARY_${dirvar_end}&$project_binary_dir&msx;
+  debug(<<"EOF");
+attempting to read $cmake_project_name version from $version_file
+EOF
+  my $fh = IO::File->new($version_file, q(<)) or warning(<<"EOF")
+unable to read $cmake_project_name version from $version_file per $cmake_file:$cmd_info->{start_line}
+EOF
+    or return;
+  my $version = $fh->getline();
+  chomp $version;
+  $fh->close();
+  $_cm_state->{cmake_info}->{VERSION_FILE}                 = $version_file;
+  $_cm_state->{cmake_info}->{CMAKE_PROJECT_VERSION_STRING} = $version;
+  return;
+} ## end sub _set_version_from_file
 
 
 sub _setup_from_libdir {

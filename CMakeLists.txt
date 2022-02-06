@@ -34,13 +34,6 @@ cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 # Project information.
 project(cetmodules LANGUAGES NONE)
 
-# Version handling.
-file(READ "${PROJECT_SOURCE_DIR}/VERSION"
-  cetmodules_CMAKE_PROJECT_VERSION_STRING)
-string(STRIP "${cetmodules_CMAKE_PROJECT_VERSION_STRING}"
-  cetmodules_CMAKE_PROJECT_VERSION_STRING)
-set(${PROJECT_NAME}_EXTENDED_VERSION_SEMANTICS TRUE)
-
 # Installed file locations.
 list(APPEND ${PROJECT_NAME}_ADD_ARCH_DIRS CPAN_DIR)
 list(APPEND ${PROJECT_NAME}_ADD_NOARCH_DIRS BIN_DIR LIBEXEC_DIR)
@@ -54,6 +47,10 @@ list(PREPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/Modules
   ${PROJECT_BINARY_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
+
+# Version handling.
+include(CetSetVersionFromFile)
+cet_set_version_from_file(EXTENDED_VERSION_SEMANTICS)
 
 # Temporary for CI
 set(BUILD_DOCS FALSE)

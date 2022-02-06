@@ -933,7 +933,9 @@ EOF
     # ...)
     my $vsinfo = parse_version_string($cpi->{CMAKE_PROJECT_VERSION_STRING});
 
-    if ($vsinfo->{extra}) { # non-alphanumeric component(s)
+    if ($vsinfo->{extra} # non-alphanumeric component(s)
+        or $cpi->{VERSION_FILE}
+      ) {                # version read from file.
       defined $cpi->{cmake_project_version} and info(<<"EOF");
 project($project_info->{name} VERSION $cpi->{cmake_project_version} ...) at $cmake_file:$cmd_info->{start_line} overridden by \${$project_info->{name}_CMAKE_PROJECT_VERSION_STRING} ($cpi->{CMAKE_PROJECT_VERSION_STRING}): removing VERSION in project()
 EOF
@@ -978,7 +980,7 @@ EOF
         tag_changed($cmd_info,
             "VERSION -> set(CMAKE_PROJECT_VERSION_STRING ...)");
       } ## end if (defined $cpi->{cmake_project_version...})
-    } ## end else [ if ($vsinfo->{extra}) ]
+    } ## end else [ if ($vsinfo->{extra}  or...)]
   } elsif (defined $cpi->{cmake_project_version} and defined $pi->{version})
   { # we override product_deps
     warning(<<"EOF");
