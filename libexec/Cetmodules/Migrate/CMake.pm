@@ -6,9 +6,9 @@ use strict;
 use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
-use Cetmodules::CMake qw(process_cmake_file reconstitute_code);
+use Cetmodules::CMake qw(process_cmake_file);
 use Cetmodules::Migrate::CMake::Handlers qw(:EVENT_HANDLERS);
-use Cetmodules::Migrate::CMake::Tagging qw(ignored untag_all);
+use Cetmodules::Migrate::CMake::Tagging qw(ignored);
 use Cetmodules::Util qw(debug error_exit info notify verbose);
 use English qw(-no_match_vars);
 use Exporter qw(import);
@@ -51,26 +51,11 @@ sub fix_cmake {
   my @args = @_;
   File::Find::find(
       { preprocess => \&find_cmake,
-        wanted     => sub { fix_cmake_one(@args); }
+        wanted     => sub { _fix_cmake_one(@args); }
       },
       q(.));
   return;
 } ## end sub fix_cmake
-
-
-sub fix_cmake_one {
-  my ($pi, @args) = @_;
-
-  # Called by File::find() from fix_cmake() with respect to a
-  # CMakeLists.txt or *.cmake file to upgrade to use of cetmodules >=
-  # 2.0 where possible to do so programmatically.
-  -f and -r or return; # Only interested in readable files.
-  my ($path, $filepath) =
-    ($File::Find::dir, ($File::Find::name =~ m&\A(?:\./)?(.*)\z&msx));
-  List::MoreUtils::any { $pi->{name} eq $_; } qw(cetmodules mrb)
-    or _upgrade_cmake_file($filepath, "$filepath.new", $pi, @args);
-  return;
-} ## end sub fix_cmake_one
 
 
 sub generate_cmd_handlers {
@@ -82,7 +67,6 @@ sub generate_cmd_handlers {
           my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
           not ignored($cmd_info) or return; # NOP
           local $_; ## no critic qw(RequireInitializationForLocalVars)
-          my $orig_cmd = reconstitute_code(@{ $cmd_infos // [] });
 
           # Save for diagnostics in case they get changed:
           my $saved_info = { name       => $cmd_info->{name},
@@ -90,7 +74,6 @@ sub generate_cmd_handlers {
 
           # Invoke the real function.
           my $func_ref = \&{$func_name};
-          untag_all($cmd_info);
           debug(<<"EOF");
 invoking wrapped migration handler $func_name\E() for CMake command $saved_info->{name}\E() at $cmake_file:$saved_info->{start_line}
 EOF
@@ -115,53 +98,34 @@ EOF
 
 
 sub write_top_CMakeLists {
-  my ($pkgtop, $pi, $options) = @_;
-  return _upgrade_cmake_file("CMakeLists.txt", "CMakeLists.txt.new", $pi,
-      $options);
-} ## end sub write_top_CMakeLists
+  return _process_cmake_file("CMakeLists.txt", "CMakeLists.txt.new", @_);
+}
 
 ########################################################################
 # Private functions
 ########################################################################
-sub _upgrade_cmake_file {
+sub _fix_cmake_one {
+  my ($pi, @args) = @_;
+
+  # Called by File::find() from fix_cmake() with respect to a
+  # CMakeLists.txt or *.cmake file to upgrade to use of cetmodules >=
+  # 2.0 where possible to do so programmatically.
+  -f and -r or return; # Only interested in readable files.
+  my ($path, $filepath) =
+    ($File::Find::dir, ($File::Find::name =~ m&\A(?:\./)?(.*)\z&msx));
+  List::MoreUtils::any { $pi->{name} eq $_; } qw(cetmodules mrb)
+    or _process_cmake_file($filepath, "$filepath.new", $pi, @args);
+  return;
+} ## end sub _fix_cmake_one
+
+
+sub _process_cmake_file {
   my ($cmake_filename_full, $dest_full, $pi, $options, %handlers) = @_;
   my $cmake_filename = basename($cmake_filename_full);
   my $dest           = basename($dest_full);
-  my $cmake_file_in  = IO::File->new("$cmake_filename", "<")
-    or error_exit("unable to open $cmake_filename_full for read");
-
-  if (ignored($cmake_file_in->getline)) {
-    info(<<"EOF");
-upgrading $cmake_filename -> $dest SKIPPED due to MIGRATE-NO-ACTION directive in line 1
-EOF
-    $cmake_file_in->close();
-    return;
-  } ## end if (ignored($cmake_file_in...))
-  verbose(
-    "upgrading <$pi->{name}>/$cmake_filename_full -> <$pi->{name}>$dest_full"
-  );
-  my $cmake_file_out = IO::File->new("$dest", ">")
-    or error_exit("unable to open $dest_full for write");
-  scalar keys %handlers
-    or %handlers = (
-      %{generate_cmd_handlers($pi,
-          @Cetmodules::Migrate::CMake::Handlers::COMMAND_HANDLERS)
-       },
-      arg_handler     => \&Cetmodules::Migrate::CMake::Handlers::arg_handler,
-      comment_handler =>
-      \&Cetmodules::Migrate::CMake::Handlers::comment_handler,
-      eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
-    );
-  my $cmake_file = [$cmake_file_in,  $cmake_filename_full];
-  my $output     = [$cmake_file_out, $dest_full];
-  $options = { %{$options},
-               cmake_filename_short => "<$pi->{name}>/$cmake_filename_full",
-               output               => $output,
-               %handlers
-             };
-  my ($results, $status) = process_cmake_file($cmake_file, $options);
-  $cmake_file_out->close();
-  my $changed = keys %{$status};
+  my $changed =
+    _upgrade_cmake_file($cmake_filename_full, $dest_full, $pi, $options,
+      %handlers);
 
   if ($changed) {
     if ($options->{"dry-run"}) {
@@ -184,6 +148,48 @@ EOF
     $options->{'debug'} or (-e $dest and unlink $dest);
   } ## end else [ if ($changed) ]
   return;
+} ## end sub _process_cmake_file
+
+
+sub _upgrade_cmake_file {
+  my ($cmake_filename_full, $dest_full, $pi, $options, %handlers) = @_;
+  my $cmake_filename = basename($cmake_filename_full);
+  my $dest           = basename($dest_full);
+  verbose(
+    "upgrading <$pi->{name}>/$cmake_filename_full -> <$pi->{name}>$dest_full"
+  );
+  my $cmake_file_in = IO::File->new("$cmake_filename", "<")
+    or error_exit("unable to open $cmake_filename_full for read");
+
+  if (ignored($cmake_file_in->getline)) {
+    info(<<"EOF");
+upgrading $cmake_filename -> $dest SKIPPED due to MIGRATE-NO-ACTION directive in line 1
+EOF
+    $cmake_file_in->close();
+    return;
+  } ## end if (ignored($cmake_file_in...))
+  my $cmake_file_out = IO::File->new("$dest", ">")
+    or error_exit("unable to open $dest_full for write");
+  my $cmake_file = [$cmake_file_in,  $cmake_filename_full];
+  my $output     = [$cmake_file_out, $dest_full];
+  scalar keys %handlers
+    or %handlers = (
+      %{generate_cmd_handlers($pi,
+          @Cetmodules::Migrate::CMake::Handlers::COMMAND_HANDLERS)
+       },
+      arg_handler     => \&Cetmodules::Migrate::CMake::Handlers::arg_handler,
+      comment_handler =>
+      \&Cetmodules::Migrate::CMake::Handlers::comment_handler,
+      eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
+    );
+  $options = { %{$options},
+               cmake_filename_short => "<$pi->{name}>/$cmake_filename_full",
+               output               => $output,
+               %handlers
+             };
+  my ($results, $status) = process_cmake_file($cmake_file, $options);
+  $cmake_file_out->close();
+  return scalar keys %{$status};
 } ## end sub _upgrade_cmake_file
 
 ########################################################################

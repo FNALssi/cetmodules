@@ -292,15 +292,16 @@ sub report_code_diffs {
       \$new_cmd,
       { STYLE   => "Context",
         CONTEXT => List::Util::max($n_lines_orig, $n_lines_new) });
-  my $fh = IO::File->new(\$diff, q(<))
+  my $diff_fh = IO::File->new(\$diff, q(<))
     or error_exit("unable to open variable for stream input");
-  my $offset = $start_line - 1;
-  my $line   = <$fh>;                                      # Drop first line.
-  print _labeled_divider($file_label, q(*)),               # Header.
-    _format_diff_lines($fh, $offset, $n_lines_orig, q(-)), # Orig.
-    _format_diff_lines($fh, $offset, $n_lines_new,  q(+)), # New.
-    _labeled_divider(q(), q(*));                           # Footer.
-  $fh->close();
+  my $offset    = $start_line - 1;
+  my $line      = <$diff_fh>;                                   # Drop first line.
+  my $fh_report = $options->{fh_report} // \*STDOUT;
+  print $fh_report _labeled_divider($file_label, q(*)),         # Header.
+    _format_diff_lines($diff_fh, $offset, $n_lines_orig, q(-)), # Orig.
+    _format_diff_lines($diff_fh, $offset, $n_lines_new,  q(+)), # New.
+    _labeled_divider(q(), q(*));                                # Footer.
+  $diff_fh->close();
   return $result;
 } ## end sub report_code_diffs
 
