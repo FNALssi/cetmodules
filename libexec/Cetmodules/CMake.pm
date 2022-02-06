@@ -284,7 +284,7 @@ sub report_code_diffs {
   my ($file_label, $start_line, $orig_cmd, $new_cmd, $options) = @_;
   $orig_cmd ne ($new_cmd // q()) or return;
   my $result = { orig_cmd => $orig_cmd, new_cmd => $new_cmd // q() };
-  $options->{"dry-run"} or $options->{verbose} or return $result;
+  $options->{"dry-run"} or $Cetmodules::VERBOSE or return $result;
   my ($n_lines_orig, $n_lines_new) = map { scalar split m&\n&msx; } $orig_cmd,
     $new_cmd;
   my $diff = diff(
