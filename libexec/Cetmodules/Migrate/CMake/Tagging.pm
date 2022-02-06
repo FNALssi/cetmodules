@@ -47,27 +47,27 @@ use vars qw($_FLAGGING);
 # Exported functions
 ########################################################################
 sub flag {
-  my ($textish, $type, @extra) = @_;
+  my ($textish, $type, @msg) = @_;
   local $_FLAGGING = 1; ## no critic qw(Variables::ProhibitLocalVars)
-  return tag($textish, "ACTION-$type", @extra);
+  return tag($textish, "ACTION-$type", @msg);
 } ## end sub flag
 
 
 sub flag_error {
-  my ($textish, @extra) = @_;
-  return flag($textish, "ERROR", @extra);
+  my ($textish, @msg) = @_;
+  return flag($textish, "ERROR", @msg);
 }
 
 
 sub flag_recommended {
-  my ($textish, @extra) = @_;
-  return flag($textish, "RECOMMENDED", @extra);
+  my ($textish, @msg) = @_;
+  return flag($textish, "RECOMMENDED", @msg);
 }
 
 
 sub flag_required {
-  my ($textish, @extra) = @_;
-  return flag($textish, "REQUIRED", @extra);
+  my ($textish, @msg) = @_;
+  return flag($textish, "REQUIRED", @msg);
 }
 
 
@@ -83,10 +83,10 @@ sub ignored {
 
 
 sub report_removed {
-  my ($cmake_file, $extra, @args) = @_;
-  defined $extra or $extra = q();
+  my ($cmake_file, $msg, @args) = @_;
+  defined $msg or $msg = q();
   map {
-      info("command removed from $cmake_file:$_->{start_line}$extra:\n",
+      info("command removed from $cmake_file:$_->{start_line}$msg:\n",
         reconstitute_code($_));
   } @args;
   return;
@@ -94,17 +94,17 @@ sub report_removed {
 
 
 sub tag {
-  my ($textish, $type, @extra) = @_;
+  my ($textish, $type, @msg) = @_;
   $type or $type = 'UNKNOWN';
   my $textref = _to_textref($textish);
   not(   ignored($textish)
       or tagged($textish, $type)
       or ($FLAGS_ONLY and not $_FLAGGING))
     or return $textref;
-  my $extra = join(q(), @extra);
-  chomp $extra;
+  my $msg = join(q(), @msg);
+  chomp $msg;
   my $tag_text = sprintf("### MIGRATE-$type (migrate-$CETMODULES_VERSION)%s",
-      $extra ? " - $extra" : q());
+      $msg ? " - $msg" : q());
   my $line_end = qq(\n) x chomp ${$textref};
   my ($text, $space) =
     (${$textref} =~ m&\A(.*?)([ \t]*)\z&msx);
@@ -120,14 +120,14 @@ sub tag {
 
 
 sub tag_added {
-  my ($textish, @extra) = @_;
-  return tag($textish, "ADDED", @extra);
+  my ($textish, @msg) = @_;
+  return tag($textish, "ADDED", @msg);
 }
 
 
 sub tag_changed {
-  my ($textish, @extra) = @_;
-  return tag($textish, "CHANGED", @extra);
+  my ($textish, @msg) = @_;
+  return tag($textish, "CHANGED", @msg);
 }
 
 
