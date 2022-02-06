@@ -1,3 +1,4 @@
+## no critic qw(Modules::ProhibitExcessMainComplexity)
 # -*- cperl -*-
 package Cetmodules::CMake::CommandInfo;
 
@@ -217,7 +218,7 @@ sub insert_args_at {
     my (@new_chunks, @new_indexes, @new_locations);
     $need_preceding_whitespace and push @new_chunks, q( );
     my $n_newlines_tot = 0;
-    my $point_index    = $point_index_start;
+    my $point_index = $point_index_start + ($need_preceding_whitespace // 0);
 
     foreach my $item (@to_add) {
       push @new_locations, $line_no_init + $n_newlines_tot;
@@ -555,14 +556,23 @@ $_remove_args = sub {
     # Remove any trailing quote.
     $self->$_has_close_quote($last_arg_idx) and ++$last_index;
 
-    # Remove any trailing whitespace or comments
+    # If we're removing the last argument, remove any preceding
+    # whitespace.
+    if ($last_arg_idx == $#{ $self->{arg_indexes} }) {
+      while ($index > 1 and is_whitespace($self->{chunks}->[$index - 1])) {
+        --$index;
+      }
+    } ## end if ($last_arg_idx == $#...)
+
+    # Remove any trailing whitespace or comments.
     while (
-      $last_index < $#{ $self->{chunks} }
-      and (is_whitespace($self->{chunks}->[$last_index + 1])
-        or is_comment($self->{chunks}->[$last_index + 1]))
+      ( $last_index < $#{ $self->{chunks} }
+        and is_comment($self->{chunks}->[$last_index + 1]))
+      or ($last_index < ($#{ $self->{chunks} } - 1)
+        and is_whitespace($self->{chunks}->[$last_index + 1]))
     ) {
       ++$last_index;
-    } ## end while ($last_index < $#{ ...})
+    } ## end while (($last_index < $#{...}))
     my $chunks_to_remove = $last_index - $index + 1;
 
     # Remove all relevant chunks.
