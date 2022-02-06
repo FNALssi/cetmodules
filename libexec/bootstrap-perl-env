@@ -259,20 +259,14 @@ time_cmd_and_require_success \
 time_cmd_and_require_success \
   "install/verify Perl distribution tools for cetmodules (2/2)" \
   cpan_install Log::Log4perl ExtUtils::CBuilder \
-  Term::ReadLine::Perl CPAN
+  Term::ReadLine::Perl CPAN \
+  CPANPLUS Module::ScanDeps App::pmuninstall
 
 time_cmd_and_require_success "verify local::lib" cpan_install local::lib
 ####################################
 
 eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
   error_exit "unable to set up environment to install Perl modules for development"
-
-####################################
-# Build-only CPAN tools
-time_cmd_and_require_success \
-  "install/verify build-only CPAN tools" \
-  cpan_install CPANPLUS Module::ScanDeps App::pmuninstall
-####################################
 
 ####################################
 # Modules for development, build, and test infrastructure.
@@ -292,7 +286,7 @@ fi
 ####################################
 
 # Set up the environment to install Perl modules for export.
-eval "$(perl -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
+eval "$(perl -Mlocal::lib="$cpan_export",--deactivate,"$cpan_build" 2>/dev/null)" || \
   error_exit "unable to set up environment to install required Perl modules for export"
 
 ####################################
