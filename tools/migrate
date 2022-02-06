@@ -27,7 +27,9 @@ use lib File::Spec->catfile($_cetmodules_top, "libexec");
 ##
 use Cetmodules qw(:DIAG_VARS);
 use Cetmodules::CMake qw();
+use Cetmodules::CMake::Util qw(is_comment);
 use Cetmodules::Migrate::CMake qw(:CMAKE_FILE_TOOLS);
+use Cetmodules::Migrate::CMake::Tagging qw(untag_informational);
 use Cetmodules::Migrate::ProductDeps
   qw(write_product_deps $CETMODULES_VERSION);
 use Cetmodules::Migrate::Util qw(gentime);
@@ -50,16 +52,19 @@ our ($PATHSPEC_INFO);
 
 my $options = {};
 GetOptions(
-    $options, "help|h|?",
+    $options, "help|h|?", "clean-info",
     "debug" => \$Cetmodules::DEBUG,
     "dry-run|n",
-    "quiet|q"   => \$Cetmodules::QUIET,
-    "verbose|v" => \$Cetmodules::VERBOSE)
+    "flags-only" => \$Cetmodules::Migrate::CMake::Tagging::FLAGS_ONLY,
+    "quiet|q"    => \$Cetmodules::QUIET,
+    "verbose|v"  => \$Cetmodules::VERBOSE)
   or pod2usage(-exitval => 2);
 $options->{help}      and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
 $options->{"dry-run"} and info("[DRY_RUN] no files replaced or removed");
 my $owd     = getcwd();
 my @pkgdirs = _verified_package_selection(@ARGV);
+my @extra_args =
+  $options->{'clean-info'} ? (comment_handler => \&_clean_info) : ();
 
 for my $pkgtop (@pkgdirs) {
   chdir($pkgtop);
@@ -98,14 +103,16 @@ attempting to complete, update or verify a manual, partial or previous migration
 EOF
   } ## end if ($from and ($from->...))
   $options->{"dry-run"} or _backup_files();
-  write_product_deps($pkg_path_label, $pdinfo, $options);
 
   if ($pdinfo->{parent_info}->{name} eq "cetmodules") {
     warning("refusing to touch our own ups/ or CMake files!");
   } else {
-    _upgrade_ups_dir("ups");
-    write_top_CMakeLists($pkgtop, $pdinfo->{parent_info}, $options);
-    fix_cmake($pdinfo->{parent_info}, $options);
+    if (not $options->{'clean-info'}) {
+      write_product_deps($pkg_path_label, $pdinfo, $options);
+      _upgrade_ups_dir("ups");
+    }
+    write_top_CMakeLists($pdinfo->{parent_info}, $options, @extra_args);
+    fix_cmake($pdinfo->{parent_info}, $options, @extra_args);
   } ## end else [ if ($pdinfo->{parent_info...})]
 } ## end for my $pkgtop (@pkgdirs)
 1;
@@ -134,6 +141,24 @@ sub _backup_files {
       q(.));
   return;
 } ## end sub _backup_files
+
+
+sub _clean_info {
+  my ($comments_ish, $cmake_file) = @_;
+
+  foreach my $comment_ref (
+      ( map {
+          is_comment($comments_ish->{chunks}->[$_])
+          ? \$comments_ish->{chunks}->[$_]
+          : ();
+        } @{ $comments_ish->{arg_indexes} }
+      ),
+      (exists $comments_ish->{post}) ? $comments_ish : ()
+    ) {
+    untag_informational($comment_ref);
+  } ## end foreach my $comment_ref ((map...))
+  return;
+} ## end sub _clean_info
 
 
 sub _pkg_path_label {
