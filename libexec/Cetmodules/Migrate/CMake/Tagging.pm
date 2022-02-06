@@ -8,14 +8,16 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 ##
 use Cetmodules::CMake qw(reconstitute_code);
 use Cetmodules::Migrate::ProductDeps qw($CETMODULES_VERSION);
+use Cetmodules::Util::PosResetter qw();
 use Cetmodules::Util qw(error_exit info);
+use English qw(-no_match_vars);
 use Exporter qw(import);
 use Scalar::Util qw(blessed);
 
 ##
 use warnings FATAL => qw(Cetmodules);
 
-our (@EXPORT);
+our (@EXPORT, @EXPORT_OK, $FLAGS_ONLY);
 
 @EXPORT = qw(
   flag
@@ -29,18 +31,26 @@ our (@EXPORT);
   tag_added
   tag_changed
   tagged
-  unflag
-  untag
+  unflag_all
+  unflag_matching
+  unflag_not_matching
   untag_all
+  untag_informational
+  untag_matching
+  untag_not_matching
 );
+@EXPORT_OK = qw($FLAGS_ONLY);
+
+use vars qw($_FLAGGING);
 
 ########################################################################
 # Exported functions
 ########################################################################
 sub flag {
   my ($textish, $type, @extra) = @_;
+  local $_FLAGGING = 1; ## no critic qw(Variables::ProhibitLocalVars)
   return tag($textish, "ACTION-$type", @extra);
-}
+} ## end sub flag
 
 
 sub flag_error {
@@ -62,13 +72,13 @@ sub flag_required {
 
 
 sub flagged {
-  my ($textish, $type, @extra) = @_;
-  return tagged($textish, "ACTION-$type", @extra);
+  my ($textish, $flag_selector) = @_;
+  return tagged($textish, "ACTION-$flag_selector");
 }
 
 
 sub ignored {
-  return tagged(@_, 'NO-ACTION');
+  return tagged(shift, 'NO-ACTION');
 }
 
 
@@ -85,10 +95,14 @@ sub report_removed {
 
 sub tag {
   my ($textish, $type, @extra) = @_;
-  not(ignored($textish, @extra) or tagged($textish, $type, @extra)) or return;
-  my $textref = _to_textref($textish);
   $type or $type = 'UNKNOWN';
-  my $extra    = join(q(), @extra);
+  my $textref = _to_textref($textish);
+  not(   ignored($textish)
+      or tagged($textish, $type)
+      or ($FLAGS_ONLY and not $_FLAGGING))
+    or return $textref;
+  my $extra = join(q(), @extra);
+  chomp $extra;
   my $tag_text = sprintf("### MIGRATE-$type (migrate-$CETMODULES_VERSION)%s",
       $extra ? " - $extra" : q());
   my $line_end = qq(\n) x chomp ${$textref};
@@ -118,37 +132,94 @@ sub tag_changed {
 
 
 sub tagged {
-  my ($textish, $type, @extra) = @_;
-  my $textref = _to_textref($textish);
-  length(${$textref}) or return;
-  my $type_re  = length($type // q()) ? qr&\Q-$type\E&msx : qr&(?:-\S*)?&msx;
-  my $extra    = join(q(), @extra);
-  my $extra_re = length($extra) ? qr&\Q - $extra\E&msx : q();
-  return ${$textref} =~
-m&(\A|[ \t])[#]{3} MIGRATE$type_re(?: \(migrate-[^)]+\)\s*?)?$extra_re&msx;
-} ## end sub tagged
+  my ($textish, $tag_selector) = @_;
+  return _filter_tags($textish, $tag_selector, { shortcircuit => 1 });
+}
 
 
-sub untag {
-  my ($textish, $type) = @_;
-  not ignored($textish) or return;
-  my $textref = _to_textref($textish);
-  ${$textref} =~ s&(?:\A|\s+)[#]{3}\s+MIGRATE-$type.*?(\s+[#]|$)&$1&msgx;
-  return $textref;
-} ## end sub untag
+sub unflag_all {
+  return untag_matching(shift, "ACTION*");
+}
+
+
+sub unflag_matching {
+  my ($textish, $flag_selector) = @_;
+  return untag_matching($textish, "ACTION-$flag_selector");
+}
+
+
+sub unflag_not_matching {
+  my ($textish, $flag_selector) = @_;
+  return untag_not_matching($textish, "ACTION-$flag_selector");
+}
 
 
 sub untag_all {
-  my ($textish) = @_;
-  not ignored($textish) or return;
-  my $textref = _to_textref($textish);
-  ${$textref} =~ s&(?:\A|\s+)[#]{3}\s+MIGRATE-.*?(\s+[#]|$)&$1&msgx;
-  return $textref;
-} ## end sub untag_all
+  return untag_matching(shift);
+}
+
+
+sub untag_informational {
+  return untag_not_matching(shift, "ACTION*");
+}
+
+
+sub untag_matching {
+  my ($textish, $tag_selector) = @_;
+  return _filter_tags($textish, $tag_selector, { exclude => 1 });
+}
+
+
+sub untag_not_matching {
+  my ($textish, $tag_selector) = @_;
+  return _filter_tags($textish, $tag_selector);
+}
 
 ########################################################################
 # Private functions
 ########################################################################
+my $_tag_preamble   = qr&(?:^|[ \t]+)[#]{3}[ \t]+&msx;
+my $_tag_stamp      = qr&(?:[ ]\(migrate-[^)]+\)[ \t]*?)?&msx;
+my $_tag_fmt_tag    = qr&MIGRATE-(?P<found_tag>[A-Za-z0-9_-]+)&msx;
+my $_tag_fmt_msg    = qr&(?:[ \t]+-[ \t]+.*?)?&msx;
+my $_tag_full_match = "$_tag_preamble$_tag_fmt_tag$_tag_stamp$_tag_fmt_msg";
+my $_tag_buffer     = qr&(?=[ \t]+[#]|$)&msx;
+
+
+sub _filter_tags {
+  my ($textish, $tag_selector, $options) = @_;
+  length($textish)
+    or ($options->{shortcircuit} and return or return _to_textref($textish));
+  my $textref  = _to_textref($textish);
+  my $resetter = Cetmodules::Util::PosResetter->new($textref);
+  $options->{shortcircuit} or not ignored($textref) or return $textref;
+
+  if (not defined $tag_selector or $tag_selector eq q()) {
+    $tag_selector = qr&\A[-a-z0-9_]+\z&imsx;
+  } elsif ($tag_selector =~ m&\A([-A-Za-z0-9_*]+)\z&msx) {
+    $tag_selector =~ s&([-A-Za-z0-9_]+)&\Q$1\E&msgx;
+    $tag_selector =~ s&[*]&(?:\\b[-A-Za-z0-9_]+)?&msgx;
+    $tag_selector = qr&\A$tag_selector\z&msx;
+  } ## end elsif ($tag_selector =~ m&\A([-A-Za-z0-9_*]+)\z&msx) [ if (not defined $tag_selector...)]
+  my $new_text = q();
+
+  while ( ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+      ${$textref} =~
+    m&\G(?P<pre_match>.*?)(?P<full_match>$_tag_full_match)$_tag_buffer&mscgx
+    ) {
+    my ($pre_match, $found_tag, $full_match) =
+      @LAST_PAREN_MATCH{qw(pre_match found_tag full_match)};
+    my $matched = ($found_tag =~ m&$tag_selector&msx);
+    $options->{shortcircuit} and ($matched and return 1 or next);
+    $new_text = "$new_text$pre_match";
+    ($matched xor $options->{exclude}) and $new_text = "$new_text$full_match";
+  } ## end while (  ${$textref} =~ ...)
+  $options->{shortcircuit} and return; # Match / no match only.
+  ${$textref} = sprintf("$new_text%s", ${$textref} =~ m&\G(.*)\z&msx);
+  return $textref;
+} ## end sub _filter_tags
+
+
 sub _to_textref {
   my ($textish) = @_;
   defined $textish or $textish = q();
