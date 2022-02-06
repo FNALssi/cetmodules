@@ -21,6 +21,7 @@ our (@EXPORT, @EXPORT_OK, $FLAGS_ONLY);
 
 @EXPORT = qw(
   flag
+  flag_compatibility
   flag_error
   flag_recommended
   flag_required
@@ -51,6 +52,12 @@ sub flag {
   local $_FLAGGING = 1; ## no critic qw(Variables::ProhibitLocalVars)
   return tag($textish, "ACTION-$type", @msg);
 } ## end sub flag
+
+
+sub flag_compatibility {
+  my ($textish, @msg) = @_;
+  return flag($textish, "COMPATIBILITY", @msg);
+}
 
 
 sub flag_error {

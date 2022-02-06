@@ -10,7 +10,7 @@ use Cetmodules::CMake qw(@PROJECT_KEYWORDS reconstitute_code);
 use Cetmodules::CMake::CommandInfo qw();
 use Cetmodules::CMake::Util qw(interpolated is_comment);
 use Cetmodules::Migrate::CMake::Tagging
-  qw(flag_error flag_recommended flag_required report_removed tag_added tag_changed);
+  qw(flag_compatibility flag_error flag_recommended flag_required report_removed tag_added tag_changed);
 use Cetmodules::UPS::Setup
   qw(get_cmake_project_info $PATH_VAR_TRANSLATION_TABLE);
 use Cetmodules::Util
@@ -581,8 +581,9 @@ EOF
         } ## end else [ if (not $vmax) ]
 
         if ($policy) {
-          my $lineref = tag_added(<<"EOF", "CMake compatibility");
-$cmd_info->{pre_cmd_ws}\Ecmake_policy(VERSION $policy)
+          my $lineref = flag_compatibility(
+              <<"EOF", "Uncomment to preseve compatibility with older CMake versions");
+$cmd_info->{pre_cmd_ws}# cmake_policy(VERSION $policy)
 EOF
           push @{$cmd_infos}, ${$lineref};
         } ## end if ($policy)
