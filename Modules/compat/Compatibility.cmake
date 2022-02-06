@@ -131,7 +131,7 @@ endmacro()
 
 function(_parse_fup_arguments _FUP_PRODUCT)
   # Parse for options we expect.
-  set(opts BUILD_ONLY INTERFACE PRIVATE OPTIONAL PUBLIC REQUIRED)
+  set(opts BUILD_ONLY EXPORT INTERFACE PRIVATE OPTIONAL PUBLIC REQUIRED)
   set(sargs PROJECT)
   set(largs)
   foreach (var IN LISTS opts sargs largs
@@ -148,7 +148,7 @@ function(_parse_fup_arguments _FUP_PRODUCT)
   endforeach()
   # Parse for options we were told to expect first time.
   cmake_parse_arguments(_FUP "${_FUP__OPTS}" "${_FUP__SARGS}" "${_FUP__LARGS}" ${_FUP_UNPARSED_ARGUMENTS})
-  foreach (vis IN ITEMS BUILD_ONLY INTERFACE PRIVATE PUBLIC)
+  foreach (vis IN ITEMS BUILD_ONLY INTERFACE PRIVATE PUBLIC EXPORT)
     cet_passthrough(FLAG IN_PLACE _FUP_${vis})
   endforeach()
   if (_FUP_OPTIONAL AND _FUP_REQUIRED)

@@ -1,2 +1,4 @@
 spack-build*
 migrate-backup-*
+*.LOG
+*.tdy

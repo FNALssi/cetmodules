@@ -1,0 +1,4 @@
+[-ErrorHandling::RequireCarping]
+[-ErrorHandling::RequireUseOfExceptions]
+[-Miscellanea::RequireRcsKeywords]
+[-Modules::RequireVersionVar]

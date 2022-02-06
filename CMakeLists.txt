@@ -30,8 +30,17 @@
 # Required to keep CMake happy.
 cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
+####################################
 # Project information.
-project(cetmodules VERSION 2.31.01 LANGUAGES NONE)
+project(cetmodules LANGUAGES NONE)
+
+# Installed file locations.
+list(APPEND ${PROJECT_NAME}_ADD_ARCH_DIRS CPAN_DIR)
+list(APPEND ${PROJECT_NAME}_ADD_NOARCH_DIRS BIN_DIR LIBEXEC_DIR)
+set(${PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR share)
+set(${PROJECT_NAME}_FHICL_DIR "") # Don't need.
+set(${PROJECT_NAME}_INCLUDE_DIR "") # Don't need.
+set(${PROJECT_NAME}_LIBRARY_DIR "") # Don't need.
 
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
@@ -39,14 +48,13 @@ list(PREPEND CMAKE_MODULE_PATH
   ${PROJECT_BINARY_DIR}/Modules
   ${PROJECT_SOURCE_DIR}/Modules/compat)
 
-# Other configuration.
-set(${PROJECT_NAME}_NOARCH TRUE)
-set(${PROJECT_NAME}_FHICL_DIR "")
-set(${PROJECT_NAME}_INCLUDE_DIR "")
-set(${PROJECT_NAME}_LIBRARY_DIR "")
+# Version handling.
+include(CetSetVersionFromFile)
+cet_set_version_from_file(EXTENDED_VERSION_SEMANTICS)
 
 # Temporary for CI
 set(BUILD_DOCS FALSE)
+####################################
 
 # Basic build environment.
 include(CetCMakeEnv)
@@ -61,6 +69,7 @@ cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
 ####################################
 # Build components.
 add_subdirectory(config)
+add_subdirectory(etc)
 add_subdirectory(Modules)
 add_subdirectory(libexec)
 add_subdirectory(tools)
