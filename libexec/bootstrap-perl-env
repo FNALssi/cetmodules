@@ -108,6 +108,7 @@ install_modules_for() {
 
 # Ascertain prerequisites for given Perl modules.
 needed_modules() {
+  (( $# == 0 )) && return
   # Note that we do *NOT* use "-c" option to scandeps.pl: it will stall
   # indefinitely attempting to process any module that has a function
   # executed at compile-time.
@@ -117,8 +118,8 @@ needed_modules() {
   PERL5LIB="$source_base/libexec${PERL5LIB:+:$PERL5LIB}" \
           scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
           "$@" >"$TMP" 2>&1 || error_exit "scandeps failed for $*"
-    sed -En \
-        -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
+  sed -En \
+      -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
 t printit
 s&^#[[:space:]]+[Cc]ould[[:space:]]+not[[:space:]]+find[[:space:]]+source[[:space:]]+file[[:space:]]+'([^']+)\.pm'.*\$&\\1&
 T
@@ -127,12 +128,12 @@ s&/&::&
 t scopeit
 : printit
 p" <"$TMP" 2>/dev/null | sort -u || \
-      error_exit "output filtering failed for scandeps $*"
+    error_exit "output filtering failed for scandeps $*"
 }
 
 printit() {
   local prefix="$(printf "$1")"; shift
-  local msg="$(printf "$@")"
+  local msg="${*:+$(printf "$@")}"
   msg="${msg%$'\n'}"
   if [ -z "$msg" ]; then
     echo "${prefix/%: /!}"
