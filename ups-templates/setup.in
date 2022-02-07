@@ -183,6 +183,24 @@ test -z "$_cetpkg_status$_cetpkg_cetmsetup" && setenv PATH `dropit -sfe "$CETPKG
 test -z "$_cetpkg_status$_cetpkg_cettop" -a -n "$CETMODULES_DIR" && __SET__ _cetpkg_cettop="$CETMODULES_DIR"
 ####################################
 
+########################################################################
+# A bootstrapped Perl environment is only needed if we're building
+# cetmodules itself.
+
+test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
+  setup cetpkgsupport
+test $? != 0 && __SET__ _cetpkg_status=1 && \
+  echo "ERROR: setup of cetpkgsupport has failed" || true
+test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
+  "$_cetpkg_cettop/libexec/bootstrap-perl-env" > \
+  "$CETPKG_BUILD/bootstrap.log"
+test $? != 0 && __SET__ _cetpkg_status=1 && \
+  echo "ERROR: bootstrap of Perl environment for cetmodules has failed: see $CETPKG_BUILD/bootstrap.log" || true
+test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
+  eval "`perl -I\"$CETPKG_BUILD/$CET_SUBDIR/CPAN/lib/perl5\" -Mlocal::lib=\"$CETPKG_BUILD/$CET_SUBDIR/CPAN\",\"$CETPKG_BUILD/$CET_SUBDIR/cpan_build\"\`test \$?shell = 1 && printf \",--shelltype=csh\"\``"
+test $? != 0 && __SET__ _cetpkg_status=1 && \
+  echo "ERROR: setup of Perl environment for cetmodules has failed" || true
+
 ####################################
 # Generate the setup script to set up dependencies.
 

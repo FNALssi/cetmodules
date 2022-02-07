@@ -94,7 +94,7 @@ unable to obtain current list of find_package() keywords from CMake ${CMAKE_VERS
 endif()
 string(REPLACE "\n" ";" _cet_fp_keywords ${_cet_fp_keywords})
 list(REMOVE_DUPLICATES _cet_fp_keywords)
-set(_cet_fp_new_flags BUILD_ONLY INTERFACE NOP PRIVATE PUBLIC)
+set(_cet_fp_new_flags BUILD_ONLY EXPORT INTERFACE NOP PRIVATE PUBLIC)
 set(_cet_fp_new_options REQUIRED_BY)
 set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options})
 set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords})
@@ -110,7 +110,7 @@ macro(find_package PKG)
   math(EXPR _fp_finding_${PKG} "${_fp_finding_${PKG}} + 1")
   if (_fp_finding_${PKG} EQUAL 1)
     # Handle nested calls (e.g. FindXXXX.cmake -> XXXConfig.cmake...)
-    if ((_fp_INTERFACE OR _fp_PUBLIC) AND NOT
+    if ((_fp_INTERFACE OR _fp_PUBLIC OR _fp_EXPORT) AND NOT
         (_fp_BUILD_ONLY OR _fp_PRIVATE))
       set(_fp_${PKG}_REQUIRED_BY ${_fp_REQUIRED_BY})
       set(_fp_${PKG}_transitive_args ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS})
