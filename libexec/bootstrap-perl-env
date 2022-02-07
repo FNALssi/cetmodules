@@ -112,11 +112,9 @@ needed_modules() {
   # indefinitely attempting to process any module that has a function
   # executed at compile-time.
   add_to_depfile ${*:+"$@"}
-  local TMP=`mktemp -t bootstrap-perl-env.XXXXXX`
-  trap "[ -n \"$TMP\" ] && rm -f \"$TMP\"* 2>/dev/null" RETURN
   PERL5LIB="$source_base/libexec${PERL5LIB:+:$PERL5LIB}" \
           scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
-          "$@" >"$TMP" 2>&1 || error_exit "scandeps failed for $*"
+          "$@" 2>&1 | 
   sed -En \
       -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
 t printit
@@ -126,8 +124,7 @@ T
 s&/&::&
 t scopeit
 : printit
-p" <"$TMP" 2>/dev/null | sort -u || \
-    error_exit "output filtering failed for scandeps $*"
+p" 2>/dev/null | sort -u || error_exit "Dependency scanning failed for $*"
 }
 
 printit() {
