@@ -101,9 +101,8 @@ info() {
 
 # Install/upgrade prerequisites for given Perl modules.
 install_modules_for() {
-  local needed_modules=($(needed_modules "$@"))
-  (( ${#needed_modules[@]} == 0 )) || \
-    cpan_install "${needed_modules[@]}"
+  local needed_modules=($(needed_modules "$@")) || return
+  (( ${#needed_modules[@]} == 0 )) || cpan_install "${needed_modules[@]}"
 }
 
 # Ascertain prerequisites for given Perl modules.
@@ -174,7 +173,9 @@ time_cmd_and_report_status() {
 }
 
 time_cmd_and_require_success() {
+  set -x
   time_cmd_and_report_status "$@" || error_exit
+  set +x
 }
 
 ########################################################################
