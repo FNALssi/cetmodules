@@ -20,7 +20,7 @@ Utility
 * :cmake:command:`cet_exclude_files_from`
 * :cmake:command:`cet_localize_pv_all`
 * :cmake:command:`cet_localize_pv`
-* :cmake:command:`cet_make_module_directories`
+* :cmake:command:`cet_cmake_module_directories`
 * :cmake:command:`cet_passthrough`
 * :cmake:command:`cet_source_file_extensions`
 * :cmake:command:`cet_timestamp`
