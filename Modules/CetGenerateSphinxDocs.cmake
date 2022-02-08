@@ -160,28 +160,37 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
     # Failure semantics aren't great for sphinx-build: need to wrap. We
     # must delete the whole ${fmt}/ directory on failure otherwise we
     # have a hysteresis problem.
-    add_custom_command(OUTPUT ${target_stem}
-      COMMAND ${CMAKE_COMMAND}
-      -DCMD_DELETE_ON_FAILURE=${fmt}
-      -DCMD=$<TARGET_FILE:sphinx-doc::sphinx-build>
-      -DCMD_ARGS="${cmd_args}"
-      -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
-      COMMENT "Invoking sphinx-build to build ${fmt} documentation")
-    set_property(SOURCE ${target_stem} PROPERTY SYMBOLIC TRUE)
     set(target sphinx-doc-${target_stem})
-    add_custom_target(${target} ${all}
-      DEPENDS "${target_stem}"
-      JOB_POOL sphinx_doc)
-    set_property(TARGET ${target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-      "${fmt};${warnings_log}")
-    if (fmt STREQUAL man)
-      cet_localize_pv(cetmodules LIBEXEC_DIR)
-      add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${cetmodules_LIBEXEC_DIR}/fix-man-dirs ${fmt}
-        COMMENT "Renaming manual section directories for ${target}"
-        VERBATIM)
-    endif()
+    set(extra_args-force -E)
+    set(extra_args)
+    set(all-force)
+    foreach (tlabel "" -force)
+      set(cmd_args${tlabel} ${extra_args${tlabel}} ${cmd_args})
+      add_custom_target(${target}${tlabel} ${all${tlabel}}
+        COMMAND ${CMAKE_COMMAND}
+        -DCMD_DELETE_ON_FAILURE=${fmt}
+        -DCMD=$<TARGET_FILE:sphinx-doc::sphinx-build>
+        -DCMD_ARGS="${cmd_args${tlabel}}"
+        -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
+        COMMENT "Invoking sphinx-build to build ${fmt} documentation"
+        JOB_POOL sphinx_doc)
+      set_property(TARGET ${target}${tlabel} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+        "${fmt};${warnings_log}")
+      if (fmt STREQUAL man)
+        cet_localize_pv(cetmodules LIBEXEC_DIR)
+        add_custom_command(TARGET ${target}${tlabel} POST_BUILD
+          COMMAND ${cetmodules_LIBEXEC_DIR}/fix-man-dirs ${fmt}
+          COMMENT "Renaming manual section directories for ${target}"
+          VERBATIM)
+      endif()
+    endforeach()
     list(APPEND targets ${target})
+    if (NOT TARGET sphinx-doc-force)
+      add_custom_target(sphinx-doc-force
+        COMMENT "Building documentation with Sphinx"
+        JOB_POOL sphinx_doc)
+    endif()
+    add_dependencies(sphinx-doc-force ${target}-force)
     if (all)
       if (NOT TARGET sphinx-doc)
         add_custom_target(sphinx-doc ALL
