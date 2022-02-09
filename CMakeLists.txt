@@ -52,10 +52,7 @@ list(PREPEND CMAKE_MODULE_PATH
 include(CetSetVersionFromFile)
 cet_set_version_from_file(EXTENDED_VERSION_SEMANTICS)
 
-# Temporary for CI
-set(BUILD_DOCS FALSE)
 ####################################
-
 # Basic build environment.
 include(CetCMakeEnv)
 cet_cmake_env()

@@ -36,6 +36,8 @@ include (ProjectVariable)
 
    **Options:**
 
+     .. _p_cet_install-BASENAME_EXCLUDES:
+
      ``BASENAME_EXCLUDES [[REGEX] <exp>]...``
        Filenames matching these expressions in any searched subdirectory are excluded from installation; :ref:`file(GLOB) <cmake-ref-current:glob>` expressions are permitted.
 
@@ -45,6 +47,8 @@ include (ProjectVariable)
      ``DEST_VAR <dest-var>``
        The name of a CMake variable containing the installation subdirectory (mutually-exclusive with ``DESTINATION``).
 
+     .. _p_cet_install-EXCLUDES:
+
      ``EXCLUDES [<exclude-exp>...]``
        A list of paths to exclude from the list of files that would otherwise be installed. This keyword accepts files only: no wildcards or directories
 
@@ -53,11 +57,15 @@ include (ProjectVariable)
      ``LIST [<file>...]``
        A list of files to install. Mutually-exclusive with any option assuming a generated list via `p_cet_install-_GLOB`_, specifically `p_cet_install-EXCLUDES`_, `p_cet_install-BASENAME_EXCLUDES`_, `p_cet_install-EXTRAS`_, `p_cet_install-SUBDIRS`_, 
 
+     .. _p_cet_install-EXTRAS:
+
      ``EXTRAS [<extra file>...]``
 
      ``PROGRAMS``
 
      ``SUBDIRNAME <dest-subdir>``
+
+     .. _p_cet_install-SUBDIRS:
 
      ``SUBDIRS [<source-subdir>...]``
 
@@ -96,7 +104,7 @@ include (ProjectVariable)
        Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
 
      ``_SEARCH_BUILD``
-       :ref:`GLOB <cmake_ref_current:glob>` expressions will be applied
+       :ref:`GLOB <cmake-ref-current:glob>` expressions will be applied
        to the build tree in addition to the source tree.
 
      ``_SQUASH_SUBDIRS``

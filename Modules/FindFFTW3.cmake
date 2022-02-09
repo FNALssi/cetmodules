@@ -1,3 +1,7 @@
+#[================================================================[.rst:
+FindFFTW3[flq]?
+===============
+#]================================================================]
 # Mitigate a possible FFTW3 packaging error if built with autotools
 # instead of CMake.
 

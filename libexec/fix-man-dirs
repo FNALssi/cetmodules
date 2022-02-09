@@ -9,6 +9,8 @@ fi
 
 status=0
 
+shopt -s nullglob
+
 for dir in [0-9]*; do
   [ -d "$dir" ] && rm -rf "man$dir" && mv {,man}"$dir" || \
     { status=$?

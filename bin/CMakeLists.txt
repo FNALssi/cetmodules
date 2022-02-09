@@ -4,6 +4,7 @@
 
 set(public_programs
   format-code
+  intersphinx-refs
   make_bash_completions)
 
 set(legacy_public_programs

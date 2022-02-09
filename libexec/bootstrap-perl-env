@@ -99,27 +99,66 @@ info() {
   return $status
 }
 
-# Install/upgrade prerequisites for given Perl modules.
-install_modules_for() {
-  local needed_modules=($(needed_modules "$@"))
-  (( ${#needed_modules[@]} == 0 )) || \
-    cpan_install "${needed_modules[@]}"
+install_dev_prereqs() (
+  # Test prerequisites.
+  eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
+    error_exit "unable to reset environment for installation of build-only Perl modules"
+
+  time_cmd_and_require_success \
+    "install/verify Perl modules required by cetmodules tests" \
+    install_modules_for $("${ack_cmd[@]}" "$source_base/")
+)
+
+install_dev_tools() (
+  # Modules for development, build, and test infrastructure.
+  eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
+    error_exit "unable to set up environment to install Perl modules for development"
+
+  time_cmd_and_require_success \
+    "install/verify Perl modules for cetmodules development/build/test" \
+    cpan_install Perl::Tidy B::Lint {Test,Task}::Perl::Critic
+)
+
+install_dist_tools() {
+  # Update and enhance CPAN and friends.
+  time_cmd_and_require_success \
+    "install/verify Perl distribution tools for cetmodules (1/2)" \
+    cpan_install YAML CPAN::SQLite
+
+  time_cmd_and_require_success \
+    "install/verify Perl distribution tools for cetmodules (2/2)" \
+    cpan_install Log::Log4perl ExtUtils::CBuilder \
+    Term::ReadLine::Perl CPAN \
+    CPANPLUS Module::ScanDeps App::pmuninstall App::Ack
+
+  time_cmd_and_require_success "verify local::lib" cpan_install local::lib
 }
 
-# Ascertain prerequisites for given Perl modules.
+install_modules_for() {
+  # Install/upgrade prerequisites for given Perl modules.
+  local needed_modules=($(needed_modules "$@")) || return
+  (( ${#needed_modules[@]} == 0 )) || cpan_install "${needed_modules[@]}"
+}
+
+install_prereqs() {
+  # Modules required for operation.
+  time_cmd_and_require_success \
+    "install/verify Perl modules required by cetmodules tools for export" \
+    install_modules_for $("${ack_cmd[@]}" -v "$source_base/")
+}
+
 needed_modules() {
+  # Ascertain prerequisites for given Perl modules.
   (( $# == 0 )) && return
   # Note that we do *NOT* use "-c" option to scandeps.pl: it will stall
   # indefinitely attempting to process any module that has a function
   # executed at compile-time.
   add_to_depfile ${*:+"$@"}
-  local TMP=`mktemp -t bootstrap-perl-env.XXXXXX`
-  trap "[ -n \"$TMP\" ] && rm -f \"$TMP\"* 2>/dev/null" RETURN
-  PERL5LIB="$source_base/libexec${PERL5LIB:+:$PERL5LIB}" \
+  PERL5LIB="${modules_perl5lib:+$modules_perl5lib${PERL5LIB:+:}}$PERL5LIB" \
           scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
-          "$@" >"$TMP" 2>&1 || error_exit "scandeps failed for $*"
-  sed -En \
-      -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
+          "$@" 2>&1 | \
+    sed -En \
+        -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
 t printit
 s&^#[[:space:]]+[Cc]ould[[:space:]]+not[[:space:]]+find[[:space:]]+source[[:space:]]+file[[:space:]]+'([^']+)\.pm'.*\$&\\1&
 T
@@ -127,8 +166,7 @@ T
 s&/&::&
 t scopeit
 : printit
-p" <"$TMP" 2>/dev/null | sort -u || \
-    error_exit "output filtering failed for scandeps $*"
+p" 2>/dev/null | sort -u || error_exit "Dependency scanning failed for $*"
 }
 
 printit() {
@@ -155,9 +193,9 @@ real_path() {
   fi
 }
 
-# Execute and time the specified actions bracketed by the given message
-# and report status.
 time_cmd_and_report_status() {
+  # Execute and time the specified actions bracketed by the given
+  # message and report status.
   local msg="${1%%.}"; shift
   local status_flag=OK
   (( TIME_TOTAL += SECONDS ))
@@ -195,9 +233,17 @@ cetmodules_source_base="$(real_path ${BASH_SOURCE%/*/*})"
 if [ -n "$1" ]; then
   source_base="$(real_path "$1")"
   shift
+  if (( $# > 0 )); then
+    OIFS="$IFS"
+    IFS=":"
+    modules_perl5lib="$*"
+    IFS="$OIFS"
+  fi
 else
   source_base="$cetmodules_source_base"
+  modules_perl5lib="$source_base/libexec"
 fi
+
 if [ -n "$CETMODULES_VERSION" ]; then
   cetmodules_version="$CETMODULES_VERSION"
   cetmodules_dotversion=${cetmodules_version#v}
@@ -219,6 +265,7 @@ stampfile="$cpan_tmp/CPAN.stamp"
 cetmodules_devel_archive_minimal=cetmodules_devel-minimal-$arch.tar.bz2
 cetmodules_devel_archive=cetmodules_devel-$cetmodules_dotversion-$arch.tar.bz2
 cetmodules_devel_url="${CETMODULES_DEVEL_URL-https://scisoft.fnal.gov/scisoft/packages/cetmodules_devel/$cetmodules_version/$cetmodules_devel_archive}"
+cetmodules_devel_minimal_url="${CETMODULES_DEVEL_MINIMAL_URL-https://scisoft.fnal.gov/scisoft/packages/cetmodules_devel/$cetmodules_version/$cetmodules_devel_archive_minimal}"
 
 # Prepare work area.
 info "initializing Perl environment for cetmodules..."
@@ -234,12 +281,9 @@ rm -f "$depfile"
 add_to_depfile "$BASH_SOURCE"
 
 # Bootstrap.
-
 if [ -z "$cetmodules_devel_url" ]; then
-  info "download of cetmodules_devel disabled: clean rebuild of required PERL packages" 1>&2
-  rm -rf "$cpan_build" "$cpan_export"
+  info "download of cetmodules_devel disabled" 1>&2
   no_download=1
-  save_minimal=$make_archives
 fi
 
 if ! [ -d "$cpan_export" ]; then
@@ -249,17 +293,17 @@ if ! [ -d "$cpan_export" ]; then
         get_and_expand "$cetmodules_devel_url" jx || \
         { time_cmd_and_report_status \
             "[OPTIONAL] obtain and expand minimal pre-built Perl archive for cetmodules $arch" \
-            get_and_expand "${cetmodules_devel_url%/*/*}/vminimal/$cetmodules_devel_archive_minimal" jx && \
+            get_and_expand "${cetmodules_devel_minimal_url}" jx && \
             save_minimal=$make_archives
         }
     } || \
       { (( no_download )) || \
           info "pre-built CPAN environment not available: clean rebuild of all required PERL packages\n" \
                "  (may take >=25 minutes for a pristine install)" 1>&2
-        save_minimal=1
+        save_minimal=$make_archive
         time_cmd_and_require_success \
           "bootstrapping a local::lib Perl environment for cetmodules" \
-          bootstrap_local_lib
+          bootstrap_local_lib || error_exit
       }
 fi
 
@@ -267,32 +311,12 @@ fi
 eval "$(perl -I"$cpan_export/lib/perl5" -Mlocal::lib="$cpan_export" 2>/dev/null)" || \
   error_exit "unable to set up environment to find locally-installed Perl modules"
 
-####################################
 # Update and enhance CPAN and friends.
-time_cmd_and_require_success \
-  "install/verify Perl distribution tools for cetmodules (1/2)" \
-  cpan_install YAML CPAN::SQLite
+install_dist_tools
 
-time_cmd_and_require_success \
-  "install/verify Perl distribution tools for cetmodules (2/2)" \
-  cpan_install Log::Log4perl ExtUtils::CBuilder \
-  Term::ReadLine::Perl CPAN \
-  CPANPLUS Module::ScanDeps App::pmuninstall App::Ack
-
-time_cmd_and_require_success "verify local::lib" cpan_install local::lib
-####################################
-
-eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
-  error_exit "unable to set up environment to install Perl modules for development"
-
-####################################
 # Modules for development, build, and test infrastructure.
-time_cmd_and_require_success \
-  "install/verify Perl modules for cetmodules development/build/test" \
-  cpan_install Perl::Tidy B::Lint {Test,Task}::Perl::Critic
-####################################
+install_dev_tools || error_exit
 
-####################################
 # If we have built a clean minimal environment, save it.
 if (( save_minimal )); then
   time_cmd_and_require_success \
@@ -300,31 +324,16 @@ if (( save_minimal )); then
     tar jcf "$cetmodules_devel_archive_minimal" -C "$build_base" -- \
     "$CET_SUBDIR/"{"${cpan_export##*/}","${cpan_build##*/}"}
 fi
-####################################
 
-# Set up the environment to install Perl modules for export.
-eval "$(perl -Mlocal::lib="$cpan_export",--deactivate,"$cpan_build" 2>/dev/null)" || \
-  error_exit "unable to set up environment to install required Perl modules for export"
+ack_cmd=(ack --noenv --nopager --nofilter --nocolor --follow
+         --sort-files --perl -g '(^|/)test/')
 
-####################################
 # Modules required for operation.
-time_cmd_and_require_success \
-  "install/verify Perl modules required by cetmodules tools for export" \
-  install_modules_for $(ack --perl -f "$source_base/" | grep -Eve '(^|\b)test/')
-####################################
+install_prereqs
 
-# Revert environment to install more modules for development.
-eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
-  error_exit "unable to reset environment for installation of build-only Perl modules"
-
-####################################
 # Test prerequisites.
-time_cmd_and_require_success \
-  "install/verify Perl modules required by cetmodules tests" \
-  install_modules_for  $(ack --perl -g '(?:^|\b)test/' "$source_base/")
-####################################
+install_dev_prereqs || error_exit
 
-####################################
 # Save the full Perl environment as a version-tagged archive
 if (( make_archives )); then
   time_cmd_and_require_success \
@@ -332,7 +341,6 @@ if (( make_archives )); then
     tar jcf "$cetmodules_devel_archive" -C "$build_base" -- \
     "$CET_SUBDIR/"{"${cpan_export##*/}","${cpan_build##*/}"}
 fi
-####################################
 
 (( TIME_TOTAL += SECONDS ))
 
