@@ -169,16 +169,18 @@ printit() {
 }
 
 real_path() {
-  local path="$1"
-  local file=
-  if ! [ -d "$path" ]; then
-    file="${path##*/}"
-    path="${path%${file}}"
-  fi
-  if cd "${path:-.}"; then
-    echo "$(pwd -P)${file:+/$file}"
-    cd - >/dev/null
-  fi
+  local path file=
+  (( $# )) || set -- .
+  for path in "$@"; do
+    if ! [ -d "$path" ]; then
+      file="${path##*/}"
+      path="${path%${file}}"
+    fi
+    if cd "${path:-.}"; then
+      echo "$(pwd -P)${file:+/$file}"
+      cd - >/dev/null
+    fi
+  done
 }
 
 time_cmd_and_report_status() {
