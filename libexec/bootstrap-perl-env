@@ -253,7 +253,7 @@ stampfile="$cpan_tmp/CPAN.stamp"
 cetmodules_devel_archive_minimal=cetmodules_devel-minimal-$arch.tar.bz2
 cetmodules_devel_archive=cetmodules_devel-$cetmodules_dotversion-$arch.tar.bz2
 cetmodules_devel_url="${CETMODULES_DEVEL_URL-https://scisoft.fnal.gov/scisoft/packages/cetmodules_devel/$cetmodules_version/$cetmodules_devel_archive}"
-cetmodules_devel_minimal_url="${CETMODULES_DEVEL_MINIMAL_URL-https://scisoft.fnal.gov/scisoft/packages/cetmodules_devel/$cetmodules_version/$cetmodules_devel_archive_minimal}"
+cetmodules_devel_minimal_url="${CETMODULES_DEVEL_MINIMAL_URL-https://scisoft.fnal.gov/scisoft/packages/cetmodules_devel/vminimal/$cetmodules_devel_archive_minimal}"
 
 # Prepare work area.
 info "initializing Perl environment for cetmodules..."
@@ -288,7 +288,7 @@ if ! [ -d "$cpan_export" ]; then
       { (( no_download )) || \
           info "pre-built CPAN environment not available: clean rebuild of all required PERL packages\n" \
                "  (may take >=25 minutes for a pristine install)" 1>&2
-        save_minimal=$make_archive
+        save_minimal=$make_archives
         time_cmd_and_require_success \
           "bootstrapping a local::lib Perl environment for cetmodules" \
           bootstrap_local_lib
