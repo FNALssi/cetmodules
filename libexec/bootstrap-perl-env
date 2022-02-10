@@ -162,7 +162,7 @@ needed_modules() {
           "$@" >"$TMP" 2>&1 || \
     error_exit "failed scanning dependencies for $*"
   sed -En \
-      -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
+      -e "s&^'([^']+)'[^#]+#[^S?]+#[[:space:]]+[^[:space:]]+.*\$&\\1&
 t printit
 s&^#[[:space:]]+[Cc]ould[[:space:]]+not[[:space:]]+find[[:space:]]+source[[:space:]]+file[[:space:]]+'([^']+)\.pm'.*\$&\\1&
 T
