@@ -262,6 +262,9 @@ mkdir -p "$cpan_tmp" && \
     error_exit "unable to prepare temporary working area $cpan_tmp"
 cd - >/dev/null
 
+# Clear current Perl environment variables.
+eval $(perl -Mlocal::lib=--deactivate-all 2>/dev/null) >/dev/null 2>&1 || true
+
 # Delete depfile if we exit before we're ready.
 trap "[ -n \"$depfile\" ] && rm -f -- \"$depfile\"" EXIT
 rm -f "$depfile"
