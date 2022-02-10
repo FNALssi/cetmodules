@@ -44,6 +44,7 @@ true && test $?shell = 1 && set _cetpkg_shell_flavor=csh || _cetpkg_shell_flavor
 test "$_cetpkg_shell_flavor" = csh && \
   set _cetpkg_nobuild="@nobuild@" && \
   set _cetpkg_shell_var_set=set\\1 && \
+  set _cetpkg_to_stderr="| sh -c 'cat 1>\\&2'" && \
   alias vecho_ 'if ($?vv == 1) echo \>\> \!*' && \
   alias unsetenv_ unsetenv && \
   alias tnotnull "eval '"'test $?'"\!* -eq 1' && eval '"'test -n "$'"\!*"'"'"'" && \
@@ -55,6 +56,7 @@ test "$_cetpkg_shell_flavor" = csh && \
 test "$_cetpkg_shell_flavor" = sh && \
   _cetpkg_nobuild="@nobuild@" && \
   _cetpkg_shell_var_set= && \
+  _cetpkg_to_stderr='1>\&2' && \
   eval 'vecho_() { test -n "${vv-}" && echo ">> $*"; return 0; }' && \
   eval 'setenv() { eval "$1=\"\${2-}\"; export $1"; }' && \
   eval 'unsetenv_() { unset "$@"; }' && \
@@ -139,6 +141,7 @@ setenv CETPKG_BUILD `/bin/pwd -P`
 
 sed -Ee 's&(^|[^[:alnum:]_])__SET__([[:space:]]+)&'$_cetpkg_shell_var_set'&g' \
   -e 's&__SETUP_ARGS__&'"$*"'&g' \
+  -e 's&__TO_STDERR__&'"$_cetpkg_to_stderr"'&g' \
   > ./setup_common.$_cetpkg_shell_flavor <<\__TOP_EOF__
 ########################################################################
 
@@ -243,7 +246,7 @@ test "$_cetpkg_shell_flavor" = csh && \
 # Finish cleanup and exit. Note the use of eval so we can unset
 # everything including $return and $_cetpkg_status.
 eval "unset vecho_ setenv unsetenv_ source tnotnull nullout "\
-"_cetpkg_nobuild _cetpkg_shell_var_set "\
+"_cetpkg_nobuild _cetpkg_shell_var_set _cetpkg_to_stderr"\
 "_cetpkg_fw_db _cetpkg_myself _cetpkg_mydir _cetpkg_cetmsetup "\
 "_cetpkg_cettop _cetpkg_setup _cetpkg_setup_errlog "\
 "_cetpkg_shell_flavor return _cetpkg_status; \
