@@ -1031,10 +1031,11 @@ sub _set_version_from_file {
   my ($cmd_info, $cmake_file, $cmake_project_name, $version_file) = @_;
   my ($project_source_dir, $project_binary_dir) =
     (defined $ENV{MRB_SOURCE}
-      and abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE}))
+     and (not defined $ENV{CETPKG_SOURCE} or
+          abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE})))
     ? (
-      File::Spec->catfile($ENV{CETPKG_SOURCE}, $cmake_project_name),
-      File::Spec->catfile($ENV{CETPKG_BUILD},  $cmake_project_name))
+      File::Spec->catfile($ENV{MRB_SOURCE}, $cmake_project_name),
+      File::Spec->catfile($ENV{MRB_BUILDDIR},  $cmake_project_name))
     : ($ENV{CETPKG_SOURCE}, $ENV{CETPKG_BUILD});
   my $dirvar_start =
 qr&\A\$\{(?:(?:CMAKE_)?PROJECT|\$\{PROJECT_NAME\}|\Q$cmake_project_name\E)&msx;
