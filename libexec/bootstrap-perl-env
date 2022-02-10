@@ -13,9 +13,12 @@
 # Add fully-qualified paths as dependencies of our stamp file.
 add_to_depfile() {
   [ -n "$*" ] || return
-  local file=
-  for file in ${*:+"$@"}; do
-    echo "$stampfile: $(real_path "$file")"
+  local OIFS="$IFS"
+  local IFS=$'\n'
+  local file files=($(real_path "$@"))
+  IFS="$OIFS"
+  for file in "${files[@]}"; do
+    echo "$stampfile: $file"
   done >> "$depfile"
 }
 
