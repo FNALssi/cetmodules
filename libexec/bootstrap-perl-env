@@ -107,7 +107,11 @@ install_dev_prereqs() (
   eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
     error_exit "unable to reset environment for installation of build-only Perl modules"
   #
-  install_modules_for $("${ack_cmd[@]}" "$source_base/")
+  local OIFS="$IFS"
+  local IFS=$'\n'
+  local files=($("${ack_cmd[@]}" ${source_base[*]:+"${source_base[@]/%//}"}))
+  IFS="$OIFS"
+  install_modules_for ${files[*]:+"${files[@]}"}
 )
 
 install_dev_tools() (
@@ -135,7 +139,11 @@ install_modules_for() {
 
 install_prereqs() {
   # Modules required for operation.
-  install_modules_for $("${ack_cmd[@]}" -v "$source_base/")
+  local OIFS="$IFS"
+  local IFS=$'\n'
+  local files=($("${ack_cmd[@]}" -v ${source_base[*]:+"${source_base[@]/%//}"}))
+  IFS="$OIFS"
+  install_modules_for ${files[*]:+"${files[@]}"}
 }
 
 needed_modules() {
@@ -144,8 +152,8 @@ needed_modules() {
   # Note that we do *NOT* use "-c" option to scandeps.pl: it will stall
   # indefinitely attempting to process any module that has a function
   # executed at compile-time.
-  add_to_depfile ${*:+"$@"}
-  PERL5LIB="${modules_perl5lib:+$modules_perl5lib${PERL5LIB:+:}}$PERL5LIB" \
+  add_to_depfile "$@"
+  PERL5LIB="${MODULES_PERL5LIB:+$MODULES_PERL5LIB${PERL5LIB:+:}}$PERL5LIB" \
           scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
           "$@" 2>&1 | \
     sed -En \
@@ -222,19 +230,16 @@ time_cmd_and_require_success() {
 # Locations, etc.
 arch="${CET_SUBDIR//\./-}"
 build_base="$(real_path)"
-cetmodules_source_base="$(real_path ${BASH_SOURCE%/*/*})"
-if [ -n "$1" ]; then
-  source_base="$(real_path "$1")"
-  shift
-  if (( $# > 0 )); then
-    OIFS="$IFS"
-    IFS=":"
-    modules_perl5lib="$*"
-    IFS="$OIFS"
-  fi
+cetmodules_source_base="$(real_path "${BASH_SOURCE%/*/*}")"
+if (( $# )); then
+  OIFS="$IFS"
+  IFS=$'\n'
+  source_base=($(real_path "$@"))
+  IFS="$OIFS"
+  # MODULES_PERL5LIB should be set in environment if required.
 else
-  source_base="$cetmodules_source_base"
-  modules_perl5lib="$source_base/libexec"
+  source_base=("$cetmodules_source_base/"{libexec,tools,test})
+  export MODULES_PERL5LIB="$source_base" # First element.
 fi
 
 if [ -n "$CETMODULES_VERSION" ]; then
