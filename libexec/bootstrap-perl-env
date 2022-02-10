@@ -155,11 +155,14 @@ needed_modules() {
   # indefinitely attempting to process any module that has a function
   # executed at compile-time.
   add_to_depfile "$@"
+  local TMP=`mktemp -t bootstrap-perl-env.XXXXXX`
+  trap "[ -f \"$TMP\" ] && rm -f \"$TMP\" 2>/dev/null" RETURN
   PERL5LIB="${MODULES_PERL5LIB:+$MODULES_PERL5LIB${PERL5LIB:+:}}$PERL5LIB" \
           scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
-          "$@" 2>&1 | \
-    sed -En \
-        -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
+          "$@" >"$TMP" 2>&1 || \
+    error_exit "failed scanning dependencies for $*"
+  sed -En \
+      -e "s&^'([^']+)'[^#]+#[[:space:]]+([^[:space:]S?]+.*)#[[:space:]]+[^[:space:]]+.*\$&\\1&
 t printit
 s&^#[[:space:]]+[Cc]ould[[:space:]]+not[[:space:]]+find[[:space:]]+source[[:space:]]+file[[:space:]]+'([^']+)\.pm'.*\$&\\1&
 T
@@ -167,7 +170,8 @@ T
 s&/&::&
 t scopeit
 : printit
-p" 2>/dev/null | sort -u || error_exit "Dependency scanning failed for $*"
+p" "$TMP" 2>/dev/null | sort -u || \
+    error_exit "failed parsing scanned dependencies for $*"
 }
 
 printit() {
