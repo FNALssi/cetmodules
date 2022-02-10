@@ -55,7 +55,9 @@ sed -nEe '/itemprop="downloadUrl"/ s&^.*href="([^"]+)".*$&\1&p')"
 
 # Install packages without running all the tests.
 cpan_install() {
-  perl -MCPAN ${*:+-e 'CPAN::Shell->notest(@ARGV)' install "$@"} 2>&1
+  (( $# )) || return true
+  info "installing Perl modules from CPAN - $*"
+  perl -MCPAN -e 'CPAN::Shell->notest(@ARGV)' install "$@" 2>&1
 }
 
 # Print message to STDOUT _and_ STDERR.
