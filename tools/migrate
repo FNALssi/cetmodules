@@ -52,12 +52,12 @@ our ($PATHSPEC_INFO);
 
 my $options = {};
 GetOptions(
-    $options, "help|h|?", "clean-info",
-    "debug" => \$Cetmodules::DEBUG,
-    "dry-run|n",
-    "flags-only" => \$Cetmodules::Migrate::CMake::Tagging::FLAGS_ONLY,
-    "quiet|q"    => \$Cetmodules::QUIET,
-    "verbose|v"  => \$Cetmodules::VERBOSE)
+  $options, "help|h|?", "clean-info",
+  "debug" => \$Cetmodules::DEBUG,
+  "dry-run|n",
+  "flags-only" => \$Cetmodules::Migrate::CMake::Tagging::FLAGS_ONLY,
+  "quiet|q"    => \$Cetmodules::QUIET,
+  "verbose|v"  => \$Cetmodules::VERBOSE)
   or pod2usage(-exitval => 2);
 $options->{help}      and pod2usage(qq(-exitval) => 1, qq(-verbose) => 3);
 $options->{"dry-run"} and info("[DRY_RUN] no files replaced or removed");
@@ -127,7 +127,7 @@ sub _backup_files {
   system(qq(cp -pR ups $backupdir/ups)) == 0
     or error_exit("unable to back up UPS directory ups to $backupdir");
   File::Find::find(
-      { preprocess => \&find_cmake,
+    {   preprocess => \&find_cmake,
         wanted     => sub {
           -f or return;
           my ($path, $filepath, $filename) =
@@ -137,8 +137,8 @@ sub _backup_files {
           copy($_, "$destdir/")
           or error_exit("unable to back up $filepath to $destdir");
         }
-      },
-      q(.));
+    },
+    q(.));
   return;
 } ## end sub _backup_files
 
@@ -147,13 +147,13 @@ sub _clean_info {
   my ($comments_ish, $cmake_file) = @_;
 
   foreach my $comment_ref (
-      ( map {
-          is_comment($comments_ish->{chunks}->[$_])
+    ( map {
+        is_comment($comments_ish->{chunks}->[$_])
           ? \$comments_ish->{chunks}->[$_]
           : ();
-        } @{ $comments_ish->{arg_indexes} }
-      ),
-      (exists $comments_ish->{post}) ? $comments_ish : ()
+      } @{ $comments_ish->{arg_indexes} }
+    ),
+    (exists $comments_ish->{post}) ? $comments_ish : ()
     ) {
     untag_informational($comment_ref);
   } ## end foreach my $comment_ref ((map...))
@@ -170,11 +170,12 @@ sub _pkg_path_label {
 sub _upgrade_ups_dir {
   my ($upsdir) = @_;
   my @to_remove = map { -f "$upsdir/$_" ? "$upsdir/$_" : (); } (
-      qw(product-config.cmake.in README setup_deps
+    qw(product-config.cmake.in README setup_deps
       setup_for_development CMakeLists.txt));
   if ($options->{"dry-run"}) {
-    notify("[DRY_RUN] would remove obsolete files from $upsdir:",
-        to_string(\@to_remove, { full_indent => 2 }));
+    notify(
+      "[DRY_RUN] would remove obsolete files from $upsdir:",
+      to_string(\@to_remove, { full_indent => 2 }));
   } else {
     info("removing obsolete files from $upsdir...");
     system(qw(rm -fv --), @to_remove) == 0
@@ -257,7 +258,9 @@ I<migrate>: convert a cetbuildtools package to use cetmodules 2.X, or
 
 =head1 USAGE
 
-B<migrate> I<options> [--] [I<pkg-top>+]
+B<migrate> [B<--flags-only>] [I<options>] [--] [ B<[I<pkg-top>+]
+
+B<migrate> B<--clean-info> [I<options>] [--] [I<pkg-top>+]
 
 B<migrate> B<--help> | B<-h> | B<-?>
 
@@ -288,6 +291,13 @@ CMakeLists.txt resides) to migrate.
 
 =over
 
+=item B<--clean-info>
+
+If this option is specified, a migration will B<not> be
+performed. Instead, CMake files will be cleaned of any existing
+non-"ACTION" tags.
+
+
 =item B<--dry-run>
 
 =item B<-n>
@@ -304,6 +314,12 @@ changes or annotations to a file will be written to a new file with
 =item B<-?>
 
 This help.
+
+
+=item B<--flags-only>
+
+During a migration, only "ACTION" tags will be added to CMake files
+(I<cf> B<--flags-only>).
 
 
 =item B<--quiet>

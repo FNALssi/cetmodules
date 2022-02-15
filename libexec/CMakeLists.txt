@@ -13,6 +13,7 @@ if (WANT_UPS)
     DEPFILE "${cpan_tmp}/CPAN.d"
     COMMENT "Obtain Perl prerequisites for ${CETMODULES_CURRENT_PROJECT_NAME}"
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    USE_SOURCE_PERMISSIONS
     VERBATIM)
   add_custom_target(perl-prereq ALL DEPENDS "${cpan_tmp}/CPAN.stamp" VERBATIM)
   # Bundle required Perl modules.
