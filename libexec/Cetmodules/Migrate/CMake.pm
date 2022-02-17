@@ -131,20 +131,19 @@ sub _process_cmake_file {
     if ($options->{"dry-run"}) {
       $changed
         and notify(sprintf(
-"[DRY_RUN] would have made $changed edit%s to $options->{cmake_filename_short}\n",
+"[DRY_RUN] would have made $changed edit%s to $options->{cmake_filename_short}",
           ($changed != 1) ? 's' : q()));
     } else {
-      info(sprintf("made $changed edit%s to $cmake_filename_full",
-          ($changed != 1) ? 's' : q()));
+      info(sprintf("made $changed edit%s to $options->{cmake_filename_short}",
+        ($changed != 1) ? 's' : q()));
       move("$dest", "$cmake_filename")
         or error_exit("unable to install $dest_full as $cmake_filename_full");
     } ## end else [ if ($options->{"dry-run"...})]
   } else {
     verbose(sprintf(
-        "%sno changes necessary to $cmake_filename_full%s",
-        $options->{"dry-run"} ? "[DRY_RUN] "       : q(),
-        (-e $dest)            ? ": removing $dest" : q()
-    ));
+      "%sno changes necessary to $options->{cmake_filename_short}%s",
+      $options->{"dry-run"} ? "[DRY_RUN] "       : q(),
+      (-e $dest)            ? ": removing $dest" : q()));
     $options->{'debug'} or (-e $dest and unlink $dest);
   } ## end else [ if ($changed) ]
   return;
@@ -182,11 +181,11 @@ EOF
       \&Cetmodules::Migrate::CMake::Handlers::comment_handler,
       eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
     );
-  $options = { %{$options},
-               cmake_filename_short => "<$pi->{name}>/$cmake_filename_full",
-               output               => $output,
-               %handlers
-             };
+  %{$options} = (%{$options},
+                 cmake_filename_short => "<$pi->{name}>/$cmake_filename_full",
+                 output               => $output,
+                 %handlers
+                );
   my ($results, $status) = process_cmake_file($cmake_file, $options);
   $cmake_file_out->close();
   return scalar keys %{$status};
