@@ -219,24 +219,33 @@ sub _verified_package_selection {
   my @pkg_list = @_;
 
   if (not scalar @pkg_list) {
-    defined $ENV{CETPKG_SOURCE} and $ENV{CETPKG_SOURCE} ne q()
-      or error_exit(<<"EOF");
-vacuous source dir and \$CETPKG_SOURCE not set in environment
+    if (defined $ENV{CETPKG_SOURCE} and $ENV{CETPKG_SOURCE} ne q()) {
+      if (  defined $ENV{CETPKG_SOURCE}
+        and defined $ENV{MRB_SOURCE}
+        and abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE})) {
+        opendir my $dh, $ENV{CETPKG_SOURCE} or error_exit(<<"EOF");
+unable to get current directory listing for \$CETPKG_SOURCE ($ENV{CETPKG_SOURCE})
 EOF
-    opendir my $dh, $ENV{CETPKG_SOURCE} or error_exit(<<"EOF");
-vacuous source dir and \$CETPKG_SOURCE ($ENV{CETPKG_SOURCE}) not a valid directory
-EOF
+        info("vacuous source dir: defaulting to packages in \$MRB_SOURCE");
 
-    while (my $dir_item = readdir $dh) {
-      $dir_item !~ m&\A\.&msx
-        and -d $dir_item
-        and push @pkg_list,
-        File::Spec->catfile($ENV{CETPKG_SOURCE}, $dir_item);
-    } ## end while (my $dir_item = readdir...)
-    closedir $dh;
+        while (my $dir_item = readdir $dh) {
+          $dir_item !~ m&\A\.&msx
+            and -d $dir_item
+            and push @pkg_list,
+            File::Spec->catfile($ENV{CETPKG_SOURCE}, $dir_item);
+        } ## end while (my $dir_item = readdir...)
+        closedir $dh;
+      } else {
+        info("vacuous source dir: defaulting to \$CETPKG_SOURCE");
+        @pkg_list = ($ENV{CETPKG_SOURCE});
+      }
+    } else {
+      info("vacuous source dir: defaulting to current working directory");
+      @pkg_list = (getcwd());
+    }
   } ## end if (not scalar @pkg_list)
   @pkg_list = grep {
-          -r and -w and -f File::Spec->catfile($_, 'CMakeLists.txt')
+          -d and -r and -w and -f File::Spec->catfile($_, 'CMakeLists.txt')
       and -r File::Spec->catfile($_, 'CMakeLists.txt')
       and -f File::Spec->catfile($_, qw(ups product_deps))
       and -r File::Spec->catfile($_, qw(ups product_deps))
