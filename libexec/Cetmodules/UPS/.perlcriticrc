@@ -1,5 +1,4 @@
 [-BuiltinFunctions::ProhibitComplexMappings]
-[-Miscellanea::RequireRcsKeywords]
 [-Modules::ProhibitAutomaticExportation]
 [-Modules::RequireVersionVar]
 [-RegularExpressions::ProhibitComplexRegexes]

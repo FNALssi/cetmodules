@@ -1,6 +1,5 @@
 [-ErrorHandling::RequireCarping]
 [-ErrorHandling::RequireUseOfExceptions]
-[-Miscellanea::RequireRcsKeywords]
 [-Modules::ProhibitAutomaticExportation]
 [-Modules::RequireVersionVar]
 [-RegularExpressions::ProhibitComplexRegexes]
