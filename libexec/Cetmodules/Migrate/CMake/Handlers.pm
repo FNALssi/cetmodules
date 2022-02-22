@@ -163,7 +163,7 @@ my @_CMAKE_DEPRECATED_COMMAND_HANDLERS = qw(
   -variable_requires
   -write_file
 );
-
+##
 # This list made with:
 #
 #   ack --cmake -h -i '^\s*(?:function|macro)\(\s*+[^_$]' | \
