@@ -282,6 +282,7 @@ sub to_string {
     ($options->{full_indent}) ? q( ) x $options->{full_indent} : q();
   $options->{full_indent} and $indent += $options->{full_indent};
   my $result;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($type) {
     when ('SCALAR') { $result = "$initial_indent$$item"; }
     when ('ARRAY') {
@@ -450,6 +451,7 @@ sub _parse_extra {
       ? ($vInfo->{extra} =~ m&\A(.*?)[_.-]?\Q$enum\E\z&msx)
       : $vInfo->{extra});
   my $etext_l = lc $etext;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($etext_l) {
     when (q()) { $vInfo->{extra_type} = 0; }
     when (m&(?:\A|.+-)(?:nightly|snapshot)\z&msx) {

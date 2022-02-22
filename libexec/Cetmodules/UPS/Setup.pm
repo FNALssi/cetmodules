@@ -345,6 +345,7 @@ sub output_info {
 
   foreach my $key (@keys) {
     my $current_var = "CETPKG_\U$key";
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     List::MoreUtils::any { $current_var eq $_; } @{$for_export}
       and $current_var = "export $current_var";
     my $val = $cetpkg_info->{$key} || q();
@@ -740,6 +741,7 @@ sub _cmake_cetb_compat_defs {
 sub _cmake_defs_for_ups_config {
   my ($pi, $pv_prefix) = @_;
   my @cmake_args = ();
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   $pi->{name}
     and push @cmake_args,
     "-D${pv_prefix}_UPS_PRODUCT_NAME:STRING=$pi->{name}";
@@ -820,6 +822,7 @@ sub _fq_path_for {
   my $fq_path = $pathspec->{fq_path} // q();
 
   if (not($fq_path or ($pathspec->{key} eq q(-) and not $pathspec->{path}))) {
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     my $want_fq = $pi->{fq_dir}
       && (
         $pathspec->{key} eq 'fq_dir'
@@ -922,7 +925,6 @@ EOF
 
 sub _get_info_from_set_cmds {
   my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
@@ -938,6 +940,7 @@ $cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previo
 EOF
     return;
   } ## end if ($_cm_state->{seen_cmds...})
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($found_pvar) {
     when ('CMAKE_PROJECT_VERSION_STRING') {
       $_cm_state->{cmake_info}->{$found_pvar} =

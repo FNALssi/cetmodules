@@ -568,6 +568,7 @@ EOF
         if (not $vmax) {
           $policy = $vmin;
         } else {
+          local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
           given (version_cmp($_cmake_required_version, $vmax)) {
             when ($_ == 1) {
               $policy = $vmax; # Preserve behavior of code.
@@ -653,6 +654,7 @@ sub function {
 
 sub find_library {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   if ($cmd_info->has_keyword('ENV')
       or List::MoreUtils::any { $cmd_info->arg_at($_) =~ m&\$ENV\{&msx; }
       $cmd_info->all_idx_idx()
@@ -835,6 +837,7 @@ sub find_ups_root {
 
 sub include {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($cmd_info->interpolated_arg_at(0)) {
     when ($_ eq 'CetParseArgs' or $_ eq 'UseCPack') {
       report_removed($options->{cmake_filename_short} // $cmake_file,
@@ -913,7 +916,6 @@ EOF
       quiet_warnings => 1);
   $project_info->{name} = $cpi->{cmake_project_name};
   my $n_args = scalar @{ $cmd_info->{arg_indexes} };
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
   if ( # Identify old-style project().
       $n_args > 1 and List::MoreUtils::all {
@@ -1073,8 +1075,8 @@ sub subdirs {
   scalar @{ $cmd_info->{arg_indexes} } or return;
   my $mode               = q();
   my @preordered_subdirs = ();
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 arg: foreach my $arg_idx ($cmd_info->all_idx_idx()) {
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     my $arg = $cmd_info->arg_at($arg_idx);
     given (interpolated($arg)) {
       when ('ups') { # Drop.
@@ -1136,6 +1138,7 @@ EOF
 # Flag uses of CMAKE_INSTALL_PREFIX.
 sub _ah_flag_CMAKE_INSTALL_PREFIX {
   my ($cmd_info, $arg_idx_idx) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   List::MoreUtils::any {
     $cmd_info->arg_at($_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
@@ -1148,6 +1151,7 @@ EOF
 # Flag uses of CMAKE_MODULE_PATH.
 sub _ah_flag_CMAKE_MODULE_PATH {
   my ($cmd_info, $arg_idx_idx) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $found_CMP = List::Util::first {
     $cmd_info->interpolated_arg_at($_) eq 'CMAKE_MODULE_PATH';
   }

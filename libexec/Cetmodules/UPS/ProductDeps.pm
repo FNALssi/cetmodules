@@ -69,6 +69,7 @@ Readonly::Scalar my $_NO_MATCH      => -1;
 ########################################################################
 sub dirkey_is_valid {
   my ($dirkey) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   return ($dirkey
       and List::MoreUtils::any { $_ eq $dirkey } keys %{$PATHSPEC_INFO});
 } ## end sub dirkey_is_valid
@@ -85,6 +86,7 @@ sub get_parent_info {
     s&\s*\#.*\z&&msx;
     m&\w+&msx or next;
     my ($keyword, @pars) = split;
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     given ($keyword) {
       when ('parent') {
         $#pars < 1
@@ -265,6 +267,7 @@ EOF
         [map { (not $_ or $_ eq "-nq-") ? (q()) : sort_qual($_); }
          @words[0 .. $qlen]];
     } elsif ($keyword eq "qualifier") {
+      local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
       $get_quals = 1;
       push @qlist, [List::MoreUtils::before { $_ eq 'notes' } @words];
 
@@ -444,6 +447,7 @@ qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?
 
 sub _unwanted_keyword {
   my ($keyword, @allowed) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   return (List::MoreUtils::any { $keyword eq $_ } @_known_keywords
       and List::MoreUtils::none { $keyword eq $_ } @allowed);
 } ## end sub _unwanted_keyword
@@ -483,5 +487,6 @@ __END__
 # Not currently needed.
 sub _wanted_keyword {
   my ($keyword, @allowed) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   return List::MoreUtils::any { $keyword eq $_ } @allowed;
 }

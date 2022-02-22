@@ -57,6 +57,7 @@ sub interpolated {
 
   if (defined @separated) {
     if (scalar @separated > 1) {
+      local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
       $interpolated_string = $separated[1];
       given ($separated[0]) {
         when (q(")) { # double-quoted
