@@ -397,6 +397,7 @@ sub arg_handler {
     or _ah_flag_macro_arg_errors($cmd_info, \@arg_idx_idx, $cmake_file,
       $options);
   _ah_update_UPS_vars($cmd_info, \@arg_idx_idx);
+  _ah_update_DEFAULT_ARGS($cmd_info, \@arg_idx_idx);
 
   ########################################################################
   return;
@@ -1206,6 +1207,18 @@ EOF
   }
   return;
 } ## end sub _ah_flag_macro_arg_errors
+
+# X_DEFAULT ARGS -> X_UNPARSED_ARGUMENTS.
+sub _ah_update_DEFAULT_ARGS {
+  my ($cmd_info, $arg_idx_idx, $cmake_file, $options) = @_;
+  foreach my $arg_idx (@{$arg_idx_idx}) {
+    if (my ($open_var, $prefix, $close_var) = ($cmd_info->interpolated_arg_at($arg_idx) =~ m&\A((?:\$\{)?)([A-Za-z_-][A-Za-z_0-9-]*?)DEFAULT_ARGS(\}?)\z&smx)) {
+      $cmd_info->replace_arg_at($arg_idx, "$open_var${prefix}_UNPARSED_ARGUMENTS$close_var");
+    }
+  }
+  return;
+}
+
 
 # Lookup table.
 my $_UPS_var_translation_table =
