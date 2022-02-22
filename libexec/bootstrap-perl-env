@@ -158,7 +158,7 @@ needed_modules() {
   local TMP=`mktemp -t bootstrap-perl-env.XXXXXX`
   trap "[ -f \"$TMP\" ] && rm -f \"$TMP\" 2>/dev/null" RETURN
   PERL5LIB="${MODULES_PERL5LIB:+$MODULES_PERL5LIB${PERL5LIB:+:}}$PERL5LIB" \
-          scandeps.pl -R -V -T -C "$cpan_base/scandeps-cache.dat" -- \
+          scandeps.pl -V -T -C "$cpan_base/scandeps-cache.dat" -- \
           "$@" >"$TMP" 2>&1 || \
     error_exit "failed scanning dependencies for $*"
   sed -En \
