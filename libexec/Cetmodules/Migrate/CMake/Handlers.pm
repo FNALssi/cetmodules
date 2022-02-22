@@ -486,9 +486,7 @@ EOF
 sub cet_parse_args {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   $cmd_info->replace_cmd_with('cmake_parse_arguments');
-  my $flags = $cmd_info->arg_at(2);
-  $cmd_info->insert_args_at(1, $flags);
-  $cmd_info->remove_args_at(3); ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
+  $cmd_info->insert_args_at(1, $cmd_info->remove_args_at(2));
   tag_changed($cmd_info, <<"EOF");
 cet_parse_args(<prefix> <args> <opts> ...) -> cmake_parse_arguments(<prefix> <flags> <single-value-opts> <opts> ...)
 EOF
