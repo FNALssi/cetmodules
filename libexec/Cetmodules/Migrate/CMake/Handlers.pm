@@ -582,7 +582,7 @@ EOF
 
         if ($policy) {
           my $lineref = flag_compatibility(
-              <<"EOF", "Uncomment to preseve compatibility with older CMake versions");
+              <<"EOF", "Uncomment to preserve compatibility with older CMake versions");
 $cmd_info->{pre_cmd_ws}# cmake_policy(VERSION $policy)
 EOF
           push @{$cmd_infos}, ${$lineref};
