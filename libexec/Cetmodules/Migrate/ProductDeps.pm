@@ -111,6 +111,7 @@ unexpected use of section divider $divider at $_product_deps_template:$divider_l
 
 $line
 EOF
+        local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
         given ($label) {
           when ('Basic') {
             $pending = sub {

@@ -163,7 +163,7 @@ my @_CMAKE_DEPRECATED_COMMAND_HANDLERS = qw(
   -variable_requires
   -write_file
 );
-
+##
 # This list made with:
 #
 #   ack --cmake -h -i '^\s*(?:function|macro)\(\s*+[^_$]' | \
@@ -397,6 +397,7 @@ sub arg_handler {
     or _ah_flag_macro_arg_errors($cmd_info, \@arg_idx_idx, $cmake_file,
       $options);
   _ah_update_UPS_vars($cmd_info, \@arg_idx_idx);
+  _ah_update_DEFAULT_ARGS($cmd_info, \@arg_idx_idx);
 
   ########################################################################
   return;
@@ -485,9 +486,7 @@ EOF
 sub cet_parse_args {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
   $cmd_info->replace_cmd_with('cmake_parse_arguments');
-  my $flags = $cmd_info->arg_at(2);
-  $cmd_info->insert_args_at(1, $flags);
-  $cmd_info->remove_args_at(3); ## no critic qw(ValuesAndExpressions::ProhibitMagicNumbers)
+  $cmd_info->insert_args_at(1, $cmd_info->remove_args_at(2));
   tag_changed($cmd_info, <<"EOF");
 cet_parse_args(<prefix> <args> <opts> ...) -> cmake_parse_arguments(<prefix> <flags> <single-value-opts> <opts> ...)
 EOF
@@ -569,6 +568,7 @@ EOF
         if (not $vmax) {
           $policy = $vmin;
         } else {
+          local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
           given (version_cmp($_cmake_required_version, $vmax)) {
             when ($_ == 1) {
               $policy = $vmax; # Preserve behavior of code.
@@ -582,7 +582,7 @@ EOF
 
         if ($policy) {
           my $lineref = flag_compatibility(
-              <<"EOF", "Uncomment to preseve compatibility with older CMake versions");
+              <<"EOF", "Uncomment to preserve compatibility with older CMake versions");
 $cmd_info->{pre_cmd_ws}# cmake_policy(VERSION $policy)
 EOF
           push @{$cmd_infos}, ${$lineref};
@@ -654,6 +654,7 @@ sub function {
 
 sub find_library {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   if ($cmd_info->has_keyword('ENV')
       or List::MoreUtils::any { $cmd_info->arg_at($_) =~ m&\$ENV\{&msx; }
       $cmd_info->all_idx_idx()
@@ -836,6 +837,7 @@ sub find_ups_root {
 
 sub include {
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($cmd_info->interpolated_arg_at(0)) {
     when ($_ eq 'CetParseArgs' or $_ eq 'UseCPack') {
       report_removed($options->{cmake_filename_short} // $cmake_file,
@@ -914,7 +916,6 @@ EOF
       quiet_warnings => 1);
   $project_info->{name} = $cpi->{cmake_project_name};
   my $n_args = scalar @{ $cmd_info->{arg_indexes} };
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
   if ( # Identify old-style project().
       $n_args > 1 and List::MoreUtils::all {
@@ -1074,8 +1075,8 @@ sub subdirs {
   scalar @{ $cmd_info->{arg_indexes} } or return;
   my $mode               = q();
   my @preordered_subdirs = ();
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 arg: foreach my $arg_idx ($cmd_info->all_idx_idx()) {
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     my $arg = $cmd_info->arg_at($arg_idx);
     given (interpolated($arg)) {
       when ('ups') { # Drop.
@@ -1137,6 +1138,7 @@ EOF
 # Flag uses of CMAKE_INSTALL_PREFIX.
 sub _ah_flag_CMAKE_INSTALL_PREFIX {
   my ($cmd_info, $arg_idx_idx) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   List::MoreUtils::any {
     $cmd_info->arg_at($_) =~ m&\$\{CMAKE_INSTALL_PREFIX\}&msx;
   }
@@ -1149,6 +1151,7 @@ EOF
 # Flag uses of CMAKE_MODULE_PATH.
 sub _ah_flag_CMAKE_MODULE_PATH {
   my ($cmd_info, $arg_idx_idx) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $found_CMP = List::Util::first {
     $cmd_info->interpolated_arg_at($_) eq 'CMAKE_MODULE_PATH';
   }
@@ -1206,6 +1209,18 @@ EOF
   }
   return;
 } ## end sub _ah_flag_macro_arg_errors
+
+# X_DEFAULT ARGS -> X_UNPARSED_ARGUMENTS.
+sub _ah_update_DEFAULT_ARGS {
+  my ($cmd_info, $arg_idx_idx, $cmake_file, $options) = @_;
+  foreach my $arg_idx (@{$arg_idx_idx}) {
+    if (my ($open_var, $prefix, $close_var) = ($cmd_info->interpolated_arg_at($arg_idx) =~ m&\A((?:\$\{)?)([A-Za-z_-][A-Za-z_0-9-]*?)DEFAULT_ARGS(\}?)\z&smx)) {
+      $cmd_info->replace_arg_at($arg_idx, "$open_var${prefix}_UNPARSED_ARGUMENTS$close_var");
+    }
+  }
+  return;
+}
+
 
 # Lookup table.
 my $_UPS_var_translation_table =

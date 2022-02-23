@@ -70,7 +70,6 @@ sub all_idx_idx {
 # multi-value keyword).
 sub all_values_for {
   my ($self, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $result;
   $result = map { $self->arg_at($_) }
     ($self->find_all_args_for(@args) // return $result);
@@ -113,7 +112,6 @@ sub arg_location {
 # given keyword (assumes multi-value keyword).
 sub find_all_args_for {
   my ($self, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $found_args = $self->find_args_for(@args);
   return (defined $found_args)
     ? map { @{ $found_args->{$_} }; } sort keys %{$found_args}
@@ -172,7 +170,6 @@ sub find_keyword {
 # Return the arg_index of the overriding value single-value keyword.
 sub find_single_value_for {
   my ($self, @args) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $found_args = $self->find_args_for(@args);
   my $value;
 
@@ -289,7 +286,6 @@ sub is_quoted {
 
 sub keyword_arg_append_position {
   my ($self, $keyword, @all_keywords) = @_;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $found_args = $self->find_args_for($keyword, @all_keywords);
 
   if (defined $found_args) {
@@ -341,24 +337,14 @@ sub normalize_args_for {
     (scalar @all_keywords and $all_keywords[0] =~ m&\A[[:digit:]]+\z&msx)
     ? shift @all_keywords
     : undef;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
-  if ($n_args // 1) {
-
-    # One or more arguments to save and reinsert after removal.
+  if ($n_args // 1) { # One or more arguments to save and reinsert after removal.
     my @saved_args = (defined $n_args)
-      ?
-
-      # single-value case
-      $self->single_value_for($kw, @all_keywords)
-      :
-
-      # standard case: multiple arguments
-      $self->remove_args_for($kw, @all_keywords);
-    scalar @saved_args and return
-      $self->insert_args_at(
-        $self->keyword_arg_append_position($kw, @all_keywords),
-        @saved_args);
+      ? $self->single_value_for($kw, @all_keywords) # single-value case
+      : $self->remove_args_for($kw, @all_keywords); # standard case: multiple arguments
+    scalar @saved_args
+      and return $self->insert_args_at(
+        $self->keyword_arg_append_position($kw, @all_keywords), @saved_args);
   } ## end if ($n_args // 1)
   return;
 } ## end sub normalize_args_for
@@ -372,8 +358,7 @@ sub prepend_args {
 
 sub reconstitute {
   my ($self) = @_;
-  return
-    sprintf('%s%s%s',
+  return sprintf('%s%s%s',
       $self->{pre} // q(),
       join(q(), map { $_ // (); } @{ $self->{chunks} // [] }),
       $self->{post} // q());
@@ -543,8 +528,7 @@ $_remove_args = sub {
     my ($self, $idx_idx, $n_args) = @_;
     local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     my @removed = ();
-    my $last_arg_idx =
-    List::Util::min(
+    my $last_arg_idx = List::Util::min(
       ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
       $#{ $self->{arg_indexes} });
     my $index      = $self->{arg_indexes}->[$idx_idx] // return;
@@ -583,8 +567,6 @@ $_remove_args = sub {
     splice(@{ $self->{arg_indexes} }, $idx_idx, $n_args);
 
     # Recalculate indexes for remaining args.
-    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-
     for ($idx_idx .. $#{ $self->{arg_indexes} }) {
       $self->{arg_indexes}->[$_] -= $chunks_to_remove;
     }

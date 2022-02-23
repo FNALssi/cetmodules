@@ -711,7 +711,6 @@ sub _process_cmake_file_lines {
     @{$cmake_file_data}
     {qw(cmake_file cmake_file_in cmake_file_out pending_comments)}; # Convenience.
   my $current_linepos = 0;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
 
   if ($line =~ m&\A\s*[#].*\z&msx) {                                # Full-line comment.
     debug("read COMMENT from $cmake_file:$line_no: $line");

@@ -16,6 +16,7 @@ use warnings FATAL => qw(Cetmodules);
 sub new {
   my ($class, $saved_var, @args) = @_;
   my $self = { saved_var => $saved_var, saved_val => dclone($saved_var) };
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given (ref $self->{saved_var}) {
     when ('HASH')   { %{ $self->{saved_var} } = %{@args}; }
     when ('SCALAR') { ${ $self->{saved_var} } = shift @args; }
