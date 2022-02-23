@@ -18,12 +18,12 @@ my $verbose;
 my $use_available;
 my $dry_run;
 GetOptions(
-    "help|h|?"      => \&help_message,
-    "directory|d=s" => \$directory,
-    "commit|c"      => \$commit,
-    "dry-run|n"     => \$dry_run,
-    "verbose|v"     => \$verbose,
-    "use-available" => \$use_available)
+  "help|h|?"      => \&help_message,
+  "directory|d=s" => \$directory,
+  "commit|c"      => \$commit,
+  "dry-run|n"     => \$dry_run,
+  "verbose|v"     => \$verbose,
+  "use-available" => \$use_available)
   or die_while_processing_options();
 
 if (!defined $directory) {
@@ -236,8 +236,8 @@ if ($search_ups) {
   # might be a version accessible in UPS.
   my $ups_available = system("type ups > /dev/null 2>&1") == 0;
 
-  if (   system("type ups > /dev/null 2>&1") != 0
-      || system("ups exist clang $clang_ups_version") != 0) {
+  if ( system("type ups > /dev/null 2>&1") != 0
+    || system("ups exist clang $clang_ups_version") != 0) {
     print
 "Error: clang-format $clang_version is not available.  If you have a UPS\n";
     print

@@ -112,15 +112,15 @@ sub _consolidate_and_write {
   # Finish off with the buildtools setup file and environment variables
   # required for development.
   $options->{nobuild} or do {
-      my $modules_dir =
+    my $modules_dir =
       abs_path(File::Spec->catfile(dirname($FindBin::Bin), "Modules"));
-      my $cmake_args = ups_to_cmake($pi);
-      cetpkg_info_file(
-        %{$pi},
-        source     => $sourcedir,
-        build      => $builddir,
-        cmake_args => $cmake_args);
-      print_dev_setup($pi, $tset_fh);
+    my $cmake_args = ups_to_cmake($pi);
+    cetpkg_info_file(
+      %{$pi},
+      source     => $sourcedir,
+      build      => $builddir,
+      cmake_args => $cmake_args);
+    print_dev_setup($pi, $tset_fh);
   };
 
   # Write auxiliary files used in table generation from CMake.
@@ -183,11 +183,11 @@ sub _maybe_convert_cetbuildtools_args {
         error_exit("missing argument \$CETPKG_SOURCE for \$1");
       } else {
         error_exit(
-            "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+          "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
       }
     } elsif ($b ne abs_path($ENV{CETPKG_BUILD})) {
       error_exit(
-          "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
+        "expected (\$1, \$2) == (ENV{CEPKG_SOURCE}, ENV(SETPKG_BUILD)");
     }
 
     if ($args->[0] eq "noarch") {
@@ -217,14 +217,14 @@ sub _read_and_validate_args {
     { map { (substr($_, 0, 1) => $_) } keys %{$BTYPE_TABLE} };
   my $input_btype_candidates = {};
   GetOptions(
-      "help|h" => \&_usage,
-      ( map {
-          ( $_ => sub {
-              my ($opt) = @_;
-              $input_btype_candidates->{ $btype_lookup->{$opt} } = "-$opt";
-              return;
-            });
-        } keys %{$btype_lookup}))
+    "help|h" => \&_usage,
+    ( map {
+        ( $_ => sub {
+            my ($opt) = @_;
+            $input_btype_candidates->{ $btype_lookup->{$opt} } = "-$opt";
+            return;
+          });
+      } keys %{$btype_lookup}))
     or _usage("error parsing arguments");
 
   # Get qualifiers and/or build type from any remaining arguments.
@@ -232,8 +232,8 @@ sub _read_and_validate_args {
 
   if (scalar keys %{$input_btype_candidates} > 1) {
     error_exit(
-        "attempt to specify multiple build types:\n",
-        map { "$_ from $input_btype_candidates->{$_}\n"; }
+      "attempt to specify multiple build types:\n",
+      map { "$_ from $input_btype_candidates->{$_}\n"; }
         sort keys %{$input_btype_candidates});
   } ## end if (scalar keys %{$input_btype_candidates...})
   my ($input_btype) = keys %{$input_btype_candidates};
@@ -317,9 +317,9 @@ sub _validated_quals {
     _filter_build_types($supported_btypes, keys %{$qqhash});
   my $default_btype_candidates = {};
   my @default_quals            = sort keys %{
-      _filter_build_types(
-        $default_btype_candidates,
-        $pi->{default_qual} ? split(m&:&msx, $pi->{default_qual} // q()) : ())
+    _filter_build_types(
+      $default_btype_candidates,
+      $pi->{default_qual} ? split(m&:&msx, $pi->{default_qual} // q()) : ())
   };
 
   if (scalar keys %{$default_btype_candidates} > 1) {
@@ -330,11 +330,12 @@ EOF
   my ($default_btype) = keys %{$default_btype_candidates};
 
   if ($default_btype and $input_btype and not scalar keys %{$input_quals}) {
-    warning("default build type $default_btype from defaultqual",
-        "in $pfile is overridden from the command line by $input_btype");
-  }
+    warning(
+      "default build type $default_btype from defaultqual",
+      "in $pfile is overridden from the command line by $input_btype");
+  } ## end if ($default_btype and...)
   my $build_type = _validated_build_type($input_btype, $default_btype,
-      keys %{$supported_btypes});
+    keys %{$supported_btypes});
   my @quals;
 
   if (scalar keys %{$input_quals}) {

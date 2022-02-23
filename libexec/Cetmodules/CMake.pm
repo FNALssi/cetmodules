@@ -60,7 +60,7 @@ Readonly::Scalar my $_QUARTER                 => 1 / 4;
 ########################################################################
 sub get_CMakeLists_hash {
   return sha256_hex(
-      abs_path(File::Spec->catfile(shift // q(), 'CMakeLists.txt')));
+    abs_path(File::Spec->catfile(shift // q(), 'CMakeLists.txt')));
 }
 
 ########################################################################
@@ -228,28 +228,26 @@ sub process_cmake_file {
     _prepare_cmake_file_io($cmake_file, $options);
   my $line_no = 0;
   my $cmake_file_data =
-    {
-    cmd_handler_results => {},
-    cmd_handlers        => {
+    { cmd_handler_results => {},
+      cmd_handlers        => {
         map {
           m&\A(.*)_cmd\z&msx ? ((lc $1) => delete $options->{$_}) : ();
         } keys %{$options}
-    },
-    cmake_file       => $cmake_file,
-    cmake_file_in    => $cmake_file_in,
-    pending_comments => {} };
+      },
+      cmake_file       => $cmake_file,
+      cmake_file_in    => $cmake_file_in,
+      pending_comments => {} };
   $cmake_file_out and $cmake_file_data->{cmake_file_out} = $cmake_file_out;
   grep {
-      m&_handler\z&msx and $cmake_file_data->{$_} = delete $options->{$_};
+    m&_handler\z&msx and $cmake_file_data->{$_} = delete $options->{$_};
   } keys %{$options};
-  $cmake_file_data->{cmd_handler_regex} =
-    join(q(|),
-      map { quotemeta(sprintf('%s', $_)); }
+  $cmake_file_data->{cmd_handler_regex} = join(q(|),
+    map { quotemeta(sprintf('%s', $_)); }
       keys %{ $cmake_file_data->{cmd_handlers} });
 
   while (my $line = <$cmake_file_in>) {
     $line_no = _process_cmake_file_lines($line, ++$line_no, $cmake_file_data,
-        $options);
+      $options);
   } # Reading file.
 
   # Process any pending full-line comments.
@@ -271,12 +269,12 @@ sub process_cmake_file {
 
 sub reconstitute_code {
   return join(
-      q(),
-      map {
-        (blessed($_) and $_->isa('Cetmodules::CMake::CommandInfo'))
+    q(),
+    map {
+      (blessed($_) and $_->isa('Cetmodules::CMake::CommandInfo'))
         ? $_->reconstitute()
         : $_;
-      } @_);
+    } @_);
 } ## end sub reconstitute_code
 
 
@@ -288,9 +286,9 @@ sub report_code_diffs {
   my ($n_lines_orig, $n_lines_new) = map { scalar split m&\n&msx; } $orig_cmd,
     $new_cmd;
   my $diff = diff(
-      \$orig_cmd,
-      \$new_cmd,
-      { STYLE   => "Context",
+    \$orig_cmd,
+    \$new_cmd,
+    {   STYLE   => "Context",
         CONTEXT => List::Util::max($n_lines_orig, $n_lines_new) });
   my $diff_fh = IO::File->new(\$diff, q(<))
     or error_exit("unable to open variable for stream input");
@@ -351,8 +349,8 @@ sub _complete_cmd {
     # If we're down to whitespace or an incomplete quoted argument, try to
     # get more substantive content from the file.
     if (
-        ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-        $line =~ m&\A # anchor to string start
+      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+      $line =~ m&\A # anchor to string start
                    (?:[;\s]* # whitespace-ish OR
                    |(?P<q>["]) # open double-quote followed by...
                      (?>(?:(?>[^"\\]+)|\\.)*) # ...non-special or escaped special characters OR
@@ -381,14 +379,14 @@ illegal escaped vertical whitespace as part of unquoted string starting at $cmak
 EOF
     } elsif ($cmake_file_in->eof()) {
       _eof_error(
-          $cmake_file,
-          { line             => $line,
+        $cmake_file,
+        {   line             => $line,
             line_no          => $line_no,
             chunk_start_line => $chunk_start_line,
             current_linepos  => $current_linepos,
             in_quote         => $in_quote
-          },
-          $cmd_info);
+        },
+        $cmd_info);
     } else {
       error_exit(<<"EOF");
 unknown error at $cmake_file:$chunk_start_line parsing:
@@ -413,13 +411,13 @@ EOF
 sub _extract_args_from_string {
   my ($cmake_file, $state_data, $cmd_info) = @_;
   my ($line, $chunk_start_line, $line_no, $current_linepos,
-      $expect_whitespace, $in_quote)
+    $expect_whitespace, $in_quote)
     = @{$state_data}{
     qw(line chunk_start_line line_no current_linepos expect_whitespace in_quote)
     };
 
   while ( ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $line =~ s&\A # anchor to start of string
+    $line =~ s&\A # anchor to start of string
            (?P<chunk>(?| # (reset alternation to allow the same capture groups in multiple scenarios)
                (?P<q1>(?P<qs>["]) # open double-quote
                  (?P<qmarker>) # empty group to preserve consistency of capture groups in reset alternation
@@ -453,10 +451,9 @@ sub _extract_args_from_string {
         $expect_whitespace = 1;
       }
       debug(sprintf(
-          'read `%s\'-style quoted argument %s to %s() at %s',
-          $pm->{qs}, $pm->{chunk}, $cmd_info->{name},
-          "$cmake_file:$chunk_start_line:$current_linepos"
-      ));
+        'read `%s\'-style quoted argument %s to %s() at %s',
+        $pm->{qs}, $pm->{chunk}, $cmd_info->{name},
+        "$cmake_file:$chunk_start_line:$current_linepos"));
       push @{ $cmd_info->{chunks} }, $pm->{q1}, $pm->{quoted}, $pm->{q2};
       $value_index = $#{ $cmd_info->{chunks} } - 1;
       push @{ $cmd_info->{arg_indexes} }, $value_index;
@@ -477,10 +474,9 @@ sub _extract_args_from_string {
         $expect_whitespace = 1;
       }
       debug(sprintf(
-          'read unquoted argument %s to %s() at %s',
-          $pm->{chunk}, $cmd_info->{name},
-          "$cmake_file:$chunk_start_line:$current_linepos"
-      ));
+        'read unquoted argument %s to %s() at %s',
+        $pm->{chunk}, $cmd_info->{name},
+        "$cmake_file:$chunk_start_line:$current_linepos"));
       push @{ $cmd_info->{chunks} }, $pm->{chunk};
       $value_index = $#{ $cmd_info->{chunks} };
       push @{ $cmd_info->{arg_indexes} }, $value_index;
@@ -568,8 +564,8 @@ EOF
 unclosed quoted adjunct at $cmake_file:\%d:\%d to unquoted string starting at \%d:\%d\n\%s"
 EOF
       $error_message = sprintf($msg_fmt,
-          $quote_start_line, $quote_start_linepos, $chunk_start_line,
-          $current_linepos,  join(q(), reconstitute_code($cmd_info), $line));
+        $quote_start_line, $quote_start_linepos, $chunk_start_line,
+        $current_linepos,  join(q(), reconstitute_code($cmd_info), $line));
     } else {
       $error_message =
         sprintf(<<"EOF", join(q(), reconstitute_code($cmd_info), $line));
@@ -599,8 +595,8 @@ sub _format_diff_lines {
   my ($diff_start, $diff_length) =
     ($line =~ m&([-[:digit:]]*)(?:,\s*([-[:digit:]]+))?&msx);
   print $fh_out _labeled_divider(
-      sprintf("%d,%d", $diff_start + $offset, $diff_length // $n_lines),
-      $divider_char, $divider_length);
+    sprintf("%d,%d", $diff_start + $offset, $diff_length // $n_lines),
+    $divider_char, $divider_length);
   my $line_counter = 0;
   my $filler       = q( ) x $_DIFF_LINE_FILLER_SPACES;
 
@@ -682,13 +678,12 @@ sub _process_pending_comments {
                            [$pending_comments->{start_line} .. ($line_no - 1)]
     );
   debug(sprintf(
-      'processing comments from %s:%s%s',
-      $cmake_file,
-      $pending_comments->{start_line},
-      ($pending_comments->{end_line} != $pending_comments->{start_line})
-      ? qq(--$pending_comments->{end_line})
-      : q()
-  ));
+    'processing comments from %s:%s%s',
+    $cmake_file,
+    $pending_comments->{start_line},
+    ($pending_comments->{end_line} != $pending_comments->{start_line})
+    ? qq(--$pending_comments->{end_line})
+    : q()));
 
   # Call the comment handler.
   $cmake_file_data->{comment_handler}
@@ -722,22 +717,21 @@ sub _process_cmake_file_lines {
   _process_pending_comments($cmake_file_data, $line_no, $options);
 
   if (
-      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $line =~ s&\A # anchor to string start
+    ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+    $line =~ s&\A # anchor to string start
                (?P<pre>(?P<pre_cmd_ws>\s*) # save whitespace
                  (?P<command>[-\w]+) # Interesting function calls
                  \s*[(] # function argument start
                )&&msx # swallow
     ) {
     # We've found the beginning of an interesting call.
-    my $cmd_info =
-      Cetmodules::CMake::CommandInfo->new(
-        %LAST_PAREN_MATCH,
-        cmd_start_char => length($LAST_PAREN_MATCH{pre_cmd_ws}),
-        name           => lc $LAST_PAREN_MATCH{command},
-        start_line     => $line_no,
-        chunks         => [],
-        arg_indexes    => []);
+    my $cmd_info = Cetmodules::CMake::CommandInfo->new(
+      %LAST_PAREN_MATCH,
+      cmd_start_char => length($LAST_PAREN_MATCH{pre_cmd_ws}),
+      name           => lc $LAST_PAREN_MATCH{command},
+      start_line     => $line_no,
+      chunks         => [],
+      arg_indexes    => []);
     debug(sprintf(<<"EOF", $cmd_info->{name}));
 reading COMMAND %s() at $cmake_file:$cmd_info->{start_line}:$cmd_info->{cmd_start_char}",
 EOF
@@ -750,9 +744,10 @@ EOF
     my $orig_cmd  = reconstitute_code(@{ $cmd_infos // [] });
 
     # If we have end-of-line comments, process them first.
-    if (exists $cmake_file_data->{comment_handler}
-        and ($cmd_info->{post} =~ m&[)]\s*[#]&msx
-          or scalar @{ $cmd_info->{comment_indexes} // [] })
+    if (
+      exists $cmake_file_data->{comment_handler}
+      and ($cmd_info->{post} =~ m&[)]\s*[#]&msx
+        or scalar @{ $cmd_info->{comment_indexes} // [] })
       ) {
       debug(sprintf(<<"EOF", $cmd_info->{name}));
 invoking registered comment handler for end-of-line comments for COMMAND \%s()
@@ -785,10 +780,10 @@ EOF
     $cmake_file_out and $cmake_file_out->print($new_cmd);
 
     # Compose and (if configured) report on changes.
-    my $cmd_status =
-      report_code_diffs($options->{cmake_filename_short} // $cmake_file,
-        $saved_info->{start_line},
-        $orig_cmd, $new_cmd, $options);
+    my $cmd_status = report_code_diffs(
+      $options->{cmake_filename_short} // $cmake_file,
+      $saved_info->{start_line},
+      $orig_cmd, $new_cmd, $options);
     $cmd_status
       and $cmake_file_data->{cmd_status}->{ $saved_info->{start_line} } =
       $cmd_status;

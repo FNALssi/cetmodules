@@ -36,24 +36,24 @@ Readonly::Array my @HANDLER_TOOLS => qw(generate_cmd_handlers);
 ########################################################################
 sub find_cmake {
   return (
-      grep {
-        ( -d and # Process most directories ...
+    grep {
+      ( -d and # Process most directories ...
           not(m&\Amigrate-backup&msx or m&\A\.&msx)) # except "dot" directories.
         or (
           $_ eq 'CMakeLists.txt' and # Directory-level CMake files ...
           not $File::Find::dir eq q(.)) # except already-handled top level.
         or m&\.cmake\z&msx; # Standard extension for CMake files.
-      } @_);
+    } @_);
 } ## end sub find_cmake
 
 
 sub fix_cmake {
   my @args = @_;
   File::Find::find(
-      { preprocess => \&find_cmake,
+    {   preprocess => \&find_cmake,
         wanted     => sub { _fix_cmake_one(@args); }
-      },
-      q(.));
+    },
+    q(.));
   return;
 } ## end sub fix_cmake
 

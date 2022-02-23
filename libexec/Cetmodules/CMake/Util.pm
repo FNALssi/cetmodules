@@ -39,7 +39,7 @@ my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
 sub can_interpolate {
   my ($candidate_string) = @_;
   return not(
-      $candidate_string =~
+    $candidate_string =~
 m&$_not_escape(?:)(?<![\$])[\$] # an unescaped '$' not immediately preceded by an unescaped '$' followed by either:
       (?:<| # '>' (generator expression), or...
         (?:(?P<paren>[(])|(?P<brace>[{])) # a Make- ('(') or CMake-style ('{')
@@ -117,8 +117,8 @@ sub is_whitespace {
 sub separate_quotes {
   my $item = (scalar @_) ? join(q(), @_) : return;
   return (
-      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $item =~ m&\A # anchor to string start
+    ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+    $item =~ m&\A # anchor to string start
             (?| # reset alternation to allow capture groups in multiple scenarios
               (?P<q1>(?P<qs>["]) # open double-quote
                 (?P<qmarker>) # empty group to preserve consistency of capture groups in reset alternation

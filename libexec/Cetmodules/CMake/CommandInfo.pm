@@ -31,7 +31,7 @@ my @_incoming_keywords = qw(
   start_line
 );
 my ($_has_close_quote, $_has_open_quote, $_index_for_arg_at,
-    $_recalculate_comment_indexes, $_remove_args);
+  $_recalculate_comment_indexes, $_remove_args);
 
 
 sub new {
@@ -237,7 +237,7 @@ sub insert_args_at {
     } ## end foreach my $item (@to_add)
 
     if (not(
-        $new_chunks[$LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace))
+      $new_chunks[$LAST_ELEM_IDX] eq qq(\n) or $need_following_whitespace))
     {
       pop @new_chunks;
       --$point_index;
@@ -359,9 +359,9 @@ sub prepend_args {
 sub reconstitute {
   my ($self) = @_;
   return sprintf('%s%s%s',
-      $self->{pre} // q(),
-      join(q(), map { $_ // (); } @{ $self->{chunks} // [] }),
-      $self->{post} // q());
+    $self->{pre} // q(),
+    join(q(), map { $_ // (); } @{ $self->{chunks} // [] }),
+    $self->{post} // q());
 } ## end sub reconstitute
 
 # Remove specified arguments from CMake command by arg_index.
@@ -380,7 +380,7 @@ sub remove_args_at {
     my $last_idx_idx = $idx_idx;
 
     while (defined $last_idx_idx
-        and ($arg_indexes[0] // $NO_MATCH) == $last_idx_idx + 1) {
+      and ($arg_indexes[0] // $NO_MATCH) == $last_idx_idx + 1) {
       ++$n_items;
       $last_idx_idx = shift @arg_indexes;
     } ## end while (defined $last_idx_idx...)
@@ -445,7 +445,7 @@ sub replace_arg_at {
 
   if (scalar @replacements) {
     $self->insert_args_at((defined $idx_idx) ? $idx_idx : undef,
-        @replacements);
+      @replacements);
   }
   return @removed;
 } ## end sub replace_arg_at
@@ -480,12 +480,12 @@ sub single_value_for {
 # Detect whether the referenced argument has a close quote to match an
 # opening quote: returns the match hash ref if so, else undef.
 $_has_close_quote = sub {
-    ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-    my ($self, $idx_idx) = @_;
-    my $result;
-    my $index     = $self->{arg_indexes}->[$idx_idx]  // return $result;
-    my $open_info = $self->$_has_open_quote($idx_idx) // return $result;
-    $index < $#{ $self->{chunks} }
+  ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+  my ($self, $idx_idx) = @_;
+  my $result;
+  my $index     = $self->{arg_indexes}->[$idx_idx]  // return $result;
+  my $open_info = $self->$_has_open_quote($idx_idx) // return $result;
+  $index < $#{ $self->{chunks} }
     and (
       (     $open_info->{qs} eq q(")
         and $self->{chunks}->[$index + 1] =~
@@ -493,30 +493,30 @@ $_has_close_quote = sub {
       or $self->{chunks}->[$index + 1] =~
       m&\A(?P<q>(?P<qs>[]])(?P<qmarker>\Q$open_info->{qmarker}\E)[]])\z&msx)
     and $result = {%LAST_PAREN_MATCH};
-    return $result;
+  return $result;
 };
 
 # Detect whether the referenced argument has a valid close quote:
 # returns the match hash ref if so, else undef.
 $_has_open_quote = sub {
-    ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-    my ($self, $idx_idx) = @_;
-    my $result;
-    my $index = $self->$_index_for_arg_at($idx_idx) // return $result;
-    $self->{chunks}->[$index - 1] =~
+  ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+  my ($self, $idx_idx) = @_;
+  my $result;
+  my $index = $self->$_index_for_arg_at($idx_idx) // return $result;
+  $self->{chunks}->[$index - 1] =~
 m&\A(?P<q>(?|(?P<qs>["])(?P<qmarker>)|(?P<qs>[[])(?P<qmarker>=*)[[]))\z&msx
     and $result = {%LAST_PAREN_MATCH};
-    return $result;
+  return $result;
 }; ## end sub _has_open_quote
 $_index_for_arg_at = sub {
-    my ($self, $idx_idx) = @_;
-    return $self->{arg_indexes}->[$idx_idx] // ();
+  my ($self, $idx_idx) = @_;
+  return $self->{arg_indexes}->[$idx_idx] // ();
 }; ## end sub _index_for_arg_at
 $_recalculate_comment_indexes = sub {
-    my ($self) = @_;
-    @{ $self->{comment_indexes} } =
+  my ($self) = @_;
+  @{ $self->{comment_indexes} } =
     List::MoreUtils::indexes { is_comment($_); } @{ $self->{chunks} };
-    return;
+  return;
 }; ## end sub _recalculate_comment_indexes
 
 # Removes $n_args contiguous CMake arguments starting at $idx_idx.
@@ -525,70 +525,70 @@ $_recalculate_comment_indexes = sub {
 # Returns a list of removed arguments *with* any quotes and trailing
 # whitespace/comments.
 $_remove_args = sub {
-    my ($self, $idx_idx, $n_args) = @_;
-    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-    my @removed = ();
-    my $last_arg_idx = List::Util::min(
-      ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
-      $#{ $self->{arg_indexes} });
-    my $index      = $self->{arg_indexes}->[$idx_idx] // return;
-    my $last_index = $self->{arg_indexes}->[$last_arg_idx];
+  my ($self, $idx_idx, $n_args) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+  my @removed      = ();
+  my $last_arg_idx = List::Util::min(
+    ($idx_idx // return @removed) + (($n_args // 1) || return @removed) - 1,
+    $#{ $self->{arg_indexes} });
+  my $index      = $self->{arg_indexes}->[$idx_idx] // return;
+  my $last_index = $self->{arg_indexes}->[$last_arg_idx];
 
-    # Remove any preceding quote.
-    $self->$_has_open_quote($idx_idx) and --$index;
+  # Remove any preceding quote.
+  $self->$_has_open_quote($idx_idx) and --$index;
 
-    # Remove any trailing quote.
-    $self->$_has_close_quote($last_arg_idx) and ++$last_index;
+  # Remove any trailing quote.
+  $self->$_has_close_quote($last_arg_idx) and ++$last_index;
 
-    # If we're removing the last argument, remove any preceding
-    # whitespace.
-    if ($last_arg_idx == $#{ $self->{arg_indexes} }) {
-      while ($index > 1 and is_whitespace($self->{chunks}->[$index - 1])) {
-        --$index;
-      }
-    } ## end if ($last_arg_idx == $#...)
+  # If we're removing the last argument, remove any preceding
+  # whitespace.
+  if ($last_arg_idx == $#{ $self->{arg_indexes} }) {
+    while ($index > 1 and is_whitespace($self->{chunks}->[$index - 1])) {
+      --$index;
+    }
+  } ## end if ($last_arg_idx == $#...)
 
-    # Remove any trailing whitespace or comments.
-    while (
-      ( $last_index < $#{ $self->{chunks} }
-        and is_comment($self->{chunks}->[$last_index + 1]))
-      or ($last_index < ($#{ $self->{chunks} } - 1)
-        and is_whitespace($self->{chunks}->[$last_index + 1]))
+  # Remove any trailing whitespace or comments.
+  while (
+    ( $last_index < $#{ $self->{chunks} }
+      and is_comment($self->{chunks}->[$last_index + 1]))
+    or ($last_index < ($#{ $self->{chunks} } - 1)
+      and is_whitespace($self->{chunks}->[$last_index + 1]))
     ) {
-      ++$last_index;
-    } ## end while (($last_index < $#{...}))
-    my $chunks_to_remove = $last_index - $index + 1;
+    ++$last_index;
+  } ## end while (($last_index < $#{...}))
+  my $chunks_to_remove = $last_index - $index + 1;
 
-    # Remove all relevant chunks.
-    my @removed_chunks =
+  # Remove all relevant chunks.
+  my @removed_chunks =
     splice(@{ $self->{chunks} }, $index, $chunks_to_remove);
 
-    # Remove corresponding arg_indexes.
-    splice(@{ $self->{arg_indexes} }, $idx_idx, $n_args);
+  # Remove corresponding arg_indexes.
+  splice(@{ $self->{arg_indexes} }, $idx_idx, $n_args);
 
-    # Recalculate indexes for remaining args.
-    for ($idx_idx .. $#{ $self->{arg_indexes} }) {
-      $self->{arg_indexes}->[$_] -= $chunks_to_remove;
-    }
+  # Recalculate indexes for remaining args.
+  for ($idx_idx .. $#{ $self->{arg_indexes} }) {
+    $self->{arg_indexes}->[$_] -= $chunks_to_remove;
+  }
 
-    # Recalculate comment indexes.
-    $self->$_recalculate_comment_indexes();
-    my $in_whitespace = 1;
-    my $current       = q();
+  # Recalculate comment indexes.
+  $self->$_recalculate_comment_indexes();
+  my $in_whitespace = 1;
+  my $current       = q();
 
-    foreach my $item (@removed_chunks) {
-      my $prev_in_whitespace = $in_whitespace;
-      $in_whitespace = is_whitespace($item);
+  foreach my $item (@removed_chunks) {
+    my $prev_in_whitespace = $in_whitespace;
+    $in_whitespace = is_whitespace($item);
 
-      if ($in_whitespace and not $prev_in_whitespace and $current ne q()) {
-        push @removed, $current;
-        $current = q();
+    if ($in_whitespace and not $prev_in_whitespace and $current ne q()) {
+      push @removed, $current;
+      $current = q();
     } elsif (not $in_whitespace) {
-        $current = "$current$item";
-      }
-    } ## end foreach my $item (@removed_chunks)
-    $current ne q() and push @removed, $current;
-    return @removed;
+      $current = "$current$item";
+    }
+  } ## end foreach my $item (@removed_chunks)
+  $current ne q() and push @removed, $current;
+  return @removed;
 }; ## end sub _remove_args
 
 ########################################################################

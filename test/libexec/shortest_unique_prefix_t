@@ -49,30 +49,29 @@ sub verify_prefixes {
     $ref = shift @args;
   }
   my @words = keys %{$ref};
-  return
-    compare_or_show(shortest_unique_prefix(@min_prefix_length, \@words),
-      $ref, @args);
+  return compare_or_show(shortest_unique_prefix(@min_prefix_length, \@words),
+    $ref, @args);
 } ## end sub verify_prefixes
 note('Basic word tests');
 more_tests(2);
 verify_prefixes(
-    1,
-    { alphabet => 'alph',
+  1,
+  {   alphabet => 'alph',
       book     => 'b',
       carpet   => 'car',
       cadmium  => 'cadm',
       cadeau   => 'cade',
       alpine   => 'alpi'
-    });
+  });
 verify_prefixes(
-    5,
-    { alphabet => 'alpha',
+  5,
+  {   alphabet => 'alpha',
       book     => 'book',
       carpet   => 'carpe',
       cadmium  => 'cadmi',
       cadeau   => 'cadea',
       alpine   => 'alpin'
-    });
+  });
 note('Checksum-like tests');
 more_tests(2);
 my $ref = { qw(

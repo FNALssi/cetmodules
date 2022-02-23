@@ -18,16 +18,16 @@ my $options         = {};
 my %bumped_versions = ();
 my $wanted_version;
 GetOptions(
-    $options,          "debug|d",
-    "client-dir|c=s@", "dry-run|n",
-    "help|h|?",        "M|major",
-    \&set_mode,        "m|minor",
-    \&set_mode,        "p|patch",
-    \&set_mode,        "s|set-version=s",
-    \&set_mode,        "tag",
-    "verbose|v",       "u|micro",
-    \&set_mode,        "update-only|U=s",
-    \&mark_for_update)
+  $options,          "debug|d",
+  "client-dir|c=s@", "dry-run|n",
+  "help|h|?",        "M|major",
+  \&set_mode,        "m|minor",
+  \&set_mode,        "p|patch",
+  \&set_mode,        "s|set-version=s",
+  \&set_mode,        "tag",
+  "verbose|v",       "u|micro",
+  \&set_mode,        "update-only|U=s",
+  \&mark_for_update)
   or pod2usage(-exitval => 2);
 $options->{help}      and pod2usage(-exitval => 1, -verbose => 3);
 $options->{"dry-run"} and report("Dry run: no actual changes made!");
@@ -204,21 +204,21 @@ sub update_one_client {
       unless $cetpackage;
     m&^\s*product\s+version& and do { $in_prods = 1; next; };
     $in_prods and do {
-        my ($stem, $found_prod, $found_version) =
+      my ($stem, $found_prod, $found_version) =
         (m&^((?:\s*only_for_build)?\s*(\S+)\s+v)(\S+)&);
 
-        if ($found_prod and $found_version) {
-          my $new_version = maybe_new_version($found_prod);
+      if ($found_prod and $found_version) {
+        my $new_version = maybe_new_version($found_prod);
 
-          if ($new_version and $found_version ne $new_version) {
-            report
+        if ($new_version and $found_version ne $new_version) {
+          report
 "Updating ${cetpackage}'s use of $found_prod from $found_version to $new_version in ",
             dirname($File::Find::dir), ".";
-            s&^\Q$stem$found_version&${stem}$new_version&;
-          } ## end if ($new_version and $found_version...)
+          s&^\Q$stem$found_version&${stem}$new_version&;
+        } ## end if ($new_version and $found_version...)
       } else {
-          undef $in_prods;
-        }
+        undef $in_prods;
+      }
     };
   } continue {
     print OUT "$_\n";
@@ -240,7 +240,7 @@ sub update_one_client {
 
 sub update_clients {
   File::Find::find({ wanted => \&wanted, follow => 1 },
-      @{ $options->{"client-dir"} })
+    @{ $options->{"client-dir"} })
     if (defined $options->{"client-dir"} and scalar keys %bumped_versions);
 } ## end sub update_clients
 
@@ -258,21 +258,22 @@ sub maybe_commit_and_tag {
 
   foreach my $cetpackage (keys %bumped_versions) {
     my $loc = $bumped_versions{$cetpackage}->{loc} or next;
-    my $cmd =
-      sprintf(
+    my $cmd = sprintf(
 "pwd; cd \"%s\" && git commit -m 'Bump version to %s' ups/product_deps && git tag -fam 'Bump version for release' v%s",
-        $loc,
-        $bumped_versions{$cetpackage}->{version},
-        $bumped_versions{$cetpackage}->{version});
+      $loc,
+      $bumped_versions{$cetpackage}->{version},
+      $bumped_versions{$cetpackage}->{version});
 
     if ($options->{"dry-run"}) {
-      report("Would tag package $cetpackage at version ",
-          $bumped_versions{$cetpackage}->{version},
-          " in $loc.");
+      report(
+        "Would tag package $cetpackage at version ",
+        $bumped_versions{$cetpackage}->{version},
+        " in $loc.");
     } elsif (system($cmd) != 0) {
-      error("Unable to commit and tag update to $cetpackage at version ",
-          $bumped_versions{$cetpackage}->{version},
-          " in $loc.");
+      error(
+        "Unable to commit and tag update to $cetpackage at version ",
+        $bumped_versions{$cetpackage}->{version},
+        " in $loc.");
     } ## end elsif (system($cmd) != 0) [ if ($options->{"dry-run"...})]
   } ## end foreach my $cetpackage (keys...)
 } ## end sub maybe_commit_and_tag

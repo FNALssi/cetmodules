@@ -113,7 +113,7 @@ sub get_parent_info {
              no_fq_dir
              noarch
              old_style_config_vars)
-        ]) {
+      ]) {
         scalar @pars
           and warning(sprintf("unexpected garbage following $keyword: %s",
             join(q( ), @pars)));
@@ -153,12 +153,12 @@ sub get_pathspec {
       } @requested_dirkeys
   };
   _pathspecs_for_keys(
-      $pi,
-      [map {
+    $pi,
+    [  map {
          (($requested_dirkeys->{$_} // 0) == $_NO_MATCH) ? "\Q$_\E" : ();
        } keys %{$requested_dirkeys}]);
   my @results = map {
-      (     $pathspec_cache->{$_}
+    (       $pathspec_cache->{$_}
         and $_NOT_PRESENT ne
         ($pathspec_cache->{$_}->{seen_at} // $_NOT_PRESENT))
       ? $pathspec_cache->{$_}
@@ -191,7 +191,7 @@ sub get_product_list {
       $get_phash = "true";
 
       if ($words[$_LAST_CHAR_IDX] =~
-          m&\A<\s*(?:table_)?format\s*=\s*(\d+)\s*>&msx) {
+        m&\A<\s*(?:table_)?format\s*=\s*(\d+)\s*>&msx) {
         $pl_format = ${1};
       }
     } elsif ($get_phash) {
@@ -213,10 +213,10 @@ sub get_product_list {
           ($version, $qualspec, q(-), $prod);
         warning(
 "Deprecated only_for_build entry found in $pfile: please replace:\n",
-            "  \"$_\"\n",
-            "with\n",
-            "  \"$prod\t$version\t$qualspec\t$modifiers[0]\"\n",
-            "This accommodation will be removed in future.");
+          "  \"$_\"\n",
+          "with\n",
+          "  \"$prod\t$version\t$qualspec\t$modifiers[0]\"\n",
+          "This accommodation will be removed in future.");
       } ## end if ($prod eq "only_for_build")
 
       if ($qualspec and $qualspec eq "-nq-") {
@@ -368,9 +368,8 @@ sub sort_qual {
 
 sub var_stem_for_dirkey {
   my $dirkey = shift;
-  return
-    uc(
-      $PATHSPEC_INFO->{$dirkey}->{project_var}
+  return uc(
+    $PATHSPEC_INFO->{$dirkey}->{project_var}
       or (($dirkey =~ m&\A(.*?)_*dir\z&msx) ? "${1}_dir" : "${dirkey}_dir"));
 } ## end sub var_stem_for_dirkey
 
@@ -384,7 +383,7 @@ $_chain_option_table = { '-c' => 'current',
                          '-t' => 'test'
                        };
 @_known_keywords = (
-    qw(chain
+  qw(chain
     chains
     defaultqual
     define_pythonpath
@@ -398,7 +397,7 @@ $_chain_option_table = { '-c' => 'current',
     qualifier
     table_fragment_begin
     table_fragment_end
-    ), sort keys %{$PATHSPEC_INFO});
+  ), sort keys %{$PATHSPEC_INFO});
 $_valid_pathkeys = [qw(product_dir fq_dir -)];
 
 ########################################################################
@@ -410,7 +409,7 @@ sub _pathspecs_for_keys {
   my $pathspec_cache = $pi->{pathspec_cache};
   my $dirkeys_regex  = sprintf(
 qr&\A\s*(?P<dirkey>%s)\b(?:\s+(?P<pathkey>\S+)\s*(?P<dirname>\S*?))?(?:\s*\#.*)?\z&msx,
-      join(q(|), @{$dirkeys}));
+    join(q(|), @{$dirkeys}));
   my $fh = IO::File->new("$pi->{pfile}", "<")
     or error_exit("couldn't open $pi->{pfile} for read");
 
