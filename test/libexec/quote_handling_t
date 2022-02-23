@@ -51,42 +51,41 @@ my $count = 0;
 sub string_tester {
   my ($test_string, $open_hash_refs, $close_hash_refs, @separated_refs) = @_;
   return sub {
-      my ($dummy, $cmd_info) = @_;
-      my $result = {};
-      note("Tests for: ", reconstitute_code($cmd_info));
-      my $expected_substrings = scalar @separated_refs;
-      ++$count;
-      cmp_ok(
-        scalar @{ $cmd_info->{arg_indexes} },
-        q(==),
-        $expected_substrings,
-        sprintf(
-          "expect %s substring%s\n",
-          $expected_substrings, ($expected_substrings == 1) ? q() : q(s)
-        ));
-      my $subtest_count = 0;
+    my ($dummy, $cmd_info) = @_;
+    my $result = {};
+    note("Tests for: ", reconstitute_code($cmd_info));
+    my $expected_substrings = scalar @separated_refs;
+    ++$count;
+    cmp_ok(
+      scalar @{ $cmd_info->{arg_indexes} },
+      q(==),
+      $expected_substrings,
+      sprintf(
+        "expect %s substring%s\n",
+        $expected_substrings, ($expected_substrings == 1) ? q() : q(s)
+      ));
+    my $subtest_count = 0;
 
-      foreach my $idx_idx (0 .. -1) {
-        my $open_ref      = $open_hash_refs->[$subtest_count];
-        my $close_ref     = $close_hash_refs->[$subtest_count];
-        my $separated_ref = $separated_refs[$subtest_count];
-        ++$subtest_count;
-        more_tests();
-        ++$count;
-        subtest "Test $count using '$test_string'" => sub {
-          note(
+    foreach my $idx_idx (0 .. -1) {
+      my $open_ref      = $open_hash_refs->[$subtest_count];
+      my $close_ref     = $close_hash_refs->[$subtest_count];
+      my $separated_ref = $separated_refs[$subtest_count];
+      ++$subtest_count;
+      more_tests();
+      ++$count;
+      subtest "Test $count using '$test_string'" => sub {
+        note(
 "Test $count: (subtest $subtest_count (\$idx_idx=$idx_idx) for '$test_string')"
-          );
-          plan tests => 3;
-          my $open_test  = $cmd_info->_has_open_quote($idx_idx);
-          my $close_test = $cmd_info->_has_close_quote($idx_idx);
-          my $index      = $cmd_info->_index_for_arg_at($idx_idx);
-          my $joined =
-          join(q(),
-              (defined $open_test)
-            ? (@{ $cmd_info->{chunks} }[$index - 1 .. $index + 1])
-            : ($cmd_info->{chunks}->[$index]));
-          $result->{$subtest_count} =
+        );
+        plan tests => 3;
+        my $open_test  = $cmd_info->_has_open_quote($idx_idx);
+        my $close_test = $cmd_info->_has_close_quote($idx_idx);
+        my $index      = $cmd_info->_index_for_arg_at($idx_idx);
+        my $joined     = join(q(),
+            (defined $open_test)
+          ? (@{ $cmd_info->{chunks} }[$index - 1 .. $index + 1])
+          : ($cmd_info->{chunks}->[$index]));
+        $result->{$subtest_count} =
           { open      => compare_or_show($open_test,  $open_ref,  'open'),
             close     => compare_or_show($close_test, $close_ref, 'close'),
             separated =>
@@ -94,9 +93,9 @@ sub string_tester {
               [separate_quotes($joined)],
               $separated_ref, 'separate'
             ) };
-        };
-      } ## end foreach my $idx_idx (0 .. -1)
-      return $result;
+      };
+    } ## end foreach my $idx_idx (0 .. -1)
+    return $result;
   };
 } ## end sub string_tester
 
@@ -114,7 +113,7 @@ sub test_string {
     or die "unable to open input stream for string $test_string";
   my $cmake_file = [$fh_in, 'TEST_STRING'];
   process_cmake_file($cmake_file,
-      { test_string_cmd => string_tester($test_string, @args) });
+    { test_string_cmd => string_tester($test_string, @args) });
   $fh_in->close();
   return;
 } ## end sub test_string
@@ -148,11 +147,11 @@ test_string(<<'EOF', ([$dqbit]) x 2, [qw(" ethel ")]); # 2
 "ethel"
 EOF
 test_string(
-    <<'EOF', [bqbit(q([), 2)], [bqbit(q(]), 2)], [q([==[), 'hibble', q(]==])]); # 3
+  <<'EOF', [bqbit(q([), 2)], [bqbit(q(]), 2)], [q([==[), 'hibble', q(]==])]); # 3
 [==[hibble]==]
 EOF
 test_string(
-    <<'EOF', [bqbit(q([), 0)], [bqbit(q(]), 0)], [q([[), "ask me\n an[other]\n question\n", q(]])]); # 4
+  <<'EOF', [bqbit(q([), 0)], [bqbit(q(]), 0)], [q([[), "ask me\n an[other]\n question\n", q(]])]); # 4
 
 [[ask me
  an[other]
@@ -167,12 +166,12 @@ test_string(<<'EOF', ([undef]) x 2, ['aax"asxy"x']); # 6
 aax"asxy"x
 EOF
 test_string(
-    <<'EOF', ([undef, $dqbit, undef]) x 2, ['aax'], [q("), "as\n", q(")], ['xy']); # 7
+  <<'EOF', ([undef, $dqbit, undef]) x 2, ['aax'], [q("), "as\n", q(")], ['xy']); # 7
 aax"as
 "xy
 EOF
 test_string(
-    <<'EOF', ([undef, $dqbit, undef]) x 2, ['aax'], [q("), "as\\\n", q(")], ['xy']); # 8
+  <<'EOF', ([undef, $dqbit, undef]) x 2, ['aax'], [q("), "as\\\n", q(")], ['xy']); # 8
 aax"as\
 "xy
 EOF
@@ -184,46 +183,46 @@ test_string(<<'EOF', undef, undef, ['ethel"Charlie"Bill']);       # 10
 ethel"Charlie"Bill
 EOF
 test_string(
-    <<'EOF', ([undef, $dqbit, undef]) x 2, ['ethel'], [qw(" Charlie() ")], ['Bill']); # 11
+  <<'EOF', ([undef, $dqbit, undef]) x 2, ['ethel'], [qw(" Charlie() ")], ['Bill']); # 11
 ethel"Charlie()"Bill
 EOF
 test_string(
-    <<'EOF', ([(undef) x 4]) x 2, ['ethel"Charlie"'], [q{(}], [q{)}], ['Bill']); # 12
+  <<'EOF', ([(undef) x 4]) x 2, ['ethel"Charlie"'], [q{(}], [q{)}], ['Bill']); # 12
 ethel"Charlie"()Bill
 EOF
 test_string(
-    <<'EOF', ([(undef) x 3]) x 2, [q{(}], ['ethel"Charlie"Bill'], [q{)}]); # 13
+  <<'EOF', ([(undef) x 3]) x 2, [q{(}], ['ethel"Charlie"Bill'], [q{)}]); # 13
 ((ethel"Charlie"Bill))
 EOF
-test_string(<<'EOF', undef, undef, [q{\(ethel"Charlie"Bill}]);             # 14
+test_string(<<'EOF', undef, undef, [q{\(ethel"Charlie"Bill}]);           # 14
 \(ethel"Charlie"Bill
 EOF
 test_string(
-    <<'EOF', ([(undef) x 4]) x 2, [q(e)], [q{(}], ['thel"Charlie"Bill'], [q{)}]); # 15
+  <<'EOF', ([(undef) x 4]) x 2, [q(e)], [q{(}], ['thel"Charlie"Bill'], [q{)}]); # 15
 e(thel"Charlie"Bill)
 EOF
 test_string( <<'EOF', ([$dqbit, undef]) x 2, [qw(" aax ")], ['ethel']); # 16
 "aax"ethel
 EOF
 test_string(
-    "a((a)x\"a)s\n\"x)y", ([(undef) x 6, $dqbit, (undef) x 3]) x 2,
-    ['a'], ([q{(}]) x 2,
-    ['a'], [q{)}],
-    ['x'], [q("), "a)s\n", q(")],
-    ['x'], [q{)}],
-    ['y']); # 17
+  "a((a)x\"a)s\n\"x)y", ([(undef) x 6, $dqbit, (undef) x 3]) x 2,
+  ['a'], ([q{(}]) x 2,
+  ['a'], [q{)}],
+  ['x'], [q("), "a)s\n", q(")],
+  ['x'], [q{)}],
+  ['y']); # 17
 test_string(
-    "a ( ( a)x \"a)s\n\"x)y", ([(undef) x 6, $dqbit, (undef) x 3]) x 2,
-    ['a'], ([q{(}]) x 2,
-    ['a'], [q{)}],
-    ['x'], [q("), "a)s\n", q(")],
-    ['x'], [q{)}],
-    ['y']); # 18
+  "a ( ( a)x \"a)s\n\"x)y", ([(undef) x 6, $dqbit, (undef) x 3]) x 2,
+  ['a'], ([q{(}]) x 2,
+  ['a'], [q{)}],
+  ['x'], [q("), "a)s\n", q(")],
+  ['x'], [q{)}],
+  ['y']); # 18
 test_bad_string(<<'EOF', qr&^\QFATAL_ERROR: unclosed quote '"'\E&msx); # 19
 "missing_close_quote
 EOF
 test_bad_string(
-    <<'EOF', qr&^\QFATAL_ERROR: illegal escaped vertical whitespace as part of unquoted string starting at TEST_STRING:1:12:\E\n&msx); # 20
+  <<'EOF', qr&^\QFATAL_ERROR: illegal escaped vertical whitespace as part of unquoted string starting at TEST_STRING:1:12:\E\n&msx); # 20
 martin\
 Hinckley-Eckley-"Flugelstucker
 EOF
@@ -231,17 +230,18 @@ test_bad_string("(martin\\",
 qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 1:12\E&msx
 ); # 21
 test_bad_string(
-    '(codswallop ',
+  '(codswallop ',
 qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 1:22\E&msx
 ); # 22
 test_bad_string(
-    "(codswallop\nbalderdash\n       crikey ",
+  "(codswallop\nbalderdash\n       crikey ",
 qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 3:13\E&msx
 ); # 23
 test_bad_string("(codswallop\nbalderdash\ncrikey\n",
 qr&^\QFATAL_ERROR: incomplete command test_string() at TEST_STRING:1:0 runs into EOF at 3:6\E&msx
 ); # 24
-test_string(' CM "EXCLUDE;DEPENDS" "" ${ARGN}',
-    ([(undef, $dqbit, $dqbit, undef)]) x 2,
-    ['CM'], [qw(" EXCLUDE;DEPENDS ")], [qw(" ")], ['${ARGN}']); # 25
+test_string(
+  ' CM "EXCLUDE;DEPENDS" "" ${ARGN}',
+  ([(undef, $dqbit, $dqbit, undef)]) x 2,
+  ['CM'], [qw(" EXCLUDE;DEPENDS ")], [qw(" ")], ['${ARGN}']); # 25
 done_testing($ntests);

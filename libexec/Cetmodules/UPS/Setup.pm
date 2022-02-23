@@ -113,19 +113,19 @@ EOD
   # Output known info in expected order, followed by any remainder in
   # lexical order.
   my @output_items = output_info(
-      $tmp_fh,
-      \%cetpkg_info,
-      \@for_export,
-      ( map {
-          my $key = $_;
-          (grep { $key eq $_ } keys %cetpkg_info) ? ($key) : ()
-        } @expected_keys
-      ),
-      ( map {
-          my $key = $_;
-          (grep { $key eq $_ } @expected_keys) ? () : ($key)
-        } sort keys %cetpkg_info
-      ));
+    $tmp_fh,
+    \%cetpkg_info,
+    \@for_export,
+    ( map {
+        my $key = $_;
+        (grep { $key eq $_ } keys %cetpkg_info) ? ($key) : ()
+      } @expected_keys
+    ),
+    ( map {
+        my $key = $_;
+        (grep { $key eq $_ } @expected_keys) ? () : ($key)
+      } sort keys %cetpkg_info
+    ));
   $tmp_fh->close();
   $tmp_fh->open(\$var_data, q(<))
     or error_exit("unable to open memory stream from variable \$tmp_fh");
@@ -152,8 +152,8 @@ sub classify_deps {
 
   foreach my $dep (sort keys %{$dep_info}) {
     $pi->{ ($dep_info->{$dep}->{only_for_build})
-        ? 'build_only_deps'
-        : 'use_time_deps' }->{$dep} = 1;
+      ? 'build_only_deps'
+      : 'use_time_deps' }->{$dep} = 1;
   } ## end foreach my $dep (sort keys ...)
 
   foreach my $key (qw(build_only_deps use_time_deps)) {
@@ -253,14 +253,14 @@ sub get_cmake_project_info {
   undef $_cm_state;
   my $cmake_file = File::Spec->catfile($pkgtop, "CMakeLists.txt");
   process_cmake_file(
-      $cmake_file,
-      { %options,
+    $cmake_file,
+    {   %options,
         cet_cmake_env_cmd             => \&_set_seen_cet_cmake_env,
         cet_set_version_from_file_cmd => \&_get_info_from_csvf_cmd,
         project_cmd                   => \&_get_info_from_project_cmd,
         file_cmd                      => \&_get_info_from_file_cmd,
         set_cmd                       => \&_get_info_from_set_cmds
-      });
+    });
   return { %{ $_cm_state->{cmake_info} // {} } };
 } ## end sub get_cmake_project_info
 
@@ -281,7 +281,7 @@ sub get_derived_parent_data {
 
   if (not $cpi or not scalar keys %{$cpi}) {
     error_exit(
-        "unable to obtain useful information from $sourcedir/CMakeLists.txt");
+      "unable to obtain useful information from $sourcedir/CMakeLists.txt");
   }
 
   if (not defined $pi->{name}) {
@@ -450,8 +450,8 @@ EOF
 
     # Work around bug in ups active -> unsetup_all for UPS<=6.0.8.
     $setup_cmd = sprintf(
-        '%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
-        "$setup_cmd", ("SETUP_\U$dep\E") x 2);
+      '%s && setenv %s "`echo \"$%s\" | sed -Ee \'s&[[:space:]]+-j$&&\'`"',
+      "$setup_cmd", ("SETUP_\U$dep\E") x 2);
   } ## end if (scalar @setup_options)
   $out->print("$setup_cmd; ");
   _setup_err($out, "$setup_cmd failed");
@@ -473,7 +473,7 @@ EOF
 
   # ROOT_INCLUDE_PATH.
   $out->print(print_dev_setup_var(
-      "ROOT_INCLUDE_PATH", [qw(${CETPKG_SOURCE} ${CETPKG_BUILD})]));
+    "ROOT_INCLUDE_PATH", [qw(${CETPKG_SOURCE} ${CETPKG_BUILD})]));
 
   # CMAKE_PREFIX_PATH.
   $out->print(print_dev_setup_var("CMAKE_PREFIX_PATH", '${CETPKG_BUILD}', 1));
@@ -512,11 +512,10 @@ EOF
   $out->print(print_dev_setup_var("WIRECELL_PATH", \@fqdirs));
 
   # PYTHONPATH.
-  $pi->{define_pythonpath}
-    and $out->print(print_dev_setup_var(
-      "PYTHONPATH",
-      File::Spec->catfile(
-        '${CETPKG_BUILD}', $libdir || ($pi->{fq_dir} || (), 'lib'))));
+  $pi->{define_pythonpath} and $out->print(print_dev_setup_var(
+    "PYTHONPATH",
+    File::Spec->catfile(
+      '${CETPKG_BUILD}', $libdir || ($pi->{fq_dir} || (), 'lib'))));
 
   # PATH.
   $fqdir = _fq_path_for($pi, 'bindir', 'bin')
@@ -537,11 +536,11 @@ sub print_dev_setup_var {
 
   if (scalar @vals) {
     $out->print(
-        "# $setup_var\n",
-        "setenv $setup_var ",
-        '"`dropit -p \\"${',
-        "$setup_var",
-        '}\\" -sfe ');
+      "# $setup_var\n",
+      "setenv $setup_var ",
+      '"`dropit -p \\"${',
+      "$setup_var",
+      '}\\" -sfe ');
     $out->print(join(q( ), map { sprintf('\\"%s\\"', $_); } @vals), q(`"));
 
     if ($no_errclause) {
@@ -559,17 +558,18 @@ sub print_dev_setup_var {
 sub table_dep_setup {
   my ($dep, $dep_info, $fh) = @_;
   my @setup_cmd_args = (
-      $dep,
-      ($dep_info->{version} ne '-c') ? $dep_info->{version} : (),
-      $dep_info->{qualspec}
-      ? (
-        '-q',
-        sprintf("+%s",
-          join(q(:+), split(/:/msx, $dep_info->{qualspec} || q()))))
-      : ());
-  $fh->printf("setup%s(%s)\n",
-      ($dep_info->{optional}) ? "Optional" : "Required",
-      join(q( ), @setup_cmd_args));
+    $dep,
+    ($dep_info->{version} ne '-c') ? $dep_info->{version} : (),
+    $dep_info->{qualspec}
+    ? (
+      '-q',
+      sprintf("+%s",
+        join(q(:+), split(/:/msx, $dep_info->{qualspec} || q()))))
+    : ());
+  $fh->printf(
+    "setup%s(%s)\n",
+    ($dep_info->{optional}) ? "Optional" : "Required",
+    join(q( ), @setup_cmd_args));
   return;
 } ## end sub table_dep_setup
 
@@ -578,8 +578,7 @@ sub ups_to_cmake {
   my ($pi) = @_;
   (not $pi->{cqual})
     or (
-      exists $_cqual_table->{ $pi->{cqual} }
-      and my (
+      exists $_cqual_table->{ $pi->{cqual} } and my (
         $cc,           $cxx, $compiler_id, $compiler_version,
         $cxx_standard, $fc,  $fc_id,       $fc_version)
       = @{ $_cqual_table->{ $pi->{cqual} } }
@@ -630,12 +629,12 @@ EOF
   my @noarch_pathspecs = ();
 
   foreach my $pathspec (values %{ $pi->{pathspec_cache} }) {
-    if (    $pathspec->{var_stem}
-        and not ref $pathspec->{path}
-        and $pathspec->{key} ne q(-)) {
+    if (  $pathspec->{var_stem}
+      and not ref $pathspec->{path}
+      and $pathspec->{key} ne q(-)) {
       push @{ $pathspec->{key} eq 'fq_dir'
-          ? \@arch_pathspecs
-          : \@noarch_pathspecs }, $pathspec->{var_stem};
+        ? \@arch_pathspecs
+        : \@noarch_pathspecs }, $pathspec->{var_stem};
     } ## end if ($pathspec->{var_stem...})
   } ## end foreach my $pathspec (values...)
   scalar @arch_pathspecs and push @cmake_args,
@@ -790,15 +789,15 @@ sub _cmake_project_var_for_pathspec {
           or error_exit("non-empty path $path must be absolute",
             "with pathkey \`$pskey' for directory key $dirkey");
       } elsif ($pskey eq 'fq_dir'
-          and $pi->{fq_dir}
-          and not $path =~ m&\A/&msx) {
+        and $pi->{fq_dir}
+        and not $path =~ m&\A/&msx) {
 
         # Prepend EXEC_PREFIX here to avoid confusion with defaults in CMake.
         $path = File::Spec->catfile($pi->{fq_dir}, $path);
       } elsif ($path =~ m&\A/&msx) {
         warning(
-            "redundant pathkey $pskey ignored for absolute path $path",
-            "specified for directory key $dirkey: use '-' as a placeholder.");
+          "redundant pathkey $pskey ignored for absolute path $path",
+          "specified for directory key $dirkey: use '-' as a placeholder.");
       } ## end elsif ($path =~ m&\A/&msx) [ if ($pskey eq q(-)) ]
       push @result_elements, $path;
     } ## end foreach my $pskey (@{ $pathspec...})
@@ -829,7 +828,7 @@ sub _fq_path_for {
         or ($pathspec->{key} eq q(-)
           and List::MoreUtils::any { $_ eq $dirkey } qw(bindir libdir)));
     $fq_path = File::Spec->catfile($want_fq ? $pi->{fq_dir} : (),
-        $pathspec->{path} || $default || ());
+      $pathspec->{path} || $default || ());
   } ## end if (not($fq_path or ($pathspec...)))
   return $fq_path;
 } ## end sub _fq_path_for
@@ -849,9 +848,8 @@ sub _get_info_from_csvf_cmd {
     // "\${${cmake_project_name}_SOURCE_DIR}/VERSION";
   $cmd_info->has_keyword('EXTENDED_VERSION_SEMANTICS')
     and $_cm_state->{cmake_info}->{EXTENDED_VERSION_SEMANTICS} = 1;
-  return
-    _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
-      $version_file);
+  return _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
+    $version_file);
 } ## end sub _get_info_from_csvf_cmd
 
 
@@ -868,9 +866,8 @@ sub _get_info_from_file_cmd {
     or $result_var eq '${PROJECT_NAME}_CMAKE_PROJECT_VERSION_STRING'
     or return;
   my $version_file = $cmd_info->interpolated_arg_at(1);
-  return
-    _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
-      $version_file);
+  return _set_version_from_file($cmd_info, $cmake_file, $cmake_project_name,
+    $version_file);
 } ## end sub _get_info_from_file_cmd
 
 
@@ -897,10 +894,10 @@ EOF
 unable to find name in project() at $cmake_file:$cmd_info->{start_line}
 EOF
   $is_literal or do {
-      warning(<<"EOF");
+    warning(<<"EOF");
 unable to interpret $project_name as a literal CMake project name in $cmd_info->{name}() at $cmake_file:$cmd_info->{chunk_locations}->{$cmd_info->{arg_indexes}->[0]}
 EOF
-      return;
+    return;
   };
   $_cm_state->{cmake_info}->{cmake_project_name} = $project_name;
   my $version_idx =
@@ -910,11 +907,11 @@ EOF
   my $version;
   ($version, $is_literal) = $cmd_info->interpolated_arg_at($version_idx);
   $is_literal or do {
-      my $version_arg_location = $cmd_info->arg_location($version_idx);
-      warning(<<"EOF");
+    my $version_arg_location = $cmd_info->arg_location($version_idx);
+    warning(<<"EOF");
 nonliteral version "$version" found at $cmake_file:$version_arg_location
 EOF
-      return;
+    return;
   };
   @{ $_cm_state->{cmake_info} }
     {qw(cmake_project_version cmake_project_version_info)} =
@@ -958,8 +955,9 @@ EOF
 sub _path_var_translation_table {
   return {
       map {
-        m&\A(.*?)(?|(?:[^_]?)(dir)|())\z&msx
-        and ("$1$2" => var_stem_for_dirkey($_));
+        my $dirkey_ish = $_;
+        $dirkey_ish =~ s&([^_])dir\z&${1}_dir&msx;
+        ($dirkey_ish => var_stem_for_dirkey($_));
       } sort keys %{$PATHSPEC_INFO} };
 } ## end sub _path_var_translation_table
 
@@ -1032,13 +1030,13 @@ sub _setup_err {
 
 sub _set_version_from_file {
   my ($cmd_info, $cmake_file, $cmake_project_name, $version_file) = @_;
-  my ($project_source_dir, $project_binary_dir) =
-    (defined $ENV{MRB_SOURCE}
-     and (not defined $ENV{CETPKG_SOURCE} or
-          abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE})))
+  my ($project_source_dir, $project_binary_dir) = (
+    defined $ENV{MRB_SOURCE}
+      and (not defined $ENV{CETPKG_SOURCE}
+        or abs_path($ENV{CETPKG_SOURCE}) eq abs_path($ENV{MRB_SOURCE})))
     ? (
-      File::Spec->catfile($ENV{MRB_SOURCE}, $cmake_project_name),
-      File::Spec->catfile($ENV{MRB_BUILDDIR},  $cmake_project_name))
+      File::Spec->catfile($ENV{MRB_SOURCE},   $cmake_project_name),
+      File::Spec->catfile($ENV{MRB_BUILDDIR}, $cmake_project_name))
     : ($ENV{CETPKG_SOURCE}, $ENV{CETPKG_BUILD});
   my $dirvar_start =
 qr&\A\$\{(?:(?:CMAKE_)?PROJECT|\$\{PROJECT_NAME\}|\Q$cmake_project_name\E)&msx;
@@ -1068,24 +1066,23 @@ sub _setup_from_libdir {
 
   # (DY)LD_LIBRARY_PATH.
   $out->print(print_dev_setup_var(
-      sprintf("%sLD_LIBRARY_PATH",
-        ($pi->{flavor} =~ m&\bDarwin\b&msx) ? "DY" : q()),
-      File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
+    sprintf("%sLD_LIBRARY_PATH",
+      ($pi->{flavor} =~ m&\bDarwin\b&msx) ? "DY" : q()),
+    File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
 
   # CET_PLUGIN_PATH. We only want to add to this if it's already set
   # or we're cetlib, which is the package that makes use of it.
-  my ($head, @output) =
-    split(
-      /\n/msx,
-      print_dev_setup_var(
-        "CET_PLUGIN_PATH", File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
+  my ($head, @output) = split(
+    /\n/msx,
+    print_dev_setup_var(
+      "CET_PLUGIN_PATH", File::Spec->catfile('${CETPKG_BUILD}', $libdir)));
   $out->print(
-      "$head\n",
-      ($pi->{name} ne 'cetlib')
-      ? "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  "
-      : q(),
-      join("\n", @output),
-      "\n");
+    "$head\n",
+    ($pi->{name} ne 'cetlib')
+    ? "test -z \"\${CET_PLUGIN_PATH}\" || \\\n  "
+    : q(),
+    join("\n", @output),
+    "\n");
   return;
 } ## end sub _setup_from_libdir
 

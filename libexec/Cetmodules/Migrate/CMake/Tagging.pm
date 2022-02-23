@@ -93,8 +93,8 @@ sub report_removed {
   my ($cmake_file, $msg, @args) = @_;
   defined $msg or $msg = q();
   map {
-      info("command removed from $cmake_file:$_->{start_line}$msg:\n",
-        reconstitute_code($_));
+    info("command removed from $cmake_file:$_->{start_line}$msg:\n",
+      reconstitute_code($_));
   } @args;
   return;
 } ## end sub report_removed
@@ -104,14 +104,14 @@ sub tag {
   my ($textish, $type, @msg) = @_;
   $type or $type = 'UNKNOWN';
   my $textref = _to_textref($textish);
-  not(   ignored($textish)
-      or tagged($textish, $type)
-      or ($FLAGS_ONLY and not $_FLAGGING))
+  not( ignored($textish)
+    or tagged($textish, $type)
+    or ($FLAGS_ONLY and not $_FLAGGING))
     or return $textref;
   my $msg = join(q(), @msg);
   chomp $msg;
   my $tag_text = sprintf("### MIGRATE-$type (migrate-$CETMODULES_VERSION)%s",
-      $msg ? " - $msg" : q());
+    $msg ? " - $msg" : q());
   my $line_end = qq(\n) x chomp ${$textref};
   my ($text, $space) =
     (${$textref} =~ m&\A(.*?)([ \t]*)\z&msx);
@@ -211,7 +211,7 @@ sub _filter_tags {
   my $new_text = q();
 
   while ( ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      ${$textref} =~
+    ${$textref} =~
     m&\G(?P<pre_match>.*?)(?P<full_match>$_tag_full_match)$_tag_buffer&mscgx
     ) {
     my ($pre_match, $found_tag, $full_match) =

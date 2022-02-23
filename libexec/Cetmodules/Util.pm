@@ -130,14 +130,13 @@ sub notify {
 sub offset_annotated_items {
   my ($offset, $preamble, @args) = @_;
   my $indent = length($preamble) + $offset;
-  return
-    sprintf(
-      '%s%s',
-      $preamble,
-      join(
-        sprintf(",\n\%s", q( ) x $indent),
-        map { to_string($_, { indent => $indent }); } @args
-      ));
+  return sprintf(
+    '%s%s',
+    $preamble,
+    join(
+      sprintf(",\n\%s", q( ) x $indent),
+      map { to_string($_, { indent => $indent }); } @args
+    ));
 } ## end sub offset_annotated_items
 
 
@@ -216,7 +215,7 @@ sub shortest_unique_prefix {
 
         if ($i > $prefix_length) {
           $candidate = substr($word1, 0,
-              (($i + 1) > $prefix_min_length) ? $i + 1 : $prefix_min_length);
+            (($i + 1) > $prefix_min_length) ? $i + 1 : $prefix_min_length);
           $prefix_length = $i;
         } ## end if ($i > $prefix_length)
       } ## end for my $word2 (@{ $letters...})
@@ -287,18 +286,18 @@ sub to_string {
     when ('SCALAR') { $result = "$initial_indent$$item"; }
     when ('ARRAY') {
       $result = sprintf("$initial_indent\%s ]",
-          offset_annotated_items($indent, '[ ', @{$item}));
+        offset_annotated_items($indent, '[ ', @{$item}));
     }
     when ('HASH') {
       $indent += $HASH_INDENT;
       $result = sprintf(
-          "${initial_indent}{ \%s }",
-          join(
-            sprintf(",\n\%s", q( ) x $indent),
-            map {
-              to_string($item->{$_},
-                { preamble => "$_ => ", indent => $indent });
-            } keys %{$item}));
+        "${initial_indent}{ \%s }",
+        join(
+          sprintf(",\n\%s", q( ) x $indent),
+          map {
+            to_string($item->{$_},
+              { preamble => "$_ => ", indent => $indent });
+          } keys %{$item}));
       $indent -= $HASH_INDENT;
     } ## end when ('HASH')
     default { $result = "$initial_indent$item"; }
@@ -328,9 +327,9 @@ sub version_cmp {
   my ($vInfoA, $vInfoB) =
     map { (ref) ? $_ : parse_version_string($_); } @args;
   my $ans = (
-      (    ($vInfoA->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET
+    (      ($vInfoA->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET
         or ($vInfoB->{extra_type} // 0) > $_NO_NUMERIC_VERSION_OFFSET
-      ) ? 0 : ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0)
+    ) ? 0 : ($vInfoA->{major} // 0) <=> ($vInfoB->{major} // 0)
       || ($vInfoA->{minor} // 0) <=> ($vInfoB->{minor} // 0)
       || ($vInfoA->{patch} // 0) <=> ($vInfoB->{patch} // 0)
       || ($vInfoA->{tweak} // 0) <=> ($vInfoB->{tweak} // 0))
@@ -418,14 +417,14 @@ sub _format_version {
 
   if ($keyword_args->{want_extra} // 1) {
     $main_v_string = sprintf(
-        "%s%s%s",
-        $keyword_args->{preamble} // q(),
-        $main_v_string,
-        ($v->{extra})
-        ? sprintf("%s%s",
-          ($main_v_string) ? $keyword_args->{pre_extra_sep} // q() : q(),
-          $v->{extra})
-        : q());
+      "%s%s%s",
+      $keyword_args->{preamble} // q(),
+      $main_v_string,
+      ($v->{extra})
+      ? sprintf("%s%s",
+        ($main_v_string) ? $keyword_args->{pre_extra_sep} // q() : q(),
+        $v->{extra})
+      : q());
   } elsif (wantarray) {
     return ($main_v_string, $v->{extra} // q());
   }
@@ -447,9 +446,9 @@ sub _parse_extra {
   exists $vInfo->{extra} and $vInfo->{extra} ne q() or return $vInfo;
   my ($enum)  = ($vInfo->{extra} =~ m&(\d+(?:\.\d*)?)\z&msx);
   my ($etext) = (
-      defined $enum
-      ? ($vInfo->{extra} =~ m&\A(.*?)[_.-]?\Q$enum\E\z&msx)
-      : $vInfo->{extra});
+    defined $enum
+    ? ($vInfo->{extra} =~ m&\A(.*?)[_.-]?\Q$enum\E\z&msx)
+    : $vInfo->{extra});
   my $etext_l = lc $etext;
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   given ($etext_l) {
