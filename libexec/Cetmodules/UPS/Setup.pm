@@ -958,8 +958,9 @@ EOF
 sub _path_var_translation_table {
   return {
       map {
-        m&\A(.*?)(?|(?:[^_]?)(dir)|())\z&msx
-        and ("$1$2" => var_stem_for_dirkey($_));
+        my $dirkey_ish = $_;
+        $dirkey_ish =~ s&([^_])dir\z&${1}_dir&msx;
+        ($dirkey_ish => var_stem_for_dirkey($_));
       } sort keys %{$PATHSPEC_INFO} };
 } ## end sub _path_var_translation_table
 
