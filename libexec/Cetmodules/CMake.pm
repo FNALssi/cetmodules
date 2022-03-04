@@ -7,6 +7,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
 use Cetmodules::CMake::CommandInfo qw();
+use Cetmodules::CMake::Util qw(is_command_info);
 use Cetmodules::Util qw(debug info error_exit $LAST_CHAR_IDX);
 use Cwd qw(abs_path);
 use Digest::SHA qw(sha256_hex);
@@ -93,8 +94,7 @@ sub get_CMakeLists_hash {
 ########################################################################
 sub interpolated {
   my ($first_arg, @rest) = @_;
-  return (blessed($first_arg)
-      and $first_arg->isa('Cetmodules::CMake::CommandInfo'))
+  return is_command_info($first_arg)
     ? $first_arg->interpolate(@rest)
     : Cetmodules::CMake::Util::interpolated($first_arg, @rest);
 } ## end sub interpolated
@@ -118,8 +118,7 @@ sub is_double_quoted {
 
 sub is_quoted {
   my ($first_arg, @rest) = @_;
-  return (blessed($first_arg)
-      and $first_arg->isa('Cetmodules::CMake::CommandInfo'))
+  return is_command_info($first_arg)
     ? $first_arg->is_quoted(@rest)
     : Cetmodules::CMake::Util::is_quoted($first_arg, @rest);
 } ## end sub is_quoted
@@ -268,14 +267,8 @@ sub process_cmake_file {
 
 
 sub reconstitute_code {
-  return join(
-    q(),
-    map {
-      (blessed($_) and $_->isa('Cetmodules::CMake::CommandInfo'))
-        ? $_->reconstitute()
-        : $_;
-    } @_);
-} ## end sub reconstitute_code
+  return join(q(), map { is_command_info($_) ? $_->reconstitute() : $_; } @_);
+}
 
 
 sub report_code_diffs {

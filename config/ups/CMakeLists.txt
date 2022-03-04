@@ -1,4 +1,5 @@
 install(FILES
+  CMakePresets.json.in
   perl-env.csh
   perl-env.sh
   product-chain-file.in

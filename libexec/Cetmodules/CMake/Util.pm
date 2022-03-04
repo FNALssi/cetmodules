@@ -10,6 +10,7 @@ use Cetmodules qw();
 use English qw(-no_match_vars);
 use Exporter qw(import);
 use Readonly qw();
+use Scalar::Util qw(blessed);
 
 ##
 use warnings FATAL => qw(Cetmodules);
@@ -20,6 +21,7 @@ our (@EXPORT);
   can_interpolate
   interpolated
   is_bracket_quoted
+  is_command_info
   is_comment
   is_double_quoted
   is_quoted
@@ -33,6 +35,9 @@ our (@EXPORT);
 ########################################################################
 my $_not_escape = qr&(?P<not_escape>^|[^\\]|(?>\\\\))&msx;
 
+########################################################################
+# Exported functions
+########################################################################
 # Check whether we can make this a truly literal CMake string, or
 # whether there are CMake- or Make-style variable references or
 # generator expressions.
@@ -87,6 +92,12 @@ s&$_not_escape\\(?P<identity>[\$\\}{<])&\k<not_escape>\k<identity>&msgx;
   return
     wantarray ? ($interpolated_string, $is_literal) : $interpolated_string;
 } ## end sub interpolated
+
+
+sub is_command_info {
+  my ($ref) = @_;
+  return blessed($ref) && $ref->isa("Cetmodules::CMake::CommandInfo");
+}
 
 
 sub is_comment {

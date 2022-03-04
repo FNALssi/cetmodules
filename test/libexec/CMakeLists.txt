@@ -15,9 +15,13 @@ set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/VariableSaver.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Util.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/CommandInfo.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Presets/Util.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Presets/BadPerlRef.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Presets/ProjectVariable.pm
+  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Presets.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/UPS/Setup.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/Util.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake/Tagging.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/CMake/Handlers.pm
