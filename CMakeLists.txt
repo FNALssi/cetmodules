@@ -34,14 +34,6 @@ cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 # Project information.
 project(cetmodules LANGUAGES NONE)
 
-# Installed file locations.
-list(APPEND ${PROJECT_NAME}_ADD_ARCH_DIRS CPAN_DIR)
-list(APPEND ${PROJECT_NAME}_ADD_NOARCH_DIRS BIN_DIR LIBEXEC_DIR)
-set(${PROJECT_NAME}_CONFIG_OUTPUT_ROOT_DIR share)
-set(${PROJECT_NAME}_FHICL_DIR "") # Don't need.
-set(${PROJECT_NAME}_INCLUDE_DIR "") # Don't need.
-set(${PROJECT_NAME}_LIBRARY_DIR "") # Don't need.
-
 # Bootstrap finding our own modules.
 list(PREPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/Modules

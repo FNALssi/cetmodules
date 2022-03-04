@@ -31,6 +31,7 @@ BEGIN {
 use lib $_libexec;
 
 ##
+use Cetmodules::CMake::Presets qw(project_preset_data write_preset_data);
 use Cetmodules::UPS::ProductDeps
   qw($BTYPE_TABLE get_parent_info get_product_list get_qualifier_matrix);
 use Cetmodules::UPS::Setup
@@ -74,12 +75,10 @@ Please issue the following command
   migrate-package '$ENV{CETPKG_SOURCE}'
 EOF
 } ## end if (_check_for_old_product_deps...)
-
-# Get information from the product_deps file.
-my $pi    = get_parent_info($pfile);
-my $phash = get_product_list($pfile);
-my ($ndeps, $qhash, $qqhash) = get_qualifier_matrix($pfile);
-_generate_setup();
+_generate_setup(
+  get_parent_info($pfile),
+  get_product_list($pfile),
+  get_qualifier_matrix($pfile));
 1;
 
 
@@ -100,6 +99,7 @@ sub _check_for_old_product_deps {
 
 
 sub _consolidate_and_write {
+  my ($pi, $cpi, $phash, $qhash, $qqhash) = @_;
   my $tmpfl   = "$builddir/setup_$pi->{name}";
   my $tset_fh = IO::File->new("$tmpfl", ">")
     or error_exit("couldn't open $tmpfl for write");
@@ -120,6 +120,14 @@ sub _consolidate_and_write {
       source     => $sourcedir,
       build      => $builddir,
       cmake_args => $cmake_args);
+    my $preset_data = project_preset_data(
+      $sourcedir, $cmake_args,
+      { project_name  => $cpi->{cmake_project_name} },
+      { sanitize_defs => 1 })
+      or error_exit(<<"EOF");
+unable to find CMake preset template file for $pi->{name}
+EOF
+    write_preset_data($preset_data, "$sourcedir/CMakePresets.json");
     print_dev_setup($pi, $tset_fh);
   };
 
@@ -151,8 +159,9 @@ sub _filter_build_types {
 
 
 sub _generate_setup {
-  my (@quals) = _read_and_validate_args();
-  get_derived_parent_data($pi, $sourcedir, @quals);
+  my ($pi, $phash, $ndeps, $qhash, $qqhash) = @_;
+  my (@quals) = _read_and_validate_args($pi, $qqhash);
+  my $cpi = get_derived_parent_data($pi, $sourcedir, @quals);
   $pi->{project_variable_prefix} =
     shortest_unique_prefix($pi->{project_variable_prefix})
     ->{ $pi->{project_variable_prefix} };
@@ -165,7 +174,7 @@ Known qualspecs:
 EOF
     error_exit($msg, map { "  $_"; } reverse sort keys %{$qqhash});
   } ## end if ($pi->{qualspec} and...)
-  _consolidate_and_write($pi, $phash, $qhash);
+  _consolidate_and_write($pi, $cpi, $phash, $qhash, $qqhash);
   return;
 } ## end sub _generate_setup
 
@@ -210,6 +219,7 @@ sub _missing_btype_ok {
 
 
 sub _read_and_validate_args {
+  my ($pi, $qqhash) = @_;
   _maybe_convert_cetbuildtools_args(\@ARGV);
 
   # Single letter options for build type (d, o, p).
@@ -253,7 +263,7 @@ EOF
     } ## end if (not($pi->{noarch} ...))
     warning($msg);
   } ## end if ($options->{noarch})
-  return _validated_quals($input_btype, $input_quals);
+  return _validated_quals($pi, $qqhash, $input_btype, $input_quals);
 } ## end sub _read_and_validate_args
 
 
@@ -282,7 +292,7 @@ EOF
 
 
 sub _validated_build_type {
-  my ($input_btype, $default_btype, @supported_btypes) = @_;
+  my ($pi, $qqhash, $input_btype, $default_btype, @supported_btypes) = @_;
   my $build_type = $input_btype || $default_btype;
 
   # Do we have at least one supported qualspec with a build type?
@@ -311,7 +321,7 @@ EOF
 
 
 sub _validated_quals {
-  my ($input_btype, $input_quals) = @_;
+  my ($pi, $qqhash, $input_btype, $input_quals) = @_;
   my $supported_btypes = {};
   my $supported_quals =
     _filter_build_types($supported_btypes, keys %{$qqhash});
@@ -334,8 +344,9 @@ EOF
       "default build type $default_btype from defaultqual",
       "in $pfile is overridden from the command line by $input_btype");
   } ## end if ($default_btype and...)
-  my $build_type = _validated_build_type($input_btype, $default_btype,
-    keys %{$supported_btypes});
+  my $build_type =
+    _validated_build_type($pi, $qqhash, $input_btype, $default_btype,
+      keys %{$supported_btypes});
   my @quals;
 
   if (scalar keys %{$input_quals}) {

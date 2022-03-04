@@ -644,17 +644,27 @@ do_work() {
     require_cmake 3.13
     [ -z "${c_postargs[*]}" ] || \
       error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
+    # Default preset if we haven't specified one.
+    [ -n "$preset_configure" ] || ! has_for_UPS_preset || preset_configure="for_UPS"
+    local cmake_args=()
+    if [ -n "$preset_configure" ]; then
+      cmake_args+=(--preset=$preset_configure)
+    else
+      cmake_args+=(${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"})
+    fi
+    cmake_args+=(
+      ${install_prefix:+-DCMAKE_INSTALL_PREFIX="$install_prefix"}
+      ${garg[*]:+"${garg[@]}"}
+      ${cmake_options[*]:+"${cmake_options[@]}"}
+      ${cmake_bootstrap_defs[*]:+"${cmake_bootstrap_defs[@]}"}
+      ${cmake_defs[*]:+"${cmake_defs[@]}"}
+      ${generator_arg:+"$generator_arg"}
+      ${c_opt_args[*]:+"${c_opt_args[@]}"}
+      -S "$CETPKG_SOURCE" -B "$CETPKG_BUILD"
+    )
     cmd -d "execute CMake" \
       ${lock_cmd[*]:+"${lock_cmd[@]}" -- } \
-      cmake ${install_prefix:+-DCMAKE_INSTALL_PREFIX="$install_prefix"} \
-      ${garg[*]:+"${garg[@]}"} \
-      ${CETPKG_CMAKE_ARGS[*]:+"${CETPKG_CMAKE_ARGS[@]}"} \
-      ${cmake_options[*]:+"${cmake_options[@]}"} \
-      ${cmake_bootstrap_defs[*]:+"${cmake_bootstrap_defs[@]}"} \
-      ${cmake_defs[*]:+"${cmake_defs[@]}"} \
-      ${generator_arg:+"$generator_arg"} \
-      ${c_opt_args[*]:+"${c_opt_args[@]}"} \
-      -S "$CETPKG_SOURCE" -B "$CETPKG_BUILD" || \
+      cmake ${cmake_args[*]:+"${cmake_args[@]}"} || \
       check_status # Fail here if there's a problem, quiet otherwise.
     if [ -f "$gtmpfile" ]; then
       if (( gfilt )); then
@@ -797,11 +807,12 @@ stage_ip() {
   if [ "$s" = p ] && (( using_mrb )); then
     # Use mrb mp because CMake's packaging facility can create only one
     # package and we need one per product.
-    cmd=(mrb mp ${opt_args[@]:+"${opt_args[@]}"} --)
+    cmd=(mrb mp ${opt_args[@]:+"${opt_args[@]}"} -- )
     cmake_build_args+=(${postargs[@]:+"${postargs[@]}"})
     # N.B. *WE DO NOT LOCK*, relying on mrb mp for this.
   else # Use cmake build.
-    cmd=("${cmake_build[@]}" -t "${stage}")
+    cmd=("${cmake_build[@]}"
+         -t "${stage}")
     cmake_build_args+=(${opt_args[@]:+"${opt_args[@]}"})
     cmake_build_postargs+=(${postargs[@]:+"${postargs[@]}"})
     ip_lock=(${lock_cmd[*]:+"${lock_cmd[@]}" -r ${stage/#install/${CETPKG_INSTALL:+"$CETPKG_INSTALL/.locks":}install} -- })
@@ -850,6 +861,14 @@ require_cmake() {
   return 1
 }
 
+has_for_UPS_preset() {
+  local label
+  while read label; do
+    [ "$label" = "for_UPS" ] && return
+  done < <( cmake -S "$CETPKG_SOURCE" --list-presets=configure 2>/dev/null | sed -Ene 's&^[[:space:]]*"([^"]+)".*&\1&p'  )
+  return 1
+}
+
 ########################################################################
 # Main
 ########################################################################
@@ -873,7 +892,7 @@ if (( $? != 4 )); then
   exit 1
 fi
 
-TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
+TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,pc:,preset-configure:,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
 
 (( $? )) && usage 2
 
@@ -957,6 +976,7 @@ while true; do
         log="${1:-${log:-$log_default}}"
       [ "$1" = "${log%/*}" ] && (( log_is_default = 1 )) || unset log_is_default;;
     -p|--package) (( no_build = 1 )); (( do_package = 1 ));;
+    --pc|--preset-configure) require_cmake 3.20; preset_configure="$2"; shift;;
     -q|--quiet) (( quiet = 1 ));;
     -s|--subdir) subdir="$2"; shift;;
     --short-circuit|--sc) (( short_circuit = 1 ));;

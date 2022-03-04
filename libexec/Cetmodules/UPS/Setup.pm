@@ -72,7 +72,9 @@ sub cetpkg_info_file {
   my @expected_keys = qw(source build name version cmake_project_version
     chains qualspec cqual build_type extqual use_time_deps
     build_only_deps cmake_args);
-  my @for_export = (qw(CETPKG_SOURCE CETPKG_BUILD));
+  my @for_export = (
+    qw(CETPKG_SOURCE CETPKG_BUILD CETPKG_FLAVOR CETPKG_QUALSPEC CETPKG_FQ_DIR)
+  );
   my $cetpkgfile =
     File::Spec->catfile($cetpkg_info{build} || q(.), "cetpkg_info.sh");
   my $fh = IO::File->new("$cetpkgfile", q(>))
@@ -324,7 +326,7 @@ EOF
       or error_exit("CET_SUBDIR not set: missing cetpkgsupport?");
     $pi->{fq_dir} = join(q(.), $fq_dir, split(/:/msx, $pi->{qualspec}));
   } ## end else [ if ($pi->{no_fq_dir}) ]
-  return;
+  return $cpi;
 } ## end sub get_derived_parent_data
 
 
@@ -349,16 +351,16 @@ sub output_info {
     List::MoreUtils::any { $current_var eq $_; } @{$for_export}
       and $current_var = "export $current_var";
     my $val = $cetpkg_info->{$key} || q();
-    $fh->print("$current_var=");
 
     if (not ref $val) {
-      $fh->print("\Q$val\E\n");
+      $fh->print("$current_var=\Q$val\E\n");
     } elsif (ref $val eq "SCALAR") {
-      $fh->print("\Q$$val\E\n");
+      $fh->print("$current_var=\Q$$val\E\n");
     } elsif (ref $val eq "ARRAY") {
-      $fh->printf("(%s)\n", join(q( ), map {"\Q$_\E"} @{$val}));
+      $fh->printf("$current_var=(%s)\n", join(q( ), map {"\Q$_\E"} @{$val}));
     } else {
       verbose(sprintf("ignoring unexpected info $key of type %s", ref $val));
+      next;
     }
     push @defined_vars, $current_var;
   } ## end foreach my $key (@keys)

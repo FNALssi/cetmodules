@@ -7,6 +7,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 
 ##
 use Cetmodules::CMake qw(reconstitute_code);
+use Cetmodules::CMake::Util qw(is_command_info);
 use Cetmodules::Migrate::ProductDeps qw($CETMODULES_VERSION);
 use Cetmodules::Util::PosResetter qw();
 use Cetmodules::Util qw(error_exit info);
@@ -233,7 +234,7 @@ sub _to_textref {
   local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $result;
 
-  if (blessed($textish) and $textish->isa('Cetmodules::CMake::CommandInfo')) {
+  if (is_command_info($textish)) {
     $result = \$textish->{post};
   } elsif (ref $textish eq 'SCALAR') {
     $result = $textish;
@@ -243,7 +244,7 @@ sub _to_textref {
     error_exit(<<"EOF");
 cannot identify tag text from unknown entity $textish
 EOF
-  } ## end else [ if (blessed($textish) ... [... [elsif (not ref $textish) ]])]
+  } ## end else [ if (is_command_info($textish... [... [elsif (not ref $textish) ]]))]
   return $result;
 } ## end sub _to_textref
 

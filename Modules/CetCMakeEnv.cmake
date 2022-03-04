@@ -110,6 +110,16 @@ macro(cet_cmake_env)
   cmake_parse_arguments(_CCE "NO_INSTALL_PKGMETA" "" "" "${ARGV}")
 
   set(CETMODULES_CURRENT_PROJECT_NAME ${PROJECT_NAME})
+
+  # Check if we have a custom preset config but we're using an old MRB.
+  if (COMMAND mrb_check_subdir_order
+      AND 6.04.00 VERSION_GREATER mrb_VERSION
+      AND EXISTS
+      "${CMAKE_CURRENT_SOURCE_DIR}/config/CMakePresets.json.in")
+    message(FATAL_ERROR
+      "successful configuration of ${CETMODULES_CURRENT_PROJECT_NAME} within MRB requires MRB >= 6.04.00")
+  endif()
+
   get_filename_component(CETMODULES_CURRENT_PROJECT_LIST_FILE "${CMAKE_CURRENT_LIST_FILE}" REALPATH)
   string(SHA256 CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX "${CETMODULES_CURRENT_PROJECT_LIST_FILE}")
   set(CET_PV_PREFIX CACHE STRING "List of initial project variable project identifier prefixes")
