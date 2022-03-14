@@ -3,7 +3,7 @@ CetCMakeEnv
 ===========
 
 This module defines the principal bootstrap function
-:cmake:command:`cet_cmake_env` defining the cetmodules build environment for
+:command:`cet_cmake_env` defining the cetmodules build environment for
 the current project.
 #]================================================================]
 
@@ -58,46 +58,45 @@ endif()
 include(GNUInstallDirs)
 ##################
 
-#[================================================================[.rst:
-#]================================================================]
 define_property(TARGET PROPERTY CET_EXEC_LOCATION
   BRIEF_DOCS "Saved location of the executable represented by a target"
   FULL_DOCS "Saved location of the executable represented by a target")
 
 #[================================================================[.rst:
-.. cmake:command:: cet_cmake_env
+.. command:: cet_cmake_env
 
-  Set up the cetmodules build environment for the current project.
+   Set up the cetmodules build environment for the current project.
 
-  **Synopsis:**
-    .. code-block:: cmake
+   **Synopsis**
+     .. code-block:: cmake
 
-       cet_cmake_env([NO_INSTALL_PKGMETA])
+        cet_cmake_env([NO_INSTALL_PKGMETA])
 
-  **Options:**
-    ``NO_INSTALL_PKGMETA``
+   **Options**
+     ``NO_INSTALL_PKGMETA``
 
-       Under normal circumstances, :cmake:command:`!cet_cmake_env` will
-       call :cmake:command:`install_pkgmeta` to automatically find
-       ``LICENSE`` and ``README`` files and install them. Specify
-       ``NO_INSTALL_PKGMETA`` if you wish to call
-       :cmake:command:`install_pkgmeta` yourself (or not at all).
+       Under normal circumstances, :command:`!cet_cmake_env` will call
+       :command:`install_pkgmeta` to automatically find ``LICENSE`` and
+       ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
+       if you wish to call :command:`install_pkgmeta` yourself (or not
+       at all).
 
   .. note::
 
-     Prior to calling :cmake:command:`cet_cmake_env`:
+     Prior to calling :command:`cet_cmake_env`:
 
      * The current project must have been initialized via
-       :cmake:command:`project() <cmake-ref-current:command:project>`
+       :command:`project() <cmake-ref-current:command:project>`
 
      * Any initial or override values for
-       :cmake:manual:`project variables <cetmodules-project-variables(7)>` should be set.
+       :manual:`project variables <cetmodules-project-variables(7)>` should be set.
 
   **Variables controlling behavior**
-    * :cmake:variable:`WANT_UPS`
-    * :cmake:variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
-    * :cmake:variable:`BUILD_STATIC_LIBS`
-    * :cmake:variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+    * :variable:`WANT_UPS`
+    * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
+    * :variable:`BUILD_STATIC_LIBS`
+    * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+
 #]================================================================]
 macro(cet_cmake_env)
   # project() must have been called first.

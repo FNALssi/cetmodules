@@ -17,23 +17,23 @@ Synopsis
 
 :program:`buildtool`\  :option:`--usage`
 
-Exclusive :ref:`mode options <buildtool-mode-options>`:
+:ref:`Exclusive mode options <buildtool-mode-options>`:
    :option:`-C`\|\ :option:`--cmake-only`
    :option:`-A`\|\ :option:`--all`
    :option:`--info`
 
-Other :ref:`mode options <buildtool-mode-options>`:
+:ref:`Other mode options <buildtool-mode-options>`:
    :option:`-b`\|\ :option:`--build`
    :option:`-i`\|\ :option:`--install`
    :option:`-p`\|\ :option:`--package`
    :option:`--sc`\|\ :option:`--short-circuit`
    :option:`-t`\|\ :option:`--test`
 
-Combo :ref:`mode options <buildtool-combo-options>`:
+:ref:`Combo mode options <buildtool-combo-options>`:
    :option:`-R`\|\ :option:`--release`
    :option:`-T`\|\ :option:`--test-all`
 
-Miscellaneous :ref:`mode options <buildtool-misc-options>`:
+:ref:`Miscellaneous options <buildtool-misc-options>`:
    | :option:`-D\<CMake-definition>`\ ...
    | :option:`-E`\|\ :option:`--export-compile-commands`
    | :option:`-G\<CMake-generator-string>`\|\ :option:`--generator \<make|ninja>[:\<secondary-generator>] <--generator>`
@@ -51,6 +51,8 @@ Miscellaneous :ref:`mode options <buildtool-misc-options>`:
    | :option:`-g \<dot-file> <-g>`\|\ :option:`--graphviz=\<dot-file> <--graphviz>` [:option:`--gfilt[=\<gfilt-opt>[,\<gfilt-opt>]...] <--gfilt>`\]
    | :option:`-j` ``#``
    | :option:`-l`\|\ :option:`--log`\ [``=<log-file>``\]|\ :option:`--log-file`\[``=<log-file>``\]
+   | :option:`--no-pc`\|\ :option:`--no-preset-configure`
+   | :option:`--pc`\|\ :option:`--preset-configure` ``<preset-name>``
    | :option:`-q`\|\ :option:`--quiet`
    | :option:`-s`\|\ :option:`--subdir`
    | :option:`--tee`
@@ -72,7 +74,7 @@ The process of producing a software package from its source consists of multiple
 
 :program:`buildtool` assumes one is using `CMake <https://cmake.org>`_ and the macros and functions defined within cetmodules inside a :abbr:`UPS` environment to produce a :abbr:`UPS` package. This in turn implies the existence of files :file:`ups/{product}.table` :file:`ups/product_deps`, and file:`ups/setup_for_development`, the latter of which has already been sourced prior to invoking :program:`buildtool`.
 
-.. note:: :abbr:`UPS` is **deprecated**, in addition to being practically unknown outside certain areas of experimental particle physics. If your package is not already reliant on :abbr:`UPS`, you are encouraged not to start: the macros and functions provided by cetmodules to aid building and packaging your code do not need :abbr:`UPS`, or any of its accoutrements.
+.. note:: :abbr:`UPS` is **deprecated**, in addition to being practically unknown outside certain areas of experimental particle physics. If your package is not already reliant on :abbr:`UPS`, you are *strongly* encouraged not to start: the macros and functions provided by cetmodules to aid building and packaging your code do not need :abbr:`UPS`, or any of its accoutrements.
 
    If your package *does* rely on :abbr:`UPS`, you are encouraged to investigate :program:`migrate` to facilitate evolving your package to no longer rely on UPS,becoming buildable via more general means such as `Spack <https://spack.readthedocs.io/>`_, *while still being buildable with and for the* :abbr:`UPS` *environment*.
 
@@ -177,7 +179,7 @@ Miscellaneous options
 
 .. option:: --cmake-debug, --cmake-trace, --cmake-trace-expand
 
-   Add the corresponding CMake debug option (:regexp:`s&cmake-&&` to the command-line options for the configure stage.
+   Add the corresponding CMake debug option (:ref:`--debug-output, --trace, --trace-expand <cmake-ref-current:cmake options>`, respectively)  to the command-line options for the configure stage.
 
    .. seealso:: :option:`-Xc <-X<c|b|t|i|p>>`.
 
@@ -241,7 +243,7 @@ Miscellaneous options
 
 .. option:: -h, --help
 
-   This help (long-form).
+   Long-form help.
 
 .. option:: -j <#>
 
@@ -250,6 +252,16 @@ Miscellaneous options
 .. option:: -l, --log[=<log-dir-or-filepath>], --log-file[=<log-dir-or-filepath>]
 
    All build output is redirected to the specified log-file, or one with a default name if no other is specified. Unless :option:`--quiet` is also specified, stage information will still be printed to the screen---though see :option:`--tee` below. Note that the short variant does not accept an argument: a log filename will be generated. The long forms should use ``=`` to separate the option from their argument.
+
+.. option:: --no-pc, --no-preset-configure
+
+   Do not use a predefined CMake configure preset.
+
+   .. seealso:: :option:`--pc`
+
+.. option:: --pc <preset-name>, --preset-configure <preset-name>
+
+   Use the named `CMake configure preset <https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset>`_ instead of CMake definitions genereated from :file:`ups/product_deps`. Absent this option or :option:`--no-pc`, the preset ``for_UPS`` will be used if defined in :envvar:`CETPKG_SOURCE`\ /:file:`CMakePresets.json`.
 
 .. option:: -q, --quiet
 
@@ -299,15 +311,15 @@ Examples
 Build, test, install and create a package tarball from scratch with
 output to a default-named log file, using parallelism:
 
-.. code-block:: console
+ .. code-block:: console
 
-   :program:`buildtool`\  -A -c -l -I <install-dir> -j16
+    buildtool -A -c -l -I <install-dir> -j16
 
 As above, but copying output to screen:
 
-.. code-block:: console
+ .. code-block:: console
 
-   :program:`buildtool`\  -A -c -l --tee -I <install-dir> -j16
+    buildtool -A -c -l --tee -I <install-dir> -j16
 
 The need for the :option:`-I` option may be obviated by defining :envvar:`CETPKG_INSTALL`;
 the need for the explicit parallelism may be similarly voided by
@@ -321,15 +333,15 @@ To build only a particular target within a subdirectory:
 
 To build and test only:
 
-.. code-block:: console
+ .. code-block:: console
 
-   buildtool -t -j16
+    buildtool -t -j16
 
 To install and package only:
 
-.. code-block:: console
+ .. code-block:: console
 
-   buildtool -i -p -j16
+    buildtool -i -p -j16
 
 Environment
 ===========
@@ -339,18 +351,18 @@ Required
 
 .. envvar:: CETPKG_BUILD
 
-   The path to the build area. Set by sourcing :cmake:manual:`ups/setup_for_development <setup_for_development(7)>`.
+   The path to the build area. Set by sourcing :manual:`ups/setup_for_development <setup_for_development(7)>`.
 
 .. envvar:: CETPKG_SOURCE
 
-   The path to the source (*i.e.* the top-level :file:`CMakeLists.txt`). Set by sourcing :cmake:manual:`ups/setup_for_development <setup_for_development(7)>`.
+   The path to the source (*i.e.* the top-level :file:`CMakeLists.txt`). Set by sourcing :manual:`ups/setup_for_development <setup_for_development(7)>`.
 
 Optional
 --------
 
 .. envvar:: CETPKG_INSTALL
 
-   The installation area (must be a properly-initialized unified-UPS top level directory for the installed products to be usable by UPS). May be overridden by :option:`-I`, but takes precedence over :cmake:variable:`CMAKE_INSTALL_PREFIX <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`.
+   The installation area (must be a properly-initialized unified-UPS top level directory for the installed products to be usable by UPS). May be overridden by :option:`-I`, but takes precedence over :variable:`CMAKE_INSTALL_PREFIX <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`.
 
 .. envvar:: CETPKG_J
 

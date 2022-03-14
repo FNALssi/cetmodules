@@ -19,7 +19,7 @@ Description
 
 .. deprecated:: 2.0
 
-   This script is deprecated, as it operates only on unmigrated sources where the version has *not* been migrated to the :cmake:command:`project() <cmake-ref-current:command:project>` call in the top-level :file:`CMakeLists.txt`\ .
+   This script is deprecated, as it operates only on unmigrated sources where the version has *not* been migrated to the :command:`project() <cmake-ref-current:command:project>` call in the top-level :file:`CMakeLists.txt`\ .
 
 Arguments
 =========
