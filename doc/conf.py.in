@@ -74,6 +74,7 @@ templates_path = ['@CMAKE_CURRENT_SOURCE_DIR@/templates']
 exclude_patterns = []
 
 # Other common options.
+manpages_url = 'https://man7.org/linux/man-pages/man{section}/{page}.{section}.html'
 smartquotes = True
 smartquotes_action = 'qDe' # quotes, en- and em-dashes, and ellipses.
 
