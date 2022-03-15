@@ -150,11 +150,10 @@ m&\A(?P<project_name>\Q$pv_seed->{project_name}\E)_(?P<name>[A-Za-z0-9_-]+?)_INI
 
 
 sub _maybe_tweak_defs {
-  my ($definitions, $ups_definitions, $saved_definitions, $pv_seed, $options)
-    = @_;
+  my ($definitions, $pv_seed, $options) = @_;
 
   if ($options->{sanitize_defs}) {
-    my $exec_prefix = delete $saved_definitions->{'EXEC_PREFIX'};
+    my $exec_prefix = delete $definitions->{saved}->{'EXEC_PREFIX'};
 
     if ($exec_prefix) {
       if (is_project_variable($exec_prefix)) {
@@ -165,40 +164,52 @@ sub _maybe_tweak_defs {
           name  => 'EXEC_PREFIX',
           value => q($env{CETPKG_FQ_DIR}));
       } ## end else [ if (is_project_variable...)]
-      $ups_definitions->{ $exec_prefix->init_var } = $exec_prefix;
+      $definitions->{ups}->{ $exec_prefix->init_var } = $exec_prefix;
     } ## end if ($exec_prefix)
     my $ups_product_flavor = Cetmodules::CMake::Presets::ProjectVariable->new(
       %{$pv_seed},
       name  => 'UPS_PRODUCT_FLAVOR',
       value => $exec_prefix ? q($env{CETPKG_FLAVOR}) : 'NULL');
-    $ups_definitions->{ $ups_product_flavor->init_var } = $ups_product_flavor;
+    $definitions->{ups}->{ $ups_product_flavor->init_var } =
+      $ups_product_flavor;
 
-    if (delete $saved_definitions->{'UPS_QUALIFIER_STRING'}) {
+    foreach my $name (sort keys %{ $definitions->{compiler} }) {
+      if ($name =~
+m&\A(?:CMAKE|UPS)_([A-Za-z0-9]+_(?:STANDARD|COMPILER(?:_(?:ID|VERSION))?))\z&msx
+        ) {
+        my $val = delete $definitions->{compiler}->{$name};
+        $definitions->{ups}->{$name} = { type  => $val->{'type'} // 'STRING',
+                                         value => "\$env{CETPKG_$1}"
+                                       };
+      } ## end if ($name =~ ...)
+    } ## end foreach my $name (sort keys...)
+
+    if (delete $definitions->{saved}->{'UPS_QUALIFIER_STRING'}) {
       my $ups_qualifier_string =
         Cetmodules::CMake::Presets::ProjectVariable->new(
           %{$pv_seed},
           name  => 'UPS_QUALIFIER_STRING',
           value => q($env{CETPKG_QUALSPEC}));
-      $ups_definitions->{ $ups_qualifier_string->init_var } =
+      $definitions->{ups}->{ $ups_qualifier_string->init_var } =
         $ups_qualifier_string;
-    } ## end if (delete $saved_definitions...)
+    } ## end if (delete $definitions...)
   } else {
 
     # Put CET_PV_PREFIX back in $definitions.
-    exists $saved_definitions->{'CET_PV_PREFIX'}
-      and $definitions->{'CET_PV_PREFIX'} =
-      delete $saved_definitions->{'CET_PV_PREFIX'};
+    exists $definitions->{saved}->{'CET_PV_PREFIX'}
+      and $definitions->{misc}->{'CET_PV_PREFIX'} =
+      delete $definitions->{saved}->{'CET_PV_PREFIX'};
 
-    # Put everything else in $ups_definitions.
-    foreach my $name (sort keys %{$saved_definitions}) {
-      my $key =
-        is_project_variable($saved_definitions->{$name})
-        ? $saved_definitions->{$name}->init_var
-        : $name;
-      $ups_definitions->{$key} = delete $saved_definitions->{$name};
-    } ## end foreach my $name (sort keys...)
+    # Put everything else in $definitions->{ups}.
+    foreach my $key_type qw(saved compiler) {
+      foreach my $name (sort keys %{ $definitions->{$key_type} }) {
+        my $val = delete $definitions->{$key_type}->{$name};
+        my $key = is_project_variable($val) ? $val->init_var : $name;
+        $definitions->{ups}->{$key} = $val;
+      } ## end foreach my $name (sort keys...)
+    } ## end foreach my $key_type qw(saved compiler)
   } ## end else [ if ($options->{sanitize_defs...})]
-  return $definitions, $ups_definitions;
+  return $definitions->{misc}, $definitions->{ups};
 } ## end sub _maybe_tweak_defs
 
 
@@ -215,7 +226,8 @@ sub _process_cmake_args {
     UPS_QUALIFIER_STRING
     WANT_UPS
   );
-  my $saved_definitions = {};
+  my $saved_definitions    = {};
+  my $compiler_definitions = {};
 
   foreach my $def (keys %{$definitions}) {
     my $name =
@@ -225,12 +237,21 @@ sub _process_cmake_args {
 
     if (List::Util::any { $name eq $_; } @save_definitions) {
       $saved_definitions->{$name} = delete $definitions->{$def};
+    } elsif ($name =~
+m&\A(?:CMAKE|UPS)_[A-Za-z0-9]+_(?:STANDARD|COMPILER(?:_(?:ID|VERSION))?)\z&msx
+      ) {
+      $compiler_definitions->{$name} = delete $definitions->{$def};
     } elsif ($name =~ m&\AUPS_&msx) {
       $ups_definitions->{$def} = delete $definitions->{$def};
     }
   } ## end foreach my $def (keys %{$definitions...})
-  return _maybe_tweak_defs($definitions, $ups_definitions,
-    $saved_definitions, $pv_seed, $options);
+  return _maybe_tweak_defs(
+    {   misc     => $definitions,
+        ups      => $ups_definitions,
+        saved    => $saved_definitions,
+        compiler => $compiler_definitions
+    },
+    $pv_seed, $options);
 } ## end sub _process_cmake_args
 
 

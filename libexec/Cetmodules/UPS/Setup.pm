@@ -73,7 +73,10 @@ sub cetpkg_info_file {
     chains qualspec cqual build_type extqual use_time_deps
     build_only_deps cmake_args);
   my @for_export = (
-    qw(CETPKG_SOURCE CETPKG_BUILD CETPKG_FLAVOR CETPKG_QUALSPEC CETPKG_FQ_DIR)
+    qw(CETPKG_SOURCE CETPKG_BUILD CETPKG_FLAVOR CETPKG_QUALSPEC CETPKG_FQ_DIR),
+    map { "CETPKG_$_"; } grep {
+      m&\A[A-Za-z0-9]+_(?:STANDARD|COMPILER(?:_(?:ID|VERSION))?)\z&msx;
+    } sort keys %cetpkg_info
   );
   my $cetpkgfile =
     File::Spec->catfile($cetpkg_info{build} || q(.), "cetpkg_info.sh");
@@ -326,6 +329,9 @@ EOF
       or error_exit("CET_SUBDIR not set: missing cetpkgsupport?");
     $pi->{fq_dir} = join(q(.), $fq_dir, split(/:/msx, $pi->{qualspec}));
   } ## end else [ if ($pi->{no_fq_dir}) ]
+
+  # Compiler info.
+  _add_compiler_info($pi);
   return $cpi;
 } ## end sub get_derived_parent_data
 
@@ -346,7 +352,8 @@ sub output_info {
   my @defined_vars = ();
 
   foreach my $key (@keys) {
-    my $current_var = "CETPKG_\U$key";
+    my $current_var =
+      sprintf('CETPKG_%s', ($key eq "\L$key") ? "\U$key" : $key);
     local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
     List::MoreUtils::any { $current_var eq $_; } @{$for_export}
       and $current_var = "export $current_var";
@@ -577,43 +584,38 @@ sub table_dep_setup {
 
 
 sub ups_to_cmake {
-  my ($pi) = @_;
-  (not $pi->{cqual})
-    or (
-      exists $_cqual_table->{ $pi->{cqual} } and my (
-        $cc,           $cxx, $compiler_id, $compiler_version,
-        $cxx_standard, $fc,  $fc_id,       $fc_version)
-      = @{ $_cqual_table->{ $pi->{cqual} } }
-      or error_exit(<<"EOF"));
-unrecognized compiler qualifier $pi->{cqual} in $pi->{pfile}"
-EOF
+  my ($pi)       = @_;
+  my $pv_prefix  = "CET_PV_$pi->{project_variable_prefix}";
   my @cmake_args = ();
 
-  ##################
-  # UPS-specific CMake configuration.
+  # Compiler-related.
+  foreach my $lang qw(C CXX Fortran) {
+    exists $pi->{"${lang}_COMPILER"}
+      and push @cmake_args,
+      "-DCMAKE_${lang}_COMPILER:STRING=$pi->{\"${lang}_COMPILER\"}";
+
+    foreach my $item qw(ID VERSION) {
+      exists $pi->{"${lang}_COMPILER_$item"}
+        and push @cmake_args,
+"-DUPS_${lang}_COMPILER_$item:STRING=$pi->{\"${lang}_COMPILER_$item\"}";
+    } ## end foreach my $item qw(ID VERSION)
+  } ## end foreach my $lang qw(C CXX Fortran)
+  exists $pi->{CXX_STANDARD}
+    and push @cmake_args, "-DCMAKE_CXX_STANDARD:STRING=$pi->{CXX_STANDARD}",
+    "-DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON",
+    "-DCMAKE_CXX_EXTENSIONS:BOOL=OFF";
+
+  # Pathspec-related.
+  push @cmake_args, _pathspecs_to_cmake($pi, $pv_prefix);
+
+  # UPS-specific.
   push @cmake_args, '-DWANT_UPS:BOOL=ON';
-  $compiler_id
-    and push @cmake_args, "-DUPS_C_COMPILER_ID:STRING=$compiler_id",
-    "-DUPS_C_COMPILER_VERSION:STRING=$compiler_version",
-    "-DUPS_CXX_COMPILER_ID:STRING=$compiler_id",
-    "-DUPS_CXX_COMPILER_VERSION:STRING=$compiler_version",
-    "-DUPS_Fortran_COMPILER_ID:STRING=$fc_id",
-    "-DUPS_Fortran_COMPILER_VERSION:STRING=$fc_version";
-  my $pv_prefix = "CET_PV_$pi->{project_variable_prefix}";
   push @cmake_args, _cmake_defs_for_ups_config($pi, $pv_prefix);
 
-  ##################
-  # General CMake configuration.
+  # Other.
   push @cmake_args, "-DCET_PV_PREFIX:STRING=$pi->{project_variable_prefix}";
   $pi->{cmake_build_type}
     and push @cmake_args, "-DCMAKE_BUILD_TYPE:STRING=$pi->{cmake_build_type}";
-  $compiler_id
-    and push @cmake_args, "-DCMAKE_C_COMPILER:STRING=$cc",
-    "-DCMAKE_CXX_COMPILER:STRING=$cxx",
-    "-DCMAKE_Fortran_COMPILER:STRING=$fc",
-    "-DCMAKE_CXX_STANDARD:STRING=$cxx_standard",
-    "-DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON",
-    "-DCMAKE_CXX_EXTENSIONS:BOOL=OFF";
   $pi->{fq_dir}
     and push @cmake_args, "-D${pv_prefix}_EXEC_PREFIX:STRING=$pi->{fq_dir}";
   $pi->{noarch} and push @cmake_args, "-D${pv_prefix}_NOARCH:BOOL=ON";
@@ -621,30 +623,6 @@ EOF
     and push @cmake_args, "-D${pv_prefix}_DEFINE_PYTHONPATH:BOOL=ON";
   $pi->{old_style_config_vars}
     and push @cmake_args, "-D${pv_prefix}_OLD_STYLE_CONFIG_VARS:BOOL=ON";
-
-  ##################
-  # Pathspec-related CMake configuration.
-  push @cmake_args,
-    (map { _cmake_project_var_for_pathspec($pi, $_) // (); }
-      keys %{$PATHSPEC_INFO});
-  my @arch_pathspecs   = ();
-  my @noarch_pathspecs = ();
-
-  foreach my $pathspec (values %{ $pi->{pathspec_cache} }) {
-    if (  $pathspec->{var_stem}
-      and not ref $pathspec->{path}
-      and $pathspec->{key} ne q(-)) {
-      push @{ $pathspec->{key} eq 'fq_dir'
-        ? \@arch_pathspecs
-        : \@noarch_pathspecs }, $pathspec->{var_stem};
-    } ## end if ($pathspec->{var_stem...})
-  } ## end foreach my $pathspec (values...)
-  scalar @arch_pathspecs and push @cmake_args,
-    sprintf("-D${pv_prefix}_ADD_ARCH_DIRS:INTERNAL=%s",
-      join(q(;), @arch_pathspecs));
-  scalar @noarch_pathspecs and push @cmake_args,
-    sprintf("-D${pv_prefix}_ADD_NOARCH_DIRS:INTERNAL=%s",
-      join(q(;), @noarch_pathspecs));
 
   ##################
   # Done.
@@ -733,6 +711,31 @@ $_cqual_table =
 ########################################################################
 # Private functions
 ########################################################################
+sub _add_compiler_info {
+  my ($pi) = @_;
+  $pi->{cqual} or return;
+  exists $_cqual_table->{ $pi->{cqual} }
+    and my ($cc, $cxx, $compiler_id, $compiler_version, $cxx_standard, $fc,
+      $fc_id, $fc_version)
+    = @{ $_cqual_table->{ $pi->{cqual} } }
+    or error_exit(<<"EOF");
+unrecognized compiler qualifier $pi->{cqual} in $pi->{pfile}"
+EOF
+
+  foreach my $lang qw(C CXX) {
+    $pi->{"${lang}_COMPILER_ID"}      = $compiler_id;
+    $pi->{"${lang}_COMPILER_VERSION"} = $compiler_version;
+  }
+  $pi->{C_COMPILER}               = $cc;
+  $pi->{CXX_COMPILER}             = $cxx;
+  $pi->{Fortran_COMPILER}         = $fc;
+  $pi->{Fortran_COMPILER_ID}      = $fc_id;
+  $pi->{Fortran_COMPILER_VERSION} = $fc_version;
+  $pi->{CXX_STANDARD}             = $cxx_standard;
+  return;
+} ## end sub _add_compiler_info
+
+
 sub _cmake_cetb_compat_defs {
   return [map { "-DCETB_COMPAT_$_:STRING=$PATH_VAR_TRANSLATION_TABLE->{$_}"; }
           sort keys $PATH_VAR_TRANSLATION_TABLE];
@@ -756,9 +759,6 @@ sub _cmake_defs_for_ups_config {
   $pi->{build_only_deps} and push @cmake_args,
     sprintf("-D${pv_prefix}_UPS_BUILD_ONLY_DEPENDENCIES=%s",
       join(q(;), @{ $pi->{build_only_deps} }));
-  $pi->{use_time_deps} and push @cmake_args,
-    sprintf("-D${pv_prefix}_UPS_USE_TIME_DEPENDENCIES=%s",
-      join(q(;), @{ $pi->{use_time_deps} }));
   $pi->{chains} and push @cmake_args,
     sprintf("-D${pv_prefix}_UPS_PRODUCT_CHAINS=%s",
       join(q(;), (sort @{ $pi->{chains} })));
@@ -952,6 +952,33 @@ EOF
   } ## end given
   return;
 } ## end sub _get_info_from_set_cmds
+
+
+sub _pathspecs_to_cmake {
+  my ($pi, $pv_prefix) = @_;
+  my @results =
+    (map { _cmake_project_var_for_pathspec($pi, $_) // (); }
+      keys %{$PATHSPEC_INFO});
+  my @arch_pathspecs   = ();
+  my @noarch_pathspecs = ();
+
+  foreach my $pathspec (values %{ $pi->{pathspec_cache} }) {
+    if (  $pathspec->{var_stem}
+      and not ref $pathspec->{path}
+      and $pathspec->{key} ne q(-)) {
+      push @{ $pathspec->{key} eq 'fq_dir'
+        ? \@arch_pathspecs
+        : \@noarch_pathspecs }, $pathspec->{var_stem};
+    } ## end if ($pathspec->{var_stem...})
+  } ## end foreach my $pathspec (values...)
+  scalar @arch_pathspecs and push @results,
+    sprintf("-D${pv_prefix}_ADD_ARCH_DIRS:INTERNAL=%s",
+      join(q(;), @arch_pathspecs));
+  scalar @noarch_pathspecs and push @results,
+    sprintf("-D${pv_prefix}_ADD_NOARCH_DIRS:INTERNAL=%s",
+      join(q(;), @noarch_pathspecs));
+  return @results;
+} ## end sub _pathspecs_to_cmake
 
 
 sub _path_var_translation_table {
