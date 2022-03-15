@@ -45,10 +45,6 @@
             "cetmodules_UPS_PRODUCT_NAME_INIT" : {
                "type" : "STRING",
                "value" : "cetmodules"
-            },
-            "cetmodules_UPS_USE_TIME_DEPENDENCIES_INIT" : {
-               "type" : "STRING",
-               "value" : "cetpkgsupport;cmake;ninja"
             }
          },
          "description" : "Extra configuration for UPS package generation",

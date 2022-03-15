@@ -180,8 +180,6 @@ component(M[.m[.p[.t]]][-X])\
   # Early indicators that we're dealing with UPS in some way:
   project_variable(UPS_BUILD_ONLY_DEPENDENCIES TYPE STRING DOCSTRING
     "UPS products required only at build time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
-  project_variable(UPS_USE_TIME_DEPENDENCIES TYPE STRING DOCSTRING
-    "UPS products required at use-time by UPS product ${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}")
 
   if (${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR
       cetbuildtools_FOUND OR
