@@ -10,6 +10,8 @@ set(PROJ_AUTHORS "Lynn Garren" "Patrick Gartung" "Chris Green" "scisoft-team <sc
 set(PROJ_NAME "${PROJECT_NAME}")
 set(PROJ_COPYRIGHT_START 2010)
 set(PROJ_COPYRIGHT_OWNER "Fermi Research Alliance, LLC")
+set(PROJ_VERSION ${CETMODULES_CURRENT_PROJECT_VERSION_MAJOR}.${CETMODULES_CURRENT_PROJECT_VERSION_MINOR})
+set(PROJ_RELEASE ${CETMODULES_CURRENT_PROJECT_VERSION})
 
 # Generate the Sphinx configuration file.
 configure_file(conf.py.in conf.py @ONLY)

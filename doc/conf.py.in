@@ -37,10 +37,10 @@ copyright = '{0}, @PROJ_COPYRIGHT_OWNER@'.format\
 author = '@PROJ_AUTHORS@'.replace(';', ', ') or None
 
 # The full version, including alpha/beta/rc tags
-release = '@CETMODULES_CURRENT_PROJECT_VERSION@'
+release = '@PROJ_RELEASE@'
 
 # Major.minor
-version = '.'.join(release.split('.')[0:1])
+version = '@PROJ_VERSION@'
 cmake_version = '@CMAKE_MAJOR_VERSION@.@CMAKE_MINOR_VERSION@'
 
 # -- General configuration ---------------------------------------------------
