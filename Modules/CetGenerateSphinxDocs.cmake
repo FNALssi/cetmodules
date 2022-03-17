@@ -26,7 +26,7 @@ function(cet_generate_sphinxdocs)
     NO_WARN_DUPLICATE
     DOCSTRING "Output formats in which Sphinx should generate documentation")
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
-  list(TRANSFORM ARGV REPLACE "\\<NO_" "" OUTPUT_VARIABLE fmt_args)
+  list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX
     "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$")
   list(TRANSFORM fmt_args REPLACE "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$"
