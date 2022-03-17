@@ -1,13 +1,13 @@
 include(CetGenerateSphinxDocs)
 
 # Default set of formats to generate.
-if (NOT DEFINED CACHE{${PROJECT_NAME}_SPHINX_DOC_FORMATS_INIT})
-  set(${PROJECT_NAME}_SPHINX_DOC_FORMATS_INIT html man)
+if (NOT DEFINED CACHE{${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_FORMATS_INIT})
+  set(${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_FORMATS_INIT html man)
 endif()
 
 # Define information for substitution in conf.py.in.
 set(PROJ_AUTHORS "Lynn Garren" "Patrick Gartung" "Chris Green" "scisoft-team <scisoft-team@fnal.gov>")
-set(PROJ_NAME "${PROJECT_NAME}")
+set(PROJ_NAME "${CETMODULES_CURRENT_PROJECT_NAME}")
 set(PROJ_COPYRIGHT_START 2010)
 set(PROJ_COPYRIGHT_OWNER "Fermi Research Alliance, LLC")
 set(PROJ_VERSION ${CETMODULES_CURRENT_PROJECT_VERSION_MAJOR}.${CETMODULES_CURRENT_PROJECT_VERSION_MINOR})
