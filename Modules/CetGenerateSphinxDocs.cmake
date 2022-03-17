@@ -18,6 +18,8 @@ function(cet_generate_sphinxdocs)
   set(flags NITPICKY NO_ALL NO_COLOR NO_CONF NO_INSTALL QUIET VERBOSE)
   set(one_arg_opts CACHE_DIR CONF_DIR SOURCE_DIR TARGET_STEM TARGETS_VAR VERBOSITY)
   set(options EXTRA_ARGS OUTPUT_FORMATS)
+  set(pf_keywords ALL COLOR EXTRA_ARGS INSTALL NITPICKY QUIET VERBOSE VERBOSITY)
+  string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
   project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
     NO_WARN_DUPLICATE
     BACKUP_DEFAULT ${CMAKE_INSTALL_DOCDIR}
@@ -27,10 +29,8 @@ function(cet_generate_sphinxdocs)
     DOCSTRING "Output formats in which Sphinx should generate documentation")
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
   list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
-  list(FILTER fmt_args INCLUDE REGEX
-    "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$")
-  list(TRANSFORM fmt_args REPLACE "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$"
-    "\\1")
+  list(FILTER fmt_args INCLUDE REGEX "^(.+)_${pf_kw_re}$")
+  list(TRANSFORM fmt_args REPLACE "^(.+)_${pf_kw_re}$" "\\1")
   list(REMOVE_DUPLICATES fmt_args)
   foreach (fmt IN LISTS fmt_args)
     list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_INSTALL ${fmt}_NITPICKY
