@@ -9,6 +9,7 @@ product         version		qual	<table_format=2>
 cetpkgsupport	-c
 cmake		v3_22_2
 ninja		-c		-	optional
+git		-c		-	optional only_for_build
 sphinx		v4_4_0		-	only_for_build
 end_product_list
  
