@@ -7,6 +7,10 @@ div.sphinxsidebarwrapper {
   word-wrap: break-word;
 }
 
+div.outdated {
+  background-color: #f0f0c0;
+}
+
 /* Make links inside parsed-literal blocks more obvious
    by using a background color and increased line spacing
    to make them look boxed.  */
