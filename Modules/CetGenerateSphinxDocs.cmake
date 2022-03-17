@@ -18,7 +18,7 @@ function(cet_generate_sphinxdocs)
   set(flags NITPICKY NO_ALL NO_COLOR NO_CONF NO_INSTALL QUIET VERBOSE)
   set(one_arg_opts CACHE_DIR CONF_DIR SOURCE_DIR TARGET_STEM TARGETS_VAR VERBOSITY)
   set(options EXTRA_ARGS OUTPUT_FORMATS)
-  set(pf_keywords ALL COLOR EXTRA_ARGS INSTALL NITPICKY QUIET VERBOSE VERBOSITY)
+  set(pf_keywords ALL COLOR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
   string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
   project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
     NO_WARN_DUPLICATE
@@ -36,7 +36,7 @@ function(cet_generate_sphinxdocs)
     list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_INSTALL ${fmt}_NITPICKY
       ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
       ${fmt}_NO_QUIET ${fmt}_NO_VERBOSE ${fmt}_QUIET ${fmt}_VERBOSE)
-    list(APPEND one_arg_opts ${fmt}_VERBOSITY)
+    list(APPEND one_arg_opts ${fmt}_OUTPUT_DIR ${fmt}_VERBOSITY)
     list(APPEND options ${fmt}_EXTRA_ARGS)
   endforeach()
   cmake_parse_arguments(PARSE_ARGV 0 CGS
@@ -100,6 +100,11 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
   foreach (fmt IN LISTS CGS_OUTPUT_FORMATS)
     set(sphinx_build_args ${CGS_EXTRA_ARGS})
     set(target_stem "${CGS_TARGET_STEM}_${fmt}")
+    if (CGS_${fmt}_OUTPUT_DIR)
+      set(output_dir "${CGS_${fmt}_OUTPUT_DIR}")
+    else()
+      set(output_dir ${fmt})
+    endif()
     if (CGS_${fmt}_NO_ALL OR
         (CGS_NO_ALL AND NOT CGS_${fmt}_ALL))
       set(all)
@@ -156,7 +161,8 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
       set(warnings_log "${fmt}-warnings.log")
       list(APPEND CGS_${fmt}_EXTRA_ARGS -w "${warnings_log}")
     endif()
-    set(cmd_args -b ${fmt} ${sphinx_build_args} ${CGS_${fmt}_EXTRA_ARGS} "${CGS_SOURCE_DIR}" ${fmt})
+    set(cmd_args -b ${fmt} ${sphinx_build_args} ${CGS_${fmt}_EXTRA_ARGS}
+      "${CGS_SOURCE_DIR}" ${output_dir})
     # Failure semantics aren't great for sphinx-build: need to wrap. We
     # must delete the whole ${fmt}/ directory on failure otherwise we
     # have a hysteresis problem.
