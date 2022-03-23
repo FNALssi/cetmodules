@@ -1,5 +1,5 @@
 ##########################################
-  cetmodules
+  Cetmodules
 ##########################################
 
 
@@ -21,21 +21,14 @@ Target user base
 Compatibility
 -------------
 
-License
--------
-
-Support
--------
-
-Contributing
-------------
-
 .. <--include-top-end-->
 
-`Reference Documentation <latest/>`_
-====================================
+Reference Documentation
+=======================
 
-.. <--include-relnotes-start-->
+* `Latest online documentation <latest/>`_ (with links to other versions).
+
+.. <--include-bottom-start-->
 
 .. only:: html
 
@@ -47,4 +40,13 @@ Contributing
 
       /release_notes/v3/index.rst
       
-.. <--include-relnotes-end-->
+License
+=======
+
+Support
+=======
+
+Contributing
+============
+
+.. <--include-bottom-end-->

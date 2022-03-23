@@ -1,12 +1,8 @@
-##########################################
-  cetmodules
-##########################################
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
 .. ifconfig:: not versionswitch
+
+   ##########################################
+     Cetmodules
+   ##########################################
 
    .. include:: /../landing/index.rst
       :start-after: .. <--include-top-start-->
@@ -14,8 +10,9 @@
 
 .. ifconfig:: versionswitch
 
-   Reference Documentation
-   =======================
+   ##########################################
+   Cetmodules Reference Documentation
+   ##########################################
 
 Command-Line Tools
 ------------------
@@ -50,8 +47,8 @@ Reference Manuals
 .. ifconfig:: versionswitch
 
    .. include:: /../landing/index.rst
-      :start-after: .. <--include-relnotes-start-->
-      :end-before: .. <--include-relnotes-end-->
+      :start-after: .. <--include-bottom-start-->
+      :end-before: .. <--include-bottom-end-->
 
 .. toctree::
    :maxdepth: 1
@@ -63,7 +60,7 @@ Reference Manuals
 .. only:: html or text
 
    Index and Search
-   ----------------
+   ================
 
    * :ref:`genindex`
    * :ref:`search`
