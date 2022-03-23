@@ -1,18 +1,15 @@
-.. ifconfig:: not versionswitch
+##########################################
+ Documentation
+##########################################
 
-   ##########################################
-     Cetmodules
-   ##########################################
+.. ifconfig:: not versionswitch
 
    .. include:: /../landing/index.rst
       :start-after: .. <--include-top-start-->
       :end-before: .. <--include-top-end-->
 
-.. ifconfig:: versionswitch
-
-   ##########################################
-     Cetmodules Reference Documentation
-   ##########################################
+   Reference Documentation
+   =======================
 
 Command-Line Tools
 ------------------
