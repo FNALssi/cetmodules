@@ -1,3 +1,6 @@
+/* Use Bootstrap (https://getbootstrap.com/) */
+@import url("bootstrap.min.css");
+
 /* Import the Sphinx theme style.  */
 @import url("default.css");
 
