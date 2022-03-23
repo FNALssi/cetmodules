@@ -6,10 +6,6 @@
 .. meta::
    :google-site-verification: mWu4AzUH2LiVvIlufi6W4Goyu4kKB0pKde6qTj8XYoU
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
 .. <--include-top-start-->
 
 Overview
@@ -32,7 +28,7 @@ Reference Documentation
 
 .. <--include-bottom-start-->
 
-.. only:: html
+.. only:: html or text
 
    Release Notes
    =============

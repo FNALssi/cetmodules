@@ -11,7 +11,7 @@
 .. ifconfig:: versionswitch
 
    ##########################################
-   Cetmodules Reference Documentation
+     Cetmodules Reference Documentation
    ##########################################
 
 Command-Line Tools
@@ -44,7 +44,7 @@ Reference Manuals
    manual/cetmodules-variables.7
    manual/setup_for_development.7
    
-.. ifconfig:: versionswitch
+.. ifconfig:: not versionswitch
 
    .. include:: /../landing/index.rst
       :start-after: .. <--include-bottom-start-->
@@ -57,7 +57,7 @@ Reference Manuals
 
    release_notes/v3/index
 
-.. only:: html or text
+.. only:: html
 
    Index and Search
    ================
