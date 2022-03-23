@@ -26,14 +26,16 @@ Compatibility
 Reference Documentation
 =======================
 
-* `Latest online documentation <latest/>`_ (with links to other versions).
+.. link-button:: latest/
+   :classes: btn-outline-primary btn-block
+   :text: Latest reference documentation (with links to other versions)
 
 .. <--include-bottom-start-->
 
 .. only:: html
 
    Release Notes
-   -------------
+   =============
 
    .. toctree::
       :maxdepth: 1
