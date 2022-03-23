@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <title>BasicPlugin &mdash; cetmodules 3.07.01 Documentation</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BuildDictionary" href="BuildDictionary.html" />
+    <link rel="prev" title="cetmodules-modules(7)" href="../manual/cetmodules-modules.7.html" />
+  
+  <script type="text/javascript" src="../../version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="BuildDictionary.html" title="BuildDictionary"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../manual/cetmodules-modules.7.html" title="cetmodules-modules(7)"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.07.01</span>
+    <a href="../index.html">Documentation</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BasicPlugin</a></li> 
+      </ul>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="basicplugin">
+<span id="module:BasicPlugin"></span><h1>BasicPlugin<a class="headerlink" href="#basicplugin" title="Permalink to this headline">¶</a></h1>
+<p>Module defining the function <span class="target" id="index-0-command:basic_plugin"></span><a class="reference internal" href="#command:basic_plugin" title="basic_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">basic_plugin()</span></code></a> to generate a generic
+plugin module.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:basic_plugin">
+<span class="sig-name descname"><span class="pre">basic_plugin</span></span><a class="headerlink" href="#command:basic_plugin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a plugin library, with or without a separate registration
+library to avoid One Definition Rule (ODR) violations.</p>
+<dl>
+<dt><strong>Synopsis</strong></dt><dd><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">basic_plugin(</span><span class="nv">&lt;name&gt;</span><span class="w"> </span><span class="nv">&lt;suffix&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span><span class="w"></span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>Source specification options</strong></dt><dd><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">IMPL_SOURCE</span> <span class="pre">&lt;implementation-source&gt;...</span></code> Specify source to</dt><dd><p>compile into the plugin’s interface implementation library, if
+appropriate. The implementation should <em>not</em> invoke any
+registration definition macros or the ODR will be violated.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">REG_SOURCE</span> <span class="pre">&lt;registration-source&gt;...</span></code></dt><dd><p>Specify source to compile into the plugin registration library,
+intended only for runtime injection (via <em>e.g.</em> <code class="docutils literal notranslate"><span class="pre">dlopen()</span></code>)
+into an executable, and not for dynamic linking.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">REG_SOURCE</span></code> is omitted, we look for <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;_&lt;suffix&gt;.cc</span></code></p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">IMPL_SOURCE</span></code> is omitted, we look for <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.cc</span></code></p></li>
+</ul>
+</div>
+</dd>
+<dt><strong>Dependency specification options</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">[INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]</span> <span class="pre">&lt;library-dependency&gt;...</span></code></p>
+<blockquote>
+<div><p>Specify targets and/or libraries upon which the implementation
+(<code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>, <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code>, <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code>), or registration
+(<code class="docutils literal notranslate"><span class="pre">REG</span></code>) libraries should depend. If implementation and
+registration share a dependency not inherited by public callers
+of the implementation, specify the library as both <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code>
+and <code class="docutils literal notranslate"><span class="pre">REG</span></code>.</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>The registration library has an automatic dependence on the
+implementation library (if present).</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> or <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> dependencies are specified and
+there is no implementation source, then the library will be
+built shared rather than as a module, and all responsibility
+for ODR violations rests with the library builder.</p></li>
+<li><p>An additional dependency designation, <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code>, is
+accepted and is intended for use by intermediate functions
+adding dependencies to a library. <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code> is identical
+to <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> without making a statement about the shared or
+module nature of the combined implementation/registration
+library or the presence of a public (non-plugin) calling
+interface.</p></li>
+</ul>
+</div>
+</dd>
+<dt><strong>Other options</strong></dt><dd><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">ALIAS</span> <span class="pre">&lt;alias&gt;...</span></code></dt><dd><p>Create the specified CMake alias targets to the implementation
+library.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ALLOW_UNDERSCORES</span></code></dt><dd><p>Normally, neither <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code> may contain
+underscores in order to avoid possible ambiguities. Allow them
+with this option at your own risk.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></dt><dd><p>Do not add the relative path (directories delimited by <code class="docutils literal notranslate"><span class="pre">_</span></code>) to
+the front of the plugin library name.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-name&gt;</span></code></dt><dd><p>Add the library to the <code class="docutils literal notranslate"><span class="pre">&lt;export-name&gt;</span></code> export set.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;...</span></code></dt><dd><p>Headers may be found in <code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;</span></code>… at build time.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>Do not install the generated library or libraries.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></dt><dd><p>The library’s compatibility version (<em>cf</em>
+<span class="target" id="index-0-prop_tgt:SOVERSION"></span><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">SOVERSION</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The plugin uses Boost unit test functions and should be compiled
+and linked accordingly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_PACKAGE_NAME</span></code></dt><dd><p>The package name will be prepended to the plugin library name,
+separated by <code class="docutils literal notranslate"><span class="pre">_</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">VERSION</span></code></dt><dd><p>The library’s build version will be set to
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_NAME</span></code> (<em>cf</em> <span class="target" id="index-0-prop_tgt:VERSION"></span><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">VERSION</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>Deprecated options</strong></dt><dd><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;...</span></code></dt><dd><blockquote>
+<div><p>Specify sources to compile into the plugin.</p>
+</div></blockquote>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.11: </span>use <code class="docutils literal notranslate"><span class="pre">IMPL_SOURCE</span></code>, <code class="docutils literal notranslate"><span class="pre">REG_SOURCE</span></code> and
+<code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">REG</span></code> instead.</p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_PRODUCT_NAME</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.0: </span>use <code class="docutils literal notranslate"><span class="pre">USE_PACKAGE_NAME</span></code> instead.</p>
+</div>
+</dd>
+</dl>
+</dd>
+<dt><strong>Non-option arguments</strong></dt><dd><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code></dt><dd><p>The name stem for the library to be generated.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code></dt><dd><p>The category of plugin to be generated.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cet_make_library"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_library()</span></code></p>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../manual/cetmodules-modules.7.html"
+                          title="previous chapter">cetmodules-modules(7)</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="BuildDictionary.html"
+                          title="next chapter">BuildDictionary</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/module/BasicPlugin.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="BuildDictionary.html" title="BuildDictionary"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../manual/cetmodules-modules.7.html" title="cetmodules-modules(7)"
+             >previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.07.01</span>
+    <a href="../index.html">Documentation</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BasicPlugin</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2010--2022, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>
