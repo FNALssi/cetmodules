@@ -26,18 +26,18 @@ function(cet_generate_sphinx_docs)
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
 
   # Parse arguments.
-  set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_INSTALL QUIET VERBOSE)
-  set(one_arg_opts CACHE_DIR CONF_DIR SOURCE_DIR SWITCH_VERSION TARGET_STEM TARGETS_VAR VERBOSITY VERSION_DATA_VAR)
+  set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_DELETE_OUTPUT_DIR NO_INSTALL QUIET VERBOSE)
+  set(one_arg_opts CONF_DIR SOURCE_DIR SWITCH_VERSION TARGET_STEM TARGETS_VAR VERBOSITY VERSION_DATA_VAR)
   set(options EXTRA_ARGS OUTPUT_FORMATS)
-  set(pf_keywords ALL COLOR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
+  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
   string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
   list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX "^(.+)_${pf_kw_re}$")
-  list(TRANSFORM fmt_args REPLACE "^(.+)_${pf_kw_re}$" "\\1")
+  list(TRANSFORM fmt_args REPLACE "^([^_]+)_${pf_kw_re}$" "\\1")
   list(REMOVE_DUPLICATES fmt_args)
   foreach (fmt IN LISTS fmt_args)
-    list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_INSTALL ${fmt}_NITPICKY
-      ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
+    list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_DELETE_OUTPUT_DIR ${fmt}_INSTALL ${fmt}_NITPICKY
+      ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_DELETE_OUTPUT_DIR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
       ${fmt}_NO_QUIET ${fmt}_NO_VERBOSE ${fmt}_QUIET ${fmt}_VERBOSE)
     list(APPEND one_arg_opts ${fmt}_OUTPUT_DIR ${fmt}_VERBOSITY)
     list(APPEND options ${fmt}_EXTRA_ARGS)
@@ -90,13 +90,14 @@ function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
 
   set(publish_target sphinx-doc-${target_stem}_html)
 
-  add_custom_target(pre_clean_${publish_target}
+  add_custom_target(pre_clean_${publish_target}${tlabel}
     COMMAND ${CMAKE_COMMAND} -E rm -rf "${_cps_output_dir}"
     COMMENT "\
 removing existing published documentation for ${CETMODULES_CURRENT_PROJECT_NAME} ${PUBLISH_VERSION}\
 ")
-
   add_dependencies(${publish_target} pre_clean_${publish_target})
+  add_dependencies(${publish_target}-force pre_clean_${publish_target})
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${_cps_output_dir}")
 
   if (_cps_is_latest)
     # Add the (re-)generation of the "latest" link to the generation
@@ -179,33 +180,38 @@ macro(_cgs_generate_targets)
     elseif (-q IN_LIST CGS_${fmt}_EXTRA_ARGS)
       list(FILTER sphinx_build_args EXCLUDE "^-v+$")
     endif()
+    set(target sphinx-doc-${target_stem})
     if ("${sphinx_build_args};${CGS_${fmt}_EXTRA_ARGS}" MATCHES "(^|;)-w;([^;]+)(;|$)")
       set(warnings_log "${CMAKE_MATCH_1}")
     else()
-      set(warnings_log "${fmt}-warnings.log")
+      set(warnings_log "${target}-warnings.log")
       list(APPEND CGS_${fmt}_EXTRA_ARGS -w "${warnings_log}")
     endif()
     set(cmd_args -b ${fmt} ${sphinx_build_args} ${CGS_${fmt}_EXTRA_ARGS}
       "${CGS_SOURCE_DIR}" ${output_dir})
     # Failure semantics aren't great for sphinx-build: need to wrap. We
     # must delete the whole ${fmt}/ directory on failure otherwise we
-    # have a hysteresis problem.
-    set(target sphinx-doc-${target_stem})
+    # have an hysteresis problem.
     set(extra_args-force -E)
     set(extra_args)
     set(all-force)
+    set(extra_defines)
+    if (CGS_${fmt}_DELETE_OUTPUT_DIR OR NOT (CGS_NO_DELETE_OUTPUT_DIR OR CGS_${fmt}_NO_DELETE_OUTPUT_DIR))
+      list(APPEND extra_defines "-DCMD_DELETE_ON_FAILURE=${output_dir}")
+      set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${output_dir}")
+    endif()
+    set(cache_dir "${CMAKE_CURRENT_BINARY_DIR}/.doctrees-${target}")
     foreach (tlabel "" -force)
       set(cmd_args${tlabel} ${extra_args${tlabel}} ${cmd_args})
       add_custom_target(${target}${tlabel} ${all${tlabel}}
         COMMAND ${CMAKE_COMMAND}
-        -DCMD_DELETE_ON_FAILURE=${fmt}
         -DCMD=$<TARGET_FILE:sphinx-doc::sphinx-build>
-        -DCMD_ARGS="${cmd_args${tlabel}}"
+        -DCMD_ARGS="${cmd_args${tlabel}};-d;${cache_dir}"
+        ${extra_defines}
         -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
+        COMMAND_EXPAND_LISTS
         COMMENT "Building ${fmt} documentation for ${target} with sphinx-build"
         JOB_POOL sphinx_doc)
-      set_property(TARGET ${target}${tlabel} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-        "${fmt};${warnings_log}")
       if (fmt STREQUAL man)
         cet_localize_pv(cetmodules LIBEXEC_DIR)
         add_custom_command(TARGET ${target}${tlabel} POST_BUILD
@@ -214,6 +220,10 @@ macro(_cgs_generate_targets)
           VERBATIM)
       endif()
     endforeach()
+    if (warnings_log)
+      set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${warnings_log}")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${cache_dir}")
     list(APPEND targets ${target})
     if (NOT TARGET sphinx-doc-force)
       add_custom_target(sphinx-doc-force
@@ -239,6 +249,7 @@ macro(_cgs_generate_targets)
     endif()
     if (NOT no_install)
       if (fmt STREQUAL "man")
+        set(fmt "${fmt}/")
         set(install_dir_pv MAN_DIR)
       else()
         set(install_dir_pv SPHINX_DOC_DIR)
@@ -256,9 +267,6 @@ macro(_cgs_generate_targets)
 endmacro()
 
 macro(_cgs_process_args)
-  if (NOT CGS_CACHE_DIR)
-    set(CGS_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_doctrees")
-  endif()
   if (NOT CGS_SOURCE_DIR)
     set(CGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
   endif()
@@ -306,9 +314,6 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
       set(CGS_CONF_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
     endif()
     list(APPEND CGS_EXTRA_ARGS -c "${CGS_CONF_DIR}")
-  endif()
-  if (CGS_CACHE_DIR)
-    list(APPEND CGS_EXTRA_ARGS -d "${CGS_CACHE_DIR}")
   endif()
   if (NOT CGS_TARGET_STEM)
     cet_package_path(current_directory SOURCE)
