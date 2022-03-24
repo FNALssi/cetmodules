@@ -1,0 +1,112 @@
+import datetime
+import glob
+import os
+import re
+import sys
+
+# -- Project information -----------------------------------------------------
+
+source_suffix = '.rst'
+master_doc = 'index'
+pygments_style = 'sphinxcontrib.moderncmakedomain.colors.CMakeTemplateStyle'
+language = 'en'
+highlight_language = 'none'
+
+project = '@PROJ_NAME@'
+copyright_start = '@PROJ_COPYRIGHT_START@'
+copyright_current = datetime.date.today().year
+copyright = '{0}, @PROJ_COPYRIGHT_OWNER@'.format\
+            (copyright_current if
+             not copyright_start or copyright_start == copyright_current else
+             '{0}--{1}'.format(copyright_start, copyright_current))
+author = '@PROJ_AUTHORS@'.replace(';', ', ') or None
+
+# -- General configuration ---------------------------------------------------
+
+# Diagnostic options.
+suppress_warnings = '@PROJ_SUPPRESS_WARNINGS@'.split(';') or None
+
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.duration',
+    'sphinx.ext.extlinks',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.graphviz',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+    'sphinx_panels',
+    'sphinxcontrib.htmlhelp',
+    'sphinxcontrib.moderncmakedomain'
+]
+
+panels_add_bootstrap_css = False
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['templates']
+
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# This pattern also affects html_static_path and html_extra_path.
+exclude_patterns = []
+
+# Other common options.
+smartquotes = True
+smartquotes_action = 'qDe' # quotes, en- and em-dashes, and ellipses.
+
+# -- Options for HTML output -------------------------------------------------
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+#html_theme = 'alabaster'
+html_title = '{0}'.format(project)
+html_favicon = '@CMAKE_CURRENT_SOURCE_DIR@/static/cetmodules-favicon.ico'
+
+html_show_sourcelink = True
+html_style='cetmodules.css'
+html_theme = 'default'
+html_theme_options = {
+    'bgcolor':          '#ffffff',
+    'codebgcolor':      '#eeeeee',
+    'codetextcolor':    '#333333',
+    'footerbgcolor':    '#00182d',
+    'footertextcolor':  '#ffffff',
+    'headbgcolor':      '#f2f2f2',
+    'headlinkcolor':    '#3d8ff2',
+    'headtextcolor':    '#003564',
+    'linkcolor':        '#2b63a8',
+    'relbarbgcolor':    '#00529b',
+    'relbarlinkcolor':  '#ffffff',
+    'relbartextcolor':  '#ffffff',
+    'sidebarbgcolor':   '#e4ece8',
+    'sidebarbtncolor':  '#00a94f',
+    'sidebarlinkcolor': '#00a94f',
+    'sidebartextcolor': '#333333',
+    'textcolor':        '#444444',
+    'visitedlinkcolor': '#2b63a8',
+}
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = [
+    '@CMAKE_CURRENT_SOURCE_DIR@/static',
+    '@CMAKE_CURRENT_SOURCE_DIR@/Bootstrap/css',
+    '@CMAKE_CURRENT_SOURCE_DIR@/Bootstrap/js'
+]
+
+# External cross-references.
+intersphinx_mapping \
+    = { 'cmake-ref-latest': \
+        ('https://cmake.org/cmake/help/latest/', None)
+       }
+
+# Setup function.
+def setup(app):
+    app.add_config_value('versionswitch', False, 'env')
+    app.add_js_file('bootstrap.bundle.min.js')

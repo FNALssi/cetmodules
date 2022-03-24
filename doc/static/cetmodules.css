@@ -1,3 +1,6 @@
+/* Use Bootstrap (https://getbootstrap.com/) */
+@import url("bootstrap.min.css");
+
 /* Import the Sphinx theme style.  */
 @import url("default.css");
 
@@ -5,6 +8,10 @@
    document names do not escape sidebar borders.  */
 div.sphinxsidebarwrapper {
   word-wrap: break-word;
+}
+
+div.outdated {
+  background-color: #f0f0c0;
 }
 
 /* Make links inside parsed-literal blocks more obvious

@@ -68,6 +68,8 @@ Misc options: [-D<CMake-definition>]+
               [--generator <make|ninja>[:<secondary-generator>]]
               [-j #]
               [-l|--log[=<log-file>]|--log-file[=<log-file>]]
+              [--no-pc|--no-preset-configure]
+              [--pc|--preset-configure <preset-name>]
               [-q|--quiet]
               [-s|--subdir]
               [--tee]
@@ -645,7 +647,8 @@ do_work() {
     [ -z "${c_postargs[*]}" ] || \
       error "specifying non-option arguments for configure step (${c_postargs[*]}) is not meaningful"
     # Default preset if we haven't specified one.
-    [ -n "$preset_configure" ] || ! has_for_UPS_preset || preset_configure="for_UPS"
+    [ -n "${preset_configure}" ] || [ -z "${preset_configure-x}" ] || \
+      ! has_for_UPS_preset || preset_configure="for_UPS"
     local cmake_args=()
     if [ -n "$preset_configure" ]; then
       cmake_args+=(--preset=$preset_configure)
@@ -892,7 +895,7 @@ if (( $? != 4 )); then
   exit 1
 fi
 
-TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::,package,pc:,preset-configure:,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
+TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::no-pc,no-preset-configure,package,pc:,preset-configure:,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
 
 (( $? )) && usage 2
 
@@ -975,6 +978,7 @@ while true; do
       [ -d "$1" ] && log="$1/$log_default" || \
         log="${1:-${log:-$log_default}}"
       [ "$1" = "${log%/*}" ] && (( log_is_default = 1 )) || unset log_is_default;;
+    --no-pc|--no-preset-configure) preset_configure=""; shift;;
     -p|--package) (( no_build = 1 )); (( do_package = 1 ));;
     --pc|--preset-configure) require_cmake 3.20; preset_configure="$2"; shift;;
     -q|--quiet) (( quiet = 1 ));;

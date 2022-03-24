@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+default_inv=objects.inv
+
 if [ -n "$SPHINX_FQ_DIR" ]; then
   pythonpath_extra="$(python3 -c 'from distutils.sysconfig import get_python_version; import os; print(":".join([os.path.join(os.environ["SPHINX_FQ_DIR"], lib, "python{0}".format(get_python_version()), "site-packages") for lib in ("lib64", "lib")]));')"
   export PYTHONPATH="${pythonpath_extra:+$pythonpath_extra${PYTHONPATH:+:$PYTHONPATH}}"
 fi
 
-exec python3 -m sphinx.ext.intersphinx ${*:+"$@"}
+exec python3 -m sphinx.ext.intersphinx ${*:+"${@/%\///$default_inv}"}

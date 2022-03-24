@@ -11,95 +11,125 @@ endif()
 
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-function(cet_generate_sphinxdocs)
-  if (NOT BUILD_DOCS)
+function(cet_generate_sphinx_docs)
+  if (NOT BUILD_DOCS) # Disabled.
     return()
   endif()
-  set(flags NITPICKY NO_ALL NO_COLOR NO_CONF NO_INSTALL QUIET VERBOSE)
-  set(one_arg_opts CACHE_DIR CONF_DIR SOURCE_DIR TARGET_STEM TARGETS_VAR VERBOSITY)
-  set(options EXTRA_ARGS OUTPUT_FORMATS)
+
+  # In-package installation location (default ${CMAKE_INSTALL_DOCDIR}).
   project_variable(SPHINX_DOC_DIR "${${CETMODULES_CURRENT_PROJECT_NAME}_DOC_DIR}"
     NO_WARN_DUPLICATE
     BACKUP_DEFAULT ${CMAKE_INSTALL_DOCDIR}
     DOCSTRING "Location of installed Sphinx-generated documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
-  project_variable(SPHINX_DOC_FORMATS TYPE STRING html
-    NO_WARN_DUPLICATE
-    DOCSTRING "Output formats in which Sphinx should generate documentation")
+
+  # Require sphinx-doc.
   find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
-  list(TRANSFORM ARGV REPLACE "\\<NO_" "" OUTPUT_VARIABLE fmt_args)
-  list(FILTER fmt_args INCLUDE REGEX
-    "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$")
-  list(TRANSFORM fmt_args REPLACE "^(.+)_(ALL|COLOR|EXTRA_ARGS|INSTALL|NITPICKY|QUIET|VERBOSE|VERBOSITY)$"
-    "\\1")
+
+  # Parse arguments.
+  set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_DELETE_OUTPUT_DIR NO_INSTALL QUIET VERBOSE)
+  set(one_arg_opts CONF_DIR SOURCE_DIR SWITCH_VERSION TARGET_STEM TARGETS_VAR VERBOSITY VERSION_DATA_VAR)
+  set(options EXTRA_ARGS OUTPUT_FORMATS)
+  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
+  string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
+  list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
+  list(FILTER fmt_args INCLUDE REGEX "^(.+)_${pf_kw_re}$")
+  list(TRANSFORM fmt_args REPLACE "^([^_]+)_${pf_kw_re}$" "\\1")
   list(REMOVE_DUPLICATES fmt_args)
   foreach (fmt IN LISTS fmt_args)
-    list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_INSTALL ${fmt}_NITPICKY
-      ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
+    list(APPEND flags ${fmt}_ALL ${fmt}_COLOR ${fmt}_DELETE_OUTPUT_DIR ${fmt}_INSTALL ${fmt}_NITPICKY
+      ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_DELETE_OUTPUT_DIR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
       ${fmt}_NO_QUIET ${fmt}_NO_VERBOSE ${fmt}_QUIET ${fmt}_VERBOSE)
-    list(APPEND one_arg_opts ${fmt}_VERBOSITY)
+    list(APPEND one_arg_opts ${fmt}_OUTPUT_DIR ${fmt}_VERBOSITY)
     list(APPEND options ${fmt}_EXTRA_ARGS)
   endforeach()
   cmake_parse_arguments(PARSE_ARGV 0 CGS
     "${flags}" "${one_arg_opts}" "${options}")
-  if (NOT CGS_CACHE_DIR)
-    set(CGS_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_doctrees")
+
+  # Post-process arguments.
+  _cgs_process_args()
+
+  # Generate targets
+  _cgs_generate_targets()
+endfunction()
+
+function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
+  if ("PUBLISH_OLD_RELEASE" IN_LIST ARGN)
+    set(CPS_PUBLISH_OLD_RELEASE TRUE)
+    list(TRANSFORM ARGN REPLACE "^PUBLISH_OLD_RELEASE$" "NOP")
   endif()
-  if (NOT CGS_SOURCE_DIR)
-    set(CGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+  list(FIND ARGN "VERSION_DATA_VAR" idx)
+  if (idx GREATER -1)
+    list(REMOVE_AT ARGN ${idx})
+    list(GET ARGN ${idx} CPS_VERSION_DATA_VAR)
+    list(REMOVE_AT ARGN ${idx})
+    if (idx GREATER 0)
+      list(INSERT ARGN ${idx} "NOP")
+    endif()
   endif()
-  if (NOT CGS_OUTPUT_FORMATS)
-    list(APPEND CGS_OUTPUT_FORMATS
-      ${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_FORMATS}
-      ${fmt_args})
-    list(REMOVE_DUPLICATES CGS_OUTPUT_FORMATS)
-  else()
-    set(missing_fmts)
-    foreach (fmt IN LISTS fmt_args)
-      if (fmt NOT IN_LIST CGS_OUTPUT_FORMATS)
-        list(APPEND missing_fmts "${fmt}")
-      endif()
-    endforeach()
-    if (missing_fmts)
-      message(WARNING "options specified for non-requested document formats for ${CETMODULES_CURRENT_PROJECT_NAME}:
-  ${missing_fmts}\
+  list(FIND ARGN "TARGETS_VAR" idx)
+  if (idx GREATER -1)
+    math(EXPR idx "${idx} + 1")
+    list(GET ARGN ${idx} CPS_TARGETS_VAR)
+  endif()
+  set(PUBLISH_ARGS EXTRA_ARGS -A versionswitch=1)
+
+  _cps_process_version_data()
+
+  if (NOT _cps_is_latest)
+    # We're publishing outdated documentation: label it as such.
+    list(APPEND PUBLISH_ARGS -A outdated=1)
+  endif()
+
+  set(target_stem publish_${CETMODULES_CURRENT_PROJECT_NAME}_${PUBLISH_VERSION})
+  list(APPEND PUBLISH_ARGS NOP NO_INSTALL
+    html_OUTPUT_DIR "${_cps_output_dir}"
+    TARGET_STEM ${target_stem}
+    )
+
+  cet_generate_sphinx_docs(${ARGN} ${PUBLISH_ARGS})
+
+  set(publish_target sphinx-doc-${target_stem}_html)
+
+  add_custom_target(pre_clean_${publish_target}${tlabel}
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${_cps_output_dir}"
+    COMMENT "\
+removing existing published documentation for ${CETMODULES_CURRENT_PROJECT_NAME} ${PUBLISH_VERSION}\
 ")
-    endif()
+  add_dependencies(${publish_target} pre_clean_${publish_target})
+  add_dependencies(${publish_target}-force pre_clean_${publish_target})
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${_cps_output_dir}")
+
+  if (_cps_is_latest)
+    # Add the (re-)generation of the "latest" link to the generation
+    # target.
+    add_custom_command(TARGET ${publish_target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E rm -f "${PUBLISH_ROOT}/latest"
+      COMMAND ${CMAKE_COMMAND} -E create_symlink
+      "${_cps_proj_dir}" "${PUBLISH_ROOT}/latest"
+      COMMENT "${publish_target}: latest -> ${_cps_proj_dir}"
+      )
   endif()
-  if (NOT CGS_OUTPUT_FORMATS)
-    return()
-  elseif ("man" IN_LIST CGS_OUTPUT_FORMATS)
-    project_variable(MAN_DIR ${CMAKE_INSTALL_MANDIR}
-      NO_WARN_DUPLICATE
-      DOCSTRING "Location of installed U**X [GT]ROFF-format manuals for \
-${CETMODULES_CURRENT_PROJECT_NAME}")
+
+  if (CPS_VERSION_DATA_VAR)
+    set(${CPS_VERSION_DATA_VAR} "${VERSION_DATA}" PARENT_SCOPE)
   endif()
-  if (CGS_NO_CONF)
-    if (CGS_CONF_DIR)
-      message(FATAL_ERROR "CONF_DIR and NO_CONF are mutually-exclusive")
-    endif()
-    list(APPEND CGS_EXTRA_ARGS -C)
-    set(conf_dep)
-  else()
-    if (NOT CGS_CONF_DIR)
-      set(CGS_CONF_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
-    list(APPEND CGS_EXTRA_ARGS -c "${CGS_CONF_DIR}")
-  endif()    
-  if (CGS_CACHE_DIR)
-    list(APPEND CGS_EXTRA_ARGS -d "${CGS_CACHE_DIR}")
+
+  if (CPS_TARGETS_VAR)
+    set(${CPS_TARGETS_VAR} "${${CPS_TARGETS_VAR}}" PARENT_SCOPE)
   endif()
-  set(targets)
-  set(dirs)
-  if (NOT CGS_TARGET_STEM)
-    cet_package_path(current_directory SOURCE)
-    string(REPLACE "/" "_" CGS_TARGET_STEM "${current_directory}")
-    string(PREPEND CGS_TARGET_STEM "${CETMODULES_CURRENT_PROJECT_NAME}_")
-  endif()
+endfunction()
+
+macro(_cgs_generate_targets)
   set(targets)
   set(dirs)
   foreach (fmt IN LISTS CGS_OUTPUT_FORMATS)
     set(sphinx_build_args ${CGS_EXTRA_ARGS})
     set(target_stem "${CGS_TARGET_STEM}_${fmt}")
+    if (CGS_${fmt}_OUTPUT_DIR)
+      set(output_dir "${CGS_${fmt}_OUTPUT_DIR}")
+    else()
+      set(output_dir ${fmt})
+    endif()
     if (CGS_${fmt}_NO_ALL OR
         (CGS_NO_ALL AND NOT CGS_${fmt}_ALL))
       set(all)
@@ -150,32 +180,38 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
     elseif (-q IN_LIST CGS_${fmt}_EXTRA_ARGS)
       list(FILTER sphinx_build_args EXCLUDE "^-v+$")
     endif()
+    set(target sphinx-doc-${target_stem})
     if ("${sphinx_build_args};${CGS_${fmt}_EXTRA_ARGS}" MATCHES "(^|;)-w;([^;]+)(;|$)")
       set(warnings_log "${CMAKE_MATCH_1}")
     else()
-      set(warnings_log "${fmt}-warnings.log")
+      set(warnings_log "${target}-warnings.log")
       list(APPEND CGS_${fmt}_EXTRA_ARGS -w "${warnings_log}")
     endif()
-    set(cmd_args -b ${fmt} ${sphinx_build_args} ${CGS_${fmt}_EXTRA_ARGS} "${CGS_SOURCE_DIR}" ${fmt})
+    set(cmd_args -b ${fmt} ${sphinx_build_args} ${CGS_${fmt}_EXTRA_ARGS}
+      "${CGS_SOURCE_DIR}" ${output_dir})
     # Failure semantics aren't great for sphinx-build: need to wrap. We
     # must delete the whole ${fmt}/ directory on failure otherwise we
-    # have a hysteresis problem.
-    set(target sphinx-doc-${target_stem})
+    # have an hysteresis problem.
     set(extra_args-force -E)
     set(extra_args)
     set(all-force)
+    set(extra_defines)
+    if (CGS_${fmt}_DELETE_OUTPUT_DIR OR NOT (CGS_NO_DELETE_OUTPUT_DIR OR CGS_${fmt}_NO_DELETE_OUTPUT_DIR))
+      list(APPEND extra_defines "-DCMD_DELETE_ON_FAILURE=${output_dir}")
+      set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${output_dir}")
+    endif()
+    set(cache_dir "${CMAKE_CURRENT_BINARY_DIR}/.doctrees-${target}")
     foreach (tlabel "" -force)
       set(cmd_args${tlabel} ${extra_args${tlabel}} ${cmd_args})
       add_custom_target(${target}${tlabel} ${all${tlabel}}
         COMMAND ${CMAKE_COMMAND}
-        -DCMD_DELETE_ON_FAILURE=${fmt}
         -DCMD=$<TARGET_FILE:sphinx-doc::sphinx-build>
-        -DCMD_ARGS="${cmd_args${tlabel}}"
+        -DCMD_ARGS="${cmd_args${tlabel}};-d;${cache_dir}"
+        ${extra_defines}
         -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
-        COMMENT "Invoking sphinx-build to build ${fmt} documentation"
+        COMMAND_EXPAND_LISTS
+        COMMENT "Building ${fmt} documentation for ${target} with sphinx-build"
         JOB_POOL sphinx_doc)
-      set_property(TARGET ${target}${tlabel} APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-        "${fmt};${warnings_log}")
       if (fmt STREQUAL man)
         cet_localize_pv(cetmodules LIBEXEC_DIR)
         add_custom_command(TARGET ${target}${tlabel} POST_BUILD
@@ -184,6 +220,10 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
           VERBATIM)
       endif()
     endforeach()
+    if (warnings_log)
+      set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${warnings_log}")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${cache_dir}")
     list(APPEND targets ${target})
     if (NOT TARGET sphinx-doc-force)
       add_custom_target(sphinx-doc-force
@@ -209,6 +249,7 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
     endif()
     if (NOT no_install)
       if (fmt STREQUAL "man")
+        set(fmt "${fmt}/")
         set(install_dir_pv MAN_DIR)
       else()
         set(install_dir_pv SPHINX_DOC_DIR)
@@ -223,4 +264,135 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
   if (CGS_TARGETS_VAR)
     set(${CGS_TARGETS_VAR} "${targets}" PARENT_SCOPE)
   endif()
-endfunction()
+endmacro()
+
+macro(_cgs_process_args)
+  if (NOT CGS_SOURCE_DIR)
+    set(CGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+  endif()
+  if (CGS_OUTPUT_FORMATS)
+    set(missing_fmts)
+    foreach (fmt IN LISTS fmt_args)
+      if (NOT fmt IN_LIST CGS_OUTPUT_FORMATS)
+        list(APPEND missing_fmts "${fmt}")
+      endif()
+    endforeach()
+    if (missing_fmts)
+      message(WARNING "options specified for non-requested document formats for ${CETMODULES_CURRENT_PROJECT_NAME}:
+  ${missing_fmts}\
+")
+    endif()
+  else()
+    set(CGS_OUTPUT_FORMATS ${fmt_args})
+  endif()
+  if (NOT CGS_OUTPUT_FORMATS)
+    if ("${CGS_SWITCH_VERSION}" STREQUAL "")
+      return()
+    else()
+      set(CGS_OUTPUT_FORMATS html)
+    endif()
+  elseif (NOT "${CGS_SWITCH_VERSION}" STREQUAL "")
+    if (NOT CGS_OUTPUT_FORMATS STREQUAL "html")
+      message(FATAL_ERROR "version switching only valid for html output \
+(selected ${CGS_OUTPUT_FORMATS} for version ${CGS_SWITCH_VERSION})\
+")
+    endif()
+  elseif ("man" IN_LIST CGS_OUTPUT_FORMATS)
+    project_variable(MAN_DIR ${CMAKE_INSTALL_MANDIR}
+      NO_WARN_DUPLICATE
+      DOCSTRING "Location of installed U**X [GT]ROFF-format manuals for \
+${CETMODULES_CURRENT_PROJECT_NAME}")
+  endif()
+  if (CGS_NO_CONF)
+    if (CGS_CONF_DIR)
+      message(FATAL_ERROR "CONF_DIR and NO_CONF are mutually-exclusive")
+    endif()
+    list(APPEND CGS_EXTRA_ARGS -C)
+    set(conf_dep)
+  else()
+    if (NOT CGS_CONF_DIR)
+      set(CGS_CONF_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
+    list(APPEND CGS_EXTRA_ARGS -c "${CGS_CONF_DIR}")
+  endif()
+  if (NOT CGS_TARGET_STEM)
+    cet_package_path(current_directory SOURCE)
+    string(REPLACE "/" "_" CGS_TARGET_STEM "${current_directory}")
+    string(PREPEND CGS_TARGET_STEM "${CETMODULES_CURRENT_PROJECT_NAME}_")
+  endif()
+endmacro()
+
+macro(_cps_process_version_data)
+  if (NOT IS_ABSOLUTE "${PUBLISH_ROOT}")
+    message(FATAL_ERROR "PUBLISH_ROOT must be absolute (${PUBLISH_ROOT})")
+  endif()
+  unset(VERSION_DATA)
+  if (EXISTS "${PUBLISH_ROOT}/versions.json")
+    file(READ "${PUBLISH_ROOT}/versions.json" VERSION_DATA)
+  endif()
+  if (NOT VERSION_DATA)
+    set(VERSION_DATA "{}")
+  endif()
+  if (PUBLISH_VERSION MATCHES "^[0-9]+(\\.[0-9]+)$")
+    set(_cps_is_numeric TRUE)
+  endif()
+  # How many versions are currently defined?
+  string(JSON n_versions LENGTH "${VERSION_DATA}")
+  set(_cps_is_latest ${_cps_is_numeric})
+  # Analyze them.
+  if (n_versions GREATER 0)
+    math(EXPR last_idx "${n_versions} - 1")
+    foreach (idx RANGE ${last_idx})
+      string(JSON version MEMBER "${VERSION_DATA}" ${idx})
+      if (version STREQUAL "latest")
+        set(have_latest TRUE)
+        continue()
+      elseif (PUBLISH_VERSION STREQUAL version)
+        set(have_version TRUE)
+      endif()
+      if (_cps_is_latest AND version MATCHES "^v([0-9]+(.[0-9]+)?)")
+        # Are we still the latest version?
+        cet_compare_versions(_cps_is_latest ${PUBLISH_VERSION} VERSION_GREATER_EQUAL ${version})
+      endif()
+    endforeach()
+  endif()
+  if (_cps_is_numeric)
+    set(_cps_output_dir "${PUBLISH_ROOT}/v${PUBLISH_VERSION}")
+    if (_cps_is_numeric AND NOT CPS_PUBLISH_OLD_RELEASE
+        AND EXISTS "${_cps_output_dir}_static/documentation_options.js")
+      # We've already published documentation for this version: is
+      # ours for an earlier release?
+      file(READ "${_cps_output_dir}_static/documentation_options.js"
+        doc_data) # Read the info for the generated documentation.
+      # Extract the documentation release:
+      if (doc_data MATCHES "\n[ \t]*VERSION[ \t\n]*:[ \t\n]*'([^']*)'")
+        set(found_release "${CMAKE_MATCH_1}")
+        cet_compare_versions(found_newer "${found_release}"
+          VERSION_GREATER "${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}")
+        if (found_newer)
+          # Skip publication of documentation for an older release.
+          message(NOTICE "\
+found already-published ${CETMODULES_CURRENT_PROJECT_NAME} \
+documentation for newer release of version ${PUBLISH_VERSION} \
+(${found_release} > ${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}): will not overwrite (set \
+use PUBLISH_OLD_RELEASE flag to force)\
+")
+          return()
+        endif()
+      endif()
+    endif()
+  else()
+    set(_cps_output_dir "${PUBLISH_ROOT}/${PUBLISH_VERSION}")
+  endif()
+  cmake_path(GET _cps_output_dir FILENAME _cps_proj_dir)
+  # Ensure we have a line for this version in versions data.
+  string(JSON VERSION_DATA SET "${VERSION_DATA}" "${_cps_proj_dir}"
+    "\"${PUBLISH_VERSION}\"")
+  if (_cps_is_latest)
+    # Ensure we a line for "latest" in versions data.
+    string(JSON VERSION_DATA SET "${VERSION_DATA}"
+      "latest" "\"latest release\"")
+  endif()
+  # Write out the versions data as (possibly) amended by us.
+  file(WRITE "${PUBLISH_ROOT}/versions.json" "${VERSION_DATA}\n")
+endmacro()

@@ -2,7 +2,7 @@
 BuildDictionary
 ===============
 
-Module defining the function :cmake:command:`build_dictionary` to
+Module defining the function :command:`build_dictionary` to
 generate a ROOT dictionary from a selection XML
 (:file:`classes_def.xml`).
 
@@ -10,8 +10,9 @@ generate a ROOT dictionary from a selection XML
 
    `ROOT Home Page <https://root.cern.ch>`_
 
-   :cmake:module:`CetRootCint`
+   :module:`CetRootCint`
      Building a ROOT dictionary from a :file:`Linkdef.h` file.
+
 #]================================================================]
 include_guard()
 
@@ -36,31 +37,30 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
     DICTIONARY_LIBRARIES REQUIRED_DICTIONARIES)
 
 #[================================================================[.rst:
-.. cmake:command:: build_dictionary
+.. command:: build_dictionary
 
    Generate and build a ROOT dictionary module from a selection XML file
    (:file:`classes_def.xml`), optionally checking versions and checksums for
    selected classes.
 
-   **Synopsis:**
+   **Synopsis**
      .. code-block:: cmake
 
         build_dictionary([<name>] [<options>])
 
-   **Options:**
-
+   **Options**
      ``CCV_ENVIRONMENT <var>=<val>...``
        List of environment settings to pass to
-       :cmake:manual:`checkClassVersion(1)`.
+       :manual:`checkClassVersion(1)`.
 
      ``CLASSES_DEF_XML <filepath>`` The name and location of the
        selection XML file to be used (default:
-       :cmake:variable:`${CMAKE_CURRENT_SOURCE_DIR}
+       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
 
      ``CLASSES_H <filepath>`` The name and location of the top-level C++
        header file to be read (default:
-       :cmake:variable:`${CMAKE_CURRENT_SOURCE_DIR}
+       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
 
      ``COMPILE_FLAGS <flag>...``
@@ -80,31 +80,30 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
        Option / argument disambiguator; no other function.
 
      ``NO_CHECK_CLASS_VERSION``
-       Do not run :cmake:manual:`checkClassVersion(1)` to verify class
+       Do not run :manual:`checkClassVersion(1)` to verify class
        checksums and version numbers.
 
      ``NO_INSTALL``
        Do not install the generated plugin.
 
      ``[NO_]RECURSIVE`` Specify whether
-       :cmake:manual:`checkClassVersion(1)` should check for the
+       :manual:`checkClassVersion(1)` should check for the
        presence and validity of class dictionaries recursively (default
-       determined by :cmake:command:`check_class_version`).
+       determined by :command:`check_class_version`).
 
      ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
        Specify dictionary dependencies required to be available for
        successful validation.
 
      ``USE_PRODUCT_NAME``
-
-       .. deprecated:: 2.0
-          use ``USE_PACKAGE_NAME`` instead.
+       .. deprecated:: 2.0 use ``USE_PACKAGE_NAME`` instead.
 
      ``USE_PACKAGE_NAME``
        The package name will be prepended to the pluign library name,
        separated by ``_``
 
-   .. seealso:: :cmake:command:`cet_cmake_library`, :cmake:command:`check_class_version`
+   .. seealso:: :command:`cet_cmake_library`, :command:`check_class_version`
+
 #]================================================================]
 function(build_dictionary)
   set(build_dictionary_usage "USAGE: build_dictionary( [dictionary_name] [DICTIONARY_LIBRARIES <library list>] [COMPILE_FLAGS <flags>] [DICT_NAME_VAR <var>] [NO_INSTALL] )")

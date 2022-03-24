@@ -2,8 +2,9 @@
 BasicPlugin
 ===========
 
-Module defining the function :cmake:command:`basic_plugin` to generate a generic
+Module defining the function :command:`basic_plugin` to generate a generic
 plugin module.
+
 #]================================================================]
 
 # Avoid unnecessary repeat inclusion.
@@ -25,18 +26,17 @@ cet_regex_escape(${cet_bp_flags} ${cet_bp_one_arg_opts} ${cet_bp_list_options} V
 string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
 #[================================================================[.rst:
-.. cmake:command:: basic_plugin
+.. command:: basic_plugin
 
    Create a plugin library, with or without a separate registration
    library to avoid One Definition Rule (ODR) violations.
 
-   **Synopsis:**
+   **Synopsis**
      .. code-block:: cmake
 
         basic_plugin(<name> <suffix> [<options>])
 
-   **Source specification options:**
-
+   **Source specification options**
      ``IMPL_SOURCE <implementation-source>...`` Specify source to
        compile into the plugin's interface implementation library, if
        appropriate. The implementation should *not* invoke any
@@ -53,8 +53,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
         * If ``IMPL_SOURCE`` is omitted, we look for ``<name>.cc``
 
-   **Dependency specification options:**
-
+   **Dependency specification options**
      ``LIBRARIES [INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG] <library-dependency>...``
 
        Specify targets and/or libraries upon which the implementation
@@ -82,8 +81,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
           library or the presence of a public (non-plugin) calling
           interface.
 
-   **Other options:**
-
+   **Other options**
      ``ALIAS <alias>...``
        Create the specified CMake alias targets to the implementation
        library.
@@ -113,7 +111,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
      ``SOVERSION <version>``
        The library's compatibility version (*cf*
-       :cmake:prop_tgt:`SOVERSION`).
+       :prop_tgt:`SOVERSION`).
 
      ``USE_BOOST_UNIT``
        The plugin uses Boost unit test functions and should be compiled
@@ -125,33 +123,27 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
      ``VERSION``
        The library's build version will be set to
-       :cmake:variable:`CETMODULES_CURRENT_PROJECT_NAME` (*cf* :cmake:prop_tgt:`VERSION`).
+       :variable:`CETMODULES_CURRENT_PROJECT_NAME` (*cf* :prop_tgt:`VERSION`).
 
-   **Deprecated options:**
-
+   **Deprecated options**
      ``SOURCE <source>...``
        Specify sources to compile into the plugin.
 
-      .. deprecated:: 2.11
-         use ``IMPL_SOURCE``, ``REG_SOURCE`` and ``LIBRARIES REG``
-         instead.
+      .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
+         ``LIBRARIES REG`` instead.
 
      ``USE_PRODUCT_NAME``
+       .. deprecated:: 2.0 use ``USE_PACKAGE_NAME`` instead.
 
-       .. deprecated:: 2.0
-          use ``USE_PACKAGE_NAME`` instead.
-
-   **Non-option arguments:**
-
+   **Non-option arguments**
      ``<name>``
-
-     The name stem for the library to be generated.
+       The name stem for the library to be generated.
 
      ``<suffix>``
+       The category of plugin to be generated.
 
-     The category of plugin to be generated.
+   .. seealso:: :command:`cet_make_library`
 
-   .. seealso:: :cmake:command:`cet_make_library`
 #]================================================================]
 function(basic_plugin NAME SUFFIX)
   cmake_parse_arguments(PARSE_ARGV 2 BP

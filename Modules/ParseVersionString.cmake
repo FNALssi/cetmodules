@@ -291,7 +291,7 @@ function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_RE
     if (_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
       set(_cmpv_result TRUE)
     endif()
-  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)$")
+  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)?$")
     if (_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
       set(_cmpv_result TRUE)
     endif()

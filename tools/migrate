@@ -328,7 +328,7 @@ This help.
 =item B<--flags-only>
 
 During a migration, only "ACTION" tags will be added to CMake files
-(I<cf> B<--flags-only>).
+(I<cf> B<--clean-info>).
 
 
 =item B<--quiet>
