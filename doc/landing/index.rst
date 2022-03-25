@@ -25,7 +25,7 @@ Reference Documentation
 .. link-button:: latest/
    :type: url
    :classes: btn-outline-primary btn-block
-   :text: Latest reference documentation (&amp; links to other versions)
+   :text: Latest reference documentation (with links to other versions)
 
 .. <--include-bottom-start-->
 
