@@ -53,14 +53,16 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
        List of environment settings to pass to
        :manual:`checkClassVersion(1)`.
 
-     ``CLASSES_DEF_XML <filepath>`` The name and location of the
-       selection XML file to be used (default:
-       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     ``CLASSES_DEF_XML <filepath>``
+       .. rst-class:: text-start
+       The name and location of the selection XML file to be used
+       (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
 
-     ``CLASSES_H <filepath>`` The name and location of the top-level C++
-       header file to be read (default:
-       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     ``CLASSES_H <filepath>``
+       .. rst-class:: text-start
+       The name and location of the top-level C++ header file to be read
+       (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
 
      ``COMPILE_FLAGS <flag>...``

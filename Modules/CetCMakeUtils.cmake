@@ -53,7 +53,7 @@ include(CetRegexEscape)
      ``VALUES <val>...``
        The values to be passed through to another function or macro may
        be specified as ``<val>...`` rather than as ``<in-var>``. In this
-       case, ``<out-var>` is required and ``IN_PLACE`` is not permitted.
+       case, ``<out-var>`` is required and ``IN_PLACE`` is not permitted.
 
    **Non-option arguments**
      ``<in-var>``
