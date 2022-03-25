@@ -75,7 +75,7 @@ function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
 
   _cps_process_version_data()
 
-  if (NOT _cps_is_latest)
+  if (_cps_is_numeric AND NOT _cps_is_latest)
     # We're publishing outdated documentation: label it as such.
     list(APPEND PUBLISH_ARGS -A outdated=1)
   endif()
