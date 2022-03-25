@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <title>BasicPlugin &mdash; Cetmodules git-develop-7eb9e9e Reference</title>
+  <title>BasicPlugin &mdash; Cetmodules git-develop-8716ad6 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
@@ -55,7 +55,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7eb9e9e</span>
+    <span class="version_switch">git-develop-8716ad6</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -118,9 +118,10 @@ and <code class="docutils literal notranslate"><span class="pre">REG</span></cod
 <li><p>The registration library has an automatic dependence on the
 implementation library (if present).</p></li>
 <li><p>If <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> or <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> dependencies are specified and
-there is no implementation source, then the library will be
-built shared rather than as a module, and all responsibility
-for ODR violations rests with the library builder.</p></li>
+there is no implementation source, then the plugin will be
+built as a shared library rather than as a module, and all
+responsibility for ODR violations rests with the plugin
+builder.</p></li>
 <li><p>An additional dependency designation, <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code>, is
 accepted and is intended for use by intermediate functions
 adding dependencies to a library. <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code> is identical
@@ -148,9 +149,8 @@ the front of the plugin library name.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
 </dd>
-</dl>
-<p><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></p>
-<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></dt><dd><p>Do not export this plugin.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>Do not install the generated library or libraries.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></dt><dd><p>The library’s compatibility version (<em>cf</em>
@@ -259,7 +259,7 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7eb9e9e</span>
+    <span class="version_switch">git-develop-8716ad6</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
