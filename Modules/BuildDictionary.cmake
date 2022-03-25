@@ -88,10 +88,10 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      ``NO_INSTALL``
        Do not install the generated plugin.
 
-     ``[NO_]RECURSIVE`` Specify whether
-       :manual:`checkClassVersion(1)` should check for the
-       presence and validity of class dictionaries recursively (default
-       determined by :command:`check_class_version`).
+     ``[NO_]RECURSIVE``
+       Specify whether :manual:`checkClassVersion(1)` should check for
+       the presence and validity of class dictionaries recursively
+       (default determined by :command:`check_class_version`).
 
      ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
        Specify dictionary dependencies required to be available for
