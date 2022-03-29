@@ -53,14 +53,16 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
        List of environment settings to pass to
        :manual:`checkClassVersion(1)`.
 
-     ``CLASSES_DEF_XML <filepath>`` The name and location of the
-       selection XML file to be used (default:
-       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     ``CLASSES_DEF_XML <filepath>``
+       .. rst-class:: text-start
+       The name and location of the selection XML file to be used
+       (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
 
-     ``CLASSES_H <filepath>`` The name and location of the top-level C++
-       header file to be read (default:
-       :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     ``CLASSES_H <filepath>``
+       .. rst-class:: text-start
+       The name and location of the top-level C++ header file to be read
+       (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
 
      ``COMPILE_FLAGS <flag>...``
@@ -86,10 +88,10 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      ``NO_INSTALL``
        Do not install the generated plugin.
 
-     ``[NO_]RECURSIVE`` Specify whether
-       :manual:`checkClassVersion(1)` should check for the
-       presence and validity of class dictionaries recursively (default
-       determined by :command:`check_class_version`).
+     ``[NO_]RECURSIVE``
+       Specify whether :manual:`checkClassVersion(1)` should check for
+       the presence and validity of class dictionaries recursively
+       (default determined by :command:`check_class_version`).
 
      ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
        Specify dictionary dependencies required to be available for

@@ -37,31 +37,25 @@ if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_FORCE_NUMERIC
 else()
   # Try to get the current branch for the version.
   execute_process(COMMAND git branch --show-current
+    COMMAND_ERROR_IS_FATAL ANY
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     OUTPUT_VARIABLE current_branch
-    ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if (NOT "${current_branch}" STREQUAL "")
-    set(PROJ_VERSION "git-${current_branch}")
-    # Try to get the current commit for the release.
-    execute_process(COMMAND git rev-parse --short HEAD
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      OUTPUT_VARIABLE current_commit
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if (NOT "${current_commit}" STREQUAL "")
-      set(PROJ_RELEASE "${PROJ_VERSION}-${current_commit}")
-    else()
-      set(PROJ_RELEASE "${PROJ_VERSION}")
-    endif()
-  endif()
+  set(PROJ_VERSION "git-${current_branch}")
+  # Try to get the current commit for the release.
+  execute_process(COMMAND git rev-parse --short HEAD
+    COMMAND_ERROR_IS_FATAL ANY
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    OUTPUT_VARIABLE current_commit
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(PROJ_RELEASE "${PROJ_VERSION}-${current_commit}")
 endif()
-
-set(WANT_UNIX_MAN_PAGES "False")
-set(WANT_VERSION_SWITCH "True")
-configure_file(reference/conf.py.in "reference/conf.py" @ONLY)
 
 # Generate the reference documentation for publication in the specified place.
 if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
+  set(WANT_UNIX_MAN_PAGES "False")
+  set(WANT_VERSION_SWITCH "True")
+  configure_file(reference/conf.py.in "reference/conf.py" @ONLY)
   file(REAL_PATH "${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT}"
     ${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT
     BASE_DIRECTORY ${PROJECT_BINARY_DIR} EXPAND_TILDE)
@@ -78,7 +72,6 @@ if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
     "${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT}"
     ${PROJ_VERSION}
     ${PUBLISH_OLD_RELEASE}
-    VERSION_DATA_VAR version_data
     ${qv_arg}
     NITPICKY
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/reference"

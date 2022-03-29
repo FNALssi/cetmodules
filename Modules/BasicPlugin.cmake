@@ -69,9 +69,10 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
           implementation library (if present).
 
         * If ``PUBLIC`` or ``INTERFACE`` dependencies are specified and
-          there is no implementation source, then the library will be
-          built shared rather than as a module, and all responsibility
-          for ODR violations rests with the library builder.
+          there is no implementation source, then the plugin will be
+          built as a shared library rather than as a module, and all
+          responsibility for ODR violations rests with the plugin
+          builder.
 
         * An additional dependency designation, ``CONDITIONAL``, is
           accepted and is intended for use by intermediate functions
@@ -105,6 +106,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
        Option / argument disambiguator; no other function.
 
      ``NO_EXPORT``
+       Do not export this plugin.
 
      ``NO_INSTALL``
        Do not install the generated library or libraries.
