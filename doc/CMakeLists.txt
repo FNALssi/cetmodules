@@ -51,9 +51,10 @@ else()
     set(PROJ_RELEASE "${PROJ_VERSION}-${current_commit}")
 endif()
 
+set(WANT_UNIX_MAN_PAGES "False")
+
 # Generate the reference documentation for publication in the specified place.
 if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
-  set(WANT_UNIX_MAN_PAGES "False")
   set(WANT_VERSION_SWITCH "True")
   configure_file(reference/conf.py.in "reference/conf.py" @ONLY)
   file(REAL_PATH "${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT}"
