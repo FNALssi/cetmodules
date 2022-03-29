@@ -28,9 +28,9 @@ function(cet_make_library)
     "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   ##################
   # Argument verification.
-  if (NOT (CML_NO_SOURCE OR CML_SOURCE OR
+  if (NOT (CML_NO_SOURCE OR CML_SOURCE OR CML_HEADERS_TARGET_ONLY
         "SOURCE" IN_LIST CML_KEYWORDS_MISSING_VALUES))
-    message(FATAL_ERROR "SOURCE or NO_SOURCE is required")
+    message(FATAL_ERROR "SOURCE or NO_SOURCE (or HEADERS_TARGET_ONLY) is required")
   endif()
   # Target alias namespace.
   cet_register_export_set(SET_NAME ${CML_EXPORT_SET} SET_VAR CML_EXPORT_SET
