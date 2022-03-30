@@ -29,7 +29,7 @@ function(cet_make_library)
   ##################
   # Argument verification.
   if (NOT (CML_NO_SOURCE OR CML_SOURCE OR CML_HEADERS_TARGET_ONLY
-        "SOURCE" IN_LIST CML_KEYWORDS_MISSING_VALUES))
+        OR "SOURCE" IN_LIST CML_KEYWORDS_MISSING_VALUES))
     message(FATAL_ERROR "SOURCE or NO_SOURCE (or HEADERS_TARGET_ONLY) is required")
   endif()
   # Target alias namespace.
