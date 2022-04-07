@@ -10,8 +10,14 @@ include(FindPackageHandleStandardArgs)
 
 macro(cet_find_pkg_config_package)
   cmake_parse_arguments(_cet_find_pkg_config_pkg "" "NAMESPACE" "" ${ARGN})
-  if (NOT _cet_find_pkg_config_package_NAMESPACE)
+  if (NOT (_cet_find_pkg_config_package_NAMESPACE OR
+        _cet_find_pkg_config_pkg_KEYWORDS_MISSING_VALUES MATCHES "(^|;)NAMESPACE(;|$)"))
     set(_cet_find_pkg_config_package_NAMESPACE ${CMAKE_FIND_PACKAGE_NAME})
+  endif()
+  if (NOT "${_cet_find_pkg_config_package_NAMESPACE}" STREQUAL "")
+    string(REGEX REPLACE "::$" "" _cet_find_pkg_config_package_NAMESPACE
+      "${_cet_find_pkg_config_package_NAMESPACE}")
+    string(APPEND _cet_find_pkg_config_package_NAMESPACE "::")
   endif()
   if (${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
     set(_cet_find_pkg_config_package_quiet QUIET)
@@ -58,8 +64,8 @@ macro(cet_find_pkg_config_package)
     NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH
     IMPORTED_TARGET ${_cet_find_pkg_config_package_modules})
   if (${CMAKE_FIND_PACKAGE_NAME}_FOUND AND
-      NOT TARGET ${_cet_find_pkg_config_package_NAMESPACE}::${CMAKE_FIND_PACKAGE_NAME})
-    add_library(${_cet_find_pkg_config_package_NAMESPACE}::${CMAKE_FIND_PACKAGE_NAME}
+      NOT TARGET ${_cet_find_pkg_config_package_NAMESPACE}${CMAKE_FIND_PACKAGE_NAME})
+    add_library(${_cet_find_pkg_config_package_NAMESPACE}${CMAKE_FIND_PACKAGE_NAME}
       ALIAS PkgConfig::${CMAKE_FIND_PACKAGE_NAME})
   endif()
 
