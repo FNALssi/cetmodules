@@ -57,7 +57,7 @@ else()
 endif()
 
 # Find a TBB (or tbb) config file.
-find_package(TBB NO_MODULE)
+find_package(TBB CONFIG QUIET)
 
 # Add some information depending on whether we have the UPS/SciSoft or
 # TBB-official config file.

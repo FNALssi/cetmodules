@@ -17,7 +17,7 @@ set(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY TRUE)
 # optional, and check success by looking for the target(s) that should
 # have been defined.
 set(CETMODULES_OPTIONAL_INCLUDE_MODULE_FFTW3LibraryDepends TRUE)
-find_package(${CMAKE_FIND_PACKAGE_NAME} NO_MODULE)
+find_package(${CMAKE_FIND_PACKAGE_NAME} CONFIG QUIET)
 set(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY ${_cet_findfftw3_quietly})
 set(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED ${_cet_findfftw3_required})
 
