@@ -35,11 +35,7 @@ macro(find_ups_geant4)
   set(G4_LIB_LIST)
   foreach (_fug IN LISTS _fug_liblist)
     string(TOUPPER ${_fug} _FUG)
-    if (TARGET Geant4::${_fug})
-      set(${_FUG} "Geant4::${_fug}")
-      # Some packages include headers with "Geant4/"
-      target_include_directories(${${_FUG}} AFTER INTERFACE $ENV{GEANT4_FQ_DIR}/include)
-    else()
+    if (NOT TARGET Geant4::${_fug})
       cet_find_library(${_FUG} NAMES "${_fug}" PATHS ENV G4LIB NO_DEFAULT_PATH)
       # Some packages include headers with "Geant4/"
       include_directories($ENV{GEANT4_FQ_DIR}/include)

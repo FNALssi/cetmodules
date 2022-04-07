@@ -927,7 +927,7 @@ while true; do
         IFS="$OIFS"
         if [ "$extra_opt_args" = "--" ]; then
           eval ${extra_arg_type}_opt_args=\(\)
-          eval ${extra_args_type}_postargs=\(\"\${extra_opt_args[@]:1}\"\)
+          eval ${extra_arg_type}_postargs=\(\"\${extra_opt_args[@]:1}\"\)
         elif [ "${extra_opt_args[*]}" = "${extra_postargs[*]}" ]; then
           if [ "${extra_opt_args[@]:${#extra_opt_args[@]}-1}" = "--" ]; then
             eval ${extra_arg_type}_opt_args=\(\"\${extra_opt_args[@]:0:${#extra_opt_args[@]}-1}\"\)
