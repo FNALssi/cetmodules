@@ -27,7 +27,7 @@ include(CetProcessLiblist)
 include(CheckClassVersion)
 
 set(_cet_build_dictionary_flags NO_CHECK_CLASS_VERSION NO_EXPORT
-  NO_INSTALL NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME
+  NO_INSTALL NO_LIBRARY NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME
   USE_PROJECT_NAME)
 
 set(_cet_build_dictionary_one_arg_options CLASSES_H CLASSES_DEF_XML
@@ -88,6 +88,10 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      ``NO_INSTALL``
        Do not install the generated plugin.
 
+     ``NO_LIBRARY``
+       Generate the C++ code, but do not compile it into a shared
+       library (implies NO_CHECK_CLASS_VERSION).
+
      ``[NO_]RECURSIVE``
        Specify whether :manual:`checkClassVersion(1)` should check for
        the presence and validity of class dictionaries recursively
@@ -141,13 +145,26 @@ function(build_dictionary)
   cet_passthrough(FLAG APPEND BD_NO_INSTALL cml_args)
   cet_passthrough(FLAG APPEND BD_NO_EXPORT cml_args)
   cet_passthrough(APPEND BD_EXPORT_SET cml_args)
-  cet_make_library(LIBRARY_NAME ${dictname}_dict ${cml_args} SHARED SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp)
   set(ROOTMAP_OUTPUT
     "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>.rootmap")
   _generate_dictionary(${dictname}
     ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
     ROOTMAP_OUTPUT "${ROOTMAP_OUTPUT}"
     PCM_OUTPUT_VAR PCM_OUTPUT)
+  if (BD_COMPILE_FLAGS)
+    set_source_files_properties(${dictname}_dict.cpp
+      PROPERTIES COMPILE_FLAGS ${BD_COMPILE_FLAGS})
+  endif()
+  if (NOT BD_NO_INSTALL)
+    install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
+    if (PCM_OUTPUT)
+      install(FILES ${PCM_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
+    endif()
+  endif()
+  if (BD_NO_LIBRARY)
+    return()
+  endif()
+  cet_make_library(LIBRARY_NAME ${dictname}_dict ${cml_args} SHARED SOURCE ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp)
   if (NOT ROOT_VERSION GREATER_EQUAL 6.10.04 AND
       CMAKE_SYSTEM_NAME MATCHES "Darwin")
     # Header line and OS X lib name fixing only necessary for older ROOT6.
@@ -157,10 +174,6 @@ function(build_dictionary)
       COMMENT Fixing shared library reference in ${ROOTMAP_OUTPUT}
       VERBATIM)
   endif()
-  if (BD_COMPILE_FLAGS)
-    set_target_properties(${dictname}_dict
-      PROPERTIES COMPILE_FLAGS ${BD_COMPILE_FLAGS})
-  endif()
   if (TARGET ROOT::Core)
     list(APPEND dictionary_liblist PUBLIC ROOT::Core)
   else()
@@ -168,12 +181,6 @@ function(build_dictionary)
   endif()
   target_link_libraries(${dictname}_dict ${dictionary_liblist})
 
-  if (NOT BD_NO_INSTALL)
-    install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
-    if (PCM_OUTPUT)
-      install(FILES ${PCM_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
-    endif()
-  endif()
   if (NOT TARGET BuildDictionary_AllDicts)
     add_custom_target(BuildDictionary_AllDicts)
   endif()
