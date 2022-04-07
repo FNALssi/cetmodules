@@ -195,7 +195,7 @@ function(build_dictionary)
   endif()
 endfunction()
 
-function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
+function(_generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
   set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
@@ -220,20 +220,6 @@ function( _generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   if (GD_PCM_OUTPUT_VAR)
     set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
   endif()
-  # FIXME Should be able to leverage CMake to do something more
-  # straightforward than this!
-  set(CXX_STD_FLAG "$<IF:$<BOOL:$<TARGET_PROPERTY:${dictname}_dict,CXX_EXTENSIONS>>,\
-$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_EXTENSION_COMPILE_OPTION},\
-$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_EXTENSION_COMPILE_OPTION},\
-${CMAKE_CXX98_EXTENSION_COMPILE_OPTION}>>>>,\
-$<IF:$<EQUAL:11,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX11_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:14,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX14_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:17,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX17_STANDARD_COMPILE_OPTION},\
-$<IF:$<EQUAL:20,$<TARGET_PROPERTY:${dictname}_dict,CXX_STANDARD>>,${CMAKE_CXX20_STANDARD_COMPILE_OPTION},\
-${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
-")
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
     # Extra outputs commented out until custom_command OUTPUT supports
@@ -244,7 +230,6 @@ ${CMAKE_CXX98_STANDARD_COMPILE_OPTION}>>>>>\
     -s ${CLASSES_DEF_XML}
 		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}
 		${GENREFLEX_INCLUDES}
-    ${CXX_STD_FLAG}
     ${GENREFLEX_FLAGS}
     -o ${dictname}_dict.cpp
     IMPLICIT_DEPENDS CXX ${CLASSES_H}
