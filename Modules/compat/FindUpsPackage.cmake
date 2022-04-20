@@ -16,7 +16,6 @@ set(UPS_range_CMAKE_PROJECT_NAME Range)
 set(UPS_smc_compiler_CMAKE_PROJECT_NAME Smc)
 set(UPS_sqlite_CMAKE_PROJECT_NAME SQLite3)
 set(UPS_tbb_CMAKE_PROJECT_NAME TBB)
-set(UPS_wirecell_CMAKE_PROJECT_NAME WireCell)
 set(UPS_xerces_c_CMAKE_PROJECT_NAME XercesC)
 # Older (<v10) UPS packages of artg4tk had a broken
 # *-config-version.cmake file, so just do what we've always done if
