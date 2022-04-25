@@ -76,7 +76,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   ##################
   # Make sure we have access to Boost's unit test library if we need it.
   if (CML_USE_BOOST_UNIT)
-    find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost QUIET COMPONENTS unit_test_framework REQUIRED)
   endif()
   ##################
   # Handle choices for library types.
