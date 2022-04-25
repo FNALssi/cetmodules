@@ -221,7 +221,7 @@ function(basic_plugin NAME SUFFIX)
     set(REG_LIB_TYPE MODULE)
     if (BP_IMPL_SOURCE
         OR "IMPL_SOURCE" IN_LIST BP_KEYWORDS_MISSING_VALUES)
-      if (BPL_IMPL_SOURCE)
+      if (BP_IMPL_SOURCE)
         list(APPEND BPL_PUBLIC ${BPL_CONDITIONAL})
         list(PREPEND BP_IMPL_SOURCE "SOURCE")
       else()
