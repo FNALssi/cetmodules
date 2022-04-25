@@ -12,6 +12,7 @@ include(ParseVersionString)
 
 # Set up the correspondences for some otherwise problematic packages.
 set(UPS_cppunit_CMAKE_PROJECT_NAME CppUnit)
+set(UPS_eigen_CMAKE_PROJECT_NAME Eigen3)
 set(UPS_range_CMAKE_PROJECT_NAME Range)
 set(UPS_smc_compiler_CMAKE_PROJECT_NAME Smc)
 set(UPS_sqlite_CMAKE_PROJECT_NAME SQLite3)

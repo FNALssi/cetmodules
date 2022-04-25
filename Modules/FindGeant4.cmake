@@ -3,6 +3,7 @@ FindGeant4
 ==========
 #]============================================================]
 
+set(_fg4_deps XercesC)
 set(_fg4_libs G4FR G4GMocren G4OpenGL G4RayTracer G4Tree G4VRML
   G4analysis G4digits_hits G4error_propagation G4event G4geometry
   G4gl2ps G4global G4graphics_reps G4intercoms G4interfaces
@@ -10,53 +11,64 @@ set(_fg4_libs G4FR G4GMocren G4OpenGL G4RayTracer G4Tree G4VRML
   G4physicslists G4processes G4readout G4run G4track G4tracking
   G4visHepRep G4visXXX G4vis_management G4zlib)
 
-if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND)
-  find_package(${CMAKE_FIND_PACKAGE_NAME} CONFIG)
-  if (${CMAKE_FIND_PACKAGE_NAME}_FOUND)
+unset(_fg4_fphsa_extra_args)
+if (NOT Geant4_FOUND)
+  find_package(Geant4 CONFIG)
+  if (Geant4_FOUND)
     set(_fg4_need_tweaks TRUE)
   endif()
 endif()
 
-if (${CMAKE_FIND_PACKAGE_NAME}_FOUND)
-  set(_cet_find${CMAKE_FIND_PACKAGE_NAME}_required ${${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED})
-  set(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
-  set(_cet_find${CMAKE_FIND_PACKAGE_NAME}_quietly ${${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY})
-  set(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY TRUE)
-  foreach (_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep XercesC)
-    get_property(_cet_find${CMAKE_FIND_PACKAGE_NAME}_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_alreadyTransitive GLOBAL PROPERTY
-      _CMAKE_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_TRANSITIVE_DEPENDENCY)
-    find_package(${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep} QUIET)
-    if (NOT DEFINED cet_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_alreadyTransitive OR cet_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_alreadyTransitive)
-      set_property(GLOBAL PROPERTY _CMAKE_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_TRANSITIVE_DEPENDENCY TRUE)
+list(TRANSFORM _fg4_deps APPEND _FOUND
+  OUTPUT_VARIABLE _fg4_fphsa_extra_required_vars)
+
+if (Geant4_FOUND)
+  unset(_fg4_missing_deps)
+  foreach (_fg4_dep IN LISTS _fg4_deps)
+    get_property(_fg4_${_fg4_dep}_alreadyTransitive GLOBAL PROPERTY
+      _CMAKE_${_fg4_dep}_TRANSITIVE_DEPENDENCY)
+    find_package(${_fg4_dep} QUIET)
+    if (NOT DEFINED cet_${_fg4_dep}_alreadyTransitive OR cet_${_fg4_dep}_alreadyTransitive)
+      set_property(GLOBAL PROPERTY _CMAKE_${_fg4_dep}_TRANSITIVE_DEPENDENCY TRUE)
     endif()
-    unset(_cet_find${CMAKE_FIND_PACKAGE_NAME}_${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_alreadyTransitive)
-    if (NOT ${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep}_FOUND)
-      set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "${CMAKE_FIND_PACKAGE_NAME} could not be found because dependency ${_cet_find${CMAKE_FIND_PACKAGE_NAME}_dep} could not be found.")
-      set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
-      break()
+    unset(_fg4_${_fg4_dep}_alreadyTransitive)
+    if (NOT ${_fg4_dep}_FOUND)
+      list(APPEND _fg4_missing_deps ${_fg4_dep})
     endif()
   endforeach()
+  unset(_fg4_dep)
+  unset(_fg4_deps)
+  if (NOT "${_fg4_missing_deps}" STREQUAL "")
+    set(_fg4_fphsa_extra_args
+      REASON_FAILURE_MESSAGE "missing dependencies: ${_fg4_missing_deps}"
+    )
+    unset(_fg4_missing_deps)
+  endif()
 endif()
 
-set(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED ${_cet_find${CMAKE_FIND_PACKAGE_NAME}_required})
-set(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY ${_cet_find${CMAKE_FIND_PACKAGE_NAME}_required})
-unset(_cet_find${CMAKE_FIND_PACKAGE_NAME}_required)
-unset(_cet_find${CMAKE_FIND_PACKAGE_NAME}_quietly)
-
-if (${CMAKE_FIND_PACKAGE_NAME}_FOUND AND _fg4_need_tweaks)
+if (Geant4_FOUND AND _fg4_need_tweaks)
   foreach (_fg4_lib ${_fg4_libs})
-    if (TARGET ${CMAKE_FIND_PACKAGE_NAME}::${_fg4_lib})
-      set_property(TARGET ${CMAKE_FIND_PACKAGE_NAME}::${_fg4_lib}
+    if (TARGET Geant4::${_fg4_lib})
+      set_property(TARGET Geant4::${_fg4_lib}
         APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-        "${${CMAKE_FIND_PACKAGE_NAME}_INCLUDE_DIR}/..")
+        "${Geant4_INCLUDE_DIR}/..")
       if (_fg4_lib STREQUAL G4persistency)
-        set_property(TARGET ${CMAKE_FIND_PACKAGE_NAME}::${_fg4_lib}
+        set_property(TARGET Geant4::${_fg4_lib}
           APPEND PROPERTY INTERFACE_LINK_LIBRARIES XercesC::XercesC)
       endif()
     endif()
   endforeach()
-  unset(_fg4_need_tweaks)
   unset(_fg4_lib)
+  unset(_fg4_libs)
+  unset(_fg4_need_tweaks)
 endif()
 
-unset(_fg4_libs)
+include(FindPackageHandleStandardArgs)
+
+find_package_handle_standard_args(Geant4 CONFIG_MODE
+  REQUIRED_VARS ${_fg4_fphsa_extra_required_vars}
+  ${_fg4_fphsa_extra_args}
+)
+
+unset(_fg4_fphsa_extra_required_vars)
+unset(_fg4_fphsa_extra_args)
