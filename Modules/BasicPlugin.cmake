@@ -321,6 +321,7 @@ endmacro()
 # This macro will generate a CMake builder function for plugins of type
 # (e.g. inheriting from) TYPE.
 function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
+  cmake_parse_arguments(PARSE_ARGV 3 _cwpb "INSTALL_BUILDER" "" "")
   # Allow a layered hierarchy while preventing looping.
   if (TYPE STREQUAL BASE)
     # Drop namespacing for final step.
@@ -343,14 +344,19 @@ ${extra_includes}include(BasicPlugin)
 # Generate a CMake plugin builder macro for tools of type ${TYPE} for
 # automatic invocation by build_plugin().
 macro(${TYPE} NAME)
-  ${build}_plugin(\${NAME} ${BASE_SUFFIX_ARG} \${ARGN} ${ARGN})
+  ${build}_plugin(\${NAME} ${BASE_SUFFIX_ARG} \${ARGN} ${_cwpb_UNPARSED_ARGUMENTS})
 endmacro()
 \
 ")
+  if (_cwpb_INSTALL_BUILDER)
+    install(FILES
+      "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
+      DESTINATION "${DEST_SUBDIR}")
+  endif()
 endfunction()
 
 function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
-  cet_write_plugin_builder(${ARGV})
+  cet_write_plugin_builder(${ARGV} INSTALL_BUILDER)
   if (NOT DEFINED
       CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
     set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
@@ -360,9 +366,6 @@ function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
   set_property(CACHE
     CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
     APPEND PROPERTY VALUE "${TYPE}")
-  install(FILES
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
-    DESTINATION "${DEST_SUBDIR}")
 endfunction()
 
 function(cet_collect_plugin_builders DEST_SUBDIR)
