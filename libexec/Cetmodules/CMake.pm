@@ -700,16 +700,24 @@ sub _process_cmake_file_lines {
     {qw(cmake_file cmake_file_in cmake_file_out pending_comments)}; # Convenience.
   my $current_linepos = 0;
 
-  if ($line =~ m&\A\s*[#].*\z&msx) {                                # Full-line comment.
+  if (  $line =~ m&\A\s*[#]{3}\s+MIGRATE-NO-ACTION\b&msx
+    and $options->{MIGRATE}) {                                      # Skip remainder of file.
+    $options->{SKIPPING} = 1;
+    info(<<"EOF");
+$cmake_file SKIPPED due to MIGRATE-NO-ACTION directive in line $line_no
+EOF
+  } elsif ($line =~ m&\A\s*[#].*\z&msx) { # Full-line comment.
     debug("read COMMENT from $cmake_file:$line_no: $line");
     push @{ $pending_comments->{chunks} }, $line;
     exists $pending_comments->{start_line}
       or $pending_comments->{start_line} = $line_no;
     return $line_no;
-  } ## end if ($line =~ m&\A\s*[#].*\z&msx)
+  } ## end elsif ($line =~ m&\A\s*[#].*\z&msx) [ if ($line =~ m&\A\s*[#]{3}\s+MIGRATE-NO-ACTION\b&msx...)]
   _process_pending_comments($cmake_file_data, $line_no, $options);
 
   if (
+    not $options->{SKIPPING}
+    and
     ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
     $line =~ s&\A # anchor to string start
                (?P<pre>(?P<pre_cmd_ws>\s*) # save whitespace

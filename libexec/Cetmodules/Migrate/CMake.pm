@@ -159,14 +159,6 @@ sub _upgrade_cmake_file {
   );
   my $cmake_file_in = IO::File->new("$cmake_filename", "<")
     or error_exit("unable to open $cmake_filename_full for read");
-
-  if (ignored($cmake_file_in->getline)) {
-    info(<<"EOF");
-upgrading $cmake_filename -> $dest SKIPPED due to MIGRATE-NO-ACTION directive in line 1
-EOF
-    $cmake_file_in->close();
-    return;
-  } ## end if (ignored($cmake_file_in...))
   my $cmake_file_out = IO::File->new("$dest", ">")
     or error_exit("unable to open $dest_full for write");
   my $cmake_file = [$cmake_file_in,  $cmake_filename_full];
@@ -182,6 +174,7 @@ EOF
       eof_handler => \&Cetmodules::Migrate::CMake::Handlers::eof_handler
     );
   %{$options} = (%{$options},
+                 MIGRATE              => 1,
                  cmake_filename_short => "<$pi->{name}>/$cmake_filename_full",
                  output               => $output,
                  %handlers
