@@ -21,6 +21,7 @@ our (@EXPORT);
   can_interpolate
   interpolated
   is_bracket_quoted
+  is_cmake_true
   is_command_info
   is_comment
   is_double_quoted
@@ -98,6 +99,13 @@ sub is_command_info {
   my ($ref) = @_;
   return blessed($ref) && $ref->isa("Cetmodules::CMake::CommandInfo");
 }
+
+
+sub is_cmake_true {
+  return
+    not(interpolated(@_)
+      // q() =~ m&\A(?:0|OFF|NO|FALSE|N|IGNORE|(?:.*-)?NOTFOUND)?\z&imsx);
+} ## end sub is_cmake_true
 
 
 sub is_comment {

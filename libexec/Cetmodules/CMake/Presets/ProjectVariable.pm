@@ -8,6 +8,7 @@ use warnings FATAL => qw(io regexp severe syntax uninitialized void);
 ##
 use Cetmodules qw();
 use Cetmodules::CMake::Presets::BadPerlRef qw();
+use Cetmodules::CMake::Util qw(is_cmake_true);
 use Cetmodules::Util qw(error_exit);
 use English qw(-no_match_vars);
 use JSON qw();
@@ -125,11 +126,7 @@ sub value {
 
   if (($self->{'type'} // q()) eq 'BOOL'
     and not JSON::is_bool(($self->{'value'} // q()))) {
-    $result =
-      ($self->{'value'} // q()) =~
-      m&\A(?:0|OFF|NO|FALSE|N|IGNORE|(?:.*-)?NOTFOUND)?\z&imsx
-      ? JSON::false
-      : JSON::true;
+    $result = is_cmake_true($self->{'value'}) ? JSON::true : JSON::false;
   } else {
     $result = $self->{'value'};
   }
