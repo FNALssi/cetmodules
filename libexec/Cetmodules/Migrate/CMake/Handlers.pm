@@ -1058,7 +1058,9 @@ EOF
 error calling SET handler for matched variable $var_base_name at $cmake_file:$cmd_info->{start_line}:
 $EVAL_ERROR
 EOF
-  } ## end if (my $var_base_name ...)
+  } elsif (($cmd_info->{post} // q()) =~ m&(?:\A|\s+)\#\#\s+CET-VAR\b&msx) {
+    $_cm_state->{vars}->{$set_var_name} = $cmd_info->interpolated_arg_at(1);
+  }
   return;
 } ## end sub set
 

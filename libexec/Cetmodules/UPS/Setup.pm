@@ -10,7 +10,7 @@ use Cetmodules qw(:DIAG_VARS);
 use Cetmodules::CMake
   qw(@PROJECT_KEYWORDS get_CMakeLists_hash process_cmake_file);
 use Cetmodules::CMake::CommandInfo qw();
-use Cetmodules::CMake::Util qw(interpolated);
+use Cetmodules::CMake::Util qw(can_interpolate interpolated);
 use Cetmodules::UPS::ProductDeps
   qw($BTYPE_TABLE $PATHSPEC_INFO get_pathspec get_table_fragment pathkey_is_valid sort_qual var_stem_for_dirkey);
 use Cetmodules::Util
@@ -895,12 +895,21 @@ EOF
   $project_name or error_exit(<<"EOF");
 unable to find name in project() at $cmake_file:$cmd_info->{start_line}
 EOF
-  $is_literal or do {
-    warning(<<"EOF");
+
+  if (not $is_literal) { # Simple variable substitution.
+    while ($project_name =~ m&\G\$\{([A-Za-z_-][A-Za-z0-9_-]*)\}&msxg) {
+      my $found_var = $1;
+      my $found_val = ($_cm_state->{cmake_info}->{$found_var}) // q();
+      $project_name =~ s&\$\{\Q$found_var\E\}&$found_val&msxg;
+    } ## end while ($project_name =~ ...)
+
+    if (not can_interpolate($project_name)) {
+      warning(<<"EOF");
 unable to interpret $project_name as a literal CMake project name in $cmd_info->{name}() at $cmake_file:$cmd_info->{chunk_locations}->{$cmd_info->{arg_indexes}->[0]}
 EOF
-    return;
-  };
+      return;
+    } ## end if (not can_interpolate...)
+  } ## end if (not $is_literal)
   $_cm_state->{cmake_info}->{cmake_project_name} = $project_name;
   my $version_idx =
     $cmd_info->find_single_value_for('VERSION', @PROJECT_KEYWORDS) // return;
@@ -924,6 +933,7 @@ EOF
 
 sub _get_info_from_set_cmds {
   my ($cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   my $qw_saver = # RAII for Perl.
     Cetmodules::Util::VariableSaver->new(\$Cetmodules::QUIET_WARNINGS,
       $options->{quiet_warnings} ? 1 : 0);
@@ -931,7 +941,10 @@ sub _get_info_from_set_cmds {
     (($cmd_info->interpolated_arg_at(0) // return) =~
       m&(?:\A|_)(EXTENDED_VERSION_SEMANTCS|CMAKE_PROJECT_VERSION_STRING)\z&msx
     );
-  $found_pvar or return;
+  $found_pvar
+    or (($cmd_info->{post} // q()) =~ m&(?:\A|\s+)\#\#\s+CET-VAR\b&msx
+      and $found_pvar = $cmd_info->interpolated_arg_at(0))
+    or return;
 
   if ($_cm_state->{seen_cmds}->{cet_cmake_env}) {
     warning(<<"EOF");
