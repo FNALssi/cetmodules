@@ -935,21 +935,12 @@ sub _get_info_from_set_cmds {
 
   if ($_cm_state->{seen_cmds}->{cet_cmake_env}) {
     warning(<<"EOF");
-$cmd_info->{name}() ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_cm_state->{seen_cmds}->{cet_cmake_env}
+$cmd_info->{name}($found_pvar ...) ignored at $cmake_file:$cmd_info->{start_line} due to previous cet_cmake_env() at line $_cm_state->{seen_cmds}->{cet_cmake_env}
 EOF
     return;
   } ## end if ($_cm_state->{seen_cmds...})
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-  given ($found_pvar) {
-    when ('CMAKE_PROJECT_VERSION_STRING') {
-      $_cm_state->{cmake_info}->{$found_pvar} =
-        $cmd_info->interpolated_arg_at(1);
-    }
-    when ('EXTENDED_VERSION_SEMANTICS') {
-      $_cm_state->{cmake_info}->{$found_pvar} = 1;
-    }
-    default { }
-  } ## end given
+  $_cm_state->{cmake_info}->{$found_pvar} =
+    $cmd_info->interpolated_arg_at(1);
   return;
 } ## end sub _get_info_from_set_cmds
 

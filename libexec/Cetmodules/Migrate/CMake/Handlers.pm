@@ -1028,37 +1028,37 @@ EOF
 ####################################
 # Private constants used by set()
 ####################################
-my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING
-);
+my @_HANDLED_SET_VARS = qw(CMAKE_PROJECT_VERSION_STRING CMAKE_INSTALL_PREFIX);
 
 
 sub set { ## no critic qw(NamingConventions::ProhibitAmbiguousNames)
   my ($pi, $cmd_infos, $cmd_info, $cmake_file, $options) = @_;
+  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
   debug(<<"EOF");
 in handler for $cmd_info->{name}() at $cmake_file:$cmd_info->{start_line}
 EOF
-  my ($set_var_name, $is_literal) = $cmd_info->interpolated_arg_at(0)
-    // return;
-  local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+  my ($set_var_name, $is_literal) = $cmd_info->interpolated_arg_at(0);
+  $set_var_name and $is_literal or return;
 
   if (
-    $set_var_name = List::MoreUtils::first_value {
+    my $var_base_name = List::MoreUtils::first_value {
       $set_var_name =~ m&(?:\A|_)\Q$_\E\z&msx;
     }
     @_HANDLED_SET_VARS
     ) {
     # We have a match and (hopefully) a handler therefor.
-    push @{ $_cm_state->{seen_cmds}->{'set'}->{$set_var_name} }, $cmd_info;
+    push @{ $_cm_state->{seen_cmds}->{'set'}->{$var_base_name} }, $cmd_info;
     local $EVAL_ERROR; ## no critic qw(RequireInitializationForLocalVars)
-    my $func_name = "Cetmodules::Migrate::CMake::Handlers\::_$set_var_name";
-    my $func_ref  = \&{$func_name};
+    my $func_name =
+      "Cetmodules::Migrate::CMake::Handlers\::_set_$var_base_name";
+    my $func_ref = \&{$func_name};
     eval { &{$func_ref}($pi, $cmd_infos, $cmd_info, $cmake_file, $options); }
       or 1;
     $EVAL_ERROR and error_exit(<<"EOF");
-error calling SET handler for matched variable $set_var_name at $cmake_file:$cmd_info->{start_line}:
+error calling SET handler for matched variable $var_base_name at $cmake_file:$cmd_info->{start_line}:
 $EVAL_ERROR
 EOF
-  } ## end if ($set_var_name = List::MoreUtils::first_value...)
+  } ## end if (my $var_base_name ...)
   return;
 } ## end sub set
 
