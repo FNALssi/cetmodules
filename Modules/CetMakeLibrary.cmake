@@ -17,8 +17,8 @@ function(cet_make_library)
   # Two-phase parsing to avoid confusion with e.g. INTERFACE in
   # LIBRARIES list.
   cmake_parse_arguments(PARSE_ARGV 0 CML
-    "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;HEADERS_TARGET_ONLY;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;VERSION;WITH_STATIC_LIBRARY"
-    "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;LIBRARY_NAME_VAR;SOVERSION;TARGET_NAME"
+    "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;HEADERS_TARGET_ONLY;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;WITH_STATIC_LIBRARY"
+    "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;LIBRARY_NAME_VAR;VERSION;SOVERSION;TARGET_NAME"
     "ALIAS;LIBRARIES;LIBRARIES_INTERFACE;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS")
   if (CML_LIBRARIES_INTERFACE) # Typo!
     message(AUTHOR_WARNING "likely typo detected: replace \"LIBRARIES_INTERFACE\" with \"LIBRARIES INTERFACE\"")
@@ -156,6 +156,9 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   set(extra_alias)
   set(lib_targets)
   cet_passthrough(FLAG IN_PLACE CML_EXCLUDE_FROM_ALL)
+  if ("VERSION" IN_LIST CML_KEYWORDS_MISSING_VALUES)
+    set(CML_VERSION ${CETMODULES_CURRENT_PROJECT_VERSION})
+  endif()
   foreach (lib_type IN LISTS lib_types)
     set(target_suffix)
     # This condition is in approximate likely order of frequency.
@@ -237,9 +240,12 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
         )
     endif()
     if (lib_type STREQUAL "SHARED" OR lib_type STREQUAL "MODULE")
-      set_target_properties(${lib_target} PROPERTIES
-        $<$<BOOL:${CML_VERSION}>:VERSION ${CETMODULES_CURRENT_PROJECT_VERSION}>
-        $<$<BOOL:${CML_SOVERSION}>:SOVERSION ${CML_SOVERSION}>)
+      foreach (prop IN ITEMS VERSION SOVERSION)
+        if (CML_${prop})
+          set_property(TARGET ${lib_target} PROPERTY
+            ${prop} ${CML_${prop}})
+        endif()
+      endforeach()
     endif()
     target_link_libraries(${lib_target} ${liblist})
     if (CML_USE_BOOST_UNIT AND NOT lib_type STREQUAL "OBJECT")
