@@ -102,9 +102,9 @@ sub is_command_info {
 
 
 sub is_cmake_true {
+  my ($cmake_val) = @_;
   return
-    not(interpolated(@_)
-      // q() =~ m&\A(?:0|OFF|NO|FALSE|N|IGNORE|(?:.*-)?NOTFOUND)?\z&imsx);
+    not (interpolated($cmake_val) // q()) =~ m&\A(?:0|OFF|NO|FALSE|N|IGNORE|(?:.*-)?NOTFOUND)?\z&imsx;
 } ## end sub is_cmake_true
 
 
