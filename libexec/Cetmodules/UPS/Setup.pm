@@ -677,35 +677,51 @@ $_cqual_table =
     e19 => ['gcc', 'g++', 'GNU', '8.2.0',  '17', 'gfortran', 'GNU', '8.2.0'],
     e20 => ['gcc', 'g++', 'GNU', '9.3.0',  '17', 'gfortran', 'GNU', '9.3.0'],
     e21 => ['gcc', 'g++', 'GNU', '10.1.0', '20', 'gfortran', 'GNU', '10.1.0'],
-    e22 => ['gcc', 'g++', 'GNU', '11.1.0', '17', 'gfortran', 'GNU', '11.1.0'],
+    e22 => ['gcc', 'g++', 'GNU', '10.3.0', '17', 'gfortran', 'GNU', '10.3.0'],
+    e23 => ['gcc', 'g++', 'GNU', '11.1.0', '17', 'gfortran', 'GNU', '11.1.0'],
+    e24 => ['gcc', 'g++', 'GNU', '10.3.0', '17', 'gfortran', 'GNU', '10.3.0'],
+    e25 => ['gcc', 'g++', 'GNU', '11.3.0', '17', 'gfortran', 'GNU', '11.3.0'],
+    e26 => ['gcc', 'g++', 'GNU', '12.1.0', '17', 'gfortran', 'GNU', '12.1.0'],
     c1  => [
-           'clang', 'clang++', 'Clang', '5.0.0', '17', 'gfortran', 'GNU',
-           '7.2.0'
+      'clang',    'clang++', 'Clang', '5.0.0', '17', #
+      'gfortran', 'GNU',     '7.2.0'
           ],
-    c2 => ['clang', 'clang++', 'Clang', '5.0.1', '17', 'gfortran', 'GNU',
-           '6.4.0'
+    c2 => [
+      'clang',    'clang++', 'Clang', '5.0.1', '17', #
+      'gfortran', 'GNU',     '6.4.0'
           ],
-    c3 => ['clang', 'clang++', 'Clang', '5.0.1', '17', 'gfortran', 'GNU',
-           '7.3.0'
+    c3 => [
+      'clang',    'clang++', 'Clang', '5.0.1', '17', #
+      'gfortran', 'GNU',     '7.3.0'
           ],
-    c4 => ['clang', 'clang++', 'Clang', '6.0.0', '17', 'gfortran', 'GNU',
-           '6.4.0'
+    c4 => [
+      'clang',    'clang++', 'Clang', '6.0.0', '17', #
+      'gfortran', 'GNU',     '6.4.0'
           ],
-    c5 => ['clang', 'clang++', 'Clang', '6.0.1', '17', 'gfortran', 'GNU',
-           '8.2.0'
+    c5 => [
+      'clang',    'clang++', 'Clang', '6.0.1', '17', #
+      'gfortran', 'GNU',     '8.2.0'
           ],
-    c6 => ['clang', 'clang++',  'Clang', '7.0.0-rc3',
-           '17',    'gfortran', 'GNU',   '8.2.0'
+    c6 => [
+      'clang',    'clang++', 'Clang', '7.0.0-rc3', '17', #
+      'gfortran', 'GNU',     '8.2.0'
           ],
-    c7 => ['clang', 'clang++', 'Clang', '7.0.0', '17', 'gfortran', 'GNU',
-           '8.2.0'
+    c7 => [
+      'clang',    'clang++', 'Clang', '7.0.0', '17',     #
+      'gfortran', 'GNU',     '8.2.0'
           ],
-    c8 => ['clang', 'clang++', 'Clang', '10.0.0', '20', 'gfortran', 'GNU',
-           '10.1.0'
+    c8 => [
+      'clang',    'clang++', 'Clang', '10.0.0', '20',    #
+      'gfortran', 'GNU',     '10.1.0'
           ],
-    c9 => ['clang', 'clang++', 'Clang', '12.0.0', '17', 'gfortran', 'GNU',
-           '11.1.0'
+    c9 => [
+      'clang',    'clang++', 'Clang', '12.0.0', '17',    #
+      'gfortran', 'GNU',     '11.1.0'
           ],
+    c10 => [
+      'clang',    'clang++', 'Clang', '14.0.3', '17',    #
+      'gfortran', 'GNU',     '11.3.0'
+           ],
   };
 
 ########################################################################
