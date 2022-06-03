@@ -677,7 +677,7 @@ function(cet_export_alias)
     list(APPEND _cea_ALIAS ${_cea_UNPARSED_ARGUMENTS})
   endif()
   if (_cea_EXPORT_SET)
-    cet_register_export_set(SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace)
+    cet_register_export_set(SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE)
   endif()
   if (_cea_ALIAS_NAMESPACE)
     list(TRANSFORM _cea_ALIAS PREPEND ${_cea_ALIAS_NAMESPACE}::

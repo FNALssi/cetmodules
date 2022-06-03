@@ -34,7 +34,7 @@ function(cet_make_library)
   endif()
   # Target alias namespace.
   cet_register_export_set(SET_NAME ${CML_EXPORT_SET} SET_VAR CML_EXPORT_SET
-    NAMESPACE_VAR namespace)
+    NAMESPACE_VAR namespace NO_REDEFINE)
   ##################
   # Generate useful library/target names.
   set(libname_bits "${CML_LIBRARY_NAME}")
@@ -283,13 +283,13 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   # ...(except our object library).
   list(REMOVE_ITEM lib_targets ${CML_LIBRARY_NAME}_obj)
   if (NOT CML_NO_INSTALL)
-    if (NOT CML_NO_EXPORT)
-      _add_to_exported_targets(EXPORT_SET ${CML_EXPORT_SET} TARGETS ${lib_targets})
-    endif()
     install(TARGETS ${lib_targets} EXPORT ${CML_EXPORT_SET}
 	    RUNTIME DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR}"
 	    LIBRARY DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}"
 	    ARCHIVE DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}")
+    if (NOT CML_NO_EXPORT)
+      _add_to_exported_targets(EXPORT_SET ${CML_EXPORT_SET} TARGETS ${lib_targets})
+    endif()
   endif()
   if (TARGET ${CML_TARGET_NAME})
     # Return the target name if we've been asked.

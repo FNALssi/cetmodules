@@ -259,7 +259,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   cet_process_liblist(liblist ${CME_NAME} PRIVATE ${CME_LIBRARIES})
   target_link_libraries(${CME_NAME} ${liblist})
   # For target aliases.
-  cet_register_export_set(SET_NAME ${CME_EXPORT_SET} SET_VAR CME_EXPORT_SET NAMESPACE_VAR namespace)
+  cet_register_export_set(SET_NAME ${CME_EXPORT_SET} SET_VAR CME_EXPORT_SET NAMESPACE_VAR namespace NO_REDEFINE)
   ##################
   # Installation.
   if (NOT CME_NO_INSTALL)
@@ -315,7 +315,7 @@ function(cet_script)
     else()
       set(target "${script_name}")
     endif()
-    cet_register_export_set(SET_NAME ${CS_EXPORT_SET} SET_VAR CS_EXPORT_SET NAMESPACE_VAR ns)
+    cet_register_export_set(SET_NAME ${CS_EXPORT_SET} SET_VAR CS_EXPORT_SET NAMESPACE_VAR ns NO_REDEFINE)
     if (need_copy)
       if (NOT CS_ALWAYS_COPY)
         message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")

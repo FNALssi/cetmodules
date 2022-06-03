@@ -448,6 +448,10 @@ function(_generate_target_imports FRAG_LIST)
 # Exported targets, and package components.
 ####################################\
 ")
+    # Preserve only the latest-mentioned instance of any duplicates.
+    list(REVERSE CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    list(REMOVE_DUPLICATES CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    list(REVERSE CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     foreach (export_set IN LISTS CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
       if (CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${export_set}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
         # Generate and install target definition files (included by
