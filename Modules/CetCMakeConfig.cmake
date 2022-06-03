@@ -735,7 +735,7 @@ function(_install_package_config_files)
     # Needed by our templates.
     set(CVF_VERSION_INFO "${${CETMODULES_CURRENT_PROJECT_NAME}_VERSION_INFO}")
     configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
-      ParseVersionString.cmake COPYONLY)
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/ParseVersionString.cmake" COPYONLY)
     install(FILES "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
       DESTINATION "${distdir}")
   else()
