@@ -33,40 +33,58 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 find_package(Smc 6.0.1 REQUIRED PUBLIC)
 
 function(process_smc TARGET_OR_VAR)
-  cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL" "" "")
-  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*).sm$" "\\1_sm.cpp"
+  cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL" "OUTPUT_DIR" "")
+  if (NOT PSMC_OUTPUT_DIR)
+    set(PSMC_OUTPUT_DIR .)
+  endif()
+  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*/)?(.*).sm$" "\\2_sm.cpp"
     OUTPUT_VARIABLE SMC_CPP_OUTPUTS)
-  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*).sm$" "\\1_sm.h"
+  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*/)?(.*).sm$" "\\2_sm.h"
     OUTPUT_VARIABLE SMC_H_OUTPUTS)
-  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*).sm$" "\\1_sm.dot"
+  list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*/)?(.*).sm$" "\\2_sm.dot"
     OUTPUT_VARIABLE SMC_DOT_OUTPUTS)
-  set(smc_cmd java -jar "$<TARGET_FILE:Smc::Smc>"
-    -d "${CMAKE_CURRENT_BINARY_DIR}")
+  set(smc_cmd java -jar "$<TARGET_FILE:Smc::Smc>")
+  cet_package_path(pkgpath PATH "${PSMC_OUTPUT_DIR}" BINARY)
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${PSMC_OUTPUT_DIR}")
   foreach (source cpp_out h_out dot_out IN ZIP_LISTS
       PSMC_UNPARSED_ARGUMENTS SMC_CPP_OUTPUTS SMC_H_OUTPUTS SMC_DOT_OUTPUTS)
-    add_custom_command(OUTPUT "${cpp_out}" "${h_out}" "${dot_out}"
-      COMMAND ${smc_cmd} -graph -glevel 2 "${CMAKE_CURRENT_SOURCE_DIR}/${source}" &&
-      ${smc_cmd} -d "${CMAKE_CURRENT_BINARY_DIR}" -c++ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" &&
-      perl -wapi\\~ -e "'s&\(\#\\s*include\\s+\"\)\\Q${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/\\E&$$1&'"
-      "${cpp_out}"
+    cmake_path(ABSOLUTE_PATH source OUTPUT_VARIABLE abs_source)
+    add_custom_command(OUTPUT "${PSMC_OUTPUT_DIR}/${cpp_out}"
+      "${PSMC_OUTPUT_DIR}/${h_out}"
+      COMMAND pwd
+      COMMAND ${smc_cmd} -d "${pkgpath}" -c++ "${abs_source}"
+      COMMAND perl -wapi~ -e
+      "s&(#\\s*include\\s+)<statemap\\.h>&\${1}\"${pkgpath}/statemap.h\"&"
+      "${pkgpath}/${h_out}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+      VERBATIM
+      COMMENT "Generating C++ files from state machine ${source}"
       MAIN_DEPENDENCY "${source}"
       DEPENDS Smc::Smc)
+    add_custom_command(OUTPUT "${PSMC_OUTPUT_DIR}/${dot_out}"
+      COMMAND ${smc_cmd} -d "${PSMC_OUTPUT_DIR}" -graph -glevel 2 "${abs_source}"
+      COMMENT "Generating Graphviz output from state machine ${source}"
+      MAIN_DEPENDENCY "${source}"
+      DEPENDS Smc::Smc)
+    string(MAKE_C_IDENTIFIER
+      "${CETMODULES_CURRENT_PROJECT}/${pkgpath}/${dot_out}"
+      dot_target)
+    add_custom_target(${dot_target} ALL
+      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${PSMC_OUTPUT_DIR}/${dot_out}")
   endforeach()
+  configure_file("${Smc_statemap_h}" "${PSMC_OUTPUT_DIR}/" COPYONLY)
   if (NOT PSMC_NO_INSTALL)
-    install_headers(LIST ${CMAKE_CURRENT_BINARY_DIR}/${SMC_H_OUTPUTS})
-    install_source(LIST ${CMAKE_CURRENT_BINARY_DIR}/${SMC_H_OUTPUTS}
-      ${CMAKE_CURRENT_BINARY_DIR}/${SMC_CPP_OUTPUTS})
+    list(APPEND SMC_H_OUTPUTS "statemap.h")
+    list(TRANSFORM SMC_H_OUTPUTS PREPEND "${PROJECT_BINARY_DIR}/${pkgpath}/")
+    list(TRANSFORM SMC_CPP_OUTPUTS PREPEND "${PROJECT_BINARY_DIR}/${pkgpath}/")
+    install_headers(LIST ${SMC_H_OUTPUTS})
+    install_source(LIST ${SMC_H_OUTPUTS} ${SMC_CPP_OUTPUTS})
   endif()
   set_source_files_properties(${SMC_CPP_OUTPUTS}
     PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter"
-    INCLUDE_DIRECTORIES
-    $<TARGET_PROPERTY:Smc::Smc,INTERFACE_INCLUDE_DIRECTORIES>
-    INTERFACE_INCLUDE_DIRECTORIES
-    $<TARGET_PROPERTY:Smc::Smc,INTERFACE_INCLUDE_DIRECTORIES>)
-  if (TARGET TARGET_OR_VAR)
-    add_target_sources(${TARGET_OR_VAR} PRIVATE ${SMC_CPP_OUTPUTS}
-      PUBLIC ${SMC_DOT_OUTPUTS})
-    target_link_libraries(${TARGET_OR_VAR} Smc::Smc)
+  )
+  if (TARGET ${TARGET_OR_VAR})
+    target_sources(${TARGET_OR_VAR} PRIVATE ${SMC_CPP_OUTPUTS})
   else()
     warn_deprecated("process_smc(<var>)" NEW "process_smc(<library-target>)")
     set(${TARGET_OR_VAR} ${SMC_CPP_OUTPUTS} PARENT_SCOPE)

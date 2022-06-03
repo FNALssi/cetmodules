@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
 function(cet_register_export_set)
   cmake_parse_arguments(PARSE_ARGV 0 CRES
-    "SET_DEFAULT" "NAMESPACE;NAMESPACE_VAR;SET_NAME;SET_VAR" "")
+    "NO_REDEFINE;SET_DEFAULT" "NAMESPACE;NAMESPACE_VAR;SET_NAME;SET_VAR" "")
   project_variable(DEFAULT_EXPORT_SET TYPE BOOL NO_WARN_DUPLICATE
     DOCSTRING "\
 Default export set to use for targets installed by CET commands. \
@@ -32,11 +32,7 @@ Also used for determining namespace for local aliases\
   elseif (NOT CRES_SET_NAME STREQUAL EXPORT_SET)
     message(VERBOSE "export set name ${CRES_SET_NAME} -> ${EXPORT_SET} to avoid clashes")
   endif()
-  if ("${EXPORT_SET}" IN_LIST CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    if (CRES_NAMESPACE)
-      message(WARNING "attempt to set namespace for existing export set ${EXPORT_SET} (currently \"${CETMODULES_NAMESPACE_EXPORT_SET_${EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}\") ignored")
-    endif()
-  else()
+  if (NOT "${EXPORT_SET}" IN_LIST CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     if (NOT DEFINED CACHE{CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
       set(CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} "${EXPORT_SET}"
         CACHE INTERNAL "List of export sets for ${CETMODULES_CURRENT_PROJECT_NAME}")
@@ -58,6 +54,13 @@ Also used for determining namespace for local aliases\
     set(CETMODULES_NAMESPACE_EXPORT_SET_${EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
       ${CRES_NAMESPACE} CACHE INTERNAL
       "Namespace for export set ${EXPORT_SET} of project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  elseif (NOT CRES_NO_REDEFINE)
+    if (CRES_NAMESPACE)
+      message(WARNING "attempt to set namespace for existing export set ${EXPORT_SET} (currently \"${CETMODULES_NAMESPACE_EXPORT_SET_${EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}\") ignored")
+    endif()
+    message(VERBOSE "Lowering the dependency precedence of existing export set ${EXPORT_SET}")
+    set_property(CACHE CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      APPEND PROPERTY VALUE "${EXPORT_SET}")
   endif()
   if (CRES_SET_VAR)
     set(${CRES_SET_VAR} ${EXPORT_SET} PARENT_SCOPE)

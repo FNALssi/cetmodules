@@ -677,7 +677,7 @@ function(cet_export_alias)
     list(APPEND _cea_ALIAS ${_cea_UNPARSED_ARGUMENTS})
   endif()
   if (_cea_EXPORT_SET)
-    cet_register_export_set(SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace)
+    cet_register_export_set(SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE)
   endif()
   if (_cea_ALIAS_NAMESPACE)
     list(TRANSFORM _cea_ALIAS PREPEND ${_cea_ALIAS_NAMESPACE}::
@@ -712,6 +712,107 @@ function(cet_export_alias)
 endif()\
 ")
   endforeach()
+endfunction()
+
+#[============================================================[.rst:
+.. command:: cet_make_alias
+
+   Define an alias and optionally export it.
+
+   **Synopsis**
+     .. code-block:: cmake
+
+        cet_make_alias([<options>] <target>)
+
+   **Options**
+     .. _cet_export_alias_ALIAS:
+
+     ``EXPORT_SET <export-set>``
+       Aliased targets will be exported into ``<export-set>``, which
+       will be created if necessary with
+       :command:`cet_register_export_set` and an appropriate default
+       namespace based on ``<export-set>``. If you require a different
+       namespace than the default, call
+       :command:`cet_register_export_set` yourself prior to calling
+       :command:`cet_export_alias`.
+
+     ``NAME <name>``
+
+       Specify the alias as ``<name>``. If ``<name>`` is namespaced,
+       then it will not be exported, and the presence of ``EXPORT_SET``
+       is an error. Without ``NAME`` the alias will have the same root
+       name as ``<target>``.
+
+     ``NOP``
+       Optional separator between a list option and non-option
+       arguments; no other effect.
+
+  **Non-option arguments**
+    ``<target>``
+      Targets to be aliased.
+
+  .. note:: If no ``<export-set>`` is specified, the default export set
+     will be used.
+
+  .. seealso:: :command:`cet_register_export_set`,
+               :manual:`cmake-packages(7)
+               <cmake-ref-current:manual:cmake-packages(7)>`
+
+#]============================================================]
+function(cet_make_alias TARGET)
+  cmake_parse_arguments(PARSE_ARGV 1 _cma "NOP" "NAME;EXPORT_SET" "")
+  list(POP_FRONT _cma_UNPARSED_ARGUMENTS target_export_set)
+  set(export_namespace)
+  if (NOT "${_cma_EXPORT_SET}" STREQUAL "")
+    if (_cma_NAME MATCHES "::")
+      message(FATAL_ERROR "<name> cannot be namespace-scoped when <export_set> is specified")
+    endif()
+    cet_register_export_set(SET_NAME ${_cma_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE)
+  elseif (NOT _cma_NAME MATCHES "::")
+    cet_register_export_set(NAMESPACE_VAR export_namespace)
+  endif()
+  if ("${_cma_NAME}" STREQUAL "")
+    string(REGEX REPLACE "^.*::" "" _cma_NAME "${TARGET}")
+  endif()
+  set(primary_target)
+  set(current_target "${TARGET}")
+  while ("${primary_target}" STREQUAL "")
+    get_property(next_target TARGET "${current_target}" PROPERTY ALIASED_TARGET)
+    if ("${next_target}" STREQUAL "")
+      get_property(primary_target TARGET "${current_target}" PROPERTY EXPORT_NAME)
+      if ("${primary_target}" STREQUAL "")
+        set(primary_target "${current_target}")
+      endif()
+    else()
+      set(current_target "${next_target}")
+    endif()
+  endwhile()
+  if ("${target_export_set}" STREQUAL "")
+    foreach (export_set_candidate IN LISTS
+        ${CETMODULES_CURRENT_PROJECT_NAME}_DEFAULT_EXPORT_SET
+        CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+      if ("${primary_target}" IN_LIST
+          CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${export_set_candidate}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+        set(target_export_set "${export_set_candidate}")
+        break()
+      else()
+        message(STATUS "${export_set_candidate}: ${CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${export_set_candidate}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
+      endif()
+    endforeach()
+    if ("${target_export_set}" STREQUAL "")
+      message(FATAL_ERROR "cannot export an alias to a non-exported primary target (${primary_target})")
+    endif()
+  endif()
+  cet_register_export_set(NAMESPACE_VAR target_export_namespace ${target_export_set} NO_REDEFINE)
+
+  string(JOIN "::" export_alias ${export_namespace} ${_cma_NAME})
+  string(JOIN "::" export_target ${target_export_namespace} ${primary_target})
+  add_library(${export_alias} ALIAS ${current_target})
+  _cet_export_import_cmd(TARGETS ${export_alias} COMMANDS
+    "if (TARGET ${export_target})
+  add_library(${export_alias} ALIAS ${export_target})
+endif()\
+")
 endfunction()
 
 #[============================================================[.rst:

@@ -310,7 +310,7 @@ macro(cet_build_plugin NAME BASE)
     if (_cbp_cmd_name)
       unset(_cbp_cmd_name)
     elseif (DEFINED ${BASE}_LIBRARIES)
-      basic_plugin(${NAME} ${BASE} LIBRARIES ${ARGN} NOP ${${BASE}_LIBRARIES})
+      basic_plugin(${NAME} ${BASE} LIBRARIES ${${BASE}_LIBRARIES} ${ARGN})
     else()
       message(SEND_ERROR "unable to find plugin builder for plugin type \"${BASE}\": missing include()?
 Need ${BASE}(), ${BASE}_plugin() or dependencies in \${${BASE}_LIBRARIES}, or use basic_plugin()")
@@ -321,17 +321,22 @@ endmacro()
 # This macro will generate a CMake builder function for plugins of type
 # (e.g. inheriting from) TYPE.
 function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
-  cmake_parse_arguments(PARSE_ARGV 3 _cwpb "INSTALL_BUILDER" "" "")
+  cmake_parse_arguments(PARSE_ARGV 3 _cwpb "INSTALL_BUILDER;NOP" "SUFFIX" "")
   # Allow a layered hierarchy while preventing looping.
   if (TYPE STREQUAL BASE)
-    # Drop namespacing for final step.
-    string(REGEX REPLACE "^.*::" "" BASE_SUFFIX_ARG "${BASE}")
+    if ("${_cwpb_SUFFIX}" STREQUAL "")
+      string(REGEX REPLACE "^.*::" "" BASE_ARG "${BASE}")
+    else()
+      set(BASE_ARG "${_cwpb_SUFFIX}")
+    endif()
     set(build basic)
     set(extra_includes)
   else()
     set(build cet_build)
     set(extra_includes "include(${BASE})\n")
-    set(BASE_SUFFIX_ARG ${BASE})
+    if (DEFINED _cwpb_SUFFIX)
+      set(BASE_ARG ${BASE} SUFFIX ${_cwpb_SUFFIX})
+    endif()
   endif()
   file(WRITE
     "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
@@ -344,7 +349,7 @@ ${extra_includes}include(BasicPlugin)
 # Generate a CMake plugin builder macro for tools of type ${TYPE} for
 # automatic invocation by build_plugin().
 macro(${TYPE} NAME)
-  ${build}_plugin(\${NAME} ${BASE_SUFFIX_ARG} \${ARGN} ${_cwpb_UNPARSED_ARGUMENTS})
+  ${build}_plugin(\${NAME} ${BASE_ARG} \${ARGN} ${_cwpb_UNPARSED_ARGUMENTS})
 endmacro()
 \
 ")

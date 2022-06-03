@@ -52,14 +52,26 @@ endif()
 
 if (Smc_JAR)
   execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${Smc_JAR}"
-    --format=7zip -- "META-INF/MANIFEST.MF"
+    --format=7zip -- "META-INF"
     OUTPUT_QUIET ERROR_QUIET
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  execute_process(COMMAND sed -Ene
-    "s&^Implementation-Version:[[:space:]]+(.*)\$&\\1&p" --
-    "META-INF/MANIFEST.MF"
-    OUTPUT_VARIABLE Smc_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/META-INF/maven/net.sf.smc/library/pom.properties")
+    file(STRINGS
+      "${CMAKE_CURRENT_BINARY_DIR}/META-INF/maven/net.sf.smc/library/pom.properties"
+      _fp_smc_tmp
+      REGEX "^version=(.*)$")
+    if (_fp_smc_tmp MATCHES "^version=(.*)$")
+      set(Smc_VERSION "${CMAKE_MATCH_1}")
+    endif()
+  else()
+    file(STRINGS "${CMAKE_CURRENT_BINARY_DIR}/META-INF/MANIFEST.MF"
+      _fp_smc_tmp
+      REGEX "^Implementation-Version:[[:space:]]+(.*)$")
+    if (_fp_smc_tmp MATCHES "^Implementation-Version:[[:space:]]+(.*)$")
+      set(Smc_VERSION "${CMAKE_MATCH_1}")
+    endif()
+  endif()
+  unset(_fp_smc_tmp)
 endif()
 
 include(FindPackageHandleStandardArgs)

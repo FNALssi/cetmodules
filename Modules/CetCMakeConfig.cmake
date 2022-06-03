@@ -448,6 +448,10 @@ function(_generate_target_imports FRAG_LIST)
 # Exported targets, and package components.
 ####################################\
 ")
+    # Preserve only the latest-mentioned instance of any duplicates.
+    list(REVERSE CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    list(REMOVE_DUPLICATES CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    list(REVERSE CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     foreach (export_set IN LISTS CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
       if (CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${export_set}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
         # Generate and install target definition files (included by
@@ -660,12 +664,22 @@ endif()\
     # Remove duplicates.
     list(REMOVE_DUPLICATES transitive_deps)
     # Add to result.
-    list(PREPEND transitive_deps "\
+list(PREPEND transitive_deps "\
 ####################################
 # Transitive dependencies.
 ####################################
 set(_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR \"\${PACKAGE_PREFIX_DIR}\")\
 ")
+    if (EXISTS "${CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
+      cmake_path(GET CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+        FILENAME _cetmodules_pmm_module_filename)
+      list(PREPEND transitive_deps "\
+# Bootstrap PMM/CMakeCM (see https://github.com/vector-of-bool/pmm).
+include(\${CMAKE_CURRENT_LIST_DIR}/${_cetmodules_pmm_module_filename})
+pmm(CMakeCM ROLLING)
+\
+")
+    endif()
     list(APPEND transitive_deps "\
 set(PACKAGE_PREFIX_DIR \"\${_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR}\")
 unset(_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR)\
@@ -721,7 +735,7 @@ function(_install_package_config_files)
     # Needed by our templates.
     set(CVF_VERSION_INFO "${${CETMODULES_CURRENT_PROJECT_NAME}_VERSION_INFO}")
     configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
-      ParseVersionString.cmake COPYONLY)
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/ParseVersionString.cmake" COPYONLY)
     install(FILES "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ParseVersionString.cmake"
       DESTINATION "${distdir}")
   else()
@@ -758,6 +772,14 @@ function(_install_package_config_files)
 
   # Post-process manual target definitions in top-level Config file.
   _verify_transitive_dependencies("${CCC_WORKDIR}/${config}")
+
+  # Make sure the PMM Bootstrap module is available if we should need it.
+  if (EXISTS "${CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
+    configure_file("${CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}"
+      "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/" COPYONLY)
+    install(FILES "${CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}"
+      DESTINATION "${distdir}")
+  endif()
 
   # Install top level config files.
   install(FILES
