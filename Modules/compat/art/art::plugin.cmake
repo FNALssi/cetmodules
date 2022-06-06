@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 3.18.2...3.22 FATAL_ERROR)
 
 include(BasicPlugin)
 
-function(art::plugin NAME)
-  cmake_parse_arguments(PARSE_ARGV 1 _ap "" "SUFFIX" "")
+macro(art::plugin NAME)
+  cmake_parse_arguments(_ap "" "SUFFIX" "" ${ARGN})
   if (TARGET art_plugin_support::plugin_config_macros)
     set(_art_plugin_deps LIBRARIES REG
       art_plugin_support::plugin_config_macros
@@ -28,4 +28,4 @@ function(art::plugin NAME)
   endif()
   basic_plugin(${NAME} ${_ap_SUFFIX} ${_ap_UNPARSED_ARGUMENTS} ${_art_plugin_deps})
   unset(_art_plugin_deps)
-endfunction()
+endmacro()
