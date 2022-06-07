@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 # META-INF/MANIFEST.MF file inside the JAR file, which is just a zip
 # file. In the case of Smc, this version is 6.0.1 for at least Smc
 # versions 6.1.0 and 6.6.0 that we know of.
-find_package(Smc 6.0.1 REQUIRED PUBLIC)
+find_package(Smc 6.0.1 REQUIRED EXPORT)
 
 function(process_smc TARGET_OR_VAR)
   cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL" "OUTPUT_DIR" "")

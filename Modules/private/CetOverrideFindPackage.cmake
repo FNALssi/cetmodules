@@ -58,7 +58,7 @@ X
 #   execution in the order they were encountered. find_package() will
 #   minimize duplication of effort internally.
 #
-# * From the point of view of find_package(), INTERFACE AND PUBLIC
+# * From the point of view of find_package(), INTERFACE AND EXPORT
 #   are identical: a find_package() call will be executed either way in
 #   order to ensure that targets, etc., are known to CMake at the
 #   appropriate time.

@@ -298,11 +298,12 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     endif()
     # Deal with aliases to primary target.
     foreach (alias IN LISTS CML_ALIAS extra_alias)
-      add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
+      if (CML_NO_INSTALL OR CML_NO_EXPORT)
+        add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
+      else()
+        cet_make_alias(NAME ${alias} EXPORT_SET ${CML_EXPORT_SET}
+          TARGET ${CML_TARGET_NAME} TARGET_EXPORT_SET ${CML_EXPORT_SET})
+      endif()
     endforeach()
-    if (NOT (CML_NO_INSTALL OR CML_NO_EXPORT))
-      cet_export_alias(ALIAS_NAMESPACE ${namespace}
-        EXPORT_SET ${CME_EXPORT_SET} ALIAS ${CML_ALIAS} ${extra_alias})
-    endif()
   endif()
 endfunction()

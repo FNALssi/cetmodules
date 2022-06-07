@@ -336,6 +336,8 @@ function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
     set(extra_includes "include(${BASE})\n")
     if (DEFINED _cwpb_SUFFIX)
       set(BASE_ARG ${BASE} SUFFIX ${_cwpb_SUFFIX})
+    else()
+      set(BASE_ARG ${BASE})
     endif()
   endif()
   file(WRITE
