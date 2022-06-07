@@ -12,15 +12,19 @@ endif()
 
 project_variable(SPHINX_DOC_PUBLISH_ROOT TYPE PATH
   DOCSTRING "destination directory for published HTML documentation"
-  )
+)
 
 project_variable(SPHINX_DOC_PUBLISH_OLD_RELEASE TYPE BOOL
   DOCSTRING "force overwrite of published documentation for a newer release of the same version"
-  )
+)
 
 project_variable(SPHINX_DOC_PUBLISH_FORCE_NUMERIC TYPE BOOL
   DOCSTRING "force use of version rather than branch even if we're in a git repository"
-  )
+)
+
+project_variable(SPHINX_DOC_PUBLISH_VERSION_BRANCH TYPE STRING
+  DOCSTRING "specify branch name to be used in PROJ_VERSION (when applicable) instead of using git branch --show-current"
+)
 
 # Define information for substitution in conf.py.in.
 set(PROJ_AUTHORS "Lynn Garren" "Patrick Gartung" "Chris Green" "scisoft-team <scisoft-team@fnal.gov>")
@@ -35,12 +39,16 @@ if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_FORCE_NUMERIC
   set(PROJ_VERSION ${CETMODULES_CURRENT_PROJECT_VERSION_MAJOR}.${CETMODULES_CURRENT_PROJECT_VERSION_MINOR})
   set(PROJ_RELEASE ${CETMODULES_CURRENT_PROJECT_VERSION})
 else()
-  # Try to get the current branch for the version.
-  execute_process(COMMAND git branch --show-current
-    COMMAND_ERROR_IS_FATAL ANY
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    OUTPUT_VARIABLE current_branch
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_VERSION_BRANCH)
+    set(current_branch "${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_VERSION_BRANCH}")
+  else()
+    # Try to get the current branch for the version.
+    execute_process(COMMAND git branch --show-current
+      COMMAND_ERROR_IS_FATAL ANY
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      OUTPUT_VARIABLE current_branch
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
   set(PROJ_VERSION "git-${current_branch}")
   # Try to get the current commit for the release.
   execute_process(COMMAND git rev-parse --short HEAD
