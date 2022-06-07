@@ -420,6 +420,8 @@ endfunction()
 
 #]================================================================]
 function(cet_find_simple_package NAME)
+  warn_deprecated("cet_find_simple_package()" NEW
+    "find_package() with custom Find module where appropriate")
   cmake_parse_arguments(PARSE_ARGV 1 CFSP
     ""
     "INCPATH_VAR;LIB_VAR"
@@ -674,6 +676,7 @@ endfunction()
 
 #]============================================================]
 function(cet_export_alias)
+  warn_deprecated("cet_export_alias()" NEW "cet_make_alias()")
   cmake_parse_arguments(PARSE_ARGV 0 _cea "NOP" "ALIAS_NAMESPACE;EXPORT_SET" "ALIAS")
   set(default_export_namespace)
   set(export_namespace)
