@@ -52,7 +52,7 @@ function(_cet_find_absolute_transitive_dependencies
       set(_stp_targets_word "targets")
     endif()
     # Error out on this export set.
-    message(FATAL_ERROR "Found ${_stp_failed_targets} ${_stp_targets_word} with absolute dependencies in ${_cet_target_file_name}:\n${_stp_failed_targets_msg}Write a Find module and/or use find_package(... PUBLIC) instead of find_library(). If certain paths must be ignored (because they are expected to be found on the system, for example), set project variable IGNORE_ABSOLULTE_DEPENDENCIES_REGEX for this project. To permit absolute paths in transitive dependencies unconditionally, set the boolean project variable IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES.")
+    message(FATAL_ERROR "Found ${_stp_failed_targets} ${_stp_targets_word} with absolute dependencies in ${_cet_target_file_name}:\n${_stp_failed_targets_msg}Write a Find module and/or use find_package(... EXPORT) instead of find_library(). If certain paths must be ignored (because they are expected to be found on the system, for example), set project variable IGNORE_ABSOLULTE_DEPENDENCIES_REGEX for this project. To permit absolute paths in transitive dependencies unconditionally, set the boolean project variable IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES.")
   endif()
 endfunction()
 

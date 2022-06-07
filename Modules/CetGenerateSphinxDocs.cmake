@@ -23,7 +23,7 @@ function(cet_generate_sphinx_docs)
     DOCSTRING "Location of installed Sphinx-generated documentation for ${CETMODULES_CURRENT_PROJECT_NAME}")
 
   # Require sphinx-doc.
-  find_package(sphinx-doc 3.0 PRIVATE QUIET REQUIRED)
+  find_package(sphinx-doc 3.0 QUIET REQUIRED)
 
   # Parse arguments.
   set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_DELETE_OUTPUT_DIR NO_INSTALL QUIET VERBOSE)

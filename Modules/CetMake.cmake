@@ -219,7 +219,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     PRIVATE ${CME_LOCAL_INCLUDE_DIRS})
   # Handle Boost unit test framework.
   if (CME_USE_BOOST_UNIT)
-    find_package(Boost PRIVATE QUIET COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost QUIET COMPONENTS unit_test_framework REQUIRED)
     if (TARGET Boost::unit_test_framework AND Boost_VERSION VERSION_GREATER_EQUAL 1.70.0)
       target_link_libraries(${CME_NAME} PRIVATE Boost::unit_test_framework)
       # Belt and braces (cf historical bug in fhiclcpp tests).
@@ -233,7 +233,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   endif()
   # Handle request for Catch2 main.
   if (CME_USE_CATCH2_MAIN)
-    find_package(Catch2 PRIVATE QUIET REQUIRED)
+    find_package(Catch2 QUIET REQUIRED)
     if (NOT TARGET Catch2_main)
       cet_localize_pv(cetmodules CATCH2_MAIN)
       get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)

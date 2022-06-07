@@ -9,13 +9,12 @@ include(Compatibility)
 macro(cet_find_package)
   warn_deprecated(cet_find_package
     "\nNOTE: use find_package() (overridden by cetmodules)")
-  if (NOT "${ARGV}" MATCHES "(^|;)(BUILD_ONLY|INTERFACE|PRIVATE|PUBLIC)(;|$)")
-    # Backwards compatibility: cet_find_package() defaulted to PUBLIC;
-    # find_package defaults to PRIVATE.
-    set(_cet_cfp_public PUBLIC)
+  if (NOT "${ARGV}" MATCHES "(^|;)(BUILD_ONLY|INTERFACE|PRIVATE|PUBLIC|EXPORT)(;|$)")
+    # Backwards compatibility: cet_find_package() defaulted to EXPORT.
+    set(_cet_cfp_export EXPORT)
   else()
-    unset(_cet_cfp_public)
+    unset(_cet_cfp_export)
   endif()
-  find_package(${ARGV} ${_cet_cfp_public})
+  find_package(${ARGV} ${_cet_cfp_export})
 endmacro()
 
