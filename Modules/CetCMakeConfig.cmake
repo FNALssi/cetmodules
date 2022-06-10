@@ -662,7 +662,7 @@ endif()\
   endforeach()
   if (transitive_deps)
     # Remove duplicates.
-    list(REMOVE_DUPLICATES transitive_deps)
+    _trim_tdeps(transitive_deps)
     # Add to result.
 list(PREPEND transitive_deps "\
 ####################################
@@ -842,4 +842,68 @@ function(_targets_for RESULTS_VAR)
   else()
     unset(${RESULTS_VAR} PARENT_SCOPE)
   endif()
+endfunction()
+
+# Remove redundant transitive dependency find*() calls without
+# disturbing the order of components, etc.
+#
+# Also preserve intent of REQUIRED / non-QUIET with respect to
+# identified redundant calls.
+function(_trim_tdeps TDEPS_VAR)
+  set(idx -1)
+  set(nqidx)
+  set(ridx)
+  set(tdeps_remove_idx)
+  set(tdeps_new)
+  foreach (line IN LISTS ${TDEPS_VAR})
+    math(EXPR idx "${idx} + 1")
+    if (line MATCHES "^[ \t]*([A-Za-z_][A-Za-z0-9_-]*)[ \t]*\\((.*)\\)$")
+      set(call ${CMAKE_MATCH_1})
+      if (NOT call STREQUAL "set")
+        set(not_quiet)
+        set(required)
+        string(REPLACE " " ";" args "${CMAKE_MATCH_2}")
+        if (NOT "QUIET" IN_LIST args)
+          set(not_quiet TRUE)
+        endif()
+        if ("REQUIRED" IN_LIST args)
+          set(required TRUE)
+        endif()
+        list(FILTER args EXCLUDE REGEX "^(QUIET|REQUIRED)$")
+        list(SORT args)
+        string(REPLACE ";" " " args "${args}")
+        list(FIND tdeps_derived "${call}: ${args}" orig_idx)
+        if (orig_idx GREATER -1)
+          if (not_quiet)
+            list(APPEND nqidx ${orig_idx})
+          endif()
+          if (required)
+            list(APPEND ridx ${orig_idx})
+          endif()
+          list(APPEND tdeps_remove_idx ${idx})
+        else()
+          list(APPEND tdeps_derived "${call}: ${args}")
+          continue()
+        endif()
+      endif()
+    endif()
+    list(APPEND tdeps_derived "") # Preserve index correspondence.
+  endforeach()
+  # Second pass
+  set(idx -1)
+  foreach (line IN LISTS ${TDEPS_VAR})
+    math(EXPR idx "${idx} + 1")
+    if (idx IN_LIST ridx)
+      # Add REQUIRED because a redundant call had it.
+      string(REGEX REPLACE "^([^)]+)(\\).*)$" "\\1 REQUIRED\\2" line "${line}")
+    endif()
+    if (idx IN_LIST nqidx)
+      # Remove QUIET because a redundant call had it.
+      string(REGEX REPLACE " ?QUIET ?" " " line "${line}")
+    endif()
+    if (NOT idx IN_LIST tdeps_remove_idx)
+      list(APPEND tdeps_new "${line}")
+    endif()
+  endforeach()
+  set(${TDEPS_VAR} "${tdeps_new}" PARENT_SCOPE)
 endfunction()
