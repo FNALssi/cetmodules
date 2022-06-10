@@ -810,9 +810,10 @@ function(cet_make_alias)
           list(APPEND _cma_TARGET_EXPORT_SET "${export_set_candidate}")
         endif()
       endforeach()
+      list(REMOVE_DUPLICATES _cma_TARGET_EXPORT_SET)
       if ("${_cma_TARGET_EXPORT_SET}" STREQUAL "")
         message(FATAL_ERROR "cannot export an alias to a non-exported primary target (${primary_target})")
-      elseif (_cma_TARGET_EXPORT_SET MATCHES ;)
+      elseif ("${_cma_TARGET_EXPORT_SET}" MATCHES ";")
         message(FATAL_ERROR "ambiguity: primary target ${primary_target} (resolved from ${_cma_TARGET}) \
 found in multiple export sets: ${_cma_TARGET_EXPORT_SET} - use _CMA_TARGET_EXPORT_SET to resolve ambiguity\
 ")

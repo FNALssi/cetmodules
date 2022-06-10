@@ -66,8 +66,8 @@ if (Smc_JAR)
   else()
     file(STRINGS "${CMAKE_CURRENT_BINARY_DIR}/META-INF/MANIFEST.MF"
       _fp_smc_tmp
-      REGEX "^Implementation-Version:[[:space:]]+(.*)$")
-    if (_fp_smc_tmp MATCHES "^Implementation-Version:[[:space:]]+(.*)$")
+      REGEX "^Implementation-Version:[ \t]+(.*)$")
+    if (_fp_smc_tmp MATCHES "^Implementation-Version:[ \t]+(.*)$")
       set(Smc_VERSION "${CMAKE_MATCH_1}")
     endif()
   endif()
