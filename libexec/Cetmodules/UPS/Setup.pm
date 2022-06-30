@@ -683,7 +683,7 @@ $_cqual_table =
       'clang',    'clang++', 'Clang', '7.0.0', '17',     #
       'gfortran', 'GNU',     '8.2.0'
           ],
-    c13 => [
+    c14 => [
       'clang',    'clang++', 'Clang', '14.0.6', '17',    #
       'gfortran', 'GNU',     '12.1.0'
            ],
