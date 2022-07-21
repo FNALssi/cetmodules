@@ -61,35 +61,33 @@ sub interpolated {
   my @separated = (scalar @args > 1) ? @args : separate_quotes(@args);
   my ($interpolated_string, $is_literal);
 
-  if (defined @separated) {
-    if (scalar @separated > 1) {
-      local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
-      $interpolated_string = $separated[1];
-      given ($separated[0]) {
-        when (q(")) { # double-quoted
-          $interpolated_string =~ s&$_not_escape\\\n&\k<not_escape>&msgx; # line continuation
-        }
-        default {                                                         # bracket-quoted
-          $interpolated_string =~ m&\A(?>\n?)(.*)\z&msx;
-          return wantarray ? ($interpolated_string, 1) : $interpolated_string;
-        }
-      } ## end given
-    } else {
-      $interpolated_string = $separated[0] || q();
-    }
+  if (@separated and scalar @separated > 1) {
+    local $_; ## no critic qw(Variables::RequireInitializationForLocalVars)
+    $interpolated_string = $separated[1];
+    given ($separated[0]) {
+      when (q(")) { # double-quoted
+        $interpolated_string =~ s&$_not_escape\\\n&\k<not_escape>&msgx; # line continuation
+      }
+      default {                                                         # bracket-quoted
+        $interpolated_string =~ m&\A(?>\n?)(.*)\z&msx;
+        return wantarray ? ($interpolated_string, 1) : $interpolated_string;
+      }
+    } ## end given
+  } else {
+    $interpolated_string = $separated[0] || q();
+  } ## end if (@separated and scalar @separated > 1)
 
-    if (can_interpolate($interpolated_string)) {
-      ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
-      $interpolated_string =~ s&$_not_escape\\t&\k<not_escape>\t&msgx; # tab
-      $interpolated_string =~ s&$_not_escape\\r&\k<not_escape>\r&msgx; # carriage return
-      $interpolated_string =~ s&$_not_escape\\n&\k<not_escape>\n&msgx; # newline
-      $interpolated_string =~                                          # "identity" escape sequences: \X -> X
+  if (can_interpolate($interpolated_string)) {
+    ## no critic qw(RegularExpressions::ProhibitUnusedCapture)
+    $interpolated_string =~ s&$_not_escape\\t&\k<not_escape>\t&msgx; # tab
+    $interpolated_string =~ s&$_not_escape\\r&\k<not_escape>\r&msgx; # carriage return
+    $interpolated_string =~ s&$_not_escape\\n&\k<not_escape>\n&msgx; # newline
+    $interpolated_string =~                                          # "identity" escape sequences: \X -> X
 s&$_not_escape\\(?P<identity>[^A-Za-z0-9_\$\\}{<])&\k<not_escape>\k<identity>&msgx;
-      $interpolated_string =~                                          # remaining identity escape sequences
+    $interpolated_string =~                                          # remaining identity escape sequences
 s&$_not_escape\\(?P<identity>[\$\\}{<])&\k<not_escape>\k<identity>&msgx;
-      $is_literal = 1;
-    } ## end if (can_interpolate($interpolated_string...))
-  } ## end if (defined @separated)
+    $is_literal = 1;
+  } ## end if (can_interpolate($interpolated_string...))
   return
     wantarray ? ($interpolated_string, $is_literal) : $interpolated_string;
 } ## end sub interpolated

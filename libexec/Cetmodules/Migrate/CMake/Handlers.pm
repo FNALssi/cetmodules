@@ -1336,7 +1336,7 @@ sub _find_package_keywords {
   my $result;
 
   if ($types->{cmake} or $types->{all}) {
-    if (not defined @_cmake_fp_kw) {
+    if (not @_cmake_fp_kw) {
       my $kw_in   = {};
       my $kw_pipe = IO::File->new(<<'EOF')
 cmake --help-command find_package | sed -E -n -e '/((Basic|Full) Signature( and Module Mode)?|signature is)$/,/\)$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\n&g; s&[^A-Z_\n]&\n&g; /^[A-Z_]{2,}(\n|$)/ ! D; P; D }' |
@@ -1352,7 +1352,7 @@ EOF
       } ## end while (my $line = <$kw_pipe>)
       $kw_pipe->close();
       @_cmake_fp_kw = sort keys %{$kw_in};
-    } ## end if (not defined @_cmake_fp_kw)
+    } ## end if (not @_cmake_fp_kw)
     @{$result}{@_cmake_fp_kw} = (1) x scalar @_cmake_fp_kw;
   } ## end if ($types->{cmake} or...)
 
