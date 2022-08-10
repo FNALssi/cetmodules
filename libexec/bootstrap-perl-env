@@ -114,6 +114,12 @@ install_dev_prereqs() (
   local files=($("${ack_cmd[@]}" ${source_base[*]:+"${source_base[@]/%//}"}))
   IFS="$OIFS"
   install_modules_for ${files[*]:+"${files[@]}"}
+  if (( ${#needed_modules[@]} )); then
+    local OIFS="$IFS"
+    local IFS=$'\n'
+    echo "${needed_modules[*]}" > perl-prereqs-test.txt
+    IFS="$OIFS"
+  fi
 )
 
 install_dev_tools() (
@@ -129,13 +135,13 @@ install_dist_tools() {
   cpan_install YAML CPAN::SQLite || return
   cpan_install Log::Log4perl ExtUtils::CBuilder \
                Term::ReadLine::Perl CPAN \
-               CPANPLUS Module::ScanDeps App::pmuninstall App::Ack || return
+               CPANPLUS MetaCPAN::Client Module::ScanDeps App::pmuninstall App::Ack || return
   cpan_install local::lib
 }
 
 install_modules_for() {
   # Install/upgrade prerequisites for given Perl modules.
-  local needed_modules=($(needed_modules "$@")) || return
+  needed_modules=($(needed_modules "$@")) || return
   (( ${#needed_modules[@]} == 0 )) || cpan_install "${needed_modules[@]}"
 }
 
@@ -146,6 +152,12 @@ install_prereqs() {
   local files=($("${ack_cmd[@]}" -v ${source_base[*]:+"${source_base[@]/%//}"}))
   IFS="$OIFS"
   install_modules_for ${files[*]:+"${files[@]}"}
+  if (( ${#needed_modules[@]} )); then
+    local OIFS="$IFS"
+    local IFS=$'\n'
+    echo "${needed_modules[*]}" > perl-prereqs.txt
+    IFS="$OIFS"
+  fi
 }
 
 needed_modules() {

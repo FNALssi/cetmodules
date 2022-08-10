@@ -1,0 +1,494 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use 5.010;
+
+use Data::Dumper;
+use File::Basename qw(dirname);
+use File::Copy qw();
+use List::Util qw();
+use List::MoreUtils qw();
+use MetaCPAN::Client;
+
+my $cpan_data = { };
+my $spack_packages = { };
+my $spack_names = { };
+
+my $mcpan = MetaCPAN::Client->new;
+
+my $repo = "$ENV{SPACK_ROOT}/var/spack/repos/builtin";
+
+my $dist_extra_provides =
+  {
+#   'PPIx-Utilities' => [ qw(PPIx::Utilities::Statement) ]
+  };
+
+my $module_dist_mapping =
+  [
+#   { pattern => qr&PPIx::Utilities&smx, dist => 'PPIx-Utils' }
+  ];
+
+my $recipe_exclude_list =
+  [ qw(
+        perl-app-cpanminus
+        perl-app-fatpacker
+        perl-archive-tar
+        perl-autodie
+        perl-base
+        perl-carp
+        perl-constant
+        perl-cpan-meta
+        perl-cpan-meta-requirements
+        perl-cpan-yaml
+        perl-digest
+        perl-digest-sha
+        perl-encode
+        perl-env
+        perl-exporter
+        perl-extutils-cbuilder
+        perl-extutils-constant
+        perl-extutils-install
+        perl-file-path
+        perl-file-temp
+        perl-findbin
+        perl-getopt-long
+        perl-if
+        perl-io
+        perl-io-socket
+        perl-ipc-cmd
+        perl-json-pp
+        perl-lib
+        perl-libnet
+        perl-mime-base64
+        perl-parent
+        perl-pathtools
+        perl-pod-escapes
+        perl-pod-parser
+        perl-pod-perldoc
+        perl-pod-simple
+        perl-pod-usage
+        perl-podlators
+        perl-socket
+        perl-storable
+        perl-term-ansicolor
+        perl-test
+        perl-test-simple
+        perl-text-parsewords
+        perl-text-tabs
+        perl-text-wrap
+        perl-xsloader
+     ) ];
+
+my $recipe_exclude_deps =
+  { 'perl-data-dumper' => [ 'perl-extutils-makemaker' ] };
+
+my $recipe_extra_deps =
+  {
+   'perl-file-pathlist' =>
+   { 'perl-module-install' => [ { module => 'Module::Install', phase => 'build', relationship => 'requires' } ] },
+   'perl-perlio-utf8-strict' =>
+   { 'perl-module-build' => [ { module => 'Module::Build', phase => 'build', relationship => 'requires' } ] },
+   'perl-task-weaken' =>
+   { 'perl-module-install' => [ { module => 'Module::Install', phase => 'build', relationship => 'requires' } ] }
+  };
+
+my $skip_modules =
+  [ qw(
+        Amiga::ARexx
+        Amiga::ARexx::Msg
+        Amiga::Exec
+        AnyDBM_File
+        B
+        B::Concise
+        B::Deparse
+        B::OBJECT
+        B::Op_private
+        B::Showlex
+        B::Terse
+        B::Xref
+        Benchmark
+        Class::Struct
+        Class::Struct::Tie_ISA
+        Config
+        Config::Extensions
+        DBM_Filter
+        DBM_Filter::compress
+        DBM_Filter::encode
+        DBM_Filter::int32
+        DBM_Filter::null
+        DBM_Filter::utf8
+        Devel::Peek
+        DirHandle
+        English
+        Errno
+        ExtUtils::Embed
+        ExtUtils::Miniperl
+        ExtUtils::XSSymSet
+        Fcntl
+        File::Basename
+        File::Compare
+        File::Copy
+        File::DosGlob
+        File::Find
+        File::Glob
+        File::stat
+        FileCache
+        FileHandle
+        GDBM_File
+        Getopt::Std
+        GitUtils
+        Haiku
+        Hash::Util
+        Hash::Util::FieldHash
+        I18N::LangTags
+        I18N::LangTags::Detect
+        I18N::LangTags::List
+        I18N::Langinfo
+        IPC::Open2
+        IPC::Open3
+        NDBM_File
+        Net::hostent
+        Net::netent
+        Net::protoent
+        Net::servent
+        O
+        ODBM_File
+        OS2::DLL
+        OS2::DLL::dll
+        OS2::ExtAttr
+        OS2::PrfDB
+        OS2::PrfDB::Hini
+        OS2::PrfDB::Sub
+        OS2::Process
+        OS2::REXX
+        OS2::REXX::_ARRAY
+        OS2::REXX::_HASH
+        OS2::REXX::_SCALAR
+        OS2::localMorphPM
+        Opcode
+        POSIX
+        POSIX::SigAction
+        POSIX::SigRt
+        POSIX::SigSet
+        PerlIO
+        PerlIO::encoding
+        PerlIO::mmap
+        PerlIO::scalar
+        PerlIO::via
+        Pod::Html
+        Pod::Html::Util
+        Pod::Simple::XHTML::LocalPodLinks
+        SDBM_File
+        SelectSaver
+        Symbol
+        Sys::Hostname
+        Thread
+        Tie::Array
+        Tie::ExtraHash
+        Tie::Handle
+        Tie::Hash
+        Tie::Hash::NamedCapture
+        Tie::Memoize
+        Tie::Scalar
+        Tie::StdArray
+        Tie::StdHandle
+        Tie::StdHash
+        Tie::StdScalar
+        Tie::SubstrHash
+        Time::gmtime
+        Time::localtime
+        Time::tm
+        UNIVERSAL
+        Unicode::UCD
+        User::grent
+        User::pwent
+        VMS::DCLsym
+        VMS::Filespec
+        VMS::Stdio
+        Win32CORE
+        XS::APItest
+        XS::Typemap
+        attributes
+        blib
+        builtin
+        bytes
+        charnames
+        deprecate
+        diagnostics
+        feature
+        filetest
+        integer
+        less
+        locale
+        mro
+        open
+        ops
+        overload
+        overload::numbers
+        overloading
+        re
+        sigtrap
+        sort
+        strict
+        subs
+        utf8
+        vars
+        vmsish
+        warnings
+        warnings::register
+     ) ];
+
+
+foreach my $mname (@ARGV) {
+  process_module($mname);
+}
+
+1;
+
+sub create_recipe {
+  my ($spack_name) = @_;
+  if (not exists $spack_packages->{$spack_name}) {
+    die "no data from which to create a Spack recipe for $spack_name";
+  }
+  my $sdata = $spack_packages->{$spack_name};
+  say "creating/editing recipe for Perl package $spack_name";
+  my $cmd =
+    [ qw(spack create --skip-edit --limit 2),
+      "--name", $spack_name, "--repo", $repo, $sdata->{url} ];
+  -f "$repo/packages/$spack_name/package.py"
+    or system (@{$cmd}) == 0
+    or die "unable to create recipe $spack_name in $repo";
+  customize_recipe($spack_name);
+  return;
+}
+
+
+sub customize_recipe {
+  my ($spack_name) = @_;
+  local $::_;
+  my $spack_data = $spack_packages->{$spack_name};
+  my $recipe_file = "$repo/packages/$spack_name/package.py";
+  my $recipe_out;
+  my $fh_in = IO::File->new($recipe_file, q(<))
+    or die "could not open recipe $recipe_file for read";
+  my $fh_out = IO::File->new("$recipe_file.new", q(>))
+    or die "could not open $recipe_file.new for write";
+  my ($configure_clause, $done_deps, $indent, $in_boilerplate,
+      $in_configure_args, $in_defs, $in_fixme, $seen_version, $waiting);
+  while (<$fh_in>) {
+    $_ eq "# ----------------------------------------------------------------------------\n"
+      and $in_boilerplate = 1;
+    if ($in_boilerplate) {
+      m&\A$&msx and undef $in_boilerplate;
+      next;
+    }
+    if (not defined $indent) {
+      m&\A(\s*)(?:(?:homepage|url|maintainers)\s*=|(?:version|depends_on)\s*\()&msx
+        and $indent = $1;
+    }
+    m&\A\s*def\s+configure_args\s*\(&msx and $in_configure_args = 1;
+    if ($in_configure_args) {
+      $configure_clause="$configure_clause$_";
+      if (m&\A$&msx) {
+        if ($waiting) {
+          undef $waiting;
+          undef $in_configure_args;
+          $configure_clause =~ m&^\s*#\s*FIXME: Add non-standard arguments&
+            or print $fh_out $configure_clause;
+          undef $configure_clause;
+        } else {
+          $waiting = 1;
+        }
+      }
+      next;
+    }
+    s&FIXME:.*here(\.""")&$spack_data->{description}$1  # AUTO-CPAN2Spack&msxi;
+    m&\A\s*\#\ FIXME:&msx and $in_fixme = 1;
+    s&(\A(\s*)homepage\s*=\s*)["']https://www\.example\.com.*?$&$1"$spack_data->{homepage}"  # AUTO-CPAN2Spack&msx;
+    if (m&\A(\s*)(?:\#\s*)?maintainers\s*=&msx) {
+      $_ = qq($1maintainers = ["chissg", "gartung", "marcmengel", "vitodb"]  # AUTO-CPAN2Spack\n);
+    } elsif (m&\A(\s*)\#\s*depends_on\s*\(&msx) {
+      if (not $done_deps) {
+        package_deps_provides($spack_data, $fh_out, $indent);
+        $done_deps = 1;
+      }
+      next;
+    } elsif (m&\A(\s*)def\b&msx) {
+      $in_defs = 1;
+      if (not $done_deps) {
+        package_deps_provides($spack_data, $fh_out, $indent);
+        $done_deps = 1;
+      }
+    }
+    m&\A\s*\#&msx or undef $in_fixme;
+    $in_fixme || m&\b(?:depends_on|provides)\(.*?\ \ \#\ AUTO-CPAN2Spack&msx and next;
+    print $fh_out $_;
+  }
+  $fh_in->close();
+  if (not $done_deps) {
+    package_deps_provides($spack_data, $fh_out, $indent);
+  }
+  $fh_out->close();
+  File::Copy::move("$recipe_file.new", $recipe_file) or
+      die "unable to move $recipe_file.new to $recipe_file";
+}
+
+
+sub dist_name_for {
+  my ($mname, $module) = @_;
+  if (my $dist = List::Util::first { $mname =~ $_->{pattern}; } @{$module_dist_mapping}) {
+    return $dist->{dist};
+  } else {
+    return $module->distribution;
+  }
+}
+
+
+sub package_deps_provides {
+  my ($spack_data, $fh_out, $indent) = @_;
+  my $dep_data = { };
+  while (my ($dep_pkg, $dep_list) = each %{$spack_data->{dependency} || {}}) {
+    foreach my $dep (@{$dep_list}) {
+      my $dep_phase;
+      given ($dep->{phase}) {
+        when ('configure') {
+          $dep_phase = 'build';
+        }
+        when ('runtime') {
+          $dep_phase = 'run';
+        }
+        when (q()) { }
+        default { $dep_phase = $_; }
+      }
+      if (version_greater($dep->{version} // 0, $dep_data->{$dep_pkg}->{$dep_phase} // -1)) {
+        $dep_data->{$dep_pkg}->{$dep_phase} = $dep->{version} // 0;
+        $dep_data->{$dep_pkg}->{$dep_phase} =~ s&\Av&&msx;
+      }
+    }
+  }
+  foreach my $prov (sort keys %{$spack_data->{provides}}) {
+    -f sprintf("$repo/packages/%s/package.py", $spack_data->{provides}->{$prov}->{spack_name})
+      and warn("recipe for virtual package $spack_data->{provides}->{$prov}->{spack_name} already exists");
+    printf $fh_out
+      "${indent}provides(\"%s%s\")  # AUTO-CPAN2Spack\n",
+      $spack_data->{provides}->{$prov}->{spack_name},
+      ($spack_data->{provides}->{$prov}->{version}
+       and $spack_data->{provides}->{$prov}->{version} ne $spack_data->{version})
+      ? sprintf('@%s', $spack_data->{provides}->{$prov}->{version})
+      : '';
+  }
+  foreach my $spack_name (keys $dep_data) {
+    my $versions = { };
+    foreach my $phase (keys %{$dep_data->{$spack_name}}) {
+      push @{$versions->{$dep_data->{$spack_name}->{$phase}}}, $phase;
+    }
+    foreach my $version (keys %{$versions}) {
+      my @phases = @{$versions->{$version}};
+      $version =~ s&(\.\d{3})(?=.)&$1.&gmsx;
+      $version =~ s&\.0+([0-9]++)&.$1&gmsx;
+      printf $fh_out
+        "${indent}depends_on(\"%s%s\"%s)  # AUTO-CPAN2Spack\n",
+        $spack_name,
+        $version ? "\@$version:" : '',
+        @phases ? sprintf(', type=%s', (@phases > 1) ? sprintf('(%s)', join(', ',  map { qq("$_"); } sort @phases)) : qq("$phases[0]")) : q();
+    }
+  }
+  return;
+}
+
+
+sub process_distro_for {
+  my ($mname, $dist_name, $breadcrumbs) = @_;
+  exists $cpan_data->{distros}->{$dist_name} and return;
+  my $dist = $cpan_data->{distros}->{$dist_name} =
+    eval { $mcpan->release($dist_name) };
+  $@ and die "no CPAN release data for $dist_name: $@";
+  my $spack_name = spack_name($dist_name);
+  my $provides= {};
+  foreach my $prov (@{$dist->provides}, @{$dist_extra_provides->{$dist_name} || []}) {
+    process_module($prov, $breadcrumbs) or next;
+    for my $prov_mod (@{$cpan_data->{modules}->{$prov}->{data}->{module}}) {
+      my $prov_spack_name = spack_name($prov_mod->{name});
+      $prov_spack_name eq $spack_name and next;
+      $provides->{$prov_mod->{name}} = { spack_name => $prov_spack_name, version => $prov_mod->{version} };
+    }
+  }
+  my $no_recipe = List::MoreUtils::any { $spack_name eq $_; } @{$recipe_exclude_list};
+  $spack_packages->{$spack_name} =
+    {
+     spack_name => $spack_name,
+     version => $dist->{data}->{version},
+     url => $dist->download_url,
+     homepage => $dist->resources->{homepage} || dirname($dist->download_url),
+     description => ucfirst $dist->abstract,
+     $provides ? (provides => $provides) : (),
+     $no_recipe ? (no_recipe => 1) : ()
+    };
+  if ($no_recipe) {
+    say "no recipe for $dist_name ($spack_name): no_recipe => 1";
+    return;
+  }
+  foreach my $dep (@{$dist->dependency}) {
+    my $dep_info = { %{$dep} };
+    $dep_info->{phase} =~ m&^(?:develop|x_.*)$& and next;
+    $dep_info->{relationship} =~ m&\A(?:requires|recommends)$&msx or next;
+    process_module($dep_info->{module}, $breadcrumbs) or next;
+    $spack_packages->{spack_name(dist_name_for($dep_info->{module}, $cpan_data->{modules}->{$dep_info->{module}}))}->{no_recipe}
+      and next;
+    my $dep_spack_name = spack_name($dep_info->{module});
+    List::Util::any { $dep_spack_name eq $_; } @{$recipe_exclude_deps->{$spack_name} || []}
+        or push @{$spack_packages->{$spack_name}->{dependency}->{$dep_spack_name}}, $dep_info;
+  }
+  if ($recipe_extra_deps->{$spack_name}) {
+    while (my ($dep_spack_name, $dep_info_list) = each %{$recipe_extra_deps->{$spack_name}}) {
+      push @{$spack_packages->{$spack_name}->{dependency}->{$dep_spack_name}},
+        grep { process_module($_->{module}, $breadcrumbs); } @{$dep_info_list || []};
+    }
+  }
+  create_recipe($spack_name);
+  return;
+}
+
+
+sub process_module {
+  my ($mname, $breadcrumbs) = @_;
+  List::MoreUtils::any { $mname eq $_; } @{$skip_modules} and return 0;
+  exists $cpan_data->{modules}->{$mname} and return 1;
+  my $module = $cpan_data->{modules}->{$mname} = eval { $mcpan->module($mname) };
+  $@ and die "no CPAN metadata for $mname: $@";
+  my $dist_name = dist_name_for($mname, $module);
+  my @breadcrumbs = (@{$breadcrumbs || []});
+  ($breadcrumbs[-1] || q()) eq $dist_name or push @breadcrumbs, $dist_name;
+  say "processing module $mname (", join(" -> ", @breadcrumbs), ")";
+  process_distro_for($mname, $dist_name, \@breadcrumbs);
+  return 1;
+}
+
+
+sub spack_name {
+  my ($dist_name) = @_;
+  $dist_name eq 'perl' and return $dist_name;
+  $dist_name ne q() or die "can't produce spack package name for empty string!";
+  $spack_names->{$dist_name} and return $spack_names->{$dist_name};
+  my $spack_name = lc "perl-$dist_name";
+  $spack_name =~ s&(?:::|_)&-&gmsx;
+  $spack_name =~ s&\+&-plus&gmsx;
+  return $spack_names->{$dist_name} = $spack_name;
+}
+
+sub version_cmp {
+  my ($v1, $v2) = @_;
+  $v1 =~ s&\Av&&msx;
+  $v1 =~ s&\Av&&smx;
+  my @v1 = split m&[._]&msx, $v1;
+  my @v2 = split m&[._]&msx, $v2;
+  return (List::MoreUtils::first_result { ($v1[$_] // 0) <=> ($v2[$_] // 0); } (0 .. List::Util::max($#v1, $#v2))) // 0;
+}
+
+sub version_greater {
+  return (version_cmp(@_) > 0);
+}
+
+__END__
