@@ -39,12 +39,12 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'sphinx_panels',
+    'sphinx_design',
     'sphinxcontrib.htmlhelp',
     'sphinxcontrib.moderncmakedomain'
 ]
 
-panels_add_bootstrap_css = False
+sd_add_bootstrap_css = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']

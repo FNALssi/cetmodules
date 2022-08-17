@@ -36,7 +36,7 @@
             },
             "cetmodules_UPS_BUILD_ONLY_DEPENDENCIES_INIT" : {
                "type" : "STRING",
-               "value" : "git;sphinx"
+               "value" : "git;python;sphinx"
             },
             "cetmodules_UPS_PRODUCT_FLAVOR_INIT" : {
                "type" : "STRING",

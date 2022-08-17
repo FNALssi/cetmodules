@@ -10,7 +10,8 @@ cetpkgsupport	-c
 cmake		v3_22_2
 ninja		-c		-	optional
 git		-c		-	optional only_for_build
-sphinx		v4_5_0		-	only_for_build
+python		v3_9_13		-	optional only_for_build
+sphinx		v5_1_1		-	only_for_build
 end_product_list
  
 qualifier	cmake	ninja	cetpkgsupport
