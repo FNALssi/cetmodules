@@ -106,8 +106,8 @@ if want_man:
         except Exception as e:
             raise
 else:
-    extensions.append('sphinx_panels') # Breaks man page generation.
-    panels_add_bootstrap_css = False
+    extensions.append('sphinx_design') # Breaks man page generation.
+    sd_add_bootstrap_css = False
 
 
 # -- Options for HTML output -------------------------------------------------

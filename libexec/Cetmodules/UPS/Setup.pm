@@ -700,7 +700,7 @@ sub _add_compiler_info {
       $fc_id, $fc_version)
     = @{ $_cqual_table->{ $pi->{cqual} } }
     or error_exit(<<"EOF");
-unrecognized compiler qualifier $pi->{cqual} in $pi->{pfile}"
+unrecognized compiler qualifier $pi->{cqual} in $pi->{pfile}
 EOF
 
   foreach my $lang qw(C CXX) {
