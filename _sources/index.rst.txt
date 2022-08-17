@@ -22,10 +22,12 @@ Compatibility
 Reference Documentation
 =======================
 
-.. link-button:: latest/
-   :type: url
-   :classes: btn-outline-primary btn-block
-   :text: Latest reference documentation (with links to other versions)
+.. button-link:: latest/
+   :expand:
+   :outline:
+   :color: primary
+
+   Latest reference documentation (with links to other versions)
 
 .. <--include-bottom-start-->
 

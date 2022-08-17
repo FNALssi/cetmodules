@@ -6,19 +6,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <title>buildtool(1) &mdash; Cetmodules git-develop-3a8dc60 Reference</title>
+  <title>buildtool(1) &mdash; Cetmodules git-develop-ec28348 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
     
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/bootstrap.bundle.min.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     
     <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -55,7 +56,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3a8dc60</span>
+    <span class="version_switch">git-develop-ec28348</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -71,9 +72,9 @@
           <div class="body" role="main">
             
   <span class="target" id="manual:buildtool(1)"></span><section id="buildtool-1">
-<h1>buildtool(1)<a class="headerlink" href="#buildtool-1" title="Permalink to this headline">¶</a></h1>
+<h1>buildtool(1)<a class="headerlink" href="#buildtool-1" title="Permalink to this heading">¶</a></h1>
 <section id="synopsis">
-<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">buildtool</strong>[<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option …</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option …</span></a>] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]</p>
 <p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a></p>
 <p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-usage"><code class="xref std std-option docutils literal notranslate"><span class="pre">--usage</span></code></a></p>
@@ -112,7 +113,7 @@
 </dl>
 </section>
 <section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
 <p>Despite the bewildering array of available options, <strong class="program">buildtool</strong>
 is intended to simplify the task of building and debugging code,
 producing packages for use with <a class="reference external" href="https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation">UPS</a>.
@@ -146,9 +147,9 @@ latter of which has already been sourced prior to invoking
 <strong class="program">buildtool</strong>.</p>
 </section>
 <section id="options">
-<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h2>
 <section id="modes">
-<span id="buildtool-mode-options"></span><h3>Modes<a class="headerlink" href="#modes" title="Permalink to this headline">¶</a></h3>
+<span id="buildtool-mode-options"></span><h3>Modes<a class="headerlink" href="#modes" title="Permalink to this heading">¶</a></h3>
 <p>If any of <a class="reference internal" href="#cmdoption-buildtool-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--info</span></code></a>, <a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-only</span></code></a>, or <a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">--all</span></code></a>
 are set, they override all other mode options.</p>
 <p>If any of the other options are selected, they will be executed in their
@@ -156,7 +157,7 @@ natural order <em>after</em> the CMake stage (which is always executed in the
 <span class="target" id="index-0-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a> directory) unless <a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--short-circuit</span></code></a> is
 used.</p>
 <section id="exclusive-mode-options">
-<h4>Exclusive mode options<a class="headerlink" href="#exclusive-mode-options" title="Permalink to this headline">¶</a></h4>
+<h4>Exclusive mode options<a class="headerlink" href="#exclusive-mode-options" title="Permalink to this heading">¶</a></h4>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-A">
 <span id="cmdoption-buildtool-a"></span><span id="cmdoption-buildtool-all"></span><span class="sig-name descname"><span class="pre">-A</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--all</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-A" title="Permalink to this definition">¶</a></dt>
@@ -179,7 +180,7 @@ exit.</p>
 
 </section>
 <section id="other-mode-options">
-<h4>Other mode options<a class="headerlink" href="#other-mode-options" title="Permalink to this headline">¶</a></h4>
+<h4>Other mode options<a class="headerlink" href="#other-mode-options" title="Permalink to this heading">¶</a></h4>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-b">
 <span id="cmdoption-buildtool-build"></span><span class="sig-name descname"><span class="pre">-b</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--build</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-b" title="Permalink to this definition">¶</a></dt>
@@ -229,7 +230,7 @@ directory. Implies <a class="reference internal" href="#cmdoption-buildtool-b"><
 </section>
 </section>
 <section id="combo-options">
-<span id="buildtool-combo-options"></span><h3>Combo options<a class="headerlink" href="#combo-options" title="Permalink to this headline">¶</a></h3>
+<span id="buildtool-combo-options"></span><h3>Combo options<a class="headerlink" href="#combo-options" title="Permalink to this heading">¶</a></h3>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-R">
 <span id="cmdoption-buildtool-r"></span><span id="cmdoption-buildtool-release"></span><span class="sig-name descname"><span class="pre">-R</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--release</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-R" title="Permalink to this definition">¶</a></dt>
@@ -244,7 +245,7 @@ directory. Implies <a class="reference internal" href="#cmdoption-buildtool-b"><
 
 </section>
 <section id="miscellaneous-options">
-<span id="buildtool-misc-options"></span><h3>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this headline">¶</a></h3>
+<span id="buildtool-misc-options"></span><h3>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this heading">¶</a></h3>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-0">
 <span id="cmdoption-buildtool-clean"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--clean</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-0" title="Permalink to this definition">¶</a></dt>
@@ -507,20 +508,20 @@ arguments.</p>
 
 </section>
 <section id="cmake-build-options">
-<span id="buildtool-cmake-build-options"></span><h3>CMake build options<a class="headerlink" href="#cmake-build-options" title="Permalink to this headline">¶</a></h3>
+<span id="buildtool-cmake-build-options"></span><h3>CMake build options<a class="headerlink" href="#cmake-build-options" title="Permalink to this heading">¶</a></h3>
 <p>Any options or arguments specified after a single instance of <code class="docutils literal notranslate"><span class="pre">--</span></code> (or
 between two instances of same) will be passed to all stages invoked with
 <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code>: the build, install and package stages.</p>
 </section>
 <section id="generator-options">
-<span id="buildtool-generator-options"></span><h3>Generator options<a class="headerlink" href="#generator-options" title="Permalink to this headline">¶</a></h3>
+<span id="buildtool-generator-options"></span><h3>Generator options<a class="headerlink" href="#generator-options" title="Permalink to this heading">¶</a></h3>
 <p>Any options or arguments specified after a second instance of <code class="docutils literal notranslate"><span class="pre">--</span></code>
 will be passed to the configured generator (<em>e.g.</em> “UNIX Makefiles” or
 “Ninja”) for the build stage only.</p>
 </section>
 </section>
 <section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h2>
 <p>Build, test, install and create a package tarball from scratch with
 output to a default-named log file, using parallelism:</p>
 <blockquote>
@@ -557,9 +558,9 @@ avoided by defining (<em>e.g.</em>) <span class="target" id="index-1-envvar:CETP
 </div></blockquote>
 </section>
 <section id="environment">
-<h2>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h2>
+<h2>Environment<a class="headerlink" href="#environment" title="Permalink to this heading">¶</a></h2>
 <section id="required">
-<h3>Required<a class="headerlink" href="#required" title="Permalink to this headline">¶</a></h3>
+<h3>Required<a class="headerlink" href="#required" title="Permalink to this heading">¶</a></h3>
 <dl class="cmake envvar">
 <dt class="sig sig-object cmake" id="envvar:CETPKG_BUILD">
 <span class="sig-name descname"><span class="pre">CETPKG_BUILD</span></span><a class="headerlink" href="#envvar:CETPKG_BUILD" title="Permalink to this definition">¶</a></dt>
@@ -577,7 +578,7 @@ avoided by defining (<em>e.g.</em>) <span class="target" id="index-1-envvar:CETP
 
 </section>
 <section id="optional">
-<h3>Optional<a class="headerlink" href="#optional" title="Permalink to this headline">¶</a></h3>
+<h3>Optional<a class="headerlink" href="#optional" title="Permalink to this heading">¶</a></h3>
 <dl class="cmake envvar">
 <dt class="sig sig-object cmake" id="envvar:CETPKG_INSTALL">
 <span class="sig-name descname"><span class="pre">CETPKG_INSTALL</span></span><a class="headerlink" href="#envvar:CETPKG_INSTALL" title="Permalink to this definition">¶</a></dt>
@@ -662,7 +663,7 @@ parallelism is controlled by the generator (<em>e.g.</em> <code class="docutils 
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -690,7 +691,7 @@ parallelism is controlled by the generator (<em>e.g.</em> <code class="docutils 
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3a8dc60</span>
+    <span class="version_switch">git-develop-ec28348</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -699,7 +700,7 @@ parallelism is controlled by the generator (<em>e.g.</em> <code class="docutils 
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2010--2022, Fermi Research Alliance, LLC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
     </div>
   </body>
 </html>

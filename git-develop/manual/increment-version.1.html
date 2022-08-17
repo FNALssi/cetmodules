@@ -6,19 +6,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <title>increment-version(1) &mdash; Cetmodules git-develop-3a8dc60 Reference</title>
+  <title>increment-version(1) &mdash; Cetmodules git-develop-ec28348 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
     
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/bootstrap.bundle.min.js"></script>
+    <script src="../_static/design-tabs.js"></script>
     
     <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -55,7 +56,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3a8dc60</span>
+    <span class="version_switch">git-develop-ec28348</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -71,21 +72,21 @@
           <div class="body" role="main">
             
   <span class="target" id="manual:increment-version(1)"></span><section id="increment-version-1">
-<h1>increment-version(1)<a class="headerlink" href="#increment-version-1" title="Permalink to this headline">¶</a></h1>
+<h1>increment-version(1)<a class="headerlink" href="#increment-version-1" title="Permalink to this heading">¶</a></h1>
 <section id="synopsis">
-<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">increment-version</strong> <a class="reference internal" href="#increment-version-modes"><span class="std std-ref">mode</span></a> [<a class="reference internal" href="#increment-version-options"><span class="std std-ref">options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code>] [<a class="reference internal" href="#cmdoption-increment-version-arg-package-loc"><code class="xref std std-option docutils literal notranslate"><span class="pre">package-loc</span></code></a>]</p>
 <p><strong class="program">increment-version</strong> <a class="reference internal" href="#cmdoption-increment-version-help"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-increment-version-help"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a>|<a class="reference internal" href="#cmdoption-increment-version-help"><code class="xref std std-option docutils literal notranslate"><span class="pre">-?</span></code></a></p>
 </section>
 <section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">increment-version</strong> will increment the current version of a cetmodules-using package. Optionally find all other packages where said package is listed as a dependency and update the required version.</p>
 <div class="deprecated">
 <p><span class="versionmodified deprecated">Deprecated since version 2.0: </span>This script is deprecated, as it operates only on unmigrated sources where the version has <em>not</em> been migrated to the <span class="target" id="index-0-command:cmake-ref-current:command:project"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/project.html#command:project" title="(in CMake v3.22.6)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">project()</span></code></a> call in the top-level <code class="file docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>.</p>
 </div>
 </section>
 <section id="arguments">
-<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this heading">¶</a></h2>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-increment-version-arg-package-loc">
 <span class="sig-name descname"><span class="pre">package-loc</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-increment-version-arg-package-loc" title="Permalink to this definition">¶</a></dt>
@@ -94,9 +95,9 @@
 
 </section>
 <section id="options">
-<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h2>
 <section id="modes">
-<span id="increment-version-modes"></span><h3>Modes<a class="headerlink" href="#modes" title="Permalink to this headline">¶</a></h3>
+<span id="increment-version-modes"></span><h3>Modes<a class="headerlink" href="#modes" title="Permalink to this heading">¶</a></h3>
 <p>Precisely one mode type should be specified (although <a class="reference internal" href="#cmdoption-increment-version-update-only"><code class="xref std std-option docutils literal notranslate"><span class="pre">-U</span></code></a> may be specified multiple times).</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-increment-version-M">
@@ -130,7 +131,7 @@
 
 </section>
 <section id="other-options">
-<span id="increment-version-options"></span><h3>Other Options<a class="headerlink" href="#other-options" title="Permalink to this headline">¶</a></h3>
+<span id="increment-version-options"></span><h3>Other Options<a class="headerlink" href="#other-options" title="Permalink to this heading">¶</a></h3>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-increment-version-client-dir">
 <span id="cmdoption-increment-version-c"></span><span class="sig-name descname"><span class="pre">--client-dir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;package-client-search-path&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;package-client-search-path&gt;</span></span><a class="headerlink" href="#cmdoption-increment-version-client-dir" title="Permalink to this definition">¶</a></dt>
@@ -224,7 +225,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -252,7 +253,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3a8dc60</span>
+    <span class="version_switch">git-develop-ec28348</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -261,7 +262,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2010--2022, Fermi Research Alliance, LLC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
     </div>
   </body>
 </html>
