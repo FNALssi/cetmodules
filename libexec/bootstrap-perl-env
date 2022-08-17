@@ -121,7 +121,7 @@ install_dev_tools() (
   eval "$(perl -Mlocal::lib="$cpan_build" 2>/dev/null)" || \
     error_exit "unable to set up environment to install Perl modules for development"
   #
-  cpan_install Perl::Tidy B::Lint {Test,Task}::Perl::Critic
+  cpan_install Perl::Tidy Perl::Lint Task::Perl::Critic
 )
 
 install_dist_tools() {
