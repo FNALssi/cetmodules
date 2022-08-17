@@ -66,6 +66,7 @@ Misc options: [-D<CMake-definition>]+
               [-f|--force-top]
               [-g|--graphviz=<dot-file> [--gfilt <gfilt-opt>[,<gfilt-opt>]+]]
               [--generator <make|ninja>[:<secondary-generator>]]
+              [--iwyu[=<icwyu-prog>]]
               [-j #]
               [-l|--log[=<log-file>]|--log-file[=<log-file>]]
               [--no-pc|--no-preset-configure]
@@ -895,7 +896,7 @@ if (( $? != 4 )); then
   exit 1
 fi
 
-TEMP=`getopt -un "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,labels:,log::,log-file::no-pc,no-preset-configure,package,pc:,preset-configure:,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
+TEMP=`getopt -n "$prog" --long L:,LE:,all,cmake-debug,cmake-only,cmake-profile:,cmake-trace,cmake-trace-expand,install-prefix:,build,clean,clean-logs,deleted-header:,deleted-headers:,export-compile-commands,force-top,generator:,graphviz:,gfilt::,groups:,help,info,install,iwyu::,labels:,log::,log-file::,no-pc,no-preset-configure,package,pc:,preset-configure:,quiet,sc,short-circuit,subdir:,tee,test,test-all,test-labels:,test-groups:,release,usage,verbose -o +ACD:EG:I:RTX:bcfg:hij:lpqs:tv -- "$@"`
 
 (( $? )) && usage 2
 
@@ -972,6 +973,16 @@ while true; do
     -h|--help) usage long;;
     -i|--install) (( no_build = 1 )); (( do_install = 1 ));;
     --info) (( want_info = 1 ));;
+    --iwyu)
+      shift
+      iwyu="${1:-include-what-you-use}"
+      iwyu_exec="${iwyu%%;*}"
+      if [ -n "$(type -p "$iwyu_exec" 2>/dev/null)" ]; then
+        cmake_defs+=(-DCMAKE_{C,CXX}_INCLUDE_WHAT_YOU_USE="$iwyu")
+      else
+        warning "--iwyu${1:+=$1} specified but $iwyu_exec not found"
+      fi
+      ;;
     -j) plevel="$2"; shift;;
     -l) log="$log_default"; (( log_is_default = 1 ));;
     --log|--log-file) shift
