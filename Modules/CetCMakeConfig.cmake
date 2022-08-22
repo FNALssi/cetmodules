@@ -439,6 +439,11 @@ function(_generate_target_imports FRAG_LIST)
   set(exports)
   if (CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} OR
       CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    if (NOT CMAKE_VERSION VERSION_LESS 3.24.0)
+      string(MD5 distdir_pathbits "${distdir}")
+    else()
+      set(distdir_pathbits "${distdir}")
+    endif()
     project_variable(IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES TYPE BOOL DOCSTRING
       "Permit all absolute paths in transitive dependencies in targets exported by project ${CETMODULES_CURRENT_PROJECT_NAME}")
     project_variable(IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES_REGEX TYPE STRING DOCSTRING
@@ -471,7 +476,7 @@ function(_generate_target_imports FRAG_LIST)
         # Verify transitive dependencies. Note that the instructions
         # inserted into cmake_install.cmake need to be executed *before*
         # the CMake-generated ones that actually install the file.
-        _verify_transitive_dependencies("${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/CMakeFiles/Export/${distdir}/${export_file}.cmake")
+        _verify_transitive_dependencies("${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/CMakeFiles/Export/${distdir_pathbits}/${export_file}.cmake")
         # Export targets for import from the installed package.
         install(EXPORT ${export_set}
           DESTINATION "${distdir}"
