@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  <title>CetInstall &mdash; Cetmodules git-develop-95ab885 Reference</title>
+  <title>CetInstall &mdash; Cetmodules git-develop-d829fab Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
@@ -56,7 +56,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-95ab885</span>
+    <span class="version_switch">git-develop-d829fab</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -77,7 +77,7 @@
 <p>This module defines an implementation of a generic file / installation
 function with the following features:</p>
 <ul class="simple">
-<li><p>Identify files to install and/or exclude by <a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">file(GLOB)</span></a>, or by list.</p></li>
+<li><p>Identify files to install and/or exclude by <a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">file(GLOB)</span></a>, or by list.</p></li>
 <li><p>Install contents of specific subdirectories:
 a) to their correct relative place in the install hierarchy; or
 b) to a base directory.</p></li>
@@ -104,9 +104,9 @@ semantics common to that type of file.</p>
 <dl id="p-cet-install-options">
 <dt><strong>Options:</strong></dt><dd><dl class="simple" id="p-cet-install-basename-excludes">
 <dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[[REGEX]</span> <span class="pre">&lt;exp&gt;]...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
-are excluded from installation; <a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">file(GLOB)</span></a> expressions are permitted.</p>
+are excluded from installation; <a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">file(GLOB)</span></a> expressions are permitted.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;dest-path&gt;</span></code></dt><dd><p>Installation subdirectory below <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.22/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.22.6)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></a>
+<dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;dest-path&gt;</span></code></dt><dd><p>Installation subdirectory below <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.24/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.24.1)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></a>
 (mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">DEST_VAR</span></code>).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">DEST_VAR</span> <span class="pre">&lt;dest-var&gt;</span></code></dt><dd><p>The name of a CMake variable containing the installation
@@ -139,11 +139,11 @@ specifically <a class="reference internal" href="#p-cet-install-excludes">p_cet_
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>Additional full-path exclusion expressions.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXTRAS</span> <span class="pre">[&lt;path&gt;...]</span></code></dt><dd><p>Files to install in addition to those found via <a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">GLOB</span></a> expressions.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXTRAS</span> <span class="pre">[&lt;path&gt;...]</span></code></dt><dd><p>Files to install in addition to those found via <a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">GLOB</span></a> expressions.</p>
 </dd>
 </dl>
 <dl class="simple" id="p-cet-install-glob">
-<dt><code class="docutils literal notranslate"><span class="pre">_GLOBS</span> <span class="pre">[&lt;glob&gt;...]</span></code></dt><dd><p><a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">GLOB</span></a> expressions for files to
+<dt><code class="docutils literal notranslate"><span class="pre">_GLOBS</span> <span class="pre">[&lt;glob&gt;...]</span></code></dt><dd><p><a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">GLOB</span></a> expressions for files to
 include.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_INSTALLED_FILES_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>The name of a variable in which to stored the full list of files
@@ -156,7 +156,7 @@ installed.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_NO_LIST</span></code></dt><dd><p>Disallow the use of <a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST</span></a>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_SEARCH_BUILD</span></code></dt><dd><p><a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">GLOB</span></a> expressions will be applied
+<dt><code class="docutils literal notranslate"><span class="pre">_SEARCH_BUILD</span></code></dt><dd><p><a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">GLOB</span></a> expressions will be applied
 to the build tree in addition to the source tree.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_SQUASH_SUBDIRS</span></code></dt><dd><p>Subdirectory elements of source files are ignored when
@@ -178,7 +178,7 @@ installation operations for those files.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Although supported for historical reasons, use of
-<a class="reference external" href="https://cmake.org/cmake/help/v3.22/command/file.html#glob" title="(in CMake v3.22.6)"><span class="xref std std-ref">file(GLOB)</span></a> to generate targets is not
+<a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/file.html#glob" title="(in CMake v3.24.1)"><span class="xref std std-ref">file(GLOB)</span></a> to generate targets is not
 CMake best practice, and may lead to hysteresis if looking for
 generated files in the build tree.</p>
 </div>
@@ -256,7 +256,7 @@ generated files in the build tree.</p>
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-95ab885</span>
+    <span class="version_switch">git-develop-d829fab</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
