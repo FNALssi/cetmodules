@@ -370,6 +370,9 @@ sub package_deps_provides {
       if (version_greater($dep->{version} // 0, $dep_data->{$dep_pkg}->{$dep_phase} // -1)) {
         $dep_data->{$dep_pkg}->{$dep_phase} = $dep->{version} // 0;
         $dep_data->{$dep_pkg}->{$dep_phase} =~ s&\Av&&msx;
+        if ($dep_phase eq 'test' and not $dep_data->{$dep_pkg}->{build}) {
+          $dep_data->{$dep_pkg}->{build} = $dep_data->{$dep_pkg}->{$dep_phase};
+        }
       }
     }
   }
