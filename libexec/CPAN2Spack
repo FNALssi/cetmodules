@@ -386,8 +386,10 @@ sub package_deps_provides {
     }
     foreach my $version (keys %{$versions}) {
       my @phases = @{$versions->{$version}};
-      $version =~ s&(\.\d{3})(?=.)&$1.&gmsx;
-      $version =~ s&\.0+([0-9]++)&.$1&gmsx;
+      if ($version =~ m&\A(.*?\.)(\d{3})(\d{3})?(?=[^\d]|$)(.*)$&msx
+          or $version =~ m&\A(.*?\.)(\d{2})(\d{2,3})?(?=[^\d]|$)(.*)$&msx) {
+        $version=sprintf('%s%d%s%s', $1, $2, (defined $3) ? sprintf('.%d', $3) : '', $4);
+      }
       printf $fh_out
         "${indent}depends_on(\"%s%s\"%s)  # AUTO-CPAN2Spack\n",
         $spack_name,
