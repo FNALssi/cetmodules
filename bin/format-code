@@ -8,6 +8,8 @@ use warnings;
 use vars qw($clang_version $clang_ups_version @cpp_extensions @ignored_files);
 use Cwd  qw(cwd getcwd abs_path);
 use Getopt::Long qw(:config no_ignore_case bundling);
+use IO::File     qw();
+use IO::Handle   qw();
 
 
 BEGIN {
@@ -111,8 +113,9 @@ sub line_matcher {
   foreach my $filename (@{$files}) {
     chomp($filename);
     my $tmp_filename = $filename . ".tmp";
-    open my $in,  '<',  $filename     || die "open $filename: $!";
-    open my $out, '>>', $tmp_filename || die "open $filename.tmp: $!";
+    my $in           = IO::File->new("$filename") or die "open $filename: $!";
+    my $out          = IO::File->new(">>$tmp_filename")
+      or die "open $filename.tmp: $!";
 
     while (<$in>) {
       s/$pattern/$replacement/;
