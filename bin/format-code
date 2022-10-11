@@ -14,15 +14,23 @@ BEGIN {
 my $script_name =
   $0 =~ s|.*/([^/]+)|$1|rg;    # Trims leading directories of script name
 my $directory;
+my $list_changed;
 my $verbose;
 my $use_available;
 my $dry_run;
 GetOptions(
-  "help|h|?"      => \&help_message,
-  "directory|d=s" => \$directory,
-  "verbose|v"     => \$verbose,
-  "use-available" => \$use_available
+  "help|h|?"       => \&help_message,
+  "directory|d=s"  => \$directory,
+  "list-changed|l" => \$list_changed,
+  "verbose|v"      => \$verbose,
+  "use-available"  => \$use_available
 ) or die_while_processing_options();
+
+if ( defined $verbose && defined $list_changed ) {
+  print
+"\nERROR: Cannot specify both the 'list-changed|l' and 'verbose|v' program options.\n\n";
+  exit 1;
+}
 
 if ( !defined $directory && !scalar @ARGV ) {
   print qq(
@@ -48,11 +56,12 @@ It performs the following steps:
   - DOS-to-UNIX file format conversions
   - clang-format (requires .clang-format file in top directory of repository)\n|;
   usage();
-  print qq(Options:
+  print qq|Options:
   -d [--directory] arg   Top-level directory to apply formatting script.
+  -l [--list-changed]    Only print the names of changed files (no informational messages).
   -v [--verbose]         Print the name of each adjusted file.
   --use-available        Use the version of clang-format already set up for use.
-                         This option can be used to override clang-format $clang_version.\n\n);
+                         This option can be used to override clang-format $clang_version.\n\n|;
   exit;
 } ## end sub help_message
 
@@ -68,10 +77,12 @@ sub check_for_clean_working_area {
   # We would prefer to use git -C $directory, but older versions of git do not
   # support the -C option.
   unless ( system("cd $dir; git diff --exit-code > /dev/null 2>&1") == 0 ) {
-    print q(
+    if ( !$list_changed ) {
+      print q(
 Warning: Current working area has uncommitted changes.
          It may be difficult to distinguish between changes made
          by the code formatter and any uncommitted changes.\n\n);
+    }
   } ## end unless (system(...))
 } ## end sub check_for_clean_working_area
 
@@ -113,8 +124,10 @@ sub cleanup_whitespace {
   my $files_with_trailing_ws_str = `grep -l '[[:space:]]\\+\$' $files_str`;
   if ( $files_with_trailing_ws_str ne '' ) {
     my @files_with_trailing_ws = split /^/m, $files_with_trailing_ws_str;
-    print "=> Removing trailing whitespace from ",
-      scalar @files_with_trailing_ws, " files\n";
+    if ( !$list_changed ) {
+      print "=> Removing trailing whitespace from ",
+        scalar @files_with_trailing_ws, " files\n";
+    }
     line_matcher '\s+$', "\n", \@files_with_trailing_ws;
   }
 
@@ -122,7 +135,9 @@ sub cleanup_whitespace {
   my $dos_files_str = `file $files_str | grep CRLF | cut -d ':' -f 1`;
   if ( $dos_files_str ne '' ) {
     my @dos_files = split /^/m, $dos_files_str;
-    print "=> Switching ", scalar @dos_files, " files to UNIX format\n";
+    if ( !$list_changed ) {
+      print "=> Switching ", scalar @dos_files, " files to UNIX format\n";
+    }
     line_matcher "\r", "", \@dos_files;
   } ## end if ($dos_files_str ne ...)
 } ## end sub cleanup_whitespace
@@ -135,7 +150,7 @@ sub apply_clang_format {
       print "    $_\n";
     }
   }
-  else {
+  elsif ( !$list_changed ) {
     my $n = scalar( split ' ', $files_str );
     print "=> Applying clang-format $clang_version to $n files\n";
   }
@@ -152,7 +167,7 @@ sub report_changed_files {
   my $dir               = shift;
   my $changed_files_str = `cd $dir; git diff --name-only`;
 
-  if ( $changed_files_str eq '' ) {
+  if ( $changed_files_str eq '' && !$list_changed ) {
     print "No files were changed.\n";
     return;
   }
@@ -165,8 +180,11 @@ sub report_changed_files {
       print "  $_";
     }
   }
-  else {
+  elsif ( !$list_changed ) {
     print "Changed " . scalar @changed_files . " files\n";
+  }
+  else {
+    print $_ foreach (@changed_files);
   }
 
 } ## end sub report_changed_files
@@ -206,7 +224,7 @@ if ($clang_format_available) {
   if ($use_available) {
 
     # No search necessary as the available version is what is desired
-    if ( $available_version !~ $clang_version ) {
+    if ( $available_version !~ $clang_version && !$list_changed ) {
       print qq|
 Warning: The 'use-available' option has been specified, which will use
          clang-format $available_version instead of the expected version ($clang_version).\n\n|;
@@ -254,7 +272,9 @@ if ( defined $directory ) {
       getcwd, "'\n";
     exit 7;
   }
-  print "Re-formatting files in directory '$directory'\n";
+  if ( !$list_changed ) {
+    print "Re-formatting files in directory '$directory'\n";
+  }
   $files_str = find_files($directory);
 }
 else {
@@ -275,7 +295,7 @@ ERROR: Directory '$_' incorrectly specified.  To format an entire directory,
   $files_str = join ' ', @ARGV;
 }
 
-if ( $files_str =~ /^\s*$/ ) {
+if ( $files_str =~ /^\s*$/ && !$list_changed ) {
   print "No files were changed.\n";
   exit;
 }
