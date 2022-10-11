@@ -52,6 +52,7 @@ sub usage {
 Usage:
   1. $script_name [-c|-n] [-v] [--use-available] -d <directory>.
   2. $script_name [-c|-n] [-v] [--use-available] file1 file2 ...\n\n);
+  return;
 } ## end sub usage
 
 
@@ -94,6 +95,7 @@ Warning: Current working area has uncommitted changes.
          by the code formatter and any uncommitted changes.\n\n);
     } ## end if (!$list_changed)
   } ## end unless (system("cd $dir; git diff --exit-code > /dev/null 2>&1"...))
+  return;
 } ## end sub check_for_clean_working_area
 
 
@@ -129,6 +131,7 @@ sub line_matcher {
       print "    $filename\n";
     }
   } ## end foreach my $filename (@{$files...})
+  return;
 } ## end sub line_matcher
 
 
@@ -159,6 +162,7 @@ sub cleanup_whitespace {
     }
     line_matcher "\r", "", \@dos_files;
   } ## end if ($dos_files_str ne ...)
+  return;
 } ## end sub cleanup_whitespace
 
 
@@ -181,7 +185,7 @@ sub apply_clang_format {
   # directory is inside of a git repository and (2) that the top-level
   # directory of the git repository contains a .clang-format file, we
   # are guaranteed to use the correct style file.
-  system("$format_program -i -style=file $files_str");
+  return system("$format_program -i -style=file $files_str") == 0;
 } ## end sub apply_clang_format
 
 
@@ -206,6 +210,7 @@ sub report_changed_files {
   } else {
     print $_ foreach (@changed_files);
   }
+  return;
 } ## end sub report_changed_files
 
 # Check that we are first in a git repository
