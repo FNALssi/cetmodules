@@ -54,8 +54,8 @@ EOF
 sub usage {
   print <<"EOF";
 Usage:
-  1. $script_name [-c|-n] [-v] [--use-available] -d <directory>.
-  2. $script_name [-c|-n] [-v] [--use-available] file1 file2 ...
+  1. $script_name [-v|-l] [--use-available] -d <directory>.
+  2. $script_name [-v|-l] [--use-available] file1 file2 ...
 
 EOF
   return;
@@ -64,12 +64,14 @@ EOF
 
 sub help_message {
   print <<"EOF";
+
 $script_name automatically formats C++ code that resides in a Git repository.
 It performs the following steps:
 
   - Removal of trailing whitespaces
   - DOS-to-UNIX file format conversions
   - clang-format (requires .clang-format file in top directory of repository)
+
 EOF
   usage();
   print <<"EOF";
