@@ -28,6 +28,7 @@ set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/set_dev_products
   ${PROJECT_SOURCE_DIR}/tools/migrate
+  ${PROJECT_SOURCE_DIR}/bin/format-code
   ${PERL_TEST_SCRIPTS}
   ${PROJECT_SOURCE_DIR}/test/Modules/version_cmp-cmake_t
   )
