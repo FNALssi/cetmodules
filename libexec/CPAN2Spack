@@ -54,7 +54,6 @@ my $recipe_exclude_list =
         perl-encode
         perl-env
         perl-exporter
-        perl-extutils-cbuilder
         perl-extutils-constant
         perl-extutils-install
         perl-file-path
