@@ -1,31 +1,32 @@
 #!/usr/bin/env perl
 # -*- cperl -*-
-## no critic qw(InputOutput::ProhibitBacktickOperators)
-
+## no critic qw(InputOutput::ProhibitBacktickOperators ValuesAndExpressions::ProhibitMagicNumbers)
 ##
 use strict;
 use warnings;
 
 ##
 my ($clang_version, $clang_ups_version, @cpp_extensions, @ignored_files);
-use Cwd  qw(cwd getcwd abs_path);
+
+use Cwd          qw(cwd getcwd abs_path);
+use English      qw(-no_match_vars);
 use Getopt::Long qw(:config no_ignore_case bundling);
 use IO::File     qw();
 use IO::Handle   qw();
 
 
 BEGIN {
-  $clang_version     = "7.0.0";
-  $clang_ups_version = $clang_version =~ s/(\d+)\.(\d+)\.(\d+)/v$1_$2_$3/rgmsx;
-  @cpp_extensions    = qw(.c .cxx .cc .cpp .C .h .hxx .hh .hpp .[it]cc .H);
-  @ignored_files     = qw(.svn .git CVS);
+  $clang_version = "7.0.0";
+  $clang_ups_version =
+    $clang_version =~ s/(\d+)\.(\d+)\.(\d+)/v$1_$2_$3/rgmsx;
+  @cpp_extensions = qw(.c .cxx .cc .cpp .C .h .hxx .hh .hpp .[it]cc .H);
+  @ignored_files  = qw(.svn .git CVS);
 } ## end BEGIN
-my $script_name = $0 =~ s|.*/([^/]+)|$1|rgmsx; # Trims leading directories of script name
+my $script_name = $PROGRAM_NAME =~ s|.*/([^/]+)|$1|rgmsx; # Trims leading directories of script name
 my $directory;
 my $list_changed;
 my $verbose;
 my $use_available;
-
 GetOptions(
   "help|h|?"       => \&help_message,
   "directory|d=s"  => \$directory,
@@ -96,16 +97,15 @@ sub check_for_clean_working_area {
 
   # We would prefer to use git -C $directory, but older versions of git do not
   # support the -C option.
-  unless (system("cd $dir; git diff --exit-code > /dev/null 2>&1") == 0) {
-    if (!$list_changed) {
-      print <<"EOF";
+  system("cd $dir; git diff --exit-code > /dev/null 2>&1") == 0
+    or $list_changed
+    or print <<"EOF";
+
 Warning: Current working area has uncommitted changes.
          It may be difficult to distinguish between changes made
          by the code formatter and any uncommitted changes.
 
 EOF
-    } ## end if (!$list_changed)
-  } ## end unless (system("cd $dir; git diff --exit-code > /dev/null 2>&1"...))
   return;
 } ## end sub check_for_clean_working_area
 
@@ -126,16 +126,16 @@ sub line_matcher {
   foreach my $filename (@{$files}) {
     chomp($filename);
     my $tmp_filename = $filename . ".tmp";
-    my $in           = IO::File->new("$filename") or die "open $filename: $!";
-    my $out          = IO::File->new(">>$tmp_filename")
-      or die "open $filename.tmp: $!";
+    my $in  = IO::File->new("$filename") or die "open $filename: $OS_ERROR";
+    my $out = IO::File->new(">>$tmp_filename")
+      or die "open $filename.tmp: $OS_ERROR";
 
     while (<$in>) {
       s/$pattern/$replacement/msx;
       print $out $_;
     }
-    close $in;
-    close $out;
+    $in->close;
+    $out->close;
     rename($tmp_filename, $filename);
 
     if ($verbose) {
@@ -152,7 +152,7 @@ sub cleanup_whitespace {
   # Remove trailing whitespace
   my $files_with_trailing_ws_str = `grep -l '[[:space:]]\\+\$' $files_str`;
 
-  if ($files_with_trailing_ws_str ne '') {
+  if ($files_with_trailing_ws_str ne q()) {
     my @files_with_trailing_ws = split /^/msx, $files_with_trailing_ws_str;
 
     if (!$list_changed) {
@@ -165,13 +165,13 @@ sub cleanup_whitespace {
   # Check if any files need to switch to UNIX format
   my $dos_files_str = `file $files_str | grep CRLF | cut -d ':' -f 1`;
 
-  if ($dos_files_str ne '') {
+  if ($dos_files_str ne q()) {
     my @dos_files = split /^/msx, $dos_files_str;
 
     if (!$list_changed) {
       print "=> Switching ", scalar @dos_files, " files to UNIX format\n";
     }
-    line_matcher qr&\r&msx, "", \@dos_files;
+    line_matcher qr&\r&msx, q(), \@dos_files;
   } ## end if ($dos_files_str ne ...)
   return;
 } ## end sub cleanup_whitespace
@@ -183,11 +183,11 @@ sub apply_clang_format {
   if ($verbose) {
     print "=> Applying clang-format $clang_version to:\n";
 
-    foreach (split ' ', $files_str) {
-      print "    $_\n";
+    foreach (split q( ), $files_str) {
+      print qq(    $_\n);
     }
   } elsif (!$list_changed) {
-    my $n = scalar(split ' ', $files_str);
+    my $n = scalar(split q( ), $files_str);
     print "=> Applying clang-format $clang_version to $n files\n";
   }
 
@@ -204,7 +204,7 @@ sub report_changed_files {
   my $dir               = shift;
   my $changed_files_str = `cd $dir; git diff --name-only`;
 
-  if ($changed_files_str eq '' && !$list_changed) {
+  if ($changed_files_str eq q() && !$list_changed) {
     print "No files were changed.\n";
     return;
   }
@@ -219,8 +219,10 @@ sub report_changed_files {
   } elsif (!$list_changed) {
     print "Changed " . scalar @changed_files . " files\n";
   } else {
-    print $_ foreach (@changed_files);
-  }
+    foreach (@changed_files) {
+      print;
+    }
+  } ## end else [ if ($verbose)  [elsif (!$list_changed) ]]
   return;
 } ## end sub report_changed_files
 
@@ -241,12 +243,12 @@ if ($in_git_repository ne "true") {
 # Check for .clang-format file in repository
 chomp(my $git_top_level = `cd $repo; git rev-parse --show-toplevel`);
 
-unless (-f "$git_top_level/.clang-format") {
+if (not -f "$git_top_level/.clang-format") {
   my $error_prefix =
     defined $directory ? "The specified directory" : "The working directory";
   print "ERROR: $error_prefix '$repo' does not have a .clang-format file.\n";
   exit 4;
-} ## end unless (-f "$git_top_level/.clang-format")
+} ## end if (not -f "$git_top_level/.clang-format")
 my $clang_format_program = undef;
 my $clang_format_available =
   system("type clang-format > /dev/null 2>&1") == 0;
@@ -303,12 +305,12 @@ check_for_clean_working_area($repo);
 my $files_str = undef;
 
 if (defined $directory) {
-  unless (-d "$directory") {
+  if (not -d "$directory") {
     print
       "Cannot access directory '$directory' from current working directory '",
       getcwd, "'\n";
     exit 7;
-  } ## end unless (-d "$directory")
+  } ## end if (not -d "$directory")
 
   if (!$list_changed) {
     print "Re-formatting files in directory '$directory'\n";
@@ -318,21 +320,21 @@ if (defined $directory) {
 
   # Make sure no directories are included in the program options.
   foreach (@ARGV) {
-    if (-d $_) {
+    if (-d) {
       print <<"EOF";
 ERROR: Directory '$_' incorrectly specified.  To format an entire directory,
        use the 'directory|d' program option.
 EOF
       exit 8;
-    } ## end if (-d $_)
+    } ## end if (-d)
 
-    unless (-f $_) {
+    if (not -f) {
       print
 "\nERROR: The file '$_' is not accessible from the current working directory '$repo'.\n\n";
       exit 8;
-    } ## end unless (-f $_)
+    } ## end if (not -f)
   } ## end foreach (@ARGV)
-  $files_str = join ' ', @ARGV;
+  $files_str = join q( ), @ARGV;
 } ## end else [ if (defined $directory)]
 
 if ($files_str =~ /\A\s*\Z/msx && !$list_changed) {
