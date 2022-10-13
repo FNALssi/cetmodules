@@ -10,7 +10,6 @@ set(PERL_TEST_SCRIPTS
 set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util.pm
-  ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/LintWarn.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/PosResetter.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Util/VariableSaver.pm
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/CMake/Util.pm
@@ -29,6 +28,7 @@ set(PERL_FILES
   ${PROJECT_SOURCE_DIR}/libexec/Cetmodules/Migrate/ProductDeps.pm
   ${PROJECT_SOURCE_DIR}/libexec/set_dev_products
   ${PROJECT_SOURCE_DIR}/tools/migrate
+  ${PROJECT_SOURCE_DIR}/bin/format-code
   ${PERL_TEST_SCRIPTS}
   ${PROJECT_SOURCE_DIR}/test/Modules/version_cmp-cmake_t
   )

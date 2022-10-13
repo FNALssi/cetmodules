@@ -20,14 +20,21 @@ my $mcpan = MetaCPAN::Client->new;
 
 my $repo = "$ENV{SPACK_ROOT}/var/spack/repos/builtin";
 
+my $configure_deps_keeplist =
+  [
+   'perl',
+   'ExtUtils::MakeMaker',
+   'Module::Build',
+   'Module::Build::Tiny',
+   'Module::Install'
+  ];
+
 my $dist_extra_provides =
   {
-#   'PPIx-Utilities' => [ qw(PPIx::Utilities::Statement) ]
   };
 
 my $module_dist_mapping =
   [
-#   { pattern => qr&PPIx::Utilities&smx, dist => 'PPIx-Utils' }
   ];
 
 my $recipe_exclude_list =
@@ -47,7 +54,6 @@ my $recipe_exclude_list =
         perl-encode
         perl-env
         perl-exporter
-        perl-extutils-cbuilder
         perl-extutils-constant
         perl-extutils-install
         perl-file-path
@@ -65,7 +71,6 @@ my $recipe_exclude_list =
         perl-parent
         perl-pathtools
         perl-pod-escapes
-        perl-pod-parser
         perl-pod-perldoc
         perl-pod-simple
         perl-pod-usage
@@ -86,12 +91,6 @@ my $recipe_exclude_deps =
 
 my $recipe_extra_deps =
   {
-   'perl-file-pathlist' =>
-   { 'perl-module-install' => [ { module => 'Module::Install', phase => 'build', relationship => 'requires' } ] },
-   'perl-perlio-utf8-strict' =>
-   { 'perl-module-build' => [ { module => 'Module::Build', phase => 'build', relationship => 'requires' } ] },
-   'perl-task-weaken' =>
-   { 'perl-module-install' => [ { module => 'Module::Install', phase => 'build', relationship => 'requires' } ] }
   };
 
 my $skip_modules =
@@ -235,6 +234,7 @@ my $skip_modules =
         subs
         utf8
         vars
+        version
         vmsish
         warnings
         warnings::register
@@ -350,10 +350,14 @@ sub package_deps_provides {
   my ($spack_data, $fh_out, $indent) = @_;
   my $dep_data = { };
   while (my ($dep_pkg, $dep_list) = each %{$spack_data->{dependency} || {}}) {
-    foreach my $dep (@{$dep_list}) {
+  dep: foreach my $dep (@{$dep_list}) {
       my $dep_phase;
-      given ($dep->{phase}) {
+      local $_;
+      for ($dep->{phase}) {
         when ('configure') {
+          if (not List::MoreUtils::any { $dep->{module} eq $_; } @{$configure_deps_keeplist}) {
+            next dep;
+          }
           $dep_phase = 'build';
         }
         when ('runtime') {
@@ -365,6 +369,9 @@ sub package_deps_provides {
       if (version_greater($dep->{version} // 0, $dep_data->{$dep_pkg}->{$dep_phase} // -1)) {
         $dep_data->{$dep_pkg}->{$dep_phase} = $dep->{version} // 0;
         $dep_data->{$dep_pkg}->{$dep_phase} =~ s&\Av&&msx;
+        if ($dep_phase eq 'test' and not $dep_data->{$dep_pkg}->{build}) {
+          $dep_data->{$dep_pkg}->{build} = $dep_data->{$dep_pkg}->{$dep_phase};
+        }
       }
     }
   }
@@ -386,8 +393,10 @@ sub package_deps_provides {
     }
     foreach my $version (keys %{$versions}) {
       my @phases = @{$versions->{$version}};
-      $version =~ s&(\.\d{3})(?=.)&$1.&gmsx;
-      $version =~ s&\.0+([0-9]++)&.$1&gmsx;
+      if ($version =~ m&\A(.*?\.)(\d{3})(\d{3})?(?=[^\d]|$)(.*)$&msx
+          or $version =~ m&\A(.*?\.)(\d{2})(\d{2,3})?(?=[^\d]|$)(.*)$&msx) {
+        $version=sprintf('%s%d%s%s', $1, $2, (defined $3) ? sprintf('.%d', $3) : '', $4);
+      }
       printf $fh_out
         "${indent}depends_on(\"%s%s\"%s)  # AUTO-CPAN2Spack\n",
         $spack_name,

@@ -44,7 +44,11 @@ libexec="$(cd "${BASH_SOURCE%/*}" && pwd -P)"
 
 prog="${0##*/}"
 fill="${prog//?/}"
-
+if date -Ins >/dev/null 2>&1; then
+  date_prec=ns
+else
+  date_prec=seconds
+fi
 stat_cmd=(stat)
 if [[ "$OSTYPE" == *darwin* ]]; then
   stat_cmd+=(-f '%l')
@@ -116,7 +120,7 @@ Actor ID: ${LOGNAME:-${USER:-<unknown>}}@${HOSTNAME:-$(hostname -f 2>/dev/null |
 EOF
     local lock_link="${lock_file%/*}/$resource_stem.lock"
     local actor_id= locker_id= locker_pid= locked_resource= dummy= lock_taken=
-    local last_locker= last_lock_taken= our_request="$(date +%s.%N)"
+    local last_locker= last_lock_taken= our_request="$(date -I$date_prec)"
     echo "Lock requested: $our_request" >> "$lock_file"
     while ! { ln "$lock_file" "$lock_link" || \
                 (( $("${stat_cmd[@]}" "$lock_file") == 2 )); } >/dev/null 2>&1; do
@@ -150,7 +154,7 @@ EOF
              if known stale"
       fi
     done
-    echo "Lock taken: $(date +%s.%N)" >> "$lock_file"
+    echo "Lock taken: $(date -I$date_prec)" >> "$lock_file"
     lock_links+=("$lock_link")
   done
   verbose "${*:+executing command }utilizing locked resource(s)${resources[*]:+ ${resources[@]}}${*:+$'\n'$@}"
