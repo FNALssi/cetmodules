@@ -671,6 +671,7 @@ $_cqual_table =
     e24 => ['gcc', 'g++', 'GNU', '10.3.0', '17', 'gfortran', 'GNU', '10.3.0'],
     e25 => ['gcc', 'g++', 'GNU', '11.3.0', '17', 'gfortran', 'GNU', '11.3.0'],
     e26 => ['gcc', 'g++', 'GNU', '12.1.0', '17', 'gfortran', 'GNU', '12.1.0'],
+    e27 => ['gcc', 'g++', 'GNU', '12.2.0', '20', 'gfortran', 'GNU', '12.2.0'],
     c2 => [
       'clang',    'clang++', 'Clang', '5.0.1', '17', #
       'gfortran', 'GNU',     '6.4.0'
@@ -685,6 +686,10 @@ $_cqual_table =
           ],
     c14 => [
       'clang',    'clang++', 'Clang', '14.0.6', '17',    #
+      'gfortran', 'GNU',     '12.1.0'
+           ],
+    c15 => [
+      'clang',    'clang++', 'Clang', '15.0.7', '17',    #
       'gfortran', 'GNU',     '12.1.0'
            ],
   };
