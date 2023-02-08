@@ -44,7 +44,6 @@ my $recipe_exclude_list =
         perl-archive-tar
         perl-autodie
         perl-base
-        perl-carp
         perl-constant
         perl-cpan-meta
         perl-cpan-meta-requirements
@@ -79,7 +78,6 @@ my $recipe_exclude_list =
         perl-storable
         perl-term-ansicolor
         perl-test
-        perl-test-simple
         perl-text-parsewords
         perl-text-tabs
         perl-text-wrap
