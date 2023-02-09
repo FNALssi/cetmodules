@@ -234,23 +234,28 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   # Handle request for Catch2 main.
   if (CME_USE_CATCH2_MAIN)
     find_package(Catch2 QUIET REQUIRED)
-    if (NOT TARGET Catch2_main)
-      cet_localize_pv(cetmodules CATCH2_MAIN)
-      get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-      list(POP_FRONT catch2_include_dir catch2_include_subdir)
-      if (EXISTS "${catch2_include_subdir}/catch2")
-        set(catch2_include_subdir "catch2")
-      else()
-        set(catch2_include_subdir "catch")
+    if (3.0 VERSION_GREATER ${Catch2_VERSION}) # Old.
+      set(Catch2_main_target Catch2_main)
+      if (NOT TARGET ${Catch2_main_target})
+        cet_localize_pv(cetmodules CATCH2_MAIN)
+        get_property(catch2_include_dir TARGET Catch2::Catch2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+        list(POP_FRONT catch2_include_dir catch2_include_subdir)
+        if (EXISTS "${catch2_include_subdir}/catch2")
+          set(catch2_include_subdir "catch2")
+        else()
+          set(catch2_include_subdir "catch")
+        endif()
+        cet_make_library(LIBRARY_NAME Catch2_main STATIC STRIP_LIBS
+          EXCLUDE_FROM_ALL NO_INSTALL
+          SOURCE ${cetmodules_CATCH2_MAIN}
+          LIBRARIES PUBLIC Catch2::Catch2)
+        target_compile_definitions(Catch2_main PRIVATE
+          "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
       endif()
-      cet_make_library(LIBRARY_NAME Catch2_main STATIC STRIP_LIBS
-        EXCLUDE_FROM_ALL NO_INSTALL
-        SOURCE ${cetmodules_CATCH2_MAIN}
-        LIBRARIES PRIVATE Catch2::Catch2)
-      target_compile_definitions(Catch2_main PRIVATE
-        "CET_CATCH2_INCLUDE_SUBDIR=${catch2_include_subdir}")
+    else() # New
+      set(Catch2_main_target Catch2::Catch2WithMain)
     endif()
-    target_link_libraries(${CME_NAME} PRIVATE Catch2_main Catch2::Catch2)
+    target_link_libraries(${CME_NAME} PRIVATE ${Catch2_main_target})
   endif()
   if (NOT CME_NO_EXPORT_ALL_SYMBOLS)
     target_link_options(${CME_NAME} PRIVATE -rdynamic)
