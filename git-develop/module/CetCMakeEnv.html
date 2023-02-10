@@ -4,20 +4,21 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetCMakeEnv &mdash; Cetmodules git-develop-2cfa79a Reference</title>
+  <title>CetCMakeEnv &mdash; Cetmodules git-develop-224d537 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/bootstrap.bundle.min.js"></script>
     <script src="../_static/design-tabs.js"></script>
     
@@ -56,7 +57,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-2cfa79a</span>
+    <span class="version_switch">git-develop-224d537</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -83,7 +84,7 @@ the current project.</p>
 <dd><blockquote>
 <div><p>Set up the cetmodules build environment for the current project.</p>
 <dl>
-<dt><strong>Synopsis</strong></dt><dd><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_cmake_env(</span><span class="p">[</span><span class="no">NO_INSTALL_PKGMETA</span><span class="p">]</span><span class="nf">)</span><span class="w"></span>
+<dt><strong>Synopsis</strong></dt><dd><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_cmake_env(</span><span class="p">[</span><span class="no">NO_INSTALL_PKGMETA</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
 </dd>
@@ -103,7 +104,7 @@ at all).</p>
 <p>Prior to calling <span class="target" id="index-1-command:cet_cmake_env"></span><a class="reference internal" href="#command:cet_cmake_env" title="cet_cmake_env"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_env()</span></code></a>:</p>
 <ul class="simple">
 <li><p>The current project must have been initialized via
-<span class="target" id="index-0-command:cmake-ref-current:command:project"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.24/command/project.html#command:project" title="(in CMake v3.24.3)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">project()</span></code></a></p></li>
+<span class="target" id="index-0-command:cmake-ref-current:command:project"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.25/command/project.html#command:project" title="(in CMake v3.25.2)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">project()</span></code></a></p></li>
 <li><p>Any initial or override values for
 <span class="target" id="index-0-manual:cetmodules-project-variables(7)"></span><a class="reference internal" href="../manual/cetmodules-project-variables.7.html#manual:cetmodules-project-variables(7)" title="cetmodules-project-variables(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">project</span> <span class="pre">variables</span></code></a> should be set.</p></li>
 </ul>
@@ -111,9 +112,9 @@ at all).</p>
 <dl class="simple">
 <dt><strong>Variables controlling behavior</strong></dt><dd><ul class="simple">
 <li><p><span class="target" id="index-0-variable:WANT_UPS"></span><a class="reference internal" href="../variable/WANT_UPS.html#variable:WANT_UPS" title="WANT_UPS"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">WANT_UPS</span></code></a></p></li>
-<li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:BUILD_SHARED_LIBS"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.24/variable/BUILD_SHARED_LIBS.html#variable:BUILD_SHARED_LIBS" title="(in CMake v3.24.3)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">BUILD_SHARED_LIBS</span></code></a></p></li>
+<li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:BUILD_SHARED_LIBS"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.25/variable/BUILD_SHARED_LIBS.html#variable:BUILD_SHARED_LIBS" title="(in CMake v3.25.2)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">BUILD_SHARED_LIBS</span></code></a></p></li>
 <li><p><span class="target" id="index-0-variable:BUILD_STATIC_LIBS"></span><a class="reference internal" href="../variable/BUILD_STATIC_LIBS.html#variable:BUILD_STATIC_LIBS" title="BUILD_STATIC_LIBS"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">BUILD_STATIC_LIBS</span></code></a></p></li>
-<li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.24/variable/CMAKE_INSTALL_RPATH_USE_LINK_PATH.html#variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH" title="(in CMake v3.24.3)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_RPATH_USE_LINK_PATH</span></code></a></p></li>
+<li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.25/variable/CMAKE_INSTALL_RPATH_USE_LINK_PATH.html#variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH" title="(in CMake v3.25.2)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_RPATH_USE_LINK_PATH</span></code></a></p></li>
 </ul>
 </dd>
 </dl>
@@ -182,7 +183,7 @@ at all).</p>
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-2cfa79a</span>
+    <span class="version_switch">git-develop-224d537</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -192,7 +193,7 @@ at all).</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>
