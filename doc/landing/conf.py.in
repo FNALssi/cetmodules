@@ -41,8 +41,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx_design',
     'sphinxcontrib.htmlhelp',
-    'sphinxcontrib.moderncmakedomain',
-    'sphinxcontrib.serializinghtml',
+    'sphinxcontrib.moderncmakedomain'
 ]
 
 sd_add_bootstrap_css = False

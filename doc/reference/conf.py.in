@@ -62,8 +62,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinxcontrib.htmlhelp',
-    'sphinxcontrib.moderncmakedomain',
-    'sphinxcontrib.serializinghtml',
+    'sphinxcontrib.moderncmakedomain'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
