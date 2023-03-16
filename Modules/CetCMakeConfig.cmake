@@ -157,7 +157,7 @@ cet_cmake_config() with the NO_CMAKE_CONFIG flag to prevent the generation \
 of these configuration files\
 ")
       endif()
-    elseif (origin STREQUAL "<initial-value>" AND
+    elseif (WANT_UPS AND origin STREQUAL "<initial-value>" AND
         NOT (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH OR
           IS_ABSOLUTE "${distdir}")) # Defaulted.
       # Is EXEC_PREFIX non-empty?
@@ -196,25 +196,23 @@ CONFIG_OUTPUT_ROOT_DIR to suppress this message\
   endif()
   ####################################
   # Packaging.
-  _configure_cpack()
+  if (CETMODULES_CONFIG_CPACK_MACRO)
+    _configure_cpack()
+  endif()
 endfunction()
 
 macro(_configure_cpack)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CETMODULES_CURRENT_PROJECT_SOURCE_DIR)
     if (CMAKE_PROJECT_NAME STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
-      if (CETMODULES_CONFIG_CPACK_MACRO)
-        parse_version_string(${PROJECT_VERSION} CPACK_PACKAGE_VERSION SEP . NO_EXTRA EXTRA_VAR _cc_extra)
-        # Make sure we include non-numeric version components, removing unwanted characters.
-        string(REGEX REPLACE "[ -]" "_" _cc_extra "${_cc_extra}")
-        string(APPEND CPACK_PACKAGE_VERSION "${_cc_extra}")
-        unset(_cc_extra)
-        # Configure everything else.
-        cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
-        # invoke CPack.
-        include(CPack)
-      else()
-        message(WARNING "automatic configuration of CPack is supported only for WANT_UPS builds at this time")
-      endif()
+      parse_version_string(${PROJECT_VERSION} CPACK_PACKAGE_VERSION SEP . NO_EXTRA EXTRA_VAR _cc_extra)
+      # Make sure we include non-numeric version components, removing unwanted characters.
+      string(REGEX REPLACE "[ -]" "_" _cc_extra "${_cc_extra}")
+      string(APPEND CPACK_PACKAGE_VERSION "${_cc_extra}")
+      unset(_cc_extra)
+      # Configure everything else.
+      cmake_language(CALL ${CETMODULES_CONFIG_CPACK_MACRO})
+      # invoke CPack.
+      include(CPack)
     else()
       message(VERBOSE "\
 automatic configuration of CPack is not supported for subprojects at \
