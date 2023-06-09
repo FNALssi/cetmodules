@@ -11,6 +11,12 @@ X
 ####################################
 # Target category options (specify at most one):
 #
+# COMPILE_ONLY
+#
+#   The test is the act of attempting to build the given sources, not
+#   the execution of the result of the build. Use in conjunction with
+#   TEST_PROPERTIES WILL_FAIL and/or PASS/FAIL_REGULAR_EXPRESSION.
+#
 # HANDBUILT
 #
 #   Do not build the target -- it will be provided.
