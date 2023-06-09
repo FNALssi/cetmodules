@@ -208,7 +208,11 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
   endif()
   cet_passthrough(FLAG IN_PLACE CME_EXCLUDE_FROM_ALL)
   # Define the main executable target.
-  add_executable(${CME_NAME} ${CME_SOURCE} ${CME_EXCLUDE_FROM_ALL})
+  add_executable(${CME_NAME} ${CME_EXCLUDE_FROM_ALL} ${CME_SOURCE})
+  if (CME_EXCLUDE_FROM_ALL)
+    set_target_properties(${CME_NAME}
+      PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+  endif()
   # Local include directories.
   if (NOT (DEFINED CME_LOCAL_INCLUDE_DIRS OR
         "LOCAL_INCLUDE_DIRS" IN_LIST CME_KEYWORDS_MISSING_VALUES))
