@@ -11,6 +11,12 @@ X
 ####################################
 # Target category options (specify at most one):
 #
+# COMPILE_ONLY
+#
+#   The test is the act of attempting to build the given sources, not
+#   the execution of the result of the build. Use in conjunction with
+#   TEST_PROPERTIES WILL_FAIL and/or PASS/FAIL_REGULAR_EXPRESSION.
+#
 # HANDBUILT
 #
 #   Do not build the target -- it will be provided.
@@ -20,6 +26,7 @@ X
 #   Do not build the target -- copy in from the source dir (ideal for
 #   e.g. scripts).
 #
+# USE_CATCH_MAIN
 # USE_CATCH2_MAIN
 #
 #   This test will use the Catch test framework
@@ -519,7 +526,7 @@ function(cet_test CET_TARGET)
       "target name with the HANDBUILT and TEST_EXEC options instead.")
   endif()
   cmake_parse_arguments(PARSE_ARGV 1 CET
-    "DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
+    "COMPILE_ONLY;DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
     "EXPORT_SET;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
     "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;REQUIRED_FIXTURES;REQUIRED_TESTS;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
@@ -540,12 +547,37 @@ function(cet_test CET_TARGET)
     unset(CET_USE_CATCH_MAIN)
   endif()
 
-  # For passthrough to cet_script, cet_make_exec, etc.
-  set(exec_install_args EXPORT_SET ${CET_EXPORT_SET} NOP)
-  if (NOT CET_INSTALL_BIN)
-    list(APPEND exec_install_args NO_INSTALL)
+  if (CET_COMPILE_ONLY AND
+      (CET_HANDBUILT OR
+        CET_INSTALL_BIN OR CET_INSTALL_EXAMPLE OR
+        CET_NO_AUTO OR CET_NO_EXPORT OR CET_PREBUILT OR CET_EXPORT_SET OR
+        CET_TEST_EXEC OR CET_DATAFILES OR CET_REF OR CET_REQUIRED_FILES OR
+        CET_REQUIRED_FIXTURES OR CET_REQUIRED_TESTS OR CET_TEST_ARGS OR
+        CET_TEST_WORKDIR))
+    message(FATAL_ERROR "COMPILE_ONLY is incompatible with the following options:
+HANDBUILT
+INSTALL_BIN
+INSTALL_EXAMPLE
+NO_AUTO
+NO_EXPORT
+PREBUILT
+EXPORT_SET
+TEST_EXEC
+DATAFILES
+REF
+REQUIRED_FILES
+REQUIRED_FIXTURES
+REQUIRED_TESTS
+TEST_ARGS
+TEST_WORKDIR")
   endif()
-  cet_passthrough(FLAG APPEND CET_NO_EXPORT exec_install_args)
+
+  # For passthrough to cet_script, cet_make_exec, etc.
+  set(exec_extra_args EXPORT_SET ${CET_EXPORT_SET} NOP)
+  if (NOT CET_INSTALL_BIN)
+    list(APPEND exec_extra_args NO_INSTALL)
+  endif()
+  cet_passthrough(FLAG APPEND CET_NO_EXPORT exec_extra_args)
 
   # Find any arguments related to permuted test arguments.
   foreach (OPT IN LISTS CET_UNPARSED_ARGUMENTS)
@@ -579,14 +611,6 @@ function(cet_test CET_TARGET)
     message(FATAL_ERROR "cet_test: Unparsed (non-option) arguments detected: \"${CETP_UNPARSED_ARGUMENTS}.\" Check for missing keyword(s) in the definition of test ${CET_TARGET} in your CMakeLists.txt.")
   endif()
 
-  if (CET_TEST_EXEC)
-    if (NOT CET_HANDBUILT)
-      message(FATAL_ERROR "cet_test: target ${CET_TARGET} cannot specify "
-        "TEST_EXEC without HANDBUILT")
-    endif()
-  else()
-    set(CET_TEST_EXEC ${CET_TARGET})
-  endif()
   if ((CET_HANDBUILT AND CET_PREBUILT) OR
       (CET_HANDBUILT AND CET_USE_CATCH2_MAIN) OR
       (CET_PREBUILT AND CET_USE_CATCH2_MAIN))
@@ -594,7 +618,7 @@ function(cet_test CET_TARGET)
     message(FATAL_ERROR "cet_test: target ${CET_TARGET} must have only one of the"
       " CET_HANDBUILT, CET_PREBUILT, or CET_USE_CATCH2_MAIN options set.")
   elseif (CET_PREBUILT) # eg scripts.
-    cet_script(${CET_TARGET} ${exec_install_args} DEPENDENCIES ${CET_DEPENDENCIES})
+    cet_script(${CET_TARGET} ${exec_extra_args} DEPENDENCIES ${CET_DEPENDENCIES})
   elseif (NOT CET_HANDBUILT) # Normal build, possibly with CET_USE_CATCH2_MAIN set.
     # Build the executable.
     if (NOT CET_SOURCE) # Useful default.
@@ -602,9 +626,29 @@ function(cet_test CET_TARGET)
     endif()
     cet_passthrough(FLAG IN_PLACE CET_USE_BOOST_UNIT)
     cet_passthrough(FLAG IN_PLACE CET_USE_CATCH2_MAIN)
-    cet_make_exec(NAME ${CET_TARGET} ${exec_install_args}
+    if (CET_COMPILE_ONLY) # Test for compilation only (or failure thereof).
+      list(APPEND exec_extra_args EXCLUDE_FROM_ALL)
+    endif()
+    cet_make_exec(NAME ${CET_TARGET}
+      ${exec_extra_args}
       ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
       SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES})
+  endif()
+  if (CET_TEST_EXEC)
+    if (NOT CET_HANDBUILT)
+      message(FATAL_ERROR "cet_test: target ${CET_TARGET} cannot specify "
+        "TEST_EXEC without HANDBUILT")
+    endif()
+  elseif(CET_COMPILE_ONLY)
+    set(CET_TEST_EXEC ${CMAKE_COMMAND})
+    set(CET_TEST_ARGS
+      --build ${CMAKE_BINARY_DIR}
+      --target ${CET_TARGET}
+      --config $<CONFIGURATION>)
+    set(CET_DIRTY_WORKDIR TRUE)
+    set(CET_TEST_WORKDIR "${CMAKE_BINARY_DIR}")
+  else()
+    set(CET_TEST_EXEC ${CET_TARGET})
   endif()
 
   if (NOT CET_NO_AUTO)

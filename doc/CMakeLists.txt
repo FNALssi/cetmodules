@@ -7,7 +7,9 @@ set(quiet_levels ERROR WARNING NOTICE STATUS)
 if (NOT CMAKE_MESSAGE_LOG_LEVEL OR CMAKE_MESSAGE_LOG_LEVEL IN_LIST quiet_levels)
   set(qv_arg QUIET)
 elseif (CMAKE_MESSAGE_LOG_LEVEL IN_LIST verbose_levels)
-  set(qv_arg VERBOSITY ${verbosity})
+  list(FIND verbose_levels ${CMAKE_MESSAGE_LOG_LEVEL} default_verbosity)
+  math(EXPR verbosity ${default_verbosity} + 1)
+  set(qv_arg VERBOSITY ${default_verbosity})
 endif()
 
 project_variable(SPHINX_DOC_PUBLISH_ROOT TYPE PATH
@@ -25,6 +27,13 @@ project_variable(SPHINX_DOC_PUBLISH_FORCE_NUMERIC TYPE BOOL
 project_variable(SPHINX_DOC_PUBLISH_VERSION_BRANCH TYPE STRING
   DOCSTRING "specify branch name to be used in PROJ_VERSION (when applicable) instead of using git branch --show-current"
 )
+
+project_variable(SPHINX_DOC_EXTRA_ARGS TYPE STRING
+  DOCSTRING "extra arguments to sphinx-build")
+foreach (fmt html man)
+  project_variable(SPHINX_DOC_${fmt}_EXTRA_ARGS TYPE STRING
+    DOCSTRING "extra arguments to sphinx-build for output format ${fmt}")
+endforeach()
 
 # Define information for substitution in conf.py.in.
 set(PROJ_AUTHORS "Lynn Garren" "Patrick Gartung" "Chris Green" "scisoft-team <scisoft-team@fnal.gov>")
@@ -85,7 +94,9 @@ if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
     NITPICKY
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/reference"
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/reference"
-    )
+    EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
+    html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
+  )
   configure_file(landing/conf.py.in "landing/conf.py" @ONLY)
   cet_generate_sphinx_docs(${qv_arg}
     NITPICKY
@@ -95,6 +106,8 @@ if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
     html_NO_DELETE_OUTPUT_DIR
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/landing"
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/landing"
+    EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
+    html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     )
 endif()
 
@@ -107,6 +120,8 @@ cet_generate_sphinx_docs(${qv_arg}
   OUTPUT_FORMATS html
   SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/reference"
   CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}"
+  EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
+  html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
 )
 
 set(WANT_UNIX_MAN_PAGES "True")
@@ -116,4 +131,6 @@ cet_generate_sphinx_docs(${qv_arg}
   OUTPUT_FORMATS man
   SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/reference"
   CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/man-conf"
+  EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
+  man_EXTRA_ARGS ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
 )
