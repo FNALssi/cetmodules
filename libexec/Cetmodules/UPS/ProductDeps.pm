@@ -260,7 +260,7 @@ sub get_qualifier_list {
 unexpected keyword $keyword at $pfile:$fh->input_line_number - missing end_qualifier_list?
 EOF
       scalar @words < $qlen and error_exit(<<"EOF");
-require $qlen qualifier_list entries for $keyword at $pfile:$fh->input_line_number - found only $#words
+need $qlen qualifier_list entries for $keyword at $pfile:$fh->input_line_number - found only $#words
 EOF
       push @notes, $words[$qlen + 1] || q();
       push @qlist,
