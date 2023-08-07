@@ -188,7 +188,7 @@ CONFIG_OUTPUT_ROOT_DIR to suppress this message\
       set(CCC_WORKDIR "genConfig")
     endif()
     if (NOT IS_ABSOLUTE "${CCC_WORKDIR}")
-      string(PREPEND CCC_WORKDIR "${CMAKE_CURRENT_BINARY_DIR}/")
+      string(PREPEND CCC_WORKDIR "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/")
     endif()
     ####################################
     # Generate and install config files.
