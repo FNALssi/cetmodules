@@ -776,6 +776,10 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
           PROPERTY FIXTURES_REQUIRED "${fixture_name}")
       endforeach()
     endif()
+    if (CET_COMPILE_ONLY)
+      set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
+        RESOURCE_LOCK cet_test_compile_only)
+    endif()
     if (CETB_SANITIZER_PRELOADS)
       set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
         ENVIRONMENT "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
