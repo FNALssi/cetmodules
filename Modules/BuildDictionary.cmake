@@ -141,21 +141,15 @@ function(build_dictionary)
   cet_passthrough(FLAG APPEND BD_NO_INSTALL cml_args)
   cet_passthrough(FLAG APPEND BD_NO_EXPORT cml_args)
   cet_passthrough(APPEND BD_EXPORT_SET cml_args)
-  set(ROOTMAP_OUTPUT
-    "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>.rootmap")
   _generate_dictionary(${dictname}
     ${BD_CLASSES_DEF_XML} ${BD_CLASSES_H}
-    ROOTMAP_OUTPUT "${ROOTMAP_OUTPUT}"
-    PCM_OUTPUT_VAR PCM_OUTPUT)
+    AUX_OUTPUT_VAR AUX_OUTPUT)
   if (BD_COMPILE_FLAGS)
     set_source_files_properties(${dictname}_dict.cpp
       PROPERTIES COMPILE_FLAGS ${BD_COMPILE_FLAGS})
   endif()
-  if (NOT BD_NO_INSTALL)
-    install(FILES ${ROOTMAP_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
-    if (PCM_OUTPUT)
-      install(FILES ${PCM_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
-    endif()
+  if (AUX_OUTPUT AND NOT BD_NO_INSTALL)
+    install(FILES ${AUX_OUTPUT} DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR})
   endif()
   if (BD_NO_LIBRARY)
     return()
@@ -165,9 +159,9 @@ function(build_dictionary)
       CMAKE_SYSTEM_NAME MATCHES "Darwin")
     # Header line and OS X lib name fixing only necessary for older ROOT6.
     add_custom_command(TARGET ${dictname}_dict POST_BUILD
-      COMMAND perl -wapi.bak -e s&\\.dylib\\.so&.dylib&g ${ROOTMAP_OUTPUT}
-      COMMAND rm -f ${ROOTMAP_OUTPUT}.bak
-      COMMENT Fixing shared library reference in ${ROOTMAP_OUTPUT}
+      COMMAND perl -wapi.bak -e s&\\.dylib\\.so&.dylib&g ${AUX_OUTPUT}
+      COMMAND rm -f ${AUX_OUTPUT}.bak
+      COMMENT Fixing shared library reference in ${AUX_OUTPUT}
       VERBATIM)
   endif()
   if (TARGET ROOT::Core)
@@ -199,7 +193,7 @@ function(build_dictionary)
 endfunction()
 
 function(_generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
-  cmake_parse_arguments(PARSE_ARGV 2 GD "" "ROOTMAP_OUTPUT;PCM_OUTPUT_VAR" "")
+  cmake_parse_arguments(PARSE_ARGV 2 GD "" "AUX_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
   set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
   # Add any target-specific include directories, accounting safely for
@@ -209,26 +203,34 @@ function(_generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   # Add any target-specific compile definitions, accounting safely for
   # generator expressions.
   set(tmp_defs "$<TARGET_PROPERTY:${dictname}_dict,COMPILE_DEFINITIONS>")
-  list(APPEND GENREFLEX_FLAGS
-    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>"
-    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
-  if (GD_ROOTMAP_OUTPUT)
+  set(GENREFLEX_FLAGS
+    --fail_on_warning
+    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>")
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/module.modulemap")
+    list(APPEND GENREFLEX_FLAGS --cxxmodule -v)
+    set(AUX_OUTPUT
+      "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_BASE_NAME:${dictname}_dict>.pcm")
+  else()
+    set(AUX_OUTPUT
+      "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>.rootmap")
     list(APPEND GENREFLEX_FLAGS
       --rootmap-lib="$<TARGET_FILE_NAME:${dictname}_dict>"
-      --rootmap=${GD_ROOTMAP_OUTPUT}
-      )
+      --rootmap=${AUX_OUTPUT}
+    )
   endif()
-  set(PCM_OUTPUT
-    "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>_rdict.pcm")
-  if (GD_PCM_OUTPUT_VAR)
-    set(${GD_PCM_OUTPUT_VAR} ${PCM_OUTPUT} PARENT_SCOPE)
+  list(APPEND GENREFLEX_FLAGS
+    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
+  list(APPEND AUX_OUTPUT
+      "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>_rdict.pcm")
+  if (GD_AUX_OUTPUT_VAR)
+    set(${GD_AUX_OUTPUT_VAR} ${AUX_OUTPUT} PARENT_SCOPE)
   endif()
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
     # Extra outputs commented out until custom_command OUTPUT supports
     # generator flags. See
     # https://gitlab.kitware.com/cmake/cmake/issues/12877.
-    ${SOURCE_OUTPUT} # ${GD_ROOTMAP_OUTPUT} ${PCM_OUTPUT}
+    ${SOURCE_OUTPUT} # ${AUX_OUTPUT}
     COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
     -s ${CLASSES_DEF_XML}
 		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}
