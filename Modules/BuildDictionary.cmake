@@ -195,31 +195,38 @@ endfunction()
 function(_generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
   cmake_parse_arguments(PARSE_ARGV 2 GD "" "AUX_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
-  set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
-  # Add any target-specific include directories, accounting safely for
-  # generator expressions.
-  list(APPEND GENREFLEX_INCLUDES
-    "$<$<BOOL:${tmp_includes}>:-I$<JOIN:${tmp_includes},$<SEMICOLON>-I>>")
-  # Add any target-specific compile definitions, accounting safely for
-  # generator expressions.
+  # Add target-specific include directories and compile definitions,
+  # accounting safely for generator expressions.
   set(tmp_defs "$<TARGET_PROPERTY:${dictname}_dict,COMPILE_DEFINITIONS>")
-  set(GENREFLEX_FLAGS
-    --fail_on_warning
-    "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>")
+  set(ROOTCLING_DEFS "$<$<BOOL:${tmp_defs}>:-D$<JOIN:${tmp_defs},$<SEMICOLON>-D>>")
+  set(tmp_includes "$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>")
+  set(ROOTCLING_INCLUDES "$<$<BOOL:${tmp_includes}>:-I$<JOIN:${tmp_includes},$<SEMICOLON>-I>>")
+  set(ROOTCLING_FLAGS
+    --reflex
+    -f
+    ${CMAKE_CURRENT_BINARY_DIR}/${dictname}_dict.cpp
+    --failOnWarnings
+    --inlineInputHeader
+    --noGlobalUsingStd
+    --noIncludePaths
+		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}
+    ${ROOTCLING_INCLUDES}
+    ${ROOTCLING_DEFS}
+  )
   if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/module.modulemap")
-    list(APPEND GENREFLEX_FLAGS --cxxmodule -v)
+    list(APPEND ROOTCLING_FLAGS --cxxmodule -v)
     set(AUX_OUTPUT
       "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_BASE_NAME:${dictname}_dict>.pcm")
   else()
     set(AUX_OUTPUT
       "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>.rootmap")
-    list(APPEND GENREFLEX_FLAGS
-      --rootmap-lib="$<TARGET_FILE_NAME:${dictname}_dict>"
-      --rootmap=${AUX_OUTPUT}
+    list(APPEND ROOTCLING_FLAGS
+      --rmf=${AUX_OUTPUT}
+      --rml="$<TARGET_FILE_NAME:${dictname}_dict>"
     )
   endif()
-  list(APPEND GENREFLEX_FLAGS
-    -l "$<TARGET_LINKER_FILE:${dictname}_dict>")
+  list(APPEND ROOTCLING_FLAGS
+    -s "$<TARGET_LINKER_FILE:${dictname}_dict>")
   list(APPEND AUX_OUTPUT
       "$<TARGET_FILE_DIR:${dictname}_dict>/$<TARGET_FILE_PREFIX:${dictname}_dict>$<TARGET_FILE_BASE_NAME:${dictname}_dict>_rdict.pcm")
   if (GD_AUX_OUTPUT_VAR)
@@ -231,12 +238,10 @@ function(_generate_dictionary dictname CLASSES_DEF_XML CLASSES_H)
     # generator flags. See
     # https://gitlab.kitware.com/cmake/cmake/issues/12877.
     ${SOURCE_OUTPUT} # ${AUX_OUTPUT}
-    COMMAND ${ROOT_genreflex_CMD} ${CLASSES_H}
-    -s ${CLASSES_DEF_XML}
-		-I${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}
-		${GENREFLEX_INCLUDES}
-    ${GENREFLEX_FLAGS}
-    -o ${dictname}_dict.cpp
+    COMMAND ROOT::rootcling
+    ${ROOTCLING_FLAGS}
+    ${CLASSES_H}
+    ${CLASSES_DEF_XML}
     IMPLICIT_DEPENDS CXX ${CLASSES_H}
     DEPENDS ${CLASSES_DEF_XML}
     COMMAND_EXPAND_LISTS
