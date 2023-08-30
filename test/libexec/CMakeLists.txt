@@ -43,7 +43,7 @@ if (PERLCRITIC)
   # lower tolerance test for a given file will not be run if a higher
   # tolerance test failed, allowing the failed test's identity to denote
   # the severity level of any failed perlcritic criteria.
-  set(PERLCRITIC_COMMAND perlcritic --color --verbose=8)
+  set(PERLCRITIC_COMMAND ${PERLCRITIC} --color --verbose=8)
   set(PERLCRITIC_THEMES_EXP "\
 (
   ( bangs
