@@ -195,7 +195,7 @@ test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
 test $? != 0 && __SET__ _cetpkg_status=1 && \
   echo "ERROR: setup of cetpkgsupport has failed" || true
 test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
-  "$_cetpkg_cettop/libexec/bootstrap-perl-env" > \
+  yes n | "$_cetpkg_cettop/libexec/bootstrap-perl-env" > \
   "$CETPKG_BUILD/bootstrap.log"
 test $? != 0 && __SET__ _cetpkg_status=1 && \
   echo "ERROR: bootstrap of Perl environment for cetmodules has failed: see $CETPKG_BUILD/bootstrap.log" || true
