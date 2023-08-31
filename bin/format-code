@@ -198,7 +198,7 @@ sub apply_clang_format {
   # directory is inside of a git repository and (2) that the top-level
   # directory of the git repository contains a .clang-format file, we
   # are guaranteed to use the correct style file.
-  my $ld_path_prefix = $ld_path ? "LD_LIBRARY_PATH=\"$ld_path\"" : "";
+  my $ld_path_prefix = $ld_path ? "LD_LIBRARY_PATH=\"$ld_path\"" : q();
   return system("$ld_path_prefix $format_program -i -style=file $files_str") == 0;
 } ## end sub apply_clang_format
 
