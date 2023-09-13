@@ -10,6 +10,9 @@
 # and requested versions must always match at the major version level in
 # order to be compatible.
 ########################################################################
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.12...3.27 FATAL_ERROR)
+
 set(PACKAGE_VERSION "@CVF_VERSION@")
 set(PACKAGE_VERSION_INFO "@CVF_VERSION_INFO@")
 
@@ -36,7 +39,6 @@ else()
   endif()
 
   string(JOIN "-" PACKAGE_FIND_VERSION_FULL ${PACKAGE_FIND_VERSION} ${${PACKAGE_FIND_NAME}_FIND_VERSION_MIN_EXTRA})
-
   cet_version_cmp(_cet_version_cmp PACKAGE_VERSION_INFO "${PACKAGE_FIND_VERSION_FULL}")
   if (PACKAGE_FIND_VERSION VERSION_EQUAL 0 OR "${${PACKAGE_FIND_NAME}_FIND_VERSION_MIN_EXTRA}" STREQUAL "")
     set(_cet_fvm_compatible TRUE)
@@ -86,6 +88,8 @@ else()
   unset(_cet_fvm_compatible)
   unset(_cet_version_cmp)
 endif()
+
+cmake_policy(POP)
 
 # If the installed project requested no architecture check (or the
 # current or installation platform doesn't have CMAKE_SIZEOF_VOID_P set,

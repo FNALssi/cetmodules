@@ -8,6 +8,9 @@
 # version either does not compare less than the requested version, or is
 # within the requested range if such is specified.
 ########################################################################
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.12...3.27 FATAL_ERROR)
+
 set(PACKAGE_VERSION "@CVF_VERSION@")
 set(PACKAGE_VERSION_INFO "@CVF_VERSION_INFO@")
 
@@ -67,6 +70,8 @@ else()
   unset(_cet_fvm_compatible)
   unset(_cet_version_cmp)
 endif()
+
+cmake_policy(POP)
 
 # If the installed project requested no architecture check (or the
 # current or installation platform doesn't have CMAKE_SIZEOF_VOID_P set,
