@@ -16,11 +16,11 @@ use IO::Handle   qw();
 
 
 BEGIN {
-  $clang_version = "7.0.0";
+  $clang_version = "15.0.7";
   $clang_ups_version =
     $clang_version =~ s/(\d+)\.(\d+)\.(\d+)/v$1_$2_$3/rgmsx;
   @cpp_extensions = qw(.c .cxx .cc .cpp .C .h .hxx .hh .hpp .[it]cc .H);
-  @ignored_files  = qw(.svn .git CVS);
+  @ignored_files  = qw(.svn .git CVS .clang-format);
 } ## end BEGIN
 my $script_name = $PROGRAM_NAME =~ s|.*/([^/]+)|$1|rgmsx; # Trims leading directories of script name
 my $directory;
@@ -180,7 +180,7 @@ sub cleanup_whitespace {
 
 
 sub apply_clang_format {
-  my ($format_program, $files_str) = @_;
+  my ($format_program, $ld_path, $files_str) = @_;
 
   if ($verbose) {
     print "=> Applying clang-format $clang_version to:\n";
@@ -198,7 +198,8 @@ sub apply_clang_format {
   # directory is inside of a git repository and (2) that the top-level
   # directory of the git repository contains a .clang-format file, we
   # are guaranteed to use the correct style file.
-  return system("$format_program -i -style=file $files_str") == 0;
+  my $ld_path_prefix = $ld_path ? "LD_LIBRARY_PATH=\"$ld_path\"" : q();
+  return system("$ld_path_prefix $format_program -i -style=file $files_str") == 0;
 } ## end sub apply_clang_format
 
 
@@ -252,6 +253,7 @@ if (not -f "$git_top_level/.clang-format") {
   exit 4;
 } ## end if (not -f "$git_top_level/.clang-format")
 my $clang_format_program = undef;
+my $ld_library_path = undef;
 my $clang_format_available =
   system("type clang-format > /dev/null 2>&1") == 0;
 my $search_ups = 1;
@@ -302,6 +304,9 @@ EOF
   chomp($clang_format_program =
 `. \$(\${UPS_DIR}/bin/ups setup clang $clang_ups_version) && type -p clang-format`
   );
+  chomp($ld_library_path =
+`. \$(\${UPS_DIR}/bin/ups setup clang $clang_ups_version) && echo \${LD_LIBRARY_PATH}`
+  );
 } ## end if ($search_ups)
 check_for_clean_working_area($repo);
 my $files_str = undef;
@@ -344,5 +349,5 @@ if ($files_str =~ /\A\s*\Z/msx && !$list_changed) {
   exit;
 }
 cleanup_whitespace($files_str);
-apply_clang_format($clang_format_program, $files_str);
+apply_clang_format($clang_format_program, $ld_library_path, $files_str);
 report_changed_files($repo);

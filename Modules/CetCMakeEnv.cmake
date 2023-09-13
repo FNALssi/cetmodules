@@ -10,7 +10,7 @@ the current project.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
 
 # Override find package to deal with IN_TREE projects and reduce repeat
 # initializations.
@@ -132,13 +132,25 @@ macro(cet_cmake_env)
     endforeach()
   endif()
 
+  ##################
+  # Policy settings
+  ##################
+
+  # N.B. Since these cmake_policy() commands are in the *implementation*
+  #      of a macro, they are effective within the entire policy stack
+  #      active at the time of invocation.
+
   # Required to ensure correct installation location with
   # cetbuildtools-compatible installations.
   #
-  # N.B. Since this cmake_policy() command is in the *implementation* of
-  #      a macro, it is effective within the entire policy stack active
-  #      at the time of invocation.
+  # See https://cmake.org/cmake/help/latest/policy/CMP0082.html
   cmake_policy(SET CMP0082 NEW)
+
+  if (POLICY CMP0116)
+    # https://cmake.org/cmake/help/latest/policy/CMP0116.html
+    cmake_policy(SET CMP0116 NEW)
+  endif()
+  ########################################################################
 
   # Remove unwanted information from any previous run.
   _clean_internal_cache_entries()

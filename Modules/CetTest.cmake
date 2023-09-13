@@ -279,7 +279,7 @@ X
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
 
 # Copy function.
 include(CetCopy)
@@ -697,6 +697,18 @@ TEST_WORKDIR")
       set(CET_DATAFILES ${datafiles_tmp})
     endif(DEFINED CET_DATAFILES)
 
+    # Handle CMake test labels.
+    if (NOT (CET_OPTIONAL_GROUPS OR CET_NO_OPTIONAL_GROUPS))
+      set(CET_OPTIONAL_GROUPS DEFAULT RELEASE)
+    endif()
+    if (NTESTS GREATER 1)
+      list(APPEND CET_OPTIONAL_GROUPS ${TEST_TARGET_NAME})
+    endif()
+    if (CET_COMPILE_ONLY)
+      list(APPEND CET_OPTIONAL_GROUPS COMPILE_ONLY)
+    endif()
+    _update_defined_test_groups(${CET_OPTIONAL_GROUPS})
+
     list(FIND CET_TEST_PROPERTIES SKIP_RETURN_CODE skip_return_code)
     if (skip_return_code GREATER -1)
       math(EXPR skip_return_code "${skip_return_code} + 1")
@@ -738,13 +750,6 @@ TEST_WORKDIR")
     else(CET_REF)
       _cet_add_test(${CET_TEST_ARGS})
     endif(CET_REF)
-    if (NOT (CET_OPTIONAL_GROUPS OR CET_NO_OPTIONAL_GROUPS))
-      set(CET_OPTIONAL_GROUPS DEFAULT RELEASE)
-    endif()
-    if (NTESTS GREATER 1)
-      list(APPEND CET_OPTIONAL_GROUPS ${TEST_TARGET_NAME})
-    endif()
-    _update_defined_test_groups(${CET_OPTIONAL_GROUPS})
     set_tests_properties(${ALL_TEST_TARGETS} PROPERTIES LABELS "${CET_OPTIONAL_GROUPS}")
     if (CET_TEST_PROPERTIES)
       set_tests_properties(${ALL_TEST_TARGETS} PROPERTIES ${CET_TEST_PROPERTIES})
@@ -775,6 +780,10 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
         set_property(TEST ${ALL_TEST_TARGETS} APPEND
           PROPERTY FIXTURES_REQUIRED "${fixture_name}")
       endforeach()
+    endif()
+    if (CET_COMPILE_ONLY)
+      set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
+        RESOURCE_LOCK cet_test_compile_only)
     endif()
     if (CETB_SANITIZER_PRELOADS)
       set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY

@@ -26,7 +26,7 @@ include_guard()
 
 include(BuildDictionary)
 
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13...3.27 FATAL_ERROR)
 
 function(art_dictionary)
   if ("NO_DEFAULT_LIBRARIES" IN_LIST ARGV)

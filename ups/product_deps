@@ -7,7 +7,7 @@ libdir	-
 
 product         version		qual	<table_format=2>
 cetpkgsupport	-c
-cmake		v3_25_2
+cmake		v3_27_4
 ninja		-c		-	optional
 git		-c		-	optional only_for_build
 iwyu		-c		-	optional only_for_build

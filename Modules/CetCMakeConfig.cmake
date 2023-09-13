@@ -47,7 +47,7 @@ X
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19.6...3.27 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetPackagePath)
@@ -188,7 +188,7 @@ CONFIG_OUTPUT_ROOT_DIR to suppress this message\
       set(CCC_WORKDIR "genConfig")
     endif()
     if (NOT IS_ABSOLUTE "${CCC_WORKDIR}")
-      string(PREPEND CCC_WORKDIR "${CMAKE_CURRENT_BINARY_DIR}/")
+      string(PREPEND CCC_WORKDIR "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/")
     endif()
     ####################################
     # Generate and install config files.
@@ -632,7 +632,8 @@ function(_generate_target_vars FRAG_LIST)
 ####################################
 if (\${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR # Per-dependent setting.
  cetbuildtools_UPS_VERSION OR # Backward-compatibility.
- cetbuildtools IN_LIST \${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
+ \${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES
+ MATCHES \"(^|\\\;)cetbuildtools(\\\;|$)\")
 ${tmp}
 endif()\
 ")

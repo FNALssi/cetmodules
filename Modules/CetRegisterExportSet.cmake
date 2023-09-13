@@ -4,7 +4,7 @@ X
 #]================================================================]
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 function(cet_register_export_set)
   cmake_parse_arguments(PARSE_ARGV 0 CRES

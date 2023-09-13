@@ -35,7 +35,7 @@ X
 #   (mutually-exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
 #   DEFAULT to specify the default filter(s) somewhere in the chain.
 ########################################################################
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 # Defaults
 set(DEFAULT_FILTERS "${cetmodules_LIBEXEC_DIR}/filter-output")
