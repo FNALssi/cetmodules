@@ -32,7 +32,7 @@ X
 include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 function(cet_regex_escape)
   cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")

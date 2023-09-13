@@ -10,7 +10,7 @@ the current project.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
 
 # Override find package to deal with IN_TREE projects and reduce repeat
 # initializations.

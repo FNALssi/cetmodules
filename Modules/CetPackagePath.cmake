@@ -27,7 +27,7 @@ X
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 function(cet_package_path RESULT_VAR)
   cmake_parse_arguments(PARSE_ARGV 1 CPP "BINARY;HUMAN_READABLE;MUST_EXIST;SOURCE;TOP_PROJECT"
