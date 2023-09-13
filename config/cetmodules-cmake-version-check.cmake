@@ -1,3 +1,3 @@
-if (CMAKE_VERSION VERSION_LESS 3.19)
-  message(FATAL_ERROR "several features of cetmodules require CMake>=3.19")
+if (CMAKE_VERSION VERSION_LESS @CETMODULES_MIN_CMAKE_VERSION@)
+  message(FATAL_ERROR "several features of cetmodules require CMake>=@CETMODULES_MIN_CMAKE_VERSION@")
 endif()
