@@ -8,11 +8,7 @@ X
 
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
-
-if (POLICY CMP0112)
-  cmake_policy(SET CMP0112 NEW)
-endif()
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetPackagePath)
 

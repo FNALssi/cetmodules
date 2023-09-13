@@ -4,7 +4,7 @@ X
 #]================================================================]
 include_guard()
 
-cmake_minimum_required(VERSION 2.8.12...3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12...3.27 FATAL_ERROR)
 
 include(FindPackageHandleStandardArgs)
 

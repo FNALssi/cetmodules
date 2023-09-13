@@ -16,11 +16,7 @@ generate a ROOT dictionary from a selection XML
 #]================================================================]
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.22 FATAL_ERROR)
-
-if (POLICY CMP0112)
-  cmake_policy(SET CMP0112 NEW)
-endif()
+cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
 
 include(CetPackagePath)
 include(CetProcessLiblist)

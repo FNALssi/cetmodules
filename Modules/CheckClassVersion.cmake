@@ -3,7 +3,7 @@ X
 =
 #]================================================================]
 include_guard()
-cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 set(CCV_DEFAULT_RECURSIVE FALSE
   CACHE BOOL "Default setting for recursive checks by checkClassVersion (may be time-consuming)."

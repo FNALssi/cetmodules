@@ -9,7 +9,7 @@ if (NOT cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
   set_property(GLOBAL APPEND PROPERTY JOB_POOLS sphinx_doc=1)
 endif()
 
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
 function(cet_generate_sphinx_docs)
   if (NOT BUILD_DOCS) # Disabled.
