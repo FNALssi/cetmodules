@@ -47,10 +47,7 @@ X
 #                                                                                                  #
 #==================================================================================================#
 
-cmake_minimum_required(VERSION 2.8.12)
-if (POLICY CMP0110)
-  cmake_policy(SET CMP0110 NEW)
-endif()
+cmake_minimum_required(VERSION 2.8.12...3.27 FATAL_ERROR)
 
 option(PARSE_CATCH_TESTS_VERBOSE "Print Catch to CTest parser debug messages" OFF)
 option(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS "Exclude tests with [!hide], [.] or [.foo] tags" OFF)
