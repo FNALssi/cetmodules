@@ -42,6 +42,8 @@ true && test $?shell = 1 && set _cetpkg_shell_flavor=csh || _cetpkg_shell_flavor
 
 # If we're C-flavored, set up the commands using alias.
 test "$_cetpkg_shell_flavor" = csh && \
+  set _allout_1=">&" && \
+  set _allout_2="" && \
   set _cetpkg_nobuild="@nobuild@" && \
   set _cetpkg_shell_var_set=set\\1 && \
   set _cetpkg_to_stderr="| sh -c 'cat 1>\\&2'" && \
@@ -54,6 +56,8 @@ test "$_cetpkg_shell_flavor" = csh && \
 
 # For Bourne-flavored shells, use functions.
 test "$_cetpkg_shell_flavor" = sh && \
+  _allout_1=">" && \
+  _allout_2="2>&1" && \
   _cetpkg_nobuild="@nobuild@" && \
   _cetpkg_shell_var_set= && \
   _cetpkg_to_stderr='1>\&2' && \
@@ -195,8 +199,8 @@ test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
 test $? != 0 && __SET__ _cetpkg_status=1 && \
   echo "ERROR: setup of cetpkgsupport has failed" || true
 test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
-  yes n | "$_cetpkg_cettop/libexec/bootstrap-perl-env" > \
-  "$CETPKG_BUILD/bootstrap.log"
+  eval "yes n | '$_cetpkg_cettop/libexec/bootstrap-perl-env' $_allout_1 \
+  '$CETPKG_BUILD/bootstrap.log' $_allout_2"
 test $? != 0 && __SET__ _cetpkg_status=1 && \
   echo "ERROR: bootstrap of Perl environment for cetmodules has failed: see $CETPKG_BUILD/bootstrap.log" || true
 test -n "$_cetpkg_status" || test -n "$CETMODULES_DIR" || \
@@ -246,6 +250,7 @@ test "$_cetpkg_shell_flavor" = csh && \
 # Finish cleanup and exit. Note the use of eval so we can unset
 # everything including $return and $_cetpkg_status.
 eval "unset vecho_ setenv unsetenv_ source tnotnull nullout "\
+"_allout_1" "_allout_2"\
 "_cetpkg_nobuild _cetpkg_shell_var_set _cetpkg_to_stderr"\
 "_cetpkg_fw_db _cetpkg_myself _cetpkg_mydir _cetpkg_cetmsetup "\
 "_cetpkg_cettop _cetpkg_setup _cetpkg_setup_errlog "\
