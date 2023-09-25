@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>make_bash_completions(1) &mdash; Cetmodules 3.20.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/bootstrap.bundle.min.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    
+    <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="migrate(1)" href="migrate.1.html" />
+    <link rel="prev" title="intersphinx-refs(1)" href="intersphinx-refs.1.html" />
+  
+  <script type="text/javascript" src="../../version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="migrate.1.html" title="migrate(1)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intersphinx-refs.1.html" title="intersphinx-refs(1)"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.20.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">make_bash_completions(1)</a></li> 
+      </ul>
+    </div>
+
+  
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+       <a href="https://fnalssi.github.io/cetmodules/latest/manual/make_bash_completions.1.html">
+         Click here to see the latest release.
+       </a>
+       <span class="version_switch_note"></span>
+    </div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="manual:make_bash_completions(1)"></span><section id="make-bash-completions-1">
+<h1>make_bash_completions(1)<a class="headerlink" href="#make-bash-completions-1" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">make_bash_completions</strong> <a class="reference internal" href="#cmdoption-make_bash_completions-arg-out-file"><code class="xref std std-option docutils literal notranslate"><span class="pre">out-file</span></code></a> <a class="reference internal" href="#cmdoption-make_bash_completions-arg-program"><code class="xref std std-option docutils literal notranslate"><span class="pre">program</span></code></a> [<a class="reference internal" href="#cmdoption-make_bash_completions-arg-user-completions-file"><code class="xref std std-option docutils literal notranslate"><span class="pre">user-completions-file</span></code></a>]</p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">make_bash_completions</strong> generates a bash-completion script <a class="reference internal" href="#cmdoption-make_bash_completions-arg-out-file"><code class="xref std std-option docutils literal notranslate"><span class="pre">out-file</span></code></a> for <a class="reference internal" href="#cmdoption-make_bash_completions-arg-program"><code class="xref std std-option docutils literal notranslate"><span class="pre">program</span></code></a>. assuming its help text is formatted according to Boost’s program options library, with program options like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>--opt1             Non-argument option
+--opt2 arg         Option with argument
+-O [ --opt3 ] arg  Long and short options with argument
+</pre></div>
+</div>
+</section>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this heading">¶</a></h2>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-make_bash_completions-arg-out-file">
+<span id="cmdoption-make-bash-completions-arg-out-file"></span><span class="sig-name descname"><span class="pre">out-file</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-make_bash_completions-arg-out-file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the <code class="docutils literal notranslate"><span class="pre">bash-completions</span></code> script to be generated.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-make_bash_completions-arg-program">
+<span id="cmdoption-make-bash-completions-arg-program"></span><span class="sig-name descname"><span class="pre">program</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-make_bash_completions-arg-program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the program (to be found in <code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">PATH</span></code>) or its absolute path for which to generate the completions script.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-make_bash_completions-arg-user-completions-file">
+<span id="cmdoption-make-bash-completions-arg-user-completions-file"></span><span class="sig-name descname"><span class="pre">user-completions-file</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-make_bash_completions-arg-user-completions-file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a file containing explicit completions to add to <a class="reference internal" href="#cmdoption-make_bash_completions-arg-out-file"><code class="xref std std-option docutils literal notranslate"><span class="pre">out-file</span></code></a>.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">make_bash_completions(1)</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#arguments">Arguments</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="intersphinx-refs.1.html"
+                          title="previous chapter">intersphinx-refs(1)</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="migrate.1.html"
+                          title="next chapter">migrate(1)</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/make_bash_completions.1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="migrate.1.html" title="migrate(1)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intersphinx-refs.1.html" title="intersphinx-refs(1)"
+             >previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.20.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">make_bash_completions(1)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

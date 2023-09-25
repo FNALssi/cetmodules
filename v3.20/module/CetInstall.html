@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>CetInstall &mdash; Cetmodules 3.20.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/bootstrap.bundle.min.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    
+    <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="X" href="CetInstalledPath.html" />
+    <link rel="prev" title="CetGenerateSphinxDocs" href="CetGenerateSphinxDocs.html" />
+  
+  <script type="text/javascript" src="../../version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CetInstalledPath.html" title="X"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CetGenerateSphinxDocs.html" title="CetGenerateSphinxDocs"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.20.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetInstall</a></li> 
+      </ul>
+    </div>
+
+  
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+       <a href="https://fnalssi.github.io/cetmodules/latest/module/CetInstall.html">
+         Click here to see the latest release.
+       </a>
+       <span class="version_switch_note"></span>
+    </div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cetinstall">
+<span id="module:CetInstall"></span><h1>CetInstall<a class="headerlink" href="#cetinstall" title="Permalink to this heading">¶</a></h1>
+<p>This module defines an implementation of a generic file / installation
+function with the following features:</p>
+<ul class="simple">
+<li><p>Identify files to install and/or exclude by <span class="xref std std-ref">file(GLOB)</span>, or by list.</p></li>
+<li><p>Install contents of specific subdirectories:
+a) to their correct relative place in the install hierarchy; or
+b) to a base directory.</p></li>
+<li><p>Optionally, copy files for use in the build tree in addition to
+installing them.</p></li>
+</ul>
+<dl class="simple">
+<dt><span class="target" id="index-0-command:_cet_install"></span><a class="reference internal" href="#command:_cet_install" title="_cet_install"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">_cet_install()</span></code></a> is a “toolkit” function, intended to facilitate</dt><dd><p>the generation of <code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_X()</span> <span class="pre">&lt;!install_X&gt;()</span></code> functions with
+particular default or enforced characteristics for files of a
+particular type.</p>
+</dd>
+</dl>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:_cet_install">
+<span class="sig-name descname"><span class="pre">_cet_install</span></span><a class="headerlink" href="#command:_cet_install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install files of a particular type or category with installation
+semantics common to that type of file.</p>
+<dl>
+<dt><strong>Synopsis:</strong></dt><dd><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">_cet_install(</span><span class="nv">&lt;category&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;meta-options&gt;...</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;...</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl id="p-cet-install-options">
+<dt><strong>Options:</strong></dt><dd><dl class="simple" id="p-cet-install-basename-excludes">
+<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[[REGEX]</span> <span class="pre">&lt;exp&gt;]...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
+are excluded from installation; <span class="xref std std-ref">file(GLOB)</span> expressions are permitted.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;dest-path&gt;</span></code></dt><dd><p>Installation subdirectory below <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.27.6)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></a>
+(mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">DEST_VAR</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">DEST_VAR</span> <span class="pre">&lt;dest-var&gt;</span></code></dt><dd><p>The name of a CMake variable containing the installation
+subdirectory (mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">DESTINATION</span></code>).</p>
+</dd>
+</dl>
+<dl class="simple" id="p-cet-install-excludes">
+<dt><code class="docutils literal notranslate"><span class="pre">EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>A list of paths to exclude from the list of files that would
+otherwise be installed. This keyword accepts files only: no
+wildcards or directories</p>
+</dd>
+</dl>
+<dl class="simple" id="p-cet-install-opt-list">
+<dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">[&lt;file&gt;...]</span></code></dt><dd><p>A list of files to install. Mutually-exclusive with any option
+assuming a generated list via <a class="reference internal" href="#p-cet-install-glob">p_cet_install-_GLOB</a>,
+specifically <a class="reference internal" href="#p-cet-install-excludes">p_cet_install-EXCLUDES</a>,
+<a class="reference internal" href="#p-cet-install-basename-excludes">p_cet_install-BASENAME_EXCLUDES</a>, <a class="reference internal" href="#p-cet-install-extras">p_cet_install-EXTRAS</a>,
+<a class="reference internal" href="#p-cet-install-subdirs">p_cet_install-SUBDIRS</a>,</p>
+</dd>
+</dl>
+<p id="p-cet-install-extras"><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">[&lt;extra</span> <span class="pre">file&gt;...]</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></p>
+<p id="p-cet-install-subdirs"><code class="docutils literal notranslate"><span class="pre">SUBDIRS</span> <span class="pre">[&lt;source-subdir&gt;...]</span></code></p>
+</dd>
+</dl>
+<dl id="p-cet-install-meta-options">
+<dt><strong>Meta-options:</strong></dt><dd><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_BASENAME_EXCLUDES</span> <span class="pre">[&lt;basename-exclude-exp&gt;...]</span></code></dt><dd><p>Additional basename exclusion expressions.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>Additional full-path exclusion expressions.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXTRAS</span> <span class="pre">[&lt;path&gt;...]</span></code></dt><dd><p>Files to install in addition to those found via <span class="xref std std-ref">GLOB</span> expressions.</p>
+</dd>
+</dl>
+<dl class="simple" id="p-cet-install-glob">
+<dt><code class="docutils literal notranslate"><span class="pre">_GLOBS</span> <span class="pre">[&lt;glob&gt;...]</span></code></dt><dd><p><span class="xref std std-ref">GLOB</span> expressions for files to
+include.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_INSTALLED_FILES_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>The name of a variable in which to stored the full list of files
+installed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_INSTALL_ONLY</span></code></dt><dd><p>Do not copy files to the build tree.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_LIST_ONLY</span></code></dt><dd><p>Disable globbing: enforce explicit lists of files to install via
+<a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_NO_LIST</span></code></dt><dd><p>Disallow the use of <a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_SEARCH_BUILD</span></code></dt><dd><p><span class="xref std std-ref">GLOB</span> expressions will be applied
+to the build tree in addition to the source tree.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">_SQUASH_SUBDIRS</span></code></dt><dd><p>Subdirectory elements of source files are ignored when
+calculating the copy/install destination.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#p-cet-install-meta-options"><span class="std std-ref">Meta-options</span></a> to
+<code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_install()</span></code> are distinguished by a leading underscore
+and are intended for use by wrapper functions specific to a particular
+category of file (<em>e.g.</em> license and README files, geometry data,
+configuration files, <em>etc</em>.) to enforce common behavior for all
+installation operations for those files.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although supported for historical reasons, use of
+<span class="xref std std-ref">file(GLOB)</span> to generate targets is not
+CMake best practice, and may lead to hysteresis if looking for
+generated files in the build tree.</p>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">CetInstall</a><ul>
+<li><a class="reference internal" href="#details">Details</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="CetGenerateSphinxDocs.html"
+                          title="previous chapter">CetGenerateSphinxDocs</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="CetInstalledPath.html"
+                          title="next chapter">X</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/module/CetInstall.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CetInstalledPath.html" title="X"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CetGenerateSphinxDocs.html" title="CetGenerateSphinxDocs"
+             >previous</a> |</li>
+  <li>
+    <img src="../_static/cetmodules.png" alt=""
+         style="vertical-align: middle; margin-top: -2px" />
+  </li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+  </li>
+  <li>
+    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.20.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetInstall</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>
