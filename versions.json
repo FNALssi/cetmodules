@@ -1,10 +1,58 @@
 {
-  "git-develop" : "git-develop",
-  "latest" : "latest release",
-  "v3.22" : "3.22",
-  "v3.21" : "3.21",
-  "v3.20" : "3.20",
-  "v3.19" : "3.19",
-  "v3.18" : "3.18",
-  "v3.08" : "3.08"
+  "latest-version" : "3.22",
+  "ordered-versions" : 
+  [
+    "git-develop",
+    "latest",
+    "3.22",
+    "3.21",
+    "3.20",
+    "3.19",
+    "3.18",
+    "3.08"
+  ],
+  "vdata-version" : 1,
+  "version-entries" : 
+  {
+    "3.08" : 
+    {
+      "description" : "3.08",
+      "display-name" : "v3.08"
+    },
+    "3.18" : 
+    {
+      "description" : "3.18",
+      "display-name" : "v3.18"
+    },
+    "3.19" : 
+    {
+      "description" : "3.19",
+      "display-name" : "v3.19"
+    },
+    "3.20" : 
+    {
+      "description" : "3.20",
+      "display-name" : "v3.20"
+    },
+    "3.21" : 
+    {
+      "description" : "3.21",
+      "display-name" : "v3.21"
+    },
+    "3.22" : 
+    {
+      "description" : "3.22",
+      "display-name" : "v3.22"
+    },
+    "git-develop" : 
+    {
+      "description" : "git-develop",
+      "display-name" : "git-develop"
+    },
+    "latest" : 
+    {
+      "description" : "latest release",
+      "display-name" : "latest"
+    }
+  }
 }
