@@ -22,7 +22,7 @@
 
 {%- block relbar1 %}
 {{ super() }}
-{% if outdated is defined %}
+{% if versionswitch is defined %}
     <div class="outdated">
       This documents an old version of Cetmodules.
       <a href="https://fnalssi.github.io/cetmodules/latest/{{ pagename }}.html">
