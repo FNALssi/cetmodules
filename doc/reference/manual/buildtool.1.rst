@@ -8,11 +8,11 @@ buildtool(1)
 Synopsis
 ========
 
-:program:`buildtool`\ [:ref:`mode-option ... <buildtool-mode-options>`\|\
-:ref:`combo-option ... <buildtool-combo-options>`\ ] [:ref:`misc-options
-<buildtool-misc-options>`\ ] [``--`` [:ref:`CMake build options
-<buildtool-cmake-build-options>`\ ] [``--`` :ref:`generator options
-<buildtool-generator-options>`\ ]]
+:program:`buildtool` [:ref:`mode-option <buildtool-mode-options>`\|\
+:ref:`combo-option <buildtool-combo-options>` ...] [:ref:`misc-options
+<buildtool-misc-options>`] [``--`` [:ref:`CMake build options
+<buildtool-cmake-build-options>`] [``--`` :ref:`generator options
+<buildtool-generator-options>`]]
 
 :program:`buildtool`\  :option:`--help`\|\ :option:`-h`
 
@@ -36,25 +36,25 @@ Synopsis
    | :option:`--cmake-trace`
    | :option:`--cmake-trace-expand`
    | :option:`-D <-D\<CMake-definition>>`\ ``<CMake-definition>``
-   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``\ ] ...
+   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``] ...
    | :option:`-E`\|\ :option:`--export-compile-commands`
    | :option:`-f`\|\ :option:`--force-top`
    | :option:`-G <-G\<CMake-generator-string>>`\ ``<CMake-generator-string>``\|\ :option:`--generator` ``<make|ninja>``\ [:\ ``<secondary-generator>``]
-   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``\ ] ...\ ]\ ]
+   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``] ...]]
    | :option:`-I`\|\ :option:`--install-prefix` ``<ups-top-dir>``
-   | :option:`--iwyu`\ [=\ ``<iwyu-prog>``\ ]
+   | :option:`--iwyu`\ [=\ ``<iwyu-prog>``]
    | :option:`-j` ``#``
    | :option:`--L` ``<label-regex>``
    | :option:`--LE` ``<label-regex>``
-   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``\ ]|\ :option:`--log-file`\ [=\ ``<log-file>``\ ]
+   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``]|\ :option:`--log-file`\ [=\ ``<log-file>``]
    | :option:`--no-pc`\|\ :option:`--no-preset-configure`
    | :option:`--pc`\|\ :option:`--preset-configure` ``<preset-name>``
    | :option:`-q`\|\ :option:`--quiet`
    | :option:`-s`\|\ :option:`--subdir`
    | :option:`--tee`
-   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``\ ] ...
+   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``] ...
    | :option:`-v`\|\ :option:`--verbose`
-   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``\ ] ...
+   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``] ...
 
 Description
 ===========
