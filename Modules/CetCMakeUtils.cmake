@@ -293,8 +293,8 @@ endfunction()
 
      ``SYSTEM_DATE_CMD``
        Use the system :manpage:`date(1)` command even if ``<fmt>`` is
-       understood by :ref:`string(TIMESTAMP)
-       <cmake-ref-current:timestamp>`
+       understood by :command:`string(TIMESTAMP)
+       <cmake-ref-current:command:string(timestamp)>`
 
    **Non-option arguments**
      ``<out-var>``
@@ -302,8 +302,8 @@ endfunction()
 
      ``<fmt>``
        The desired format of the timestamp, using ``%`` placeholders
-       understood by :ref:`string(TIMESTAMP)
-       <cmake-ref-current:timestamp>` or the system :manpage:`date(1)`
+       understood by :command:`string(TIMESTAMP)
+       <cmake-ref-current:command:string(timestamp)>` or the system :manpage:`date(1)`
        command.
 
    **Examples**
@@ -333,7 +333,7 @@ endfunction()
 
       added :ref:`SYSTEM_DATE_CMD <cet_timestamp-SYSTEM_DATE_CMD>`.
 
-   .. seealso:: :ref:`string(TIMESTAMP) <cmake-ref-current:timestamp>`, :manpage:`date(1)`
+   .. seealso:: :command:`string(TIMESTAMP) <cmake-ref-current:command:string(timestamp)>`, :manpage:`date(1)`
 
 #]================================================================]
 function(cet_timestamp VAR)
@@ -837,8 +837,8 @@ endfunction()
 .. command:: cet_real_path
 
    Convert provided paths to a :envvar:`PATH`-like string or CMake list
-   of real paths via :ref:`file(REAL_PATH)
-   <cmake-ref-current:real_path>`.
+   of real paths via :command:`file(REAL_PATH)
+   <cmake-ref-current:command:file(real_path)>`.
 
    **Synopsis**
      .. code-block:: cmake
