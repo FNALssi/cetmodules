@@ -5,8 +5,8 @@ CetInstall
 This module defines an implementation of a generic file / installation
 function with the following features:
 
-* Identify files to install and/or exclude by :ref:`file(GLOB)
-  <cmake-ref-current:glob>`, or by list.
+* Identify files to install and/or exclude by :command:`file(GLOB)
+  <cmake-ref-current:command:file(glob)>`, or by list.
 
 * Install contents of specific subdirectories:
   a) to their correct relative place in the install hierarchy; or
@@ -48,8 +48,9 @@ include (ProjectVariable)
 
      ``BASENAME_EXCLUDES [[REGEX] <exp>]...``
        Filenames matching these expressions in any searched subdirectory
-       are excluded from installation; :ref:`file(GLOB)
-       <cmake-ref-current:glob>` expressions are permitted.
+       are excluded from installation; :command:`file(GLOB)
+       <cmake-ref-current:command:file(glob)>` expressions are
+       permitted.
 
      ``DESTINATION <dest-path>``
        Installation subdirectory below :variable:`CMAKE_INSTALL_PREFIX
@@ -98,14 +99,14 @@ include (ProjectVariable)
        Additional full-path exclusion expressions.
 
      ``_EXTRA_EXTRAS [<path>...]``
-       Files to install in addition to those found via :ref:`GLOB
-       <cmake-ref-current:glob>` expressions.
+       Files to install in addition to those found via :command:`GLOB
+       <cmake-ref-current:command:file(glob)>` expressions.
 
      .. _p_cet_install-_GLOB:
 
-     ``_GLOBS [<glob>...]``
-       :ref:`GLOB <cmake-ref-current:glob>` expressions for files to
-       include.
+     ``_GLOBS [<file(glob)>...]``
+       :command:`GLOB <cmake-ref-current:command:file(glob)>`
+       expressions for files to include.
 
      ``_INSTALLED_FILES_VAR <var>``
        The name of a variable in which to stored the full list of files
@@ -122,8 +123,9 @@ include (ProjectVariable)
        Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
 
      ``_SEARCH_BUILD``
-       :ref:`GLOB <cmake-ref-current:glob>` expressions will be applied
-       to the build tree in addition to the source tree.
+       :command:`GLOB <cmake-ref-current:command:file(glob)>`
+       expressions will be applied to the build tree in addition to the
+       source tree.
 
      ``_SQUASH_SUBDIRS``
        Subdirectory elements of source files are ignored when
@@ -140,11 +142,11 @@ configuration files, *etc*.) to enforce common behavior for all
 installation operations for those files.
 
 .. note:: Although supported for historical reasons, use of
-  :ref:`file(GLOB) <cmake-ref-current:glob>` to generate targets is not
-  CMake best practice, and may lead to hysteresis if looking for
-  generated files in the build tree.
-
+  :command:`file(GLOB) <cmake-ref-current:command:file(glob)>` to
+  generate targets is not CMake best practice, and may lead to
+  hysteresis if looking for generated files in the build tree.
 #]============================================================]
+
 # Copy all files (or PROGRAMS) found matching provided glob expressions
 # to location indicated by DEST_VAR. Optionally (as indicated by
 # _SEARCH_BUILD) use ${CMAKE_CURRENT_BINARY_DIR} as a relative base in
