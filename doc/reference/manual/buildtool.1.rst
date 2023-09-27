@@ -42,6 +42,7 @@ Synopsis
    | :option:`-G <-G\<CMake-generator-string>>`\ ``<CMake-generator-string>``\|\ :option:`--generator` ``<make|ninja>``\ [:\ ``<secondary-generator>``]
    | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``\ ] ...\ ]\ ]
    | :option:`-I`\|\ :option:`--install-prefix` ``<ups-top-dir>``
+   | :option:`--iwyu`\ [=\ ``<iwyu-prog>``\ ]
    | :option:`-j` ``#``
    | :option:`--L` ``<label-regex>``
    | :option:`--LE` ``<label-regex>``
@@ -303,6 +304,12 @@ Miscellaneous options
    area into which to install the package if install is
    requested. Overrides the :envvar:`CETPKG_INSTALL` environment
    variable and anything already known to CMake.
+
+.. option:: --iwyu[=<iwyu-prog>]
+
+   .. versionadded:: 3.19.00
+   Specify the location of the `include-what-you-use
+   <https://include-what-you-use.org/>`_ program (:program:`iwyu`).
 
 .. option:: -j <#>
 
