@@ -198,7 +198,9 @@ Miscellaneous options
    --trace, --trace-expand <cmake-ref-current:cmake options>`,
    respectively) to the command-line options for the configure stage.
 
-   .. seealso:: :option:`-Xc <-X<c|b|t|i|p>>`.
+   .. deprecated:: 2.15.00
+      use :option:`-Xc <-X<c|b|t|i|p>>` with the corresponding native
+      CMake option.
 
 .. option:: -D<CMake-definition>
 
@@ -336,12 +338,14 @@ Miscellaneous options
 
 .. option:: --no-pc, --no-preset-configure
 
+   .. versionadded:: 3.08.00
    Do not use a predefined CMake configure preset.
 
    .. seealso:: :option:`--pc`
 
 .. option:: --pc <preset-name>, --preset-configure <preset-name>
 
+   .. versionadded:: 3.06.00
    Use the named `CMake configure preset
    <https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset>`_
    instead of CMake definitions genereated from
@@ -390,6 +394,7 @@ Miscellaneous options
 
 .. option:: -X<c|b|t|i|p> <arg>[,<arg>]+[,--,<non-option-arg>[,<non-option-arg>]+]
 
+   .. versionadded:: 2.15.00
    E\ ``X``\ tra arguments to be passed to the ``C``\ onfigure, ``b``\
    uild, ``t``\ est, ``i``\ nstall, or ``p``\ ackage stages. ``<arg>``\
    s will be added at the end of option arguments, while
