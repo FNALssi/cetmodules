@@ -147,6 +147,7 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
    .. seealso:: :command:`cet_make_library`
 
 #]================================================================]
+
 function(basic_plugin NAME SUFFIX)
   cmake_parse_arguments(PARSE_ARGV 2 BP
     "${cet_bp_flags}" "${cet_bp_one_arg_opts}" "${cet_bp_list_options}")
