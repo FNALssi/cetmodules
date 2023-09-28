@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; Cetmodules git-develop-3292c16 Reference</title>
+  <title>Index &mdash; Cetmodules git-develop-94d630a Reference</title>
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/cetmodules.css" />
@@ -48,7 +48,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3292c16</span>
+    <span class="version_switch">git-develop-94d630a</span>
     <a href="index.html">Reference</a> &#187;
   </li>
 
@@ -169,13 +169,6 @@
 </li>
       </ul></li>
       <li>
-    --commit
-
-      <ul>
-        <li><a href="manual/format-code.1.html#cmdoption-format-code-c">format-code command line option</a>
-</li>
-      </ul></li>
-      <li>
     --debug
 
       <ul>
@@ -286,6 +279,13 @@
 
       <ul>
         <li><a href="manual/buildtool.1.html#cmdoption-buildtool-I">buildtool command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --iwyu
+
+      <ul>
+        <li><a href="manual/buildtool.1.html#cmdoption-buildtool-iwyu">buildtool command line option</a>
 </li>
       </ul></li>
       <li>
@@ -536,8 +536,6 @@
 
       <ul>
         <li><a href="manual/buildtool.1.html#cmdoption-buildtool-0">buildtool command line option</a>
-</li>
-        <li><a href="manual/format-code.1.html#cmdoption-format-code-c">format-code command line option</a>
 </li>
         <li><a href="manual/increment-version.1.html#cmdoption-increment-version-client-dir">increment-version command line option</a>
 </li>
@@ -910,6 +908,8 @@
         <li><a href="manual/buildtool.1.html#cmdoption-buildtool-i">--install</a>
 </li>
         <li><a href="manual/buildtool.1.html#cmdoption-buildtool-I">--install-prefix</a>
+</li>
+        <li><a href="manual/buildtool.1.html#cmdoption-buildtool-iwyu">--iwyu</a>
 </li>
         <li><a href="manual/buildtool.1.html#cmdoption-buildtool-L">--L</a>
 </li>
@@ -1323,8 +1323,6 @@
         <li><a href="module/BasicPlugin.html#index-0-variable:CETMODULES_CURRENT_PROJECT_NAME">variable</a>, <a href="module/CetCMakeUtils.html#index-0-variable:CETMODULES_CURRENT_PROJECT_NAME">[1]</a>, <a href="module/CetCMakeUtils.html#index-1-variable:CETMODULES_CURRENT_PROJECT_NAME">[2]</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     CetOverrideFindPackage
 
@@ -1339,6 +1337,8 @@
         <li><a href="module/CetPackagePath.html#module:CetPackagePath"><strong>module</strong></a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     CetParseArgs
 
@@ -1466,6 +1466,20 @@
 </li>
       </ul></li>
       <li>
+    cmake-ref-current:command:file(glob)
+
+      <ul>
+        <li><a href="module/CetInstall.html#index-0-command:cmake-ref-current:command:file(glob)">command</a>, <a href="module/CetInstall.html#index-1-command:cmake-ref-current:command:file(glob)">[1]</a>, <a href="module/CetInstall.html#index-2-command:cmake-ref-current:command:file(glob)">[2]</a>, <a href="module/CetInstall.html#index-3-command:cmake-ref-current:command:file(glob)">[3]</a>, <a href="module/CetInstall.html#index-4-command:cmake-ref-current:command:file(glob)">[4]</a>, <a href="module/CetInstall.html#index-5-command:cmake-ref-current:command:file(glob)">[5]</a>
+</li>
+      </ul></li>
+      <li>
+    cmake-ref-current:command:file(real_path)
+
+      <ul>
+        <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:file(real_path)">command</a>
+</li>
+      </ul></li>
+      <li>
     cmake-ref-current:command:find_package
 
       <ul>
@@ -1484,6 +1498,13 @@
 
       <ul>
         <li><a href="manual/increment-version.1.html#index-0-command:cmake-ref-current:command:project">command</a>, <a href="module/CetCMakeEnv.html#index-0-command:cmake-ref-current:command:project">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    cmake-ref-current:command:string(timestamp)
+
+      <ul>
+        <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:string(timestamp)">command</a>, <a href="module/CetCMakeUtils.html#index-1-command:cmake-ref-current:command:string(timestamp)">[1]</a>, <a href="module/CetCMakeUtils.html#index-2-command:cmake-ref-current:command:string(timestamp)">[2]</a>
 </li>
       </ul></li>
       <li>
@@ -1581,11 +1602,17 @@
 </li>
         <li><a href="module/BuildDictionary.html#index-0-command:check_class_version">check_class_version</a>, <a href="module/BuildDictionary.html#index-1-command:check_class_version">[1]</a>
 </li>
+        <li><a href="module/CetInstall.html#index-0-command:cmake-ref-current:command:file(glob)">cmake-ref-current:command:file(glob)</a>, <a href="module/CetInstall.html#index-1-command:cmake-ref-current:command:file(glob)">[1]</a>, <a href="module/CetInstall.html#index-2-command:cmake-ref-current:command:file(glob)">[2]</a>, <a href="module/CetInstall.html#index-3-command:cmake-ref-current:command:file(glob)">[3]</a>, <a href="module/CetInstall.html#index-4-command:cmake-ref-current:command:file(glob)">[4]</a>, <a href="module/CetInstall.html#index-5-command:cmake-ref-current:command:file(glob)">[5]</a>
+</li>
+        <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:file(real_path)">cmake-ref-current:command:file(real_path)</a>
+</li>
         <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:find_package">cmake-ref-current:command:find_package</a>, <a href="module/CetCMakeUtils.html#index-1-command:cmake-ref-current:command:find_package">[1]</a>
 </li>
         <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:include_directories">cmake-ref-current:command:include_directories</a>
 </li>
         <li><a href="manual/increment-version.1.html#index-0-command:cmake-ref-current:command:project">cmake-ref-current:command:project</a>, <a href="module/CetCMakeEnv.html#index-0-command:cmake-ref-current:command:project">[1]</a>
+</li>
+        <li><a href="module/CetCMakeUtils.html#index-0-command:cmake-ref-current:command:string(timestamp)">cmake-ref-current:command:string(timestamp)</a>, <a href="module/CetCMakeUtils.html#index-1-command:cmake-ref-current:command:string(timestamp)">[1]</a>, <a href="module/CetCMakeUtils.html#index-2-command:cmake-ref-current:command:string(timestamp)">[2]</a>
 </li>
         <li><a href="module/CetCMakeEnv.html#index-0-command:install_pkgmeta">install_pkgmeta</a>, <a href="module/CetCMakeEnv.html#index-1-command:install_pkgmeta">[1]</a>
 </li>
@@ -1770,8 +1797,6 @@
     format-code command line option
 
       <ul>
-        <li><a href="manual/format-code.1.html#cmdoption-format-code-c">--commit</a>
-</li>
         <li><a href="manual/format-code.1.html#cmdoption-format-code-d">--directory</a>
 </li>
         <li><a href="manual/format-code.1.html#cmdoption-format-code-n">--dry-run</a>
@@ -1779,8 +1804,6 @@
         <li><a href="manual/format-code.1.html#cmdoption-format-code-use-available">--use-available</a>
 </li>
         <li><a href="manual/format-code.1.html#cmdoption-format-code-v">--verbose</a>
-</li>
-        <li><a href="manual/format-code.1.html#cmdoption-format-code-c">-c</a>
 </li>
         <li><a href="manual/format-code.1.html#cmdoption-format-code-d">-d</a>
 </li>
@@ -2523,7 +2546,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3292c16</span>
+    <span class="version_switch">git-develop-94d630a</span>
     <a href="index.html">Reference</a> &#187;
   </li>
 

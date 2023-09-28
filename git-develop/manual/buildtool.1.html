@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>buildtool(1) &mdash; Cetmodules git-develop-3292c16 Reference</title>
+  <title>buildtool(1) &mdash; Cetmodules git-develop-94d630a Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
@@ -57,7 +57,7 @@
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3292c16</span>
+    <span class="version_switch">git-develop-94d630a</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -84,7 +84,7 @@
 <h1>buildtool(1)<a class="headerlink" href="#buildtool-1" title="Permalink to this heading">¶</a></h1>
 <section id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
-<p><strong class="program">buildtool</strong>[<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option …</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option …</span></a>] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]</p>
+<p><strong class="program">buildtool</strong> [<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option</span></a> …] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]</p>
 <p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a></p>
 <p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-usage"><code class="xref std std-option docutils literal notranslate"><span class="pre">--usage</span></code></a></p>
 <p><a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">Exclusive mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">-A</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">--all</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">-C</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-only</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--info</span></code></a></p>
@@ -105,6 +105,7 @@
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-G-CMake-generator-string"><code class="xref std std-option docutils literal notranslate"><span class="pre">-G</span></code></a><code class="docutils literal notranslate"><span class="pre">&lt;CMake-generator-string&gt;</span></code>|<a class="reference internal" href="#cmdoption-buildtool-generator"><code class="xref std std-option docutils literal notranslate"><span class="pre">--generator</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;make|ninja&gt;</span></code>[:<code class="docutils literal notranslate"><span class="pre">&lt;secondary-generator&gt;</span></code>]</div>
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-g"><code class="xref std std-option docutils literal notranslate"><span class="pre">-g</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;dot-file&gt;</span></code>|<a class="reference internal" href="#cmdoption-buildtool-g"><code class="xref std std-option docutils literal notranslate"><span class="pre">--graphviz</span></code></a>=<code class="docutils literal notranslate"><span class="pre">&lt;dot-file&gt;</span></code> [<a class="reference internal" href="#cmdoption-buildtool-gfilt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--gfilt</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;gfilt-opt&gt;</span></code>[,<code class="docutils literal notranslate"><span class="pre">&lt;gfilt-opt&gt;</span></code>] …]]</div>
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">-I</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install-prefix</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;ups-top-dir&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-iwyu"><code class="xref std std-option docutils literal notranslate"><span class="pre">--iwyu</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;iwyu-prog&gt;</span></code>]</div>
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-j"><code class="xref std std-option docutils literal notranslate"><span class="pre">-j</span></code></a> <code class="docutils literal notranslate"><span class="pre">#</span></code></div>
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--L</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;label-regex&gt;</span></code></div>
 <div class="line"><a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--LE</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;label-regex&gt;</span></code></div>
@@ -274,9 +275,9 @@ directory.</p>
 <dd><p>Add the corresponding CMake debug option (<a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake.1.html#cmake-options" title="(in CMake v3.27.6)"><span class="xref std std-ref">–debug-output,
 –trace, –trace-expand</span></a>,
 respectively) to the command-line options for the configure stage.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#cmdoption-buildtool-X-c-b-t-i-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-Xc</span></code></a>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.15.00: </span>use <a class="reference internal" href="#cmdoption-buildtool-X-c-b-t-i-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-Xc</span></code></a> with the corresponding native
+CMake option.</p>
 </div>
 </dd></dl>
 
@@ -408,6 +409,15 @@ variable and anything already known to CMake.</p>
 </dd></dl>
 
 <dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-iwyu">
+<span class="sig-name descname"><span class="pre">--iwyu</span></span><span class="sig-prename descclassname"><span class="pre">[=&lt;iwyu-prog&gt;]</span></span><a class="headerlink" href="#cmdoption-buildtool-iwyu" title="Permalink to this definition">¶</a></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.19.00.</span></p>
+</div>
+<p>Specify the location of the <a class="reference external" href="https://include-what-you-use.org/">include-what-you-use</a> program (<strong class="program">iwyu</strong>).</p>
+</dd></dl>
+
+<dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-j">
 <span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;#&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-j" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specify the level of parallelism for stages for which it is
@@ -439,7 +449,10 @@ from their argument.</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-no-pc">
 <span id="cmdoption-buildtool-no-preset-configure"></span><span class="sig-name descname"><span class="pre">--no-pc</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-preset-configure</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-no-pc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Do not use a predefined CMake configure preset.</p>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.08.00.</span></p>
+</div>
+<p>Do not use a predefined CMake configure preset.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#cmdoption-buildtool-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pc</span></code></a></p>
@@ -449,7 +462,10 @@ from their argument.</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-pc">
 <span id="cmdoption-buildtool-preset-configure"></span><span class="sig-name descname"><span class="pre">--pc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;preset-name&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--preset-configure</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;preset-name&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-pc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use the named <a class="reference external" href="https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset">CMake configure preset</a>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.06.00.</span></p>
+</div>
+<p>Use the named <a class="reference external" href="https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset">CMake configure preset</a>
 instead of CMake definitions genereated from
 <code class="file docutils literal notranslate"><span class="pre">ups/product_deps</span></code>. Absent this option or <a class="reference internal" href="#cmdoption-buildtool-no-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-pc</span></code></a>,
 the preset <code class="docutils literal notranslate"><span class="pre">for_UPS</span></code> will be used if defined in
@@ -510,7 +526,10 @@ and <a class="reference internal" href="#cmdoption-buildtool-R"><code class="xre
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-buildtool-X-c-b-t-i-p">
 <span id="cmdoption-buildtool-x-c-b-t-i-p"></span><span class="sig-name descname"><span class="pre">-X&lt;c|b|t|i|p&gt;</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;arg&gt;[,&lt;arg&gt;]+[,--,&lt;non-option-arg&gt;[,&lt;non-option-arg&gt;]+]</span></span><a class="headerlink" href="#cmdoption-buildtool-X-c-b-t-i-p" title="Permalink to this definition">¶</a></dt>
-<dd><p>E<code class="docutils literal notranslate"><span class="pre">X</span></code>tra arguments to be passed to the <code class="docutils literal notranslate"><span class="pre">C</span></code>onfigure, <code class="docutils literal notranslate"><span class="pre">b</span></code>uild, <code class="docutils literal notranslate"><span class="pre">t</span></code>est, <code class="docutils literal notranslate"><span class="pre">i</span></code>nstall, or <code class="docutils literal notranslate"><span class="pre">p</span></code>ackage stages. <code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span></code>s will be added at the end of option arguments, while
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 2.15.00.</span></p>
+</div>
+<p>E<code class="docutils literal notranslate"><span class="pre">X</span></code>tra arguments to be passed to the <code class="docutils literal notranslate"><span class="pre">C</span></code>onfigure, <code class="docutils literal notranslate"><span class="pre">b</span></code>uild, <code class="docutils literal notranslate"><span class="pre">t</span></code>est, <code class="docutils literal notranslate"><span class="pre">i</span></code>nstall, or <code class="docutils literal notranslate"><span class="pre">p</span></code>ackage stages. <code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span></code>s will be added at the end of option arguments, while
 <code class="docutils literal notranslate"><span class="pre">&lt;non-option-arg&gt;</span></code>s will be added at the end of non-option
 arguments.</p>
 </dd></dl>
@@ -700,7 +719,7 @@ parallelism is controlled by the generator (<em>e.g.</em> <code class="docutils 
     <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3292c16</span>
+    <span class="version_switch">git-develop-94d630a</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

@@ -8,11 +8,11 @@ buildtool(1)
 Synopsis
 ========
 
-:program:`buildtool`\ [:ref:`mode-option ... <buildtool-mode-options>`\|\
-:ref:`combo-option ... <buildtool-combo-options>`\ ] [:ref:`misc-options
-<buildtool-misc-options>`\ ] [``--`` [:ref:`CMake build options
-<buildtool-cmake-build-options>`\ ] [``--`` :ref:`generator options
-<buildtool-generator-options>`\ ]]
+:program:`buildtool` [:ref:`mode-option <buildtool-mode-options>`\|\
+:ref:`combo-option <buildtool-combo-options>` ...] [:ref:`misc-options
+<buildtool-misc-options>`] [``--`` [:ref:`CMake build options
+<buildtool-cmake-build-options>`] [``--`` :ref:`generator options
+<buildtool-generator-options>`]]
 
 :program:`buildtool`\  :option:`--help`\|\ :option:`-h`
 
@@ -36,24 +36,25 @@ Synopsis
    | :option:`--cmake-trace`
    | :option:`--cmake-trace-expand`
    | :option:`-D <-D\<CMake-definition>>`\ ``<CMake-definition>``
-   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``\ ] ...
+   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``] ...
    | :option:`-E`\|\ :option:`--export-compile-commands`
    | :option:`-f`\|\ :option:`--force-top`
    | :option:`-G <-G\<CMake-generator-string>>`\ ``<CMake-generator-string>``\|\ :option:`--generator` ``<make|ninja>``\ [:\ ``<secondary-generator>``]
-   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``\ ] ...\ ]\ ]
+   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``] ...]]
    | :option:`-I`\|\ :option:`--install-prefix` ``<ups-top-dir>``
+   | :option:`--iwyu`\ [=\ ``<iwyu-prog>``]
    | :option:`-j` ``#``
    | :option:`--L` ``<label-regex>``
    | :option:`--LE` ``<label-regex>``
-   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``\ ]|\ :option:`--log-file`\ [=\ ``<log-file>``\ ]
+   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``]|\ :option:`--log-file`\ [=\ ``<log-file>``]
    | :option:`--no-pc`\|\ :option:`--no-preset-configure`
    | :option:`--pc`\|\ :option:`--preset-configure` ``<preset-name>``
    | :option:`-q`\|\ :option:`--quiet`
    | :option:`-s`\|\ :option:`--subdir`
    | :option:`--tee`
-   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``\ ] ...
+   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``] ...
    | :option:`-v`\|\ :option:`--verbose`
-   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``\ ] ...
+   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``] ...
 
 Description
 ===========
@@ -197,7 +198,9 @@ Miscellaneous options
    --trace, --trace-expand <cmake-ref-current:cmake options>`,
    respectively) to the command-line options for the configure stage.
 
-   .. seealso:: :option:`-Xc <-X<c|b|t|i|p>>`.
+   .. deprecated:: 2.15.00
+      use :option:`-Xc <-X<c|b|t|i|p>>` with the corresponding native
+      CMake option.
 
 .. option:: -D<CMake-definition>
 
@@ -304,6 +307,12 @@ Miscellaneous options
    requested. Overrides the :envvar:`CETPKG_INSTALL` environment
    variable and anything already known to CMake.
 
+.. option:: --iwyu[=<iwyu-prog>]
+
+   .. versionadded:: 3.19.00
+   Specify the location of the `include-what-you-use
+   <https://include-what-you-use.org/>`_ program (:program:`iwyu`).
+
 .. option:: -j <#>
 
    Specify the level of parallelism for stages for which it is
@@ -329,12 +338,14 @@ Miscellaneous options
 
 .. option:: --no-pc, --no-preset-configure
 
+   .. versionadded:: 3.08.00
    Do not use a predefined CMake configure preset.
 
    .. seealso:: :option:`--pc`
 
 .. option:: --pc <preset-name>, --preset-configure <preset-name>
 
+   .. versionadded:: 3.06.00
    Use the named `CMake configure preset
    <https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset>`_
    instead of CMake definitions genereated from
@@ -383,6 +394,7 @@ Miscellaneous options
 
 .. option:: -X<c|b|t|i|p> <arg>[,<arg>]+[,--,<non-option-arg>[,<non-option-arg>]+]
 
+   .. versionadded:: 2.15.00
    E\ ``X``\ tra arguments to be passed to the ``C``\ onfigure, ``b``\
    uild, ``t``\ est, ``i``\ nstall, or ``p``\ ackage stages. ``<arg>``\
    s will be added at the end of option arguments, while

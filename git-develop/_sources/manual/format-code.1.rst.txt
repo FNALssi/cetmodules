@@ -8,7 +8,7 @@ format-code(1)
 Synopsis
 ========
 
-:program:`format-code` \ :option:`-d`\|\ :option:`--directory` ``<directory>`` [:option:`-c`\|\ :option:`-n`\] [:option:`-v`\] [:option:`--use-available`\]
+:program:`format-code` \ :option:`-d`\|\ :option:`--directory` ``<directory>`` [:option:`-n`] [:option:`-v`] [:option:`--use-available`]
 
 Description
 ===========
@@ -22,12 +22,6 @@ Options
 
    Top-level directory to which to apply formatting.
 
-.. option:: -c, --commit
-
-   Commit changes after code-formatting has been applied.
-
-   .. warning:: an attempt to use this option with a dirty working area will fail with an error.
-
 .. option:: -n, --dry-run
 
    No changes will be made to source code.
@@ -36,4 +30,4 @@ Options
 
 .. option:: --use-available
 
-   Use the version of clang-format already set up for use.
+   Use the version of :program:`clang-format` already set up for use.
