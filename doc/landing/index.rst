@@ -39,7 +39,7 @@ Reference Documentation
    .. toctree::
       :maxdepth: 1
 
-   .. /release_notes/v3/index.rst
+.. /release_notes/v3/index.rst
 
 License
 =======
