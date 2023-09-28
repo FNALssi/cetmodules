@@ -1,6 +1,8 @@
-##########################################
-Documentation
-##########################################
+.. ifconfig:: versionswitch
+
+   ##########################################
+   Cetmodules Reference
+   ##########################################
 
 .. ifconfig:: not versionswitch
 
@@ -8,8 +10,8 @@ Documentation
       :start-after: .. <--include-top-start-->
       :end-before: .. <--include-top-end-->
 
-   Reference Documentation
-   =======================
+   Reference
+   =========
 
 Command-Line Tools
 ------------------
@@ -34,6 +36,7 @@ Reference Manuals
 
    manual/cetmodules-commands.7
    manual/cetmodules-compatibility.7
+   manual/cetmodules-concepts.7
    manual/cetmodules-environment-variables.7
    manual/cetmodules-modules.7
    manual/cetmodules-project-variables.7
@@ -46,13 +49,6 @@ Reference Manuals
    .. include:: /../landing/index.rst
       :start-after: .. <--include-bottom-start-->
       :end-before: .. <--include-bottom-end-->
-
-.. toctree::
-   :maxdepth: 1
-   :includehidden:
-   :hidden:
-
-.. release_notes/v3/index
 
 .. only:: html
 

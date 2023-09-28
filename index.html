@@ -46,8 +46,29 @@
 <h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
+<p>Cetmodules is, at its core, a wrapper around low-level CMake functionality
+intended to fulfill the following goals:</p>
+<ol class="arabic simple">
+<li><p>Reduce the number of CMake commands necessary to accomplish common
+tasks, including for “modern” (v3+) CMake functionality such as
+<a class="reference external" href="https://cmake.org/cmake/help/latest/manual/cmake-buildsystem.7.html#pseudo-targets">pseudo-targets</a>.</p></li>
+<li><p>Generate CMake config files automatically, taking care of the
+bookkeeping necessary to handle transitive dependencies with minimum
+user intervention.</p></li>
+<li><p>Provide domain-specific build tools useful to scientists utilizing
+the “Art”<abbr title="High Energy Physics">HEP</abbr> analysis framwork to
+process data from (mainly) neutrino experiments.</p></li>
+</ol>
 <section id="target-user-base">
 <h3>Target user base<a class="headerlink" href="#target-user-base" title="Permalink to this heading">¶</a></h3>
+<p>Cetmodules was developed as a backward-compatible replacement for an
+earlier tool satisfying the latter goal above called “cetbuildtools,”
+which was intimately tied to a <a class="reference external" href="https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation">domain-specific package management
+system</a>
+called <abbr title="Unix™ Product System">UPS</abbr>. Notwithstanding its origins, Cetmodules is intended to be
+a general build tool—although someone from outside the original target
+community might encounter some puzzling terminology, vestigial
+functionality, or other endearing quirks.</p>
 </section>
 <section id="compatibility">
 <h3>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this heading">¶</a></h3>

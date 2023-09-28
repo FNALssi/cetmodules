@@ -63,18 +63,18 @@ Despite the bewildering array of available options, :program:`buildtool`
 is intended to simplify the task of building and debugging code,
 producing packages for use with `UPS
 <https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation>`_.
-:abbr:`UPS` is a **deprecated** domain-specific tool, so if your package
-is not already reliant on :abbr:`UPS`, you are _strongly_ encouraged not
+|UPS| is a **deprecated** domain-specific tool, so if your package
+is not already reliant on |UPS|, you are _strongly_ encouraged not
 to start. Instead you should use `CMake <https://cmake.org>`_ directly
 and/or your favorite IDE or other build manager such as `GNU Make
 <https://www.gnu.org/software/make/>`_ or `ninja
 <https://ninja-build.org/>`_.
 
-.. note:: If your package _does_ rely on :abbr:`UPS` currently, you are
+.. note:: If your package _does_ rely on |UPS| currently, you are
    encouraged to investigate :manual:`migrate(1)` to facilitate evolving
    your package and its dependencies to be buildable via more general
    means such as `Spack <https://spack.readthedocs.io/en/latest/>`_,
-   while still being buildable with and for the :abbr:`UPS` environment.
+   while still being buildable with and for the |UPS| environment.
 
 The process of producing a software package from its source consists of
 multiple steps:
@@ -87,7 +87,7 @@ multiple steps:
 
 :program:`buildtool` assumes one is using `CMake <https://cmake.org>`_
 and the macros and functions defined within Cetmodules inside a
-:abbr:`UPS` environment to produce a :abbr:`UPS` package. This in turn
+|UPS| environment to produce a |UPS| package. This in turn
 implies the existence of files :file:`ups/{product}.table`
 :file:`ups/product_deps`, and :file:`ups/setup_for_development`, the
 latter of which has already been sourced prior to invoking
@@ -302,7 +302,7 @@ Miscellaneous options
 
 .. option:: -I <ups-top-dir>, --install-prefix <ups-top-dir>
 
-   Specify the location of the private (or public) :abbr:`UPS` products
+   Specify the location of the private (or public) |UPS| products
    area into which to install the package if install is
    requested. Overrides the :envvar:`CETPKG_INSTALL` environment
    variable and anything already known to CMake.
