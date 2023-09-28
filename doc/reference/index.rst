@@ -1,6 +1,8 @@
-##########################################
-Documentation
-##########################################
+.. ifconfig:: versionswitch
+
+   ##########################################
+   Cetmodules Reference
+   ##########################################
 
 .. ifconfig:: not versionswitch
 
@@ -8,8 +10,8 @@ Documentation
       :start-after: .. <--include-top-start-->
       :end-before: .. <--include-top-end-->
 
-   Reference Documentation
-   =======================
+   Reference
+   =========
 
 Command-Line Tools
 ------------------
