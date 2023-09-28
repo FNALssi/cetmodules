@@ -50,13 +50,6 @@ Reference Manuals
       :start-after: .. <--include-bottom-start-->
       :end-before: .. <--include-bottom-end-->
 
-.. toctree::
-   :maxdepth: 1
-   :includehidden:
-   :hidden:
-
-.. release_notes/v3/index
-
 .. only:: html
 
    Index and Search
