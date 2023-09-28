@@ -160,6 +160,11 @@ intersphinx_mapping \
         'cmake-ref-latest': ('https://cmake.org/cmake/help/latest/', None)
     }
 
+# Included at the beginning of every ReST document.
+rst_prolog = """
+.. include:: /../cetmodules-common.rst
+"""
+
 # Setup function.
 def setup(app):
     app.add_config_value('versionswitch', @WANT_VERSION_SWITCH@, 'env')
