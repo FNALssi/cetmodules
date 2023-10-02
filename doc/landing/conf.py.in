@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx_design',
+    'sphinx_toolbox.collapse',
     'sphinxcontrib.htmlhelp',
     'sphinxcontrib.moderncmakedomain'
 ]

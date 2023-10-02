@@ -12,7 +12,7 @@ ninja		-c		-	optional
 git		-c		-	optional only_for_build
 iwyu		-c		-	optional only_for_build
 python		v3_9_15		-	optional only_for_build
-sphinx		v5_3_0		-	only_for_build
+sphinx		v7_2_6		-	only_for_build
 end_product_list
  
 qualifier	cmake	ninja	cetpkgsupport
