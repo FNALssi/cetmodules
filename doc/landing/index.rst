@@ -11,7 +11,8 @@ Documentation
 Overview
 ========
 
-Cetmodules is, at its core, a wrapper around low-level CMake functionality
+`Cetmodules <https://github.com/FNALssi/cetmodules>`_ is, at its core, a
+wrapper around low-level `CMake <https://cmake.org>`_ functionality
 intended to fulfill the following goals:
 
 #. Reduce the number of CMake commands necessary to accomplish common
@@ -21,25 +22,72 @@ intended to fulfill the following goals:
    bookkeeping necessary to handle transitive dependencies with minimum
    user intervention.
 #. Provide domain-specific build tools useful to scientists utilizing
-   the "Art"\ :abbr:`HEP (High Energy Physics)` analysis framwork to
-   process data from (mainly) neutrino experiments.
+   the `Art <https://art.fnal.gov/>`_ :abbr:`HEP (High Energy Physics)`
+   analysis framwork to process data from (mainly) neutrino experiments.
 
 Target user base
 ----------------
 
 Cetmodules was developed as a backward-compatible replacement for an
-earlier tool satisfying the latter goal above called "cetbuildtools,"
-which was intimately tied to a `domain-specific package management
+earlier tool ("cetbuildtools") satisfying the latter goal mentioned
+above. This was intimately tied to a `domain-specific package management
 system
-<https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation>`_
+<https://s3.cern.ch/inspire-prod-files-8/8cee9fd8c06a92ebb9d627a5e88a874b>`_
 called |UPS|. Notwithstanding its origins, Cetmodules is intended to be
 a general build tool—although someone from outside the original target
 community might encounter some puzzling terminology, vestigial
 functionality, or other endearing quirks.
 
+Documentation notes
+-------------------
+
+Information specific to legacy compatibility and domain-specific
+features will be marked with appropriate admonitions:
+
+.. admonition:: cetbuildtools
+   :class: admonition-legacy
+
+   You will only care about this information if you are porting code
+   from cetbuidltools.
+
+... or:
+
+.. admonition:: :abbr:`HEP`
+   :class: admonition-domain
+
+   This is a Find module specific to HEP.
+
+... or:
+
+.. admonition:: ROOT
+   :class: admonition-app
+
+   This is a feature that supports building code using ROOT.
+
 Compatibility
 -------------
 
+* Cetmodules requires CMake >= |CMAKE_MIN_VERSION|.
+
+.. admonition:: cetbuildtools
+   :class: admonition-legacy
+
+   * Cetmodules >= 2.10.00 is backward-compatible with cetbuildtools >=
+     7.00.00.
+
+   Unported cetbuildtools code will generate many deprecation and other
+   warnings. To temporarily disable these warnings, add
+   ``-DCET_WARN_DEPRECATED:BOOL=NO`` to your CMake configuration
+   command-line options.
+
+   Some cetbuildtools-style behavior is different or disabled in
+   Cetmodules by default either because it is inefficient, inflexible or
+   against modern best practice. Examples include use of |UPS|-specific
+   variables or terminology, or library-path variables instead of
+   targets in dependency lists. These can be enabled on a per-package
+   basis by adding ``-D{project}_OLD_STYLE_CONFIG_VARS:BOOL=YES`` to
+   your CMake configuration command-line options.
+   
 .. <--include-top-end-->
 
 Reference Documentation
@@ -74,7 +122,17 @@ License
 Support
 =======
 
+If `Fermilab <https://www.fnal.gov>`_ has an applicable MOU and/or SLA
+with your organization, support will be provided thereunder; otherwise
+`support is best-effort only
+<https://github.com/FNALssi/cetmodules/issues>`_ and no warranty is
+expressed or implied thereby.
+
 Contributing
 ============
+
+Contributions to `Cetmodules <https://github.com/FNALssi/cetmodules>`_
+are welcome via `GitHub pull request
+<https://github.com/FNALssi/cetmodules/pulls>`_.
 
 .. <--include-bottom-end-->
