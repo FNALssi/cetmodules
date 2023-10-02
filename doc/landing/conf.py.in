@@ -109,6 +109,7 @@ intersphinx_mapping \
 
 # Included at the beginning of every ReST document.
 rst_prolog = """
+.. |CMAKE_MIN_VERSION| replace:: @CETMODULES_MIN_CMAKE_VERSION@
 .. include:: /../cetmodules-common.rst
 """
 
