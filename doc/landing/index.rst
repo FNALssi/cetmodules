@@ -67,6 +67,10 @@ Reference Documentation
 License
 =======
 
+.. collapse:: BSD 3-Clause
+
+   .. include:: /../../LICENSE
+
 Support
 =======
 
