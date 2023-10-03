@@ -1,12 +1,12 @@
 {% extends "!layout.html" %}
 {% block rootrellink %}
-  <li>
+<li>
+  <a href="https://github.com/FNALssi/cetmodules">
     <img src="{{ pathto('_static/cetmodules.png', 1) }}" alt=""
          style="vertical-align: middle; margin-top: -2px" />
-  </li>
-  <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a>{{ reldelim1 }}
-  </li>
+    Cetmodules
+  </a>{{ reldelim1 }}
+</li>
 {% endblock %}
 
 {# Put some context in the html title element. Workaround for #}

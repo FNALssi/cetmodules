@@ -1,15 +1,17 @@
 {% extends "!layout.html" %}
 {% block rootrellink %}
   <li>
-    <img src="{{ pathto('_static/cetmodules.png', 1) }}" alt=""
-         style="vertical-align: middle; margin-top: -2px" />
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="{{ pathto('_static/cetmodules.png', 1) }}" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a>{{ reldelim1 }}
   </li>
+  {%- if versionswitch is defined %}
   <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a>{{ reldelim1 }}
+    <a href="{{ content_root }}../">Cetmodules Documentation</a>{{ reldelim1 }}
   </li>
-  <li>
-    <a href="https://fnalssi.github.io/cetmodules/">{% trans %}Documentation{% endtrans %}</a>{{ reldelim1 }}
-  </li>
+  {%- endif %}
   <li>
     {%- if versionswitch is defined %}
     <span class="version_switch">{{ release }}</span>
@@ -25,7 +27,7 @@
 {% if versionswitch is defined %}
     <div class="outdated">
       This documents an old version of Cetmodules.
-      <a href="https://fnalssi.github.io/cetmodules/latest/{{ pagename }}.html">
+      <a href="{{ content_root }}../latest/{{ pagename }}.html">
         Click here to see the latest release.
       </a>
       <span class="version_switch_note"></span>

@@ -1,6 +1,6 @@
-##########
-Cetmodules
-##########
+########################
+Cetmodules Documentation
+########################
 
 Overview
 ========
