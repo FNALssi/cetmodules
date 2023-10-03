@@ -1,12 +1,6 @@
-##########################################
-Documentation
-##########################################
-
-
-.. meta::
-   :google-site-verification: mWu4AzUH2LiVvIlufi6W4Goyu4kKB0pKde6qTj8XYoU
-
-.. <--include-top-start-->
+##########
+Cetmodules
+##########
 
 Overview
 ========
@@ -88,51 +82,3 @@ Compatibility
    basis by adding ``-D{project}_OLD_STYLE_CONFIG_VARS:BOOL=YES`` to
    your CMake configuration command-line options.
    
-.. <--include-top-end-->
-
-Reference Documentation
-=======================
-
-.. button-link:: latest/
-   :expand:
-   :outline:
-   :color: primary
-
-   Latest reference documentation (with links to other versions)
-
-.. <--include-bottom-start-->
-
-.. only:: html or text
-
-   Release Notes
-   =============
-
-   .. toctree::
-      :maxdepth: 1
-
-.. /release_notes/v3/index.rst
-
-License
-=======
-
-.. collapse:: BSD 3-Clause
-
-   .. include:: /../../LICENSE
-
-Support
-=======
-
-If `Fermilab <https://www.fnal.gov>`_ has an applicable MOU and/or SLA
-with your organization, support will be provided thereunder; otherwise
-`support is best-effort only
-<https://github.com/FNALssi/cetmodules/issues>`_ and no warranty is
-expressed or implied thereby.
-
-Contributing
-============
-
-Contributions to `Cetmodules <https://github.com/FNALssi/cetmodules>`_
-are welcome via `GitHub pull request
-<https://github.com/FNALssi/cetmodules/pulls>`_.
-
-.. <--include-bottom-end-->

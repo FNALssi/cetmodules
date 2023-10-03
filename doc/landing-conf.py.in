@@ -1,0 +1,19 @@
+########################################################################
+# Landing settings.
+
+# HTML tweaks.
+html_title = '{0}'.format(project)
+
+# Landings-specific extensions.
+extensions.append('sphinx_design')
+
+# We use our own Bootstrap.
+sd_add_bootstrap_css = False
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['@CMAKE_CURRENT_SOURCE_DIR@/landing-templates']
+
+# Setup function.
+def setup(app):
+    app.add_config_value('versionswitch', False, 'env')
+    app.add_js_file('bootstrap.bundle.min.js')

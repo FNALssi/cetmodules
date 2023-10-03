@@ -1,9 +1,11 @@
 (async function() {
   'use strict';
 
+  const content_root = document.documentElement.dataset.content_root;
+
   async function getVersions() {
     try {
-      let res = await fetch(DOCUMENTATION_OPTIONS.URL_ROOT + '../versions.json');
+      let res = await fetch(content_root + '../versions.json');
       return await res.json();
     }
     catch(error) {
@@ -43,7 +45,7 @@
     let file = document.location.pathname.substring(document.location.pathname.lastIndexOf('/') + 1);
     let path = document.location.pathname.substring(0, document.location.pathname.lastIndexOf('/' + file));
     let parts = path.split(/\//);
-    $.each(DOCUMENTATION_OPTIONS.URL_ROOT.split(/\//), function() {
+    $.each(content_root.split(/\//), function() {
       if (this === '..')
         parts.pop();
     });
@@ -55,7 +57,7 @@
   }
 
   function switch_to_version(new_version) {
-    return DOCUMENTATION_OPTIONS.URL_ROOT + '../' + new_version + getRelativePath();
+    return content_root + '../' + new_version + getRelativePath();
   }
 
   function on_switch() {
@@ -69,7 +71,7 @@
            window.location.href = new_url;
         },
         error: function() {
-          window.location.href = DOCUMENTATION_OPTIONS.URL_ROOT + '../' + selected;
+          window.location.href = content_root + '../' + selected;
         }
       });
     }
