@@ -8,9 +8,10 @@ License
 Support
 =======
 
-If `Fermilab <https://www.fnal.gov>`_ has an applicable MOU and/or SLA
-with your organization, support will be provided thereunder; otherwise
-`support is best-effort only
+If `Fermilab <https://www.fnal.gov>`_ has an applicable :abbr:`MOU
+(Memorandum Of Understanding)` and/or :abbr:`SLA (Service Level
+Agreement)` with your organization, support will be provided thereunder;
+otherwise `support is best-effort only
 <https://github.com/FNALssi/cetmodules/issues>`_ and no warranty is
 expressed or implied thereby.
 
