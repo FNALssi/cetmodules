@@ -22,8 +22,8 @@ include(CetPackagePath)
 include(CetProcessLiblist)
 include(CheckClassVersion)
 
-set(_cet_build_dictionary_flags NO_CHECK_CLASS_VERSION NO_EXPORT
-  NO_INSTALL NO_LIBRARY NO_RECURSIVE NOP RECURSIVE USE_PRODUCT_NAME
+set(_cet_build_dictionary_flags NOP NO_CHECK_CLASS_VERSION NO_EXPORT
+  NO_INSTALL NO_LIBRARY NO_RECURSIVE RECURSIVE USE_PRODUCT_NAME
   USE_PROJECT_NAME)
 
 set(_cet_build_dictionary_one_arg_options CLASSES_H CLASSES_DEF_XML
