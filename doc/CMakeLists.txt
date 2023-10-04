@@ -8,13 +8,9 @@ function(_generate_reference)
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
 
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst" landing_top)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst" landing_bottom)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst" ref_tools)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst" ref_manuals)
   file(WRITE "${doc_root}/reference/index.rst"
     "\
-${landing_top}
+${LANDING_TOP}
 
 Reference
 =========
@@ -22,14 +18,19 @@ Reference
 Command-Line Tools
 ------------------
 
-${ref_tools}
+${REF_TOOLS}
 
 Reference Manuals
 -----------------
 
-${ref_manuals}
+${REF_MANUALS}
 
-${landing_bottom}
+Helpers and Legacy Tools
+------------------------
+
+${REF_HELPERS}
+
+${LANDING_BOTTOM}
 
 .. only:: html
 
@@ -87,8 +88,6 @@ function(_publish_to_root)
   cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst" DESTINATION "${doc_root}")
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst" ref_tools)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst" ref_manuals)
   file(WRITE "${doc_root}/reference/index.rst"
     "\
 #######################
@@ -98,12 +97,18 @@ Reference Documentation
 Command-Line Tools
 ==================
 
-${ref_tools}
+${REF_TOOLS}
 
 Reference Manuals
 =================
 
-${ref_manuals}
+${REF_MANUALS}
+
+Helpers and Legacy Tools
+========================
+
+${REF_HELPERS}
+
 
 .. only:: html
 
@@ -140,17 +145,13 @@ ${ref_conf}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
   )
 
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst" landing_top)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-reference.rst" landing_ref)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst" landing_bottom)
-
   file(WRITE "${doc_root}/landing/index.rst"
     "\
-${landing_top}
+${LANDING_TOP}
 
 ${landing_ref}
 
-${landing_bottom}
+${LANDING_BOTTOM}
 ")
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-conf.py.in" landing_conf)
   string(CONFIGURE "\
@@ -274,6 +275,11 @@ set(WANT_UNIX_MAN_PAGES "False")
 set(WANT_VERSION_SWITCH "False")
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/common-conf.py.in" COMMON_CONF)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst" LANDING_TOP)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst" LANDING_BOTTOM)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst" REF_TOOLS)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst" REF_MANUALS)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-helpers-etc.rst" REF_HELPERS)
 
 if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
   _publish_to_root()
