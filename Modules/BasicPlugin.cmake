@@ -16,7 +16,7 @@ include(CetProcessLiblist)
 include(CetRegexEscape)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL
-  USE_BOOST_UNIT USE_PRODUCT_NAME VERSION)
+  USE_BOOST_UNIT USE_PROJECT_NAME USE_PRODUCT_NAME VERSION)
 set(cet_bp_one_arg_opts EXPORT_SET IMPL_TARGET_VAR SOVERSION)
 set(cet_bp_list_options ALIAS IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS
   REG_SOURCE SOURCE)
@@ -125,8 +125,10 @@ Other options
   The plugin uses Boost unit test functions and should be compiled and
   linked accordingly.
 
-``USE_PACKAGE_NAME``
-  The package name will be prepended to the plugin library name,
+``USE_PROJECT_NAME``
+  .. versionadded:: 3.23.00
+
+  The project name will be prepended to the plugin library name,
   separated by ``_``
 
 ``VERSION``
@@ -144,7 +146,7 @@ Deprecated options
     ``LIBRARIES REG`` instead.
 
 ``USE_PRODUCT_NAME``
-  .. deprecated:: 2.0 use ``USE_PACKAGE_NAME`` instead.
+  .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
 
 Non-option arguments
 ^^^^^^^^^^^^^^^^^^^^
@@ -166,8 +168,9 @@ function(basic_plugin NAME SUFFIX)
       NEW "LIBRARIES")
     list(APPEND BP_LIBRARIES NOP ${BP_UNPARSED_ARGUMENTS})
   endif()
-  if (BP_BASENAME_ONLY AND BP_USE_PRODUCT_NAME)
-    message(FATAL_ERROR "BASENAME_ONLY AND USE_PRODUCT_NAME are mutually exclusive")
+  if (BP_USE_PRODUCT_NAME)
+    warn_deprecated(NEW "USE_PROJECT_NAME")
+    set(BP_USE_PROJECT_NAME TRUE)
   endif()
   if (BP_BASENAME_ONLY)
     set(plugin_stem "${NAME}")
@@ -182,10 +185,10 @@ function(basic_plugin NAME SUFFIX)
       endif()
     endif()
     string(REPLACE "/" "_" plugin_stem "${CURRENT_SUBDIR}")
-    if (BP_USE_PRODUCT_NAME)
-      string(JOIN "_" plugin_stem "${CETMODULES_CURRENT_PROJECT_NAME}" "${plugin_stem}")
-    endif()
     string(JOIN "_" plugin_stem  "${plugin_stem}" "${NAME}")
+  endif()
+  if (BP_USE_PROJECT_NAME)
+    string(JOIN "_" plugin_stem "${CETMODULES_CURRENT_PROJECT_NAME}" "${plugin_stem}")
   endif()
   if (BP_SOURCE)
     warn_deprecated("SOURCE" NEW "IMPL_SOURCE, REG_SOURCE and LIBRARIES REG")
@@ -202,8 +205,7 @@ function(basic_plugin NAME SUFFIX)
   foreach (kw IN ITEMS EXPORT_SET LOCAL_INCLUDE_DIRS SOVERSION)
     cet_passthrough(APPEND BP_${kw} cml_common_args)
   endforeach()
-  foreach (kw IN ITEMS BASENAME_ONLY NO_INSTALL
-      USE_PRODUCT_NAME VERSION)
+  foreach (kw IN ITEMS NO_INSTALL VERSION)
     cet_passthrough(FLAG APPEND BP_${kw} cml_common_args)
   endforeach()
   # These items are only for the implementation library.
