@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 BuildDictionary
-===============
+---------------
 
 Module defining the function :command:`build_dictionary` to
 generate a ROOT dictionary from a selection XML

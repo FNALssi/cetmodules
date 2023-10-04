@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 BasicPlugin
-===========
+-----------
 
 Module defining the function :command:`basic_plugin` to generate a generic
 plugin module.

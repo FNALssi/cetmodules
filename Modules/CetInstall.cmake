@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 CetInstall
-==========
+----------
 
 This module defines an implementation of a generic file / installation
 function with the following features:

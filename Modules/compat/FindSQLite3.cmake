@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 X
-=
+-
 #]================================================================]
 set(_cet_sqlite_sqlite_var_names
   FIND_COMPONENTS FOUND VERSION INCLUDE_DIR INCLUDE_DIRS LIBRARIES LIBRARY)

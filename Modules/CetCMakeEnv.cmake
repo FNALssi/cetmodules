@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 CetCMakeEnv
-===========
+-----------
 
 This module defines the principal bootstrap function
 :command:`cet_cmake_env` defining the cetmodules build environment for

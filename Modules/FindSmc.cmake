@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 X
-=
+-
 #]================================================================]
 set(_cet_smc_cmake_module_path "${CMAKE_MODULE_PATH}")
 set(CMAKE_MODULE_PATH) # Don't want to find ourselves and loop.
