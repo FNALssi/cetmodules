@@ -34,7 +34,7 @@ to avoid |ODR| violations.
 
 .. code-block:: cmake
 
-  basic_plugin(<name> <suffix> [<options>])
+   basic_plugin(<name> <suffix> [<options>])
 
 Source specification options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
