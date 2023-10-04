@@ -1,7 +1,11 @@
 #[================================================================[.rst:
-X
--
+CetMakeLibrary
+--------------
+
+Module defining the function :command`cet_make_library` to generate
+libraries and plugins.
 #]================================================================]
+
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
@@ -12,6 +16,90 @@ include(CetCMakeUtils)
 include(CetRegexEscape)
 
 set(_cet_make_library_usage "")
+
+#[================================================================[.rst:
+.. command:: cet_make_library
+
+Create a library.
+
+.. seealso:: :command:`cmake-ref-current:command:add_library`,
+             :command:`cmake-ref-current:command:target_sources`,
+             :command:`cmake-ref-current:command:target_include_directories`,
+             :command:`cmake-ref-current:command:target_link_libraries`,
+             :command:`cmake-ref-current:command:install`,
+             :command:`cet_make_alias`,
+             :command:`cet_register_export_set`
+
+.. parsed-literal::
+
+   cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
+                    [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`])
+
+.. _cet_make_library_name_options:
+
+Name Options
+^^^^^^^^^^^^
+
+``BASENAME_ONLY``
+
+``LIBRARY_NAME <name>``
+
+``LIBRARY_NAME_VAR <var>``
+
+``USE_PROJECT_NAME``
+
+.. _cet_make_library_type_options:
+
+Type Options
+^^^^^^^^^^^^
+
+``INTERFACE|MODULE|OBJECT|SHARED|STATIC``
+
+``NO_OBJECT``
+
+``WITH_STATIC_LIBRARY``
+
+.. _cet_make_library_options:
+
+Library Options
+^^^^^^^^^^^^^^^
+
+``INSTALLED_PATH_BASE <base>``
+
+``LIBRARIES <library-specification> ...``
+
+``LOCAL_INCLUDE_DIRS <dir> ...``
+
+``NO_SOURCE``
+
+``SOURCE <source> ...``
+
+``SOVERSION <version>``
+
+``STRIP_LIBS``
+
+``USE_BOOST_UNIT``
+
+``VERSION``
+
+.. _cet_make_library_target_options:
+
+Target Options
+^^^^^^^^^^^^^^
+
+``ALIAS <alias-target> ...``
+
+``EXCLUDE_FROM_ALL``
+
+``EXPORT_SET <export-set>``
+
+``HEADERS_TARGET``
+
+``HEADERS_TARGET_ONLY``
+
+``NO_EXPORT``
+
+#]================================================================]
 
 function(cet_make_library)
   # Two-phase parsing to avoid confusion with e.g. INTERFACE in
