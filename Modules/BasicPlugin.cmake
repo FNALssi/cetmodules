@@ -119,7 +119,8 @@ Other options
   Do not install the generated library or libraries.
 
 ``SOVERSION <version>``
-  The library's compatibility version (*cf* :prop_tgt:`SOVERSION`).
+  The library's compatibility version (*cf*
+  :prop_tgt:`cmake-ref-current:prop_tgt:SOVERSION`).
 
 ``USE_BOOST_UNIT``
   The plugin uses Boost unit test functions and should be compiled and
@@ -133,8 +134,8 @@ Other options
 
 ``VERSION``
   The library's build version will be set to
-  :variable:`CETMODULES_CURRENT_PROJECT_NAME` (*cf*
-  :prop_tgt:`VERSION`).
+  :variable:`CETMODULES_CURRENT_PROJECT_VERSION` (*cf*
+  :prop_tgt:`cmake-ref-current:prop_tgt:VERSION`).
 
 Deprecated options
 ^^^^^^^^^^^^^^^^^^
