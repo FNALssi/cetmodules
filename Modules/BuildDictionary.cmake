@@ -27,7 +27,7 @@ set(_cet_build_dictionary_flags NOP NO_CHECK_CLASS_VERSION NO_EXPORT
   NO_INSTALL NO_LIBRARY NO_RECURSIVE RECURSIVE USE_PRODUCT_NAME
   USE_PROJECT_NAME)
 
-set(_cet_build_dictionary_one_arg_options CLASSES_H CLASSES_DEF_XML
+set(_cet_build_dictionary_one_arg_options CLASSES_DEF_XML CLASSES_H
   DICT_NAME_VAR EXPORT_SET)
 
 set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
