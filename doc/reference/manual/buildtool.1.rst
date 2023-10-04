@@ -85,13 +85,12 @@ multiple steps:
 * Installation
 * Packaging
 
-:program:`buildtool` assumes one is using `CMake <https://cmake.org>`_
-and the macros and functions defined within Cetmodules inside a
-|UPS| environment to produce a |UPS| package. This in turn
-implies the existence of files :file:`ups/{product}.table`
-:file:`ups/product_deps`, and :file:`ups/setup_for_development`, the
-latter of which has already been sourced prior to invoking
-:program:`buildtool`.
+\ :program:`buildtool` assumes one is using `CMake <https://cmake.org>`_
+and the macros and functions defined within Cetmodules inside a |UPS|
+environment to produce a |UPS| package. This in turn implies the
+existence of files :file:`ups/{product}.table` :file:`ups/product_deps`,
+and :file:`ups/setup_for_development`, the latter of which has already
+been sourced prior to invoking :program:`buildtool`.
 
 Options
 =======
