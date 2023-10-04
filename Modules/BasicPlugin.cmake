@@ -46,8 +46,8 @@ Source specification options
 
 ``REG_SOURCE <registration-source>...``
   Specify source to compile into the plugin registration library,
-  intended only for runtime injection (via *e.g.* :manpage:`dlopen(3)`) into an
-  executable, and not for dynamic linking.
+  intended only for runtime injection (via e.g. :manpage:`dlopen(3)`)
+  into an executable, and not for dynamic linking.
 
 .. note::
 

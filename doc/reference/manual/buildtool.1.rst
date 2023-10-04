@@ -217,7 +217,7 @@ Miscellaneous options
 .. option:: -E, --export-compile-commands
 
    Equivalent to :option:`-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
-   <-D\<CMake-definition>>`. Useful for (e.g.)  :program:`clang-tidy`.
+   <-D\<CMake-definition>>`. Useful for (e.g.) :program:`clang-tidy`.
 
 .. option:: -f, --force-top
 
@@ -416,7 +416,7 @@ Generator options
 -----------------
 
 Any options or arguments specified after a second instance of ``--``
-will be passed to the configured generator (*e.g.* "UNIX Makefiles" or
+will be passed to the configured generator (e.g. "UNIX Makefiles" or
 "Ninja") for the build stage only.
 
 Examples
@@ -437,7 +437,7 @@ As above, but copying output to screen:
 
 The need for the :option:`-I` option may be removed by defining
 :envvar:`CETPKG_INSTALL`; the explicit parallelism may be similarly
-avoided by defining (*e.g.*) :envvar:`CETPKG_J=16 <CETPKG_J>`.
+avoided by defining (e.g.) :envvar:`CETPKG_J=16 <CETPKG_J>`.
 
 To build only a particular target within a subdirectory:
 
@@ -489,5 +489,5 @@ Optional
 
    The default level of parallelism for all appropriate steps; may be
    overridden by ::option::`-j`. If not specified, the default level of
-   parallelism is controlled by the generator (*e.g.* ``UNIX Makefiles``
+   parallelism is controlled by the generator (e.g. ``UNIX Makefiles``
    *vs* ``Ninja``).

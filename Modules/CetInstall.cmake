@@ -135,9 +135,9 @@ Details
 -------
 
 \ :ref:`Meta-options <p_cet_install-meta-options>` to
-:command:`!cet_install` are distinguished by a leading underscore
-and are intended for use by wrapper functions specific to a particular
-category of file (*e.g.* license and README files, geometry data,
+:command:`!cet_install` are distinguished by a leading underscore and
+are intended for use by wrapper functions specific to a particular
+category of file (e.g. license and README files, geometry data,
 configuration files, *etc*.) to enforce common behavior for all
 installation operations for those files.
 
