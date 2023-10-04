@@ -102,6 +102,10 @@ Other options
 ``EXPORT_SET <export-name>``
   Add the library to the ``<export-name>`` export set.
 
+``IMPL_TARGET_VAR <var>``
+  Return the—possibly calculated—name of the implementation library
+  target in ``<var>``.
+
 ``LOCAL_INCLUDE_DIRS <dir>...``
   Headers may be found in ``<dir>``... at build time.
 
