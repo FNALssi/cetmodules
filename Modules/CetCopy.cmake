@@ -55,7 +55,7 @@ include(CetPackagePath)
 
 function (cet_copy)
   cmake_parse_arguments(PARSE_ARGV 0 CETC "PROGRAMS;NAME_AS_TARGET"
-    "DESTINATION;NAME;WORKING_DIRECTORY"
+    "DESTINATION;NAME;TARGET_VAR;WORKING_DIRECTORY"
     "DEPENDENCIES")
   if (NOT CETC_DESTINATION)
     message(FATAL_ERROR "Missing required option argument DESTINATION")
@@ -94,6 +94,9 @@ function (cet_copy)
       VERBATIM COMMAND_EXPAND_LISTS
       DEPENDS "${source}" ${CETC_DEPENDENCIES})
     add_custom_target(${target} ALL DEPENDS "${dest_path}")
+    if (CETC_TARGET_VAR)
+      set(${CETC_TARGET_VAR} "${target}" PARENT_SCOPE)
+    endif()
     set_property(TARGET ${target} PROPERTY CET_EXEC_LOCATION "${dest_path}")
   endforeach()
 endfunction()
