@@ -78,7 +78,7 @@ function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
   endif()
   set(PUBLISH_ARGS EXTRA_ARGS -A versionswitch=1)
 
-  # Decide whether we're publishing, and determine output location.
+  # Determine output location.
   if (_cps_is_numeric)
     set(_cps_output_dir "${PUBLISH_ROOT}/v${PUBLISH_VERSION}")
     if (_cps_is_numeric AND NOT CPS_PUBLISH_OLD_RELEASE
