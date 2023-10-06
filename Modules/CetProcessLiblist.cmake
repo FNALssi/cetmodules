@@ -41,6 +41,10 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
         set(${RESULT_VAR} PARENT_SCOPE)
         return()
       endif()
+      if ("${tmp}" STREQUAL "${ARG}") # Expands to self, avoid hall of mirrors...
+        set(${RESULT_VAR} "${tmp}")
+        return()
+      endif()
       unset(${${ARG}_UC}) # Prevent cycles.
       cet_convert_target_args(RESULT ${DEP_TARGET} "${tmp}")
     else()
