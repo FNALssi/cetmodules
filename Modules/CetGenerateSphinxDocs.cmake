@@ -30,8 +30,8 @@ function(cet_generate_sphinx_docs)
   # Parse arguments.
   set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_DELETE_OUTPUT_DIR NO_INSTALL QUIET VERBOSE)
   set(one_arg_opts CONF_DIR SOURCE_DIR SWITCH_VERSION TARGET_STEM TARGETS_VAR VERBOSITY VERSION_DATA_VAR)
-  set(options EXTRA_ARGS OUTPUT_FORMATS)
-  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
+  set(options DEPENDS EXTRA_ARGS OUTPUT_FORMATS)
+  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR DEPENDS EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
   string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
   list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX "^(.+)_${pf_kw_re}$")
@@ -42,7 +42,7 @@ function(cet_generate_sphinx_docs)
       ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_DELETE_OUTPUT_DIR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
       ${fmt}_NO_QUIET ${fmt}_NO_VERBOSE ${fmt}_QUIET ${fmt}_VERBOSE)
     list(APPEND one_arg_opts ${fmt}_OUTPUT_DIR ${fmt}_VERBOSITY)
-    list(APPEND options ${fmt}_EXTRA_ARGS)
+    list(APPEND options ${fmt}_DEPENDS ${fmt}_EXTRA_ARGS)
   endforeach()
   cmake_parse_arguments(PARSE_ARGV 0 CGS
     "${flags}" "${one_arg_opts}" "${options}")
@@ -251,7 +251,7 @@ macro(_cgs_generate_targets)
         -DCMD_ARGS="${cmd_args${tlabel}};-d;${cache_dir}"
         ${extra_defines}
         -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
-        DEPENDS ${depends_conf}
+        DEPENDS ${CGS_DEPENDS} ${CGS_${fmt}_DEPENDS} ${depends_conf}
         COMMAND_EXPAND_LISTS
         COMMENT "Building ${fmt} documentation for ${target} with sphinx-build"
         JOB_POOL sphinx_doc)
