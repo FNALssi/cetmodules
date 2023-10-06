@@ -238,6 +238,11 @@ macro(_cgs_generate_targets)
       set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${output_dir}")
     endif()
     set(cache_dir "${CMAKE_CURRENT_BINARY_DIR}/.doctrees-${target}")
+    if (CGS_NO_CONF)
+      set(depends_conf)
+    else()
+      set(depends_conf "${CGS_CONF_DIR}/conf.py")
+    endif()
     foreach (tlabel "" -force)
       set(cmd_args${tlabel} ${extra_args${tlabel}} ${cmd_args})
       add_custom_target(${target}${tlabel} ${all${tlabel}}
@@ -246,6 +251,7 @@ macro(_cgs_generate_targets)
         -DCMD_ARGS="${cmd_args${tlabel}};-d;${cache_dir}"
         ${extra_defines}
         -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
+        DEPENDS ${depends_conf}
         COMMAND_EXPAND_LISTS
         COMMENT "Building ${fmt} documentation for ${target} with sphinx-build"
         JOB_POOL sphinx_doc)
