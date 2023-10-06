@@ -20,7 +20,7 @@ endif()
 # want to use NAMES_PER_DIR here.
 find_library(SQLite3_LIBRARY NAMES sqlite3_ups sqlite3 sqlite)
 set(_cet_sqlite_cmake_module_path "${CMAKE_MODULE_PATH}")
-set(CMAKE_MODULE_PATH "") # Don't want to find ourselves and loop.
+set(CMAKE_MODULE_PATH) # Don't want to find ourselves and loop.
 find_package(SQLite3)
 set(CMAKE_MODULE_PATH "${_cet_sqlite_cmake_module_path}")
 unset(_cet_sqlite_cmake_module_path)
