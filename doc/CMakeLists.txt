@@ -4,7 +4,9 @@ function(_generate_reference)
   set(source_root "${CMAKE_CURRENT_BINARY_DIR}/gen/install")
   set(doc_root "${source_root}/doc")
   file(MAKE_DIRECTORY "${doc_root}/reference")
-  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst" DESTINATION "${doc_root}")
+  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst"
+    DESTINATION "${doc_root}"
+    TARGET_VAR gen_common)
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
 
@@ -56,6 +58,7 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
+    TARGETS_VAR html_targets
   )
 
   set(WANT_UNIX_MAN_PAGES "True")
@@ -73,7 +76,11 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/man-conf"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     man_EXTRA_ARGS ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
+    TARGETS_VAR man_targets
   )
+  foreach (target IN LISTS html_targets man_targets)
+    add_dependencies(${target} ${gen_common})
+  endforeach()
 endfunction()
 
 function(_publish_to_root)
@@ -85,7 +92,9 @@ function(_publish_to_root)
     "${doc_root}/landing"
     "${doc_root}/reference"
   )
-  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst" DESTINATION "${doc_root}")
+  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst"
+    DESTINATION "${doc_root}"
+    TARGET_VAR publish_common)
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
   file(WRITE "${doc_root}/reference/index.rst"
@@ -143,8 +152,9 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/reference"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
+    TARGETS_VAR landing_targets
   )
-
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-reference.rst" landing_ref)
   file(WRITE "${doc_root}/landing/index.rst"
     "\
 ${LANDING_TOP}
@@ -170,7 +180,11 @@ ${landing_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/landing"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
+    TARGETS_VAR html_targets
   )
+  foreach (target IN LISTS landing_targets html_targets)
+    add_dependencies(${target} ${publish_common})
+  endforeach()
 endfunction()
 
 # Are we going with standard version/release, or using git branch/commit
