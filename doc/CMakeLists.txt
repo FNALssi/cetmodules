@@ -1,47 +1,36 @@
 include(CetGenerateSphinxDocs)
 
+find_package(M4 REQUIRED)
+
 function(_generate_reference)
   set(source_root "${CMAKE_CURRENT_BINARY_DIR}/gen/install")
   set(doc_root "${source_root}/doc")
   file(MAKE_DIRECTORY "${doc_root}/reference")
   cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst"
-    DESTINATION "${doc_root}"
-    TARGET_VAR gen_common)
+    DESTINATION "${doc_root}")
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
 
-  file(WRITE "${doc_root}/reference/index.rst"
-    "\
-${LANDING_TOP}
+  add_custom_command(OUTPUT "${doc_root}/reference/index.rst"
+    COMMAND M4::M4
+    -DLANDING_TOP="${LANDING_TOP}"
+    -DREF_TOOLS="${REF_TOOLS}"
+    -DREF_MANUALS="${REF_MANUALS}"
+    -DREF_HELPERS="${REF_HELPERS}"
+    -DLANDING_BOTTOM="${LANDING_BOTTOM}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/reference-index.rst.m4"
+    > "${doc_root}/reference/index.rst"
+    DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/reference-index.rst.m4"
+    "${LANDING_TOP}"
+    "${REF_TOOLS}"
+    "${REF_MANUALS}"
+    "${REF_HELPERS}"
+    "${LANDING_BOTTOM}"
+    VERBATIM
+    COMMENT "Generating ${doc_root}/reference/index.rst with m4"
+  )
 
-Reference
-=========
-
-Command-Line Tools
-------------------
-
-${REF_TOOLS}
-
-Reference Manuals
------------------
-
-${REF_MANUALS}
-
-Helpers and Legacy Tools
-------------------------
-
-${REF_HELPERS}
-
-${LANDING_BOTTOM}
-
-.. only:: html
-
-   Index and Search
-   ================
-
-   * :ref:`genindex`
-   * :ref:`search`
-")
   # Generate documentation for installation with this package.
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-conf.py.in" ref_conf)
   string(CONFIGURE "\
@@ -58,7 +47,7 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
-    TARGETS_VAR html_targets
+    DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
   )
 
   set(WANT_UNIX_MAN_PAGES "True")
@@ -76,11 +65,8 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/man-conf"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     man_EXTRA_ARGS ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
-    TARGETS_VAR man_targets
+    DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
   )
-  foreach (target IN LISTS html_targets man_targets)
-    add_dependencies(${target} ${gen_common})
-  endforeach()
 endfunction()
 
 function(_publish_to_root)
@@ -93,40 +79,24 @@ function(_publish_to_root)
     "${doc_root}/reference"
   )
   cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst"
-    DESTINATION "${doc_root}"
-    TARGET_VAR publish_common)
+    DESTINATION "${doc_root}")
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
-  file(WRITE "${doc_root}/reference/index.rst"
-    "\
-#######################
-Reference Documentation
-#######################
-
-Command-Line Tools
-==================
-
-${REF_TOOLS}
-
-Reference Manuals
-=================
-
-${REF_MANUALS}
-
-Helpers and Legacy Tools
-========================
-
-${REF_HELPERS}
-
-
-.. only:: html
-
-   Index and Search
-   ================
-
-   * :ref:`genindex`
-   * :ref:`search`
-")
+  add_custom_command(OUTPUT "${doc_root}/reference/index.rst"
+    COMMAND M4::M4
+    -DREF_TOOLS="${REF_TOOLS}"
+    -DREF_MANUALS="${REF_MANUALS}"
+    -DREF_HELPERS="${REF_HELPERS}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/publish-reference-index.rst.m4"
+    > "${doc_root}/reference/index.rst"
+    DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/publish-reference-index.rst.m4"
+    "${REF_TOOLS}"
+    "${REF_MANUALS}"
+    "${REF_HELPERS}"
+    VERBATIM
+    COMMENT "Generating ${doc_root}/reference/index.rst with m4"
+  )
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-conf.py.in" ref_conf)
   string(CONFIGURE "\
 ${COMMON_CONF}
@@ -152,17 +122,23 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/reference"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
-    TARGETS_VAR landing_targets
+    DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
   )
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-reference.rst" landing_ref)
-  file(WRITE "${doc_root}/landing/index.rst"
-    "\
-${LANDING_TOP}
-
-${landing_ref}
-
-${LANDING_BOTTOM}
-")
+  add_custom_command(OUTPUT "${doc_root}/landing/index.rst"
+    COMMAND M4::M4
+    -DLANDING_TOP="${LANDING_TOP}"
+    -DLANDING_REF="${LANDING_REF}"
+    -DLANDING_BOTTOM="${LANDING_BOTTOM}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/landing-index.rst.m4"
+    > "${doc_root}/landing/index.rst"
+    DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/landing-index.rst.m4"
+    "${LANDING_TOP}"
+    "${LANDING_REF}"
+    "${LANDING_BOTTOM}"
+    VERBATIM
+    COMMENT "Generating ${doc_root}/landing/index.rst with m4"
+  )
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-conf.py.in" landing_conf)
   string(CONFIGURE "\
 ${COMMON_CONF}
@@ -180,11 +156,8 @@ ${landing_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/landing"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
-    TARGETS_VAR html_targets
+    DEPENDS "${doc_root}/landing/index.rst" "${doc_root}/cetmodules-common.rst"
   )
-  foreach (target IN LISTS landing_targets html_targets)
-    add_dependencies(${target} ${publish_common})
-  endforeach()
 endfunction()
 
 # Are we going with standard version/release, or using git branch/commit
@@ -289,11 +262,12 @@ set(WANT_UNIX_MAN_PAGES "False")
 set(WANT_VERSION_SWITCH "False")
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/common-conf.py.in" COMMON_CONF)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst" LANDING_TOP)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst" LANDING_BOTTOM)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst" REF_TOOLS)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst" REF_MANUALS)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-helpers-etc.rst" REF_HELPERS)
+set(LANDING_TOP "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst")
+set(LANDING_REF "${CMAKE_CURRENT_SOURCE_DIR}/landing-reference.rst")
+set(LANDING_BOTTOM "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst")
+set(REF_TOOLS "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst")
+set(REF_MANUALS "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst")
+set(REF_HELPERS "${CMAKE_CURRENT_SOURCE_DIR}/reference-helpers-etc.rst")
 
 if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_ROOT)
   _publish_to_root()
