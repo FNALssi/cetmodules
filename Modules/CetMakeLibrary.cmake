@@ -22,14 +22,6 @@ set(_cet_make_library_usage "")
 
 Create a library.
 
-.. seealso:: :command:`cmake-ref-current:command:add_library`,
-             :command:`cmake-ref-current:command:target_sources`,
-             :command:`cmake-ref-current:command:target_include_directories`,
-             :command:`cmake-ref-current:command:target_link_libraries`,
-             :command:`cmake-ref-current:command:install`,
-             :command:`cet_make_alias`,
-             :command:`cet_register_export_set`
-
 .. parsed-literal::
 
    cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
@@ -42,22 +34,54 @@ Name Options
 
 ``BASENAME_ONLY``
 
+  Calculate the name of the library based only on the basename of
+  :variable:`CMAKE_CURRENT_SOURCE_DIR
+  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
+  mutually-exclusive with ``LIBRARY_NAME``.
+
 ``LIBRARY_NAME <name>``
+
+  .. rst-class:: text-start
+
+  Specify the library name as ``name``. If this option is not provided
+  the library's name will be calculated from the relative path of
+  :variable:`CMAKE_CURRENT_SOURCE_DIR
+  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect to
+  :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to possible
+  modification by ``USE_PROJECT_NAME`` (replacing path-separators with
+  ``_``). ``LIBRARY_NAME`` is mutually-exclusive with ``BASENAME_ONLY``.
 
 ``LIBRARY_NAME_VAR <var>``
 
+  Return the calculated/modified library name in the variable ``<var>``.
+
 ``USE_PROJECT_NAME``
+
+  Modify the provided or calculated library name by prepending
+  :variable:`CETMODULES_CURRENT_PROJECT_NAME` and a separating ``_``.
 
 .. _cet_make_library_type_options:
 
 Type Options
 ^^^^^^^^^^^^
 
-``INTERFACE|MODULE|OBJECT|SHARED|STATIC``
+``INTERFACE, MODULE, OBJECT, SHARED, STATIC``
+
+  Make a CMake library of the specified type(s). An ``INTERFACE``
+  library is incompatible with every other library type, and the
+  ``SHARED`` and ``MODULE`` Library types are mutually incompatible.
 
 ``NO_OBJECT``
 
+  Disable the automatic addition and use of an ``OBJECT`` library where
+  it would otherwise be appropriate (e.g. ``STATIC`` and ``SHARED`` are
+  both specified). See :ref:`cet_make_library_object_libraries` for more
+  information.
+
 ``WITH_STATIC_LIBRARY``
+
+  .. deprecated:: 3.23.00
+     use ``STATIC`` instead.
 
 .. _cet_make_library_options:
 
@@ -98,6 +122,25 @@ Target Options
 ``HEADERS_TARGET_ONLY``
 
 ``NO_EXPORT``
+
+Details
+^^^^^^^
+
+.. _cet_make_library_object_libraries:
+
+Object Libraries
+""""""""""""""""
+
+An :external+cmake-ref-current:ref:`OBJECT <object libraries>` library
+is a CMake artifact representing a collection of compiled object files.
+
+.. seealso:: :command:`cmake-ref-current:command:add_library`,
+             :command:`cmake-ref-current:command:target_sources`,
+             :command:`cmake-ref-current:command:target_include_directories`,
+             :command:`cmake-ref-current:command:target_link_libraries`,
+             :command:`cmake-ref-current:command:install`,
+             :command:`cet_make_alias`,
+             :command:`cet_register_export_set`
 
 #]================================================================]
 
