@@ -1,34 +1,32 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-5bce327 Reference</title>
+  <title>CetMakeLibrary &mdash; Cetmodules git-develop-1cadb2c Reference</title>
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/bootstrap.bundle.min.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7458189f"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     
-    <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="X" href="CetPackagePath.html" />
     <link rel="prev" title="X" href="CetMakeCompletions.html" />
   
-  <script type="text/javascript" src="../../version_switch.js"></script>
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
   
  
 
@@ -47,28 +45,28 @@
           <a href="CetMakeCompletions.html" title="X"
              accesskey="P">previous</a> |</li>
   <li>
-    <img src="../_static/cetmodules.png" alt=""
-         style="vertical-align: middle; margin-top: -2px" />
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
   </li>
   <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+    <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
-  </li>
-  <li>
-    <span class="version_switch">git-develop-5bce327</span>
+    <span class="version_switch">git-develop-1cadb2c</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetMakeLibrary</a></li> 
       </ul>
     </div>
 
     <div class="outdated">
       This documents an old version of Cetmodules.
-      <a href="https://fnalssi.github.io/cetmodules/latest/module/CetMakeLibrary.html">
+      <a href="../../latest/module/CetMakeLibrary.html">
         Click here to see the latest release.
       </a>
       <span class="version_switch_note"></span>
@@ -81,8 +79,106 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetMakeLibrary"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Permalink to this heading">¶</a></h1>
+  <span class="target" id="module:CetMakeLibrary"></span><section id="cetmakelibrary">
+<h1>CetMakeLibrary<a class="headerlink" href="#cetmakelibrary" title="Link to this heading">¶</a></h1>
+<p>Module defining the function :command`cet_make_library` to generate
+libraries and plugins.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_make_library">
+<span class="sig-name descname"><span class="pre">cet_make_library</span></span><a class="headerlink" href="#command:cet_make_library" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Create a library.</p>
+<pre class="literal-block">cet_make_library([<a class="reference internal" href="#cet-make-library-name-options"><span class="std std-ref">&lt;name-options&gt;</span></a>] [<a class="reference internal" href="#cet-make-library-type-options"><span class="std std-ref">&lt;type-options&gt;</span></a>]
+                 [<a class="reference internal" href="#cet-make-library-options"><span class="std std-ref">&lt;library-options&gt;</span></a>] [<a class="reference internal" href="#cet-make-library-target-options"><span class="std std-ref">&lt;target-options&gt;</span></a>])</pre>
+<section id="name-options">
+<span id="cet-make-library-name-options"></span><h2>Name Options<a class="headerlink" href="#name-options" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></p>
+<blockquote>
+<div><p>Calculate the name of the library based only on the basename of
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a>;
+mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span> <span class="pre">&lt;name&gt;</span></code></p>
+<blockquote>
+<div><p class="text-start">Specify the library name as <code class="docutils literal notranslate"><span class="pre">name</span></code>. If this option is not provided
+the library’s name will be calculated from the relative path of
+<span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> with respect to
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_SOURCE_DIR.html#variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR" title="CETMODULES_CURRENT_PROJECT_SOURCE_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_SOURCE_DIR</span></code></a> subject to possible
+modification by <code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code> (replacing path-separators with
+<code class="docutils literal notranslate"><span class="pre">_</span></code>). <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code> is mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME_VAR</span> <span class="pre">&lt;var&gt;</span></code></p>
+<blockquote>
+<div><p>Return the calculated/modified library name in the variable <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code></p>
+<blockquote>
+<div><p>Modify the provided or calculated library name by prepending
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_NAME</span></code></a> and a separating <code class="docutils literal notranslate"><span class="pre">_</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="type-options">
+<span id="cet-make-library-type-options"></span><h2>Type Options<a class="headerlink" href="#type-options" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">INTERFACE,</span> <span class="pre">MODULE,</span> <span class="pre">OBJECT,</span> <span class="pre">SHARED,</span> <span class="pre">STATIC</span></code></p>
+<blockquote>
+<div><p>Make a CMake library of the specified type(s). An <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>
+library is incompatible with every other library type, and the
+<code class="docutils literal notranslate"><span class="pre">SHARED</span></code> and <code class="docutils literal notranslate"><span class="pre">MODULE</span></code> Library types are mutually incompatible.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">NO_OBJECT</span></code></p>
+<blockquote>
+<div><p>Disable the automatic addition and use of an <code class="docutils literal notranslate"><span class="pre">OBJECT</span></code> library where
+it would otherwise be appropriate (e.g. <code class="docutils literal notranslate"><span class="pre">STATIC</span></code> and <code class="docutils literal notranslate"><span class="pre">SHARED</span></code> are
+both specified). See <a class="reference internal" href="#cet-make-library-object-libraries"><span class="std std-ref">Object Libraries</span></a> for more
+information.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">WITH_STATIC_LIBRARY</span></code></p>
+<blockquote>
+<div><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>use <code class="docutils literal notranslate"><span class="pre">STATIC</span></code> instead.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="library-options">
+<span id="cet-make-library-options"></span><h2>Library Options<a class="headerlink" href="#library-options" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">INSTALLED_PATH_BASE</span> <span class="pre">&lt;base&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">&lt;library-specification&gt;</span> <span class="pre">...</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">STRIP_LIBS</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">VERSION</span></code></p>
+</section>
+<section id="target-options">
+<span id="cet-make-library-target-options"></span><h2>Target Options<a class="headerlink" href="#target-options" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ALIAS</span> <span class="pre">&lt;alias-target&gt;</span> <span class="pre">...</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET_ONLY</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<section id="object-libraries">
+<span id="cet-make-library-object-libraries"></span><h3>Object Libraries<a class="headerlink" href="#object-libraries" title="Link to this heading">¶</a></h3>
+<p>An <a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#object-libraries" title="(in CMake v3.27.7)"><span class="xref std std-ref">OBJECT</span></a> library
+is a CMake artifact representing a collection of compiled object files.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cmake-ref-current:command:add_library"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_library.html#command:add_library" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:add_library()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_sources()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:target_include_directories"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_include_directories.html#command:target_include_directories" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_include_directories()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:target_link_libraries"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_link_libraries.html#command:target_link_libraries" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_link_libraries()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:install"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#command:install" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:install()</span></code></a>,
+<span class="target" id="index-0-command:cet_make_alias"></span><a class="reference internal" href="CetCMakeUtils.html#command:cet_make_alias" title="cet_make_alias"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_alias()</span></code></a>,
+<span class="target" id="index-0-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></p>
+</div>
+</section>
+</section>
 </section>
 
 
@@ -92,6 +188,23 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">CetMakeLibrary</a><ul>
+<li><a class="reference internal" href="#name-options">Name Options</a></li>
+<li><a class="reference internal" href="#type-options">Type Options</a></li>
+<li><a class="reference internal" href="#library-options">Library Options</a></li>
+<li><a class="reference internal" href="#target-options">Target Options</a></li>
+<li><a class="reference internal" href="#details">Details</a><ul>
+<li><a class="reference internal" href="#object-libraries">Object Libraries</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="CetMakeCompletions.html"
@@ -136,27 +249,27 @@
           <a href="CetMakeCompletions.html" title="X"
              >previous</a> |</li>
   <li>
-    <img src="../_static/cetmodules.png" alt=""
-         style="vertical-align: middle; margin-top: -2px" />
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
   </li>
   <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+    <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
-  </li>
-  <li>
-    <span class="version_switch">git-develop-5bce327</span>
+    <span class="version_switch">git-develop-1cadb2c</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetMakeLibrary</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>

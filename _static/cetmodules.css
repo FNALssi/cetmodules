@@ -29,3 +29,17 @@ div.outdated {
 dd > :first-child > p {
   margin-top: 0px;
 }
+
+/* Different styles for different types of admonition. */
+div.admonition-legacy {
+    background-color: lightgreen;
+}
+
+div.admonition-domain {
+    background-color: lightblue;
+}
+
+div.admonition-app {
+    background-color: burlywood;
+}
+

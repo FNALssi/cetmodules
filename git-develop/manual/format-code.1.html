@@ -1,34 +1,32 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>format-code(1) &mdash; Cetmodules git-develop-5bce327 Reference</title>
+  <title>format-code(1) &mdash; Cetmodules git-develop-1cadb2c Reference</title>
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/bootstrap.bundle.min.js"></script>
-    <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7458189f"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     
-    <link rel="shortcut icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="increment-version(1)" href="increment-version.1.html" />
+    <link rel="next" title="intersphinx-refs(1)" href="intersphinx-refs.1.html" />
     <link rel="prev" title="code-dep-graph(1)" href="code-dep-graph.1.html" />
   
-  <script type="text/javascript" src="../../version_switch.js"></script>
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
   
  
 
@@ -41,23 +39,23 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="increment-version.1.html" title="increment-version(1)"
+          <a href="intersphinx-refs.1.html" title="intersphinx-refs(1)"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
              accesskey="P">previous</a> |</li>
   <li>
-    <img src="../_static/cetmodules.png" alt=""
-         style="vertical-align: middle; margin-top: -2px" />
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
   </li>
   <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+    <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
-  </li>
-  <li>
-    <span class="version_switch">git-develop-5bce327</span>
+    <span class="version_switch">git-develop-1cadb2c</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -67,7 +65,7 @@
 
     <div class="outdated">
       This documents an old version of Cetmodules.
-      <a href="https://fnalssi.github.io/cetmodules/latest/manual/format-code.1.html">
+      <a href="../../latest/manual/format-code.1.html">
         Click here to see the latest release.
       </a>
       <span class="version_switch_note"></span>
@@ -81,36 +79,36 @@
           <div class="body" role="main">
             
   <span class="target" id="manual:format-code(1)"></span><section id="format-code-1">
-<h1>format-code(1)<a class="headerlink" href="#format-code-1" title="Permalink to this heading">¶</a></h1>
+<h1>format-code(1)<a class="headerlink" href="#format-code-1" title="Link to this heading">¶</a></h1>
 <section id="synopsis">
-<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Link to this heading">¶</a></h2>
 <p><strong class="program">format-code</strong> <a class="reference internal" href="#cmdoption-format-code-d"><code class="xref std std-option docutils literal notranslate"><span class="pre">-d</span></code></a>|<a class="reference internal" href="#cmdoption-format-code-d"><code class="xref std std-option docutils literal notranslate"><span class="pre">--directory</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;directory&gt;</span></code> [<a class="reference internal" href="#cmdoption-format-code-n"><code class="xref std std-option docutils literal notranslate"><span class="pre">-n</span></code></a>] [<a class="reference internal" href="#cmdoption-format-code-v"><code class="xref std std-option docutils literal notranslate"><span class="pre">-v</span></code></a>] [<a class="reference internal" href="#cmdoption-format-code-use-available"><code class="xref std std-option docutils literal notranslate"><span class="pre">--use-available</span></code></a>]</p>
 </section>
 <section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
 <p><strong class="program">format-code</strong> will run <strong class="program">format-code</strong> recursively on a directory of a git repository’s working tree, optionally committing the result.</p>
 <section id="options">
-<h3>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h3>
+<h3>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h3>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-format-code-d">
-<span id="cmdoption-format-code-directory"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;directory&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--directory</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;directory&gt;</span></span><a class="headerlink" href="#cmdoption-format-code-d" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-format-code-directory"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;directory&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--directory</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;directory&gt;</span></span><a class="headerlink" href="#cmdoption-format-code-d" title="Link to this definition">¶</a></dt>
 <dd><p>Top-level directory to which to apply formatting.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-format-code-n">
-<span id="cmdoption-format-code-dry-run"></span><span class="sig-name descname"><span class="pre">-n</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--dry-run</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-n" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-format-code-dry-run"></span><span class="sig-name descname"><span class="pre">-n</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--dry-run</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-n" title="Link to this definition">¶</a></dt>
 <dd><p>No changes will be made to source code.</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-format-code-v">
-<span id="cmdoption-format-code-verbose"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-v" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-format-code-verbose"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-v" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-format-code-use-available">
-<span class="sig-name descname"><span class="pre">--use-available</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-use-available" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">--use-available</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-format-code-use-available" title="Link to this definition">¶</a></dt>
 <dd><p>Use the version of <strong class="program">clang-format</strong> already set up for use.</p>
 </dd></dl>
 
@@ -146,8 +144,8 @@
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="increment-version.1.html"
-                          title="next chapter">increment-version(1)</a></p>
+    <p class="topless"><a href="intersphinx-refs.1.html"
+                          title="next chapter">intersphinx-refs(1)</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -177,23 +175,23 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="increment-version.1.html" title="increment-version(1)"
+          <a href="intersphinx-refs.1.html" title="intersphinx-refs(1)"
              >next</a> |</li>
         <li class="right" >
           <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
              >previous</a> |</li>
   <li>
-    <img src="../_static/cetmodules.png" alt=""
-         style="vertical-align: middle; margin-top: -2px" />
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
   </li>
   <li>
-    <a href="https://github.com/FNALssi/cetmodules/">Cetmodules</a> &#187;
+    <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <a href="https://fnalssi.github.io/cetmodules/">Documentation</a> &#187;
-  </li>
-  <li>
-    <span class="version_switch">git-develop-5bce327</span>
+    <span class="version_switch">git-develop-1cadb2c</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -201,8 +199,8 @@
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>
