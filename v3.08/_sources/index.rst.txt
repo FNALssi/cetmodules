@@ -56,6 +56,16 @@ Reference Manuals
 
 .. only:: html
 
+   Other Documentation
+   ===================
+
+   .. button-link:: ../
+      :expand:
+      :outline:
+      :color: primary
+
+      Cetmodules Documentation
+
    Index and Search
    ================
 
