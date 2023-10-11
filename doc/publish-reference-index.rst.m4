@@ -19,8 +19,17 @@ Helpers and Legacy Tools
 
 esyscmd([cat ]REF_HELPERS)dnl
 
-
 .. only:: html
+
+   Other Documentation
+   ===================
+
+   .. button-link:: ../
+      :expand:
+      :outline:
+      :color: primary
+
+      Cetmodules Documentation
 
    Index and Search
    ================
