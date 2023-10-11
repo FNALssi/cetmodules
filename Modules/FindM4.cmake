@@ -19,7 +19,8 @@ The module defines the following variables:
   The version of M4 found.
 
   The module defines the following ``IMPORTED`` targets (when
-  :prop_gbl:`CMAKE_ROLE` is ``PROJECT``):
+  :prop_gbl:`CMAKE_ROLE <cmake-ref-current:prop_gbl:CMAKE_ROLE>` is
+  ``PROJECT``):
 
 ``M4::M4``
   Executable of the M4 command-line client.
