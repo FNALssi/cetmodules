@@ -7,6 +7,15 @@ cetmodules-variables(7)
 
    .. contents::
 
+Project Variables
+=================
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   /variable/PROJECT-NAME_*
+
 Variables that Change Behavior
 ==============================
 
