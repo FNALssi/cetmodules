@@ -37,88 +37,87 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
 .. command:: build_dictionary
 
    Generate and build a ROOT dictionary module from a selection XML file
-   (:file:`classes_def.xml`), optionally checking versions and checksums for
-   selected classes.
+   (:file:`classes_def.xml`), optionally checking versions and checksums
+   for selected classes.
 
    .. code-block:: cmake
 
       build_dictionary([<name>] [<options>])
 
-Options
-^^^^^^^
+   Options
+   ^^^^^^^
 
-``CCV_ENVIRONMENT <var>=<val>...``
-  List of environment settings to pass to
-  :manual:`checkClassVersion(1)`.
+   ``CCV_ENVIRONMENT <var>=<val>...``
+     List of environment settings to pass to
+     :manual:`checkClassVersion(1)`.
 
-``CLASSES_DEF_XML <filepath>``
-  .. rst-class:: text-start
+   ``CLASSES_DEF_XML <filepath>``
+     .. rst-class:: text-start
 
-  The name and location of the selection XML file to be used
-  (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
-  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
+     The name and location of the selection XML file to be used
+     (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes_def.xml`).
 
-``CLASSES_H <filepath>``
-  .. rst-class:: text-start
+   ``CLASSES_H <filepath>``
+     .. rst-class:: text-start
 
-  The name and location of the top-level C++ header file to be read
-  (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
-  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
+     The name and location of the top-level C++ header file to be read
+     (default: :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`:file:`/classes.h`).
 
-``COMPILE_FLAGS <flag>...``
-  Extra compilation options.
+   ``COMPILE_FLAGS <flag>...``
+     Extra compilation options.
 
-``DICTIONARY_LIBRARIES <library-dependency>...``
-  Libraries to which to link the dictionary plugin.
+   ``DICTIONARY_LIBRARIES <library-dependency>...``
+     Libraries to which to link the dictionary plugin.
 
-``DICT_NAME_VAR <var>``
-  Variable in which to store the plugin name (useful when
-  generated).
+   ``DICT_NAME_VAR <var>``
+     Variable in which to store the plugin name (useful when generated).
 
-``EXPORT_SET <export-name>``
-  Add the library to the ``<export-name>`` export set.
+   ``EXPORT_SET <export-name>``
+     Add the library to the ``<export-name>`` export set.
 
-``NOP``
-  Option / argument disambiguator; no other function.
+   ``NOP``
+     Option / argument disambiguator; no other function.
 
-.. _build_dictionary-NO_CHECK_CLASS_VERSION:
+   .. _build_dictionary-NO_CHECK_CLASS_VERSION:
 
-``NO_CHECK_CLASS_VERSION``
-  Do not run :manual:`checkClassVersion(1)` to verify class
-  checksums and version numbers.
+   ``NO_CHECK_CLASS_VERSION``
+     Do not run :manual:`checkClassVersion(1)` to verify class checksums
+     and version numbers.
 
-``NO_EXPORT``
-  Do not export the generated plugin.
+   ``NO_EXPORT``
+     Do not export the generated plugin.
 
-``NO_INSTALL``
-  Do not install the generated plugin.
+   ``NO_INSTALL``
+     Do not install the generated plugin.
 
-``NO_LIBRARY``
-  .. rst-class:: text-start
+   ``NO_LIBRARY``
+     .. rst-class:: text-start
 
-  Generate the C++ code, but do not compile it into a shared library
-  (implies :ref:`NO_CHECK_CLASS_VERSION
-  <build_dictionary-NO_CHECK_CLASS_VERSION>`).
+     Generate the C++ code, but do not compile it into a shared library
+     (implies :ref:`NO_CHECK_CLASS_VERSION
+     <build_dictionary-NO_CHECK_CLASS_VERSION>`).
 
-``[NO_]RECURSIVE``
-  Specify whether :manual:`checkClassVersion(1)` should check for
-  the presence and validity of class dictionaries recursively
-  (default determined by :command:`check_class_version`).
+   ``[NO_]RECURSIVE``
+     Specify whether :manual:`checkClassVersion(1)` should check for the
+     presence and validity of class dictionaries recursively (default
+     determined by :command:`check_class_version`).
 
-``REQUIRED_DICTIONARIES <dictionary-dependency>...``
-  Specify dictionary dependencies required to be available for
-  successful validation.
+   ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
+     Specify dictionary dependencies required to be available for
+     successful validation.
 
-``USE_PRODUCT_NAME``
-  .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
+   ``USE_PRODUCT_NAME``
+     .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
 
-``USE_PROJECT_NAME``
-  .. versionadded:: 3.23.00
+   ``USE_PROJECT_NAME``
+     .. versionadded:: 3.23.00
 
-  The project name will be prepended to the plugin library name,
-  separated by ``_``
+     The project name will be prepended to the plugin library name,
+     separated by ``_``
 
-.. seealso:: :command:`cet_cmake_library`, :command:`check_class_version`
+   .. seealso:: :command:`cet_make_library`, :command:`check_class_version`
 #]================================================================]
 
 function(build_dictionary)

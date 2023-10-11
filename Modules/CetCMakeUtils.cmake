@@ -18,17 +18,19 @@ include(CetRegexEscape)
    Turn a flag or option value into something that can be passed on to
    another function or macro.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_passthrough([FLAG] [KEYWORD <keyword>]
-                        [EMPTY_KEYWORD <empty-keyword>] <in_var>
-                        IN_PLACE|<out-var>)
-        cet_passthrough([FLAG] VALUES [<val>...]
-                        KEYWORD <keyword>
-                        [EMPTY_KEYWORD <empty-keyword>] <out-var>)
+      cet_passthrough([FLAG] [KEYWORD <keyword>]
+                      [EMPTY_KEYWORD <empty-keyword>] <in_var>
+                      IN_PLACE|<out-var>)
 
-   **Options**
+      cet_passthrough([FLAG] VALUES [<val>...]
+                      KEYWORD <keyword>
+                      [EMPTY_KEYWORD <empty-keyword>] <out-var>)
+
+   Options
+   ^^^^^^^
+
      ``EMPTY_KEYWORD <empty-keyword>``
        If ``<in-var>`` or ``VALUES`` evaluates to the empty string, the
        result is ``<empty-keyword>``
@@ -36,7 +38,8 @@ include(CetRegexEscape)
      ``FLAG``
        If ``<in-var>`` or ``VALUES`` evaluates to ``TRUE``, the result
        is ``<keyword>`` (or see ``KEYWORD``, below). Otherwise the
-       result will be the empty string (or see ``EMPTY_KEYWORD``, above).
+       result will be the empty string (or see ``EMPTY_KEYWORD``,
+       above).
 
      ``IN_PLACE``
        If ``<in-var>`` is specified this option signifies that the
@@ -53,9 +56,12 @@ include(CetRegexEscape)
      ``VALUES <val>...``
        The values to be passed through to another function or macro may
        be specified as ``<val>...`` rather than as ``<in-var>``. In this
-       case, ``<out-var>`` is required and ``IN_PLACE`` is not permitted.
+       case, ``<out-var>`` is required and ``IN_PLACE`` is not
+       permitted.
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^  
+
      ``<in-var>``
        The name of a variable holding the values to be passed
        through. ``<in-var>`` must *not* be present if ``VALUES`` is
@@ -66,7 +72,9 @@ include(CetRegexEscape)
        ``IN_PLACE`` and ``<in-var>`` are both specified, than
        ``<out-var>`` must *not* be present.
 
-   **Examples**
+   Examples
+   ^^^^^^^^
+
      * .. code-block:: cmake
 
           set(MYOPTS_VERBOSE TRUE)
@@ -194,17 +202,18 @@ endfunction()
    Produce an ordered list of source file extensions for enabled
    languages.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_source_file_extensions(<out-var>)
+      cet_source_file_extensions(<out-var>)
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<out-var>``
        Variable to contain the resulting ordered list of extensions.
 
-   .. note:: Prescribed order of enabled languages: ``CUDA`` ``CXX``
-      ``C`` ``Fortran`` ``<lang>...`` ``ASM``
+   .. note:: Prescribed order of enabled languages: ``CUDA``, ``CXX``
+      ``C``, ``Fortran``, ``<lang>...``, ``ASM``.
 
 #]================================================================]
 function(cet_source_file_extensions RESULTS_VAR)
@@ -225,16 +234,16 @@ endfunction()
 #[================================================================[.rst:
 .. command:: cet_exclude_files_from
 
-   Remove duplicates and other files from a list, specifically or by
+   Remove duplicates and other files from a list, explicitly or by
    regular expression.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_exclude_files_from(<sources-var> [REGEX <regex>...]
-          [NOP] <file>...)
+      cet_exclude_files_from(<sources-var> [REGEX <regex>...] [NOP] <file>...)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``NOP``
        Optional separator between a list option and non-option
        arguments; no other effect.
@@ -243,7 +252,9 @@ endfunction()
        Entries in ``<sources-var>`` matching ``<regex>...`` will be
        removed.
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<sources-var>``
        The name of a variable containing a list of files to be pruned.
 
@@ -283,12 +294,13 @@ endfunction()
 
    Generate a current timestamp.
 
-   **Synopsis**
      .. code-block:: cmake
 
         cet_timestamp(<out-var> [SYSTEM_DATE_CMD] [<fmt>])
 
-   **Options**
+   Options
+   ^^^^^^^
+
      .. _cet_timestamp-SYSTEM_DATE_CMD:
 
      ``SYSTEM_DATE_CMD``
@@ -296,17 +308,21 @@ endfunction()
        understood by :command:`string(TIMESTAMP)
        <cmake-ref-current:command:string(timestamp)>`
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<out-var>``
        Variable in which to store the formatted timestamp.
 
      ``<fmt>``
        The desired format of the timestamp, using ``%`` placeholders
        understood by :command:`string(TIMESTAMP)
-       <cmake-ref-current:command:string(timestamp)>` or the system :manpage:`date(1)`
-       command.
+       <cmake-ref-current:command:string(timestamp)>` or the system
+       :manpage:`date(1)` command.
 
-   **Examples**
+   Examples
+   ^^^^^^^^
+
      * .. code-block:: cmake
 
           cet_timestamp(RESULT)
@@ -377,16 +393,17 @@ endfunction()
 
       .. seealso:: :manual:`cmake-packages(7) <cmake-ref-current:manual:cmake-packages(7)>`
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        find_simple_package([HEADERS <header>...]
-          [INCPATH_SUFFIXES <dir>...] [INCPATH_VAR <var>]
-          [LIB_VAR <var>] [LIBNAMES <libname>...]
-          [LIBPATH_SUFFIXES <dir>...]
-          <name>)
+      find_simple_package([HEADERS <header>...]
+        [INCPATH_SUFFIXES <dir>...] [INCPATH_VAR <var>]
+        [LIB_VAR <var>] [LIBNAMES <libname>...]
+        [LIBPATH_SUFFIXES <dir>...]
+        <name>)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``HEADERS <header>...``
        Look for ``<header>...`` to ascertain the include path. If not
        specified, use ``<name>.{h,hh,H,hxx,hpp}``
@@ -398,7 +415,8 @@ endfunction()
      ``INCPATH_VAR <var>``
        Store the found include path in ``<var>``. If not specified, we
        invoke :command:`include_directories()
-       <cmake-ref-current:command:include_directories>` with the found include path.
+       <cmake-ref-current:command:include_directories>` with the found
+       include path.
 
      ``LIB_VAR <var>``
        Store the found library as ``<var>``. If not specified, use
@@ -410,12 +428,16 @@ endfunction()
      ``LIBPATH_SUFFIXES <dir>...``
        Add ``<dir>...`` to paths when searching for libraries.
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<name>``
        The primary name of the library (without prefix or suffix) or
        headers to be found.
 
-   **Variables controlling behavior**
+   Variables controlling behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
      :variable:`WANT_INCLUDE_DIRECTORIES`
 
 #]================================================================]
@@ -462,13 +484,14 @@ endfunction()
    <cetmodules-project-variables(7)>` are absolute in the current
    directory scope for in-tree project ``<project>``.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_localize_pv(<project> [<project-var-name>])
-        cet_localize_pv(<project> ALL)
+      cet_localize_pv(<project> [<project-var-name>])
+      cet_localize_pv(<project> ALL)
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<project>``
        The name of a CMake project in the current source tree.
 
@@ -529,10 +552,9 @@ endfunction()
    Equivalent to :command:`cet_localize_pv(\<project> ALL)
    <cet_localize_pv>`.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_localize_pv_all(<project>)
+      cet_localize_pv_all(<project>)
 
 #]================================================================]
 function(cet_localize_pv_all PROJECT)
@@ -548,13 +570,13 @@ endfunction()
    packages via :command:`find_package()
    <cmake-ref-current:command:find_package>`.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_cmake_module_directories([NO_CONFIG] [NO_LOCAL] [PROJECT <project>]
-          <dir>...)
+      cet_cmake_module_directories([NO_CONFIG] [NO_LOCAL] [PROJECT <project>] <dir>...)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``BINARY``
        Also add the corresponding directories in the project build tree
        to :variable:`CMAKE_MODULE_PATH
@@ -583,7 +605,9 @@ endfunction()
        :variable:`CETMODULES_CURRENT_PROJECT_NAME
        <CETMODULES_CURRENT_PROJECT_NAME>`.
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<dir>...``
        Directories containing CMake modules.
 
@@ -631,12 +655,13 @@ endfunction()
    is more flexible, more robust against user error and makes fewer
    assumptions.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_export_alias([<options>] [ALIAS] <target>...)
+      cet_export_alias([<options>] [ALIAS] <target>...)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      .. _cet_export_alias_ALIAS:
 
      ``ALIAS <target>...``
@@ -661,8 +686,11 @@ endfunction()
        Optional separator between a list option and non-option
        arguments; no other effect.
 
-  **Non-option arguments**
+  Non-option arguments
+  ^^^^^^^^^^^^^^^^^^^^
+
     ``<target>...``
+
       Targets to be aliased.
 
       .. seealso:: :ref:`ALIAS <cet_export_alias_ALIAS>`
@@ -726,12 +754,12 @@ endfunction()
 
    Define an alias and optionally export it.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_make_alias(TARGET <target> [<options>] [<target-export-set>])
+      cet_make_alias(TARGET <target> [<options>] [<target-export-set>])
 
-   **Options**
+   Options
+   ^^^^^^^
 
      ``EXPORT_SET <export-set>``
        Aliased targets will be exported into ``<export-set>``, which
@@ -840,18 +868,21 @@ endfunction()
    of real paths via :command:`file(REAL_PATH)
    <cmake-ref-current:command:file(real_path)>`.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_real_path(<out-var> [LIST] <path>...)
+      cet_real_path(<out-var> [LIST] <path>...)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``LIST``
        Results will be returned in ``<out-var>`` as a ";"-separated
        CMake list rather than the default ":"-separated
        :envvar:`PATH`-like string.
 
-    **Non-option arguments**
+    Non-option arguments
+    ^^^^^^^^^^^^^^^^^^^^
+
       ``<out-var>``
          Variable to hold the results.
 
@@ -878,20 +909,20 @@ endfunction()
 
    Filter paths based on their roots.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_filter_subdirs([EXCLUDE <subdir>...] [INCLUDE <subdir>...]
-          <path>...)
+      cet_filter_subdirs([EXCLUDE <subdir>...] [INCLUDE <subdir>...] <path>...)
 
-   **Options**
-     ``EXCLUDE <root>...``
-     ``INCLUDE <root>...``
+   Options
+   ^^^^^^^
 
+     ``EXCLUDE <root>...``, ``INCLUDE <root>...``
        Exclude or select ``<path>`` based on whether it is a
        subdirectory of ``<root>`` after accounting for symbolic links.
 
-   **Non-option arguments**
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
      ``<path>...``
        Candidate paths to be filtered.
 

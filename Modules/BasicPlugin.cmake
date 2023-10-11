@@ -29,136 +29,145 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
 .. command:: basic_plugin
 
-Create a plugin library, with or without a separate registration library
-to avoid |ODR| violations.
+   Create a plugin library, with or without a separate registration
+   library to avoid |ODR| violations.
 
-.. code-block:: cmake
+   .. code-block:: cmake
 
-   basic_plugin(<name> <suffix> [<options>])
+      basic_plugin(<name> <suffix> [<options>])
 
-Source specification options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Options
+   ^^^^^^^
 
-``IMPL_SOURCE <implementation-source>...``
-  Specify source to compile into the plugin's interface implementation
-  library, if appropriate. The implementation should *not* invoke any
-  registration definition macros or the |ODR| will be violated.
+   Source specification options
+   """"""""""""""""""""""""""""
 
-``REG_SOURCE <registration-source>...``
-  Specify source to compile into the plugin registration library,
-  intended only for runtime injection (via e.g. :manpage:`dlopen(3)`)
-  into an executable, and not for dynamic linking.
+   ``IMPL_SOURCE <implementation-source>...``
+     Specify source to compile into the plugin's interface
+     implementation library, if appropriate. The implementation should
+     *not* invoke any registration definition macros or the |ODR| will
+     be violated.
 
-.. note::
+   ``REG_SOURCE <registration-source>...``
+     Specify source to compile into the plugin registration library,
+     intended only for runtime injection (via e.g. :manpage:`dlopen(3)`)
+     into an executable, and not for dynamic linking.
 
-   * If ``REG_SOURCE`` is omitted, we look for ``<name>_<suffix>.cc``
+   .. note::
 
-   * If ``IMPL_SOURCE`` is omitted, we look for ``<name>.cc``
+      * If ``REG_SOURCE`` is omitted, we look for ``<name>_<suffix>.cc``
 
-Dependency specification options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      * If ``IMPL_SOURCE`` is omitted, we look for ``<name>.cc``
 
-``LIBRARIES [CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]``
-  <library-dependency>...`` Specify targets and/or libraries upon which
-  the implementation (``INTERFACE``, ``PUBLIC``, ``PRIVATE``), or
-  registration (``REG``) libraries should depend. If implementation and
-  registration share a dependency not inherited by public callers of the
-  implementation, specify the library twice with one mention prefaced with
-  ``PRIVATE`` and the other with ``REG``.
+   Dependency specification options
+   """"""""""""""""""""""""""""""""
 
-.. note::
+   ``LIBRARIES [CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]
+   <library-dependency>...``
+     Specify targets and/or libraries upon which the implementation
+     (``INTERFACE``, ``PUBLIC``, ``PRIVATE``), or registration (``REG``)
+     libraries should depend. If implementation and registration share a
+     dependency not inherited by public callers of the implementation,
+     specify the library twice with one mention prefaced with
+     ``PRIVATE`` and the other with ``REG``.
 
-   * The registration library has an automatic dependence on the
-     implementation library (if present).
+   .. note::
 
-   * If ``PUBLIC`` or ``INTERFACE`` dependencies are specified and there
-     is no implementation source, then the plugin will be built as a
-     shared library rather than as a module, and all responsibility for
-     |ODR| violations rests with the plugin builder.
+      * The registration library has an automatic dependence on the
+        implementation library (if present).
 
-   * An additional dependency designation, ``CONDITIONAL``, is accepted
-     and is intended for use by intermediate CMake functions that add
-     dependencies to a library. ``CONDITIONAL`` is identical to
-     ``PUBLIC`` without making a statement about the shared or module
-     nature of the combined implementation/registration library or the
-     presence of a public (non-plugin) calling interface.
+      * If ``PUBLIC`` or ``INTERFACE`` dependencies are specified and
+        there is no implementation source, then the plugin will be built
+        as a shared library rather than as a module, and all
+        responsibility for |ODR| violations rests with the plugin
+        builder.
 
-Other options
-^^^^^^^^^^^^^
+      * An additional dependency designation, ``CONDITIONAL``, is
+        accepted and is intended for use by intermediate CMake functions
+        that add dependencies to a library. ``CONDITIONAL`` is identical
+        to ``PUBLIC`` without making a statement about the shared or
+        module nature of the combined implementation/registration
+        library or the presence of a public (non-plugin) calling
+        interface.
 
-``ALIAS <alias>...``
-  Create the specified CMake alias targets to the implementation
-  library.
+   Other options
+   """""""""""""
 
-``ALLOW_UNDERSCORES``
-  Normally, neither ``<name>`` nor ``<suffix>`` may contain underscores
-  in order to avoid possible ambiguities. Allow them with this option at
-  your own risk.
+   ``ALIAS <alias>...``
+     Create the specified CMake alias targets to the implementation
+     library.
 
-``BASENAME_ONLY``
-  Do not add the relative path (directories delimited by ``_``) to the
-  front of the plugin library name.
+   ``ALLOW_UNDERSCORES``
+     Normally, neither ``<name>`` nor ``<suffix>`` may contain
+     underscores in order to avoid possible ambiguities. Allow them with
+     this option at your own risk.
 
-``EXPORT_SET <export-name>``
-  Add the library to the ``<export-name>`` export set.
+   ``BASENAME_ONLY``
+     Do not add the relative path (directories delimited by ``_``) to
+     the front of the plugin library name.
 
-``IMPL_TARGET_VAR <var>``
-  Return the—possibly calculated—name of the implementation library
-  target in ``<var>``.
+   ``EXPORT_SET <export-name>``
+     Add the library to the ``<export-name>`` export set.
 
-``LOCAL_INCLUDE_DIRS <dir>...``
-  Headers may be found in ``<dir>``... at build time.
+   ``IMPL_TARGET_VAR <var>``
+     Return the—possibly calculated—name of the implementation library
+     target in ``<var>``.
 
-``NOP``
-  Option / argument disambiguator; no other function.
+   ``LOCAL_INCLUDE_DIRS <dir>...``
+     Headers may be found in ``<dir>``... at build time.
 
-``NO_EXPORT``
-  Do not export this plugin.
+   ``NOP``
+     Option / argument disambiguator; no other function.
 
-``NO_INSTALL``
-  Do not install the generated library or libraries.
+   ``NO_EXPORT``
+     Do not export this plugin.
 
-``SOVERSION <version>``
-  The library's compatibility version (*cf* CMake :prop_tgt:`SOVERSION
-  <cmake-ref-current:prop_tgt:SOVERSION>` property).
+   ``NO_INSTALL``
+     Do not install the generated library or libraries.
 
-``USE_BOOST_UNIT``
-  The plugin uses Boost unit test functions and should be compiled and
-  linked accordingly.
+   ``SOVERSION <version>``
+     The library's compatibility version (*cf* CMake
+     :prop_tgt:`SOVERSION <cmake-ref-current:prop_tgt:SOVERSION>`
+     property).
 
-``USE_PROJECT_NAME``
-  .. versionadded:: 3.23.00
+   ``USE_BOOST_UNIT``
+     The plugin uses `Boost unit test
+     functions<https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
 
-  The project name will be prepended to the plugin library name,
-  separated by ``_``
+   ``USE_PROJECT_NAME``
+     .. versionadded:: 3.23.00
 
-``VERSION``
-  The library's build version will be set to
-  :variable:`CETMODULES_CURRENT_PROJECT_VERSION` (*cf* CMake
-  :prop_tgt:`VERSION <cmake-ref-current:prop_tgt:VERSION>` property).
+     The project name will be prepended to the plugin library name,
+     separated by ``_``
 
-Deprecated options
-^^^^^^^^^^^^^^^^^^
+   ``VERSION``
+     The library's build version will be set to
+     :variable:`CETMODULES_CURRENT_PROJECT_VERSION` (*cf* CMake
+     :prop_tgt:`VERSION <cmake-ref-current:prop_tgt:VERSION>` property).
 
-``SOURCE <source>...``
-  Specify sources to compile into the plugin.
+   Deprecated options
+   """"""""""""""""""
 
- .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
-    ``LIBRARIES REG`` instead.
+   ``SOURCE <source>...``
+     Specify sources to compile into the plugin.
 
-``USE_PRODUCT_NAME``
-  .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
+    .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
+       ``LIBRARIES REG`` instead.
 
-Non-option arguments
-^^^^^^^^^^^^^^^^^^^^
+   ``USE_PRODUCT_NAME``
+     .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
 
-``<name>``
-  The name stem for the library to be generated.
+   Non-option arguments
+   """"""""""""""""""""
 
-``<suffix>``
-  The category of plugin to be generated.
+   ``<name>``
+     The name stem for the library to be generated.
 
-.. seealso:: :command:`cet_make_library`
+   ``<suffix>``
+     The category of plugin to be generated.
+
+   .. seealso:: :command:`cet_make_library`
 #]================================================================]
 
 function(basic_plugin NAME SUFFIX)

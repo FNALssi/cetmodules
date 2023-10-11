@@ -20,127 +20,129 @@ set(_cet_make_library_usage "")
 #[================================================================[.rst:
 .. command:: cet_make_library
 
-Create a library.
+   Create a library.
 
-.. parsed-literal::
+   .. parsed-literal::
 
-   cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
-                    [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`])
+      cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
+                       [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`])
 
-.. _cet_make_library_name_options:
+   Options
+   ^^^^^^^
 
-Name Options
-^^^^^^^^^^^^
+   .. _cet_make_library_name_options:
 
-``BASENAME_ONLY``
+   Name Options
+   """"""""""""
 
-  Calculate the name of the library based only on the basename of
-  :variable:`CMAKE_CURRENT_SOURCE_DIR
-  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
-  mutually-exclusive with ``LIBRARY_NAME``.
+   ``BASENAME_ONLY``
+     Calculate the name of the library based only on the basename of
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
+     mutually-exclusive with ``LIBRARY_NAME``.
 
-``LIBRARY_NAME <name>``
+   ``LIBRARY_NAME <name>``
+     .. rst-class:: text-start
 
-  .. rst-class:: text-start
+     Specify the library name as ``name``. If this option is not
+     provided the library's name will be calculated from the relative
+     path of :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect
+     to :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to
+     possible modification by ``USE_PROJECT_NAME`` (replacing
+     path-separators with ``_``). ``LIBRARY_NAME`` is mutually-exclusive
+     with ``BASENAME_ONLY``.
 
-  Specify the library name as ``name``. If this option is not provided
-  the library's name will be calculated from the relative path of
-  :variable:`CMAKE_CURRENT_SOURCE_DIR
-  <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect to
-  :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to possible
-  modification by ``USE_PROJECT_NAME`` (replacing path-separators with
-  ``_``). ``LIBRARY_NAME`` is mutually-exclusive with ``BASENAME_ONLY``.
+   ``LIBRARY_NAME_VAR <var>``
+     Return the calculated/modified library name in the variable
+     ``<var>``.
 
-``LIBRARY_NAME_VAR <var>``
+   ``USE_PROJECT_NAME``
+     Modify the provided or calculated library name by prepending
+     :variable:`CETMODULES_CURRENT_PROJECT_NAME` and a separating ``_``.
 
-  Return the calculated/modified library name in the variable ``<var>``.
+   .. _cet_make_library_type_options:
 
-``USE_PROJECT_NAME``
+   Type Options
+   """"""""""""
 
-  Modify the provided or calculated library name by prepending
-  :variable:`CETMODULES_CURRENT_PROJECT_NAME` and a separating ``_``.
+   ``INTERFACE, MODULE, OBJECT, SHARED, STATIC``
+     Make a CMake library of the specified type(s). An ``INTERFACE``
+     library is incompatible with every other library type, and the
+     ``SHARED`` and ``MODULE`` Library types are mutually incompatible.
 
-.. _cet_make_library_type_options:
+     .. seealso:: :external+cmake-ref-current:ref:`interface libraries`,
+                  :external+cmake-ref-current:ref:`object libraries`,
+                  :external+cmake-ref-current:ref:`normal libraries`
 
-Type Options
-^^^^^^^^^^^^
+   ``NO_OBJECT``
+     Disable the automatic addition and use of an ``OBJECT`` library
+     where it would otherwise be appropriate (e.g. ``STATIC`` and
+     ``SHARED`` are both specified).
 
-``INTERFACE, MODULE, OBJECT, SHARED, STATIC``
+   ``WITH_STATIC_LIBRARY``
+     .. deprecated:: 3.23.00
+        use ``STATIC`` instead.
 
-  Make a CMake library of the specified type(s). An ``INTERFACE``
-  library is incompatible with every other library type, and the
-  ``SHARED`` and ``MODULE`` Library types are mutually incompatible.
+   .. _cet_make_library_options:
 
-``NO_OBJECT``
+   Library Options
+   """""""""""""""
 
-  Disable the automatic addition and use of an ``OBJECT`` library where
-  it would otherwise be appropriate (e.g. ``STATIC`` and ``SHARED`` are
-  both specified). See :ref:`cet_make_library_object_libraries` for more
-  information.
+   ``INSTALLED_PATH_BASE <base>``
 
-``WITH_STATIC_LIBRARY``
+   ``LIBRARIES <library-specification> ...``
 
-  .. deprecated:: 3.23.00
-     use ``STATIC`` instead.
+   ``LOCAL_INCLUDE_DIRS <dir> ...``
 
-.. _cet_make_library_options:
+   ``NO_SOURCE``
 
-Library Options
-^^^^^^^^^^^^^^^
+   ``SOURCE <source> ...``
 
-``INSTALLED_PATH_BASE <base>``
+   ``SOVERSION <version>``
 
-``LIBRARIES <library-specification> ...``
+   ``STRIP_LIBS``
 
-``LOCAL_INCLUDE_DIRS <dir> ...``
+   ``USE_BOOST_UNIT``
 
-``NO_SOURCE``
+   ``VERSION``
 
-``SOURCE <source> ...``
+   .. _cet_make_library_target_options:
 
-``SOVERSION <version>``
+   Target Options
+   """"""""""""""
 
-``STRIP_LIBS``
+   ``ALIAS <alias-target> ...``
 
-``USE_BOOST_UNIT``
+   ``EXCLUDE_FROM_ALL``
 
-``VERSION``
+   ``EXPORT_SET <export-set>``
 
-.. _cet_make_library_target_options:
+   ``HEADERS_TARGET``
 
-Target Options
-^^^^^^^^^^^^^^
+   ``HEADERS_TARGET_ONLY``
 
-``ALIAS <alias-target> ...``
+   ``NO_EXPORT``
 
-``EXCLUDE_FROM_ALL``
+   Details
+   ^^^^^^^
 
-``EXPORT_SET <export-set>``
+   .. _cet_make_library_object_libraries:
 
-``HEADERS_TARGET``
+   Object Libraries
+   """"""""""""""""
 
-``HEADERS_TARGET_ONLY``
+   An :external+cmake-ref-current:ref:`OBJECT <object libraries>`
+   library is a CMake artifact representing a collection of compiled
+   object files.
 
-``NO_EXPORT``
-
-Details
-^^^^^^^
-
-.. _cet_make_library_object_libraries:
-
-Object Libraries
-""""""""""""""""
-
-An :external+cmake-ref-current:ref:`OBJECT <object libraries>` library
-is a CMake artifact representing a collection of compiled object files.
-
-.. seealso:: :command:`cmake-ref-current:command:add_library`,
-             :command:`cmake-ref-current:command:target_sources`,
-             :command:`cmake-ref-current:command:target_include_directories`,
-             :command:`cmake-ref-current:command:target_link_libraries`,
-             :command:`cmake-ref-current:command:install`,
-             :command:`cet_make_alias`,
-             :command:`cet_register_export_set`
+   .. seealso:: :command:`cmake-ref-current:command:add_library`,
+                :command:`cmake-ref-current:command:target_sources`,
+                :command:`cmake-ref-current:command:target_include_directories`,
+                :command:`cmake-ref-current:command:target_link_libraries`,
+                :command:`cmake-ref-current:command:install`,
+                :command:`cet_make_alias`,
+                :command:`cet_register_export_set`
 
 #]================================================================]
 

@@ -15,10 +15,9 @@ function with the following features:
 * Optionally, copy files for use in the build tree in addition to
   installing them.
 
-:command:`_cet_install` is a "toolkit" function, intended to facilitate
-         the generation of :command:`!install_X()` functions with
-         particular default or enforced characteristics for files of a
-         particular type.
+\ :command:`_cet_install` is a "toolkit" function, intended to
+facilitate the generation of ``install_X()`` functions with particular
+default or enforced characteristics for files of a particular type.
 
 #]================================================================]
 # Avoid unwanted repeat inclusion.
@@ -36,14 +35,15 @@ include (ProjectVariable)
    Install files of a particular type or category with installation
    semantics common to that type of file.
 
-   **Synopsis:**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        _cet_install(<category> [<meta-options>...] [<options>...])
+      _cet_install(<category> [<meta-options>...] [<options>...])
 
    .. _p_cet_install-options:
 
-   **Options:**
+   Options
+   ^^^^^^^
+
      .. _p_cet_install-BASENAME_EXCLUDES:
 
      ``BASENAME_EXCLUDES [[REGEX] <exp>]...``
@@ -72,26 +72,32 @@ include (ProjectVariable)
 
      ``LIST [<file>...]``
        A list of files to install. Mutually-exclusive with any option
-       assuming a generated list via `p_cet_install-_GLOB`_,
-       specifically `p_cet_install-EXCLUDES`_,
-       `p_cet_install-BASENAME_EXCLUDES`_, `p_cet_install-EXTRAS`_,
-       `p_cet_install-SUBDIRS`_,
+       assuming a generated list via :ref:`p_cet_install-_GLOB`,
+       specifically :ref:`p_cet_install-EXCLUDES`,
+       :ref:`p_cet_install-BASENAME_EXCLUDES`,
+       :ref:`p_cet_install-EXTRAS`, and :ref:`p_cet_install-SUBDIRS`,
 
      .. _p_cet_install-EXTRAS:
 
      ``EXTRAS [<extra file>...]``
+       TODO.
 
      ``PROGRAMS``
+       TODO.
 
      ``SUBDIRNAME <dest-subdir>``
+       TODO.
 
      .. _p_cet_install-SUBDIRS:
 
      ``SUBDIRS [<source-subdir>...]``
+       TODO.
 
    .. _p_cet_install-meta-options:
 
-   **Meta-options:**
+   Meta-options
+   """"""""""""
+
      ``_EXTRA_BASENAME_EXCLUDES [<basename-exclude-exp>...]``
        Additional basename exclusion expressions.
 
@@ -105,7 +111,7 @@ include (ProjectVariable)
      .. _p_cet_install-_GLOB:
 
      ``_GLOBS [<file(glob)>...]``
-       :command:`GLOB <cmake-ref-current:command:file(glob)>`
+       \ :command:`GLOB <cmake-ref-current:command:file(glob)>`
        expressions for files to include.
 
      ``_INSTALLED_FILES_VAR <var>``
@@ -131,20 +137,20 @@ include (ProjectVariable)
        Subdirectory elements of source files are ignored when
        calculating the copy/install destination.
 
-Details
--------
+   Details
+   ^^^^^^^
 
-\ :ref:`Meta-options <p_cet_install-meta-options>` to
-:command:`!cet_install` are distinguished by a leading underscore and
-are intended for use by wrapper functions specific to a particular
-category of file (e.g. license and README files, geometry data,
-configuration files, *etc*.) to enforce common behavior for all
-installation operations for those files.
+   \ :ref:`Meta-options <p_cet_install-meta-options>` to
+   :command:`!cet_install` are distinguished by a leading underscore and
+   are intended for use by wrapper functions specific to a particular
+   category of file (e.g. license and README files, geometry data,
+   configuration files, *etc*.) to enforce common behavior for all
+   installation operations for those files.
 
-.. note:: Although supported for historical reasons, use of
-  :command:`file(GLOB) <cmake-ref-current:command:file(glob)>` to
-  generate targets is not CMake best practice, and may lead to
-  hysteresis if looking for generated files in the build tree.
+   .. note:: Although supported for historical reasons, use of
+      :command:`file(GLOB) <cmake-ref-current:command:file(glob)>` to
+      generate targets is not CMake best practice, and may lead to
+      hysteresis if looking for generated files in the build tree.
 #]============================================================]
 
 # Copy all files (or PROGRAMS) found matching provided glob expressions

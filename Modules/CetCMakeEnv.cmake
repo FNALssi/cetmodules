@@ -67,35 +67,37 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
 
    Set up the cetmodules build environment for the current project.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_cmake_env([NO_INSTALL_PKGMETA])
+      cet_cmake_env([NO_INSTALL_PKGMETA])
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``NO_INSTALL_PKGMETA``
-
        Under normal circumstances, :command:`!cet_cmake_env` will call
        :command:`install_pkgmeta` to automatically find ``LICENSE`` and
        ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
        if you wish to call :command:`install_pkgmeta` yourself (or not
        at all).
 
-  .. note::
+   .. note::
 
-     Prior to calling :command:`cet_cmake_env`:
+      Prior to calling :command:`cet_cmake_env`:
 
-     * The current project must have been initialized via
-       :command:`project() <cmake-ref-current:command:project>`
+      * The current project must have been initialized via
+        :command:`project() <cmake-ref-current:command:project>`
 
-     * Any initial or override values for
-       :manual:`project variables <cetmodules-project-variables(7)>` should be set.
+      * Any initial or override values for
+        :manual:`project variables <cetmodules-project-variables(7)>` should be set.
 
-  **Variables controlling behavior**
-    * :variable:`WANT_UPS`
-    * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
-    * :variable:`BUILD_STATIC_LIBS`
-    * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+   Variables controlling behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+     * :variable:`WANT_UPS`
+     * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
+     * :variable:`BUILD_STATIC_LIBS`
+     * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
 
 #]================================================================]
 macro(cet_cmake_env)
