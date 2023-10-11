@@ -492,7 +492,9 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     endif()
     # Deal with aliases to primary target.
     foreach (alias IN LISTS CML_ALIAS extra_alias)
-      if (CML_NO_INSTALL OR CML_NO_EXPORT)
+      if (alias MATCHES "::")
+        add_library(${alias} ALIAS ${CML_TARGET_NAME})
+      elseif (CML_NO_INSTALL OR CML_NO_EXPORT)
         add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
       else()
         cet_make_alias(NAME ${alias} EXPORT_SET ${CML_EXPORT_SET}
