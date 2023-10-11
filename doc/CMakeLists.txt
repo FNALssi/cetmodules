@@ -48,6 +48,7 @@ ${ref_conf}
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
+    TARGETS_VAR reference_html_target
   )
 
   set(WANT_UNIX_MAN_PAGES "True")
@@ -66,7 +67,10 @@ ${ref_conf}
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     man_EXTRA_ARGS ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
     DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
+    TARGETS_VAR reference_man_target
   )
+    add_custom_target(doc-cetmodules-reference)
+    add_dependencies(doc-cetmodules-reference ${reference_html_target} ${reference_man_target})
 endfunction()
 
 function(_publish_to_root)
@@ -123,6 +127,7 @@ ${ref_conf}
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
+    TARGETS_VAR publish_ref_target
   )
   add_custom_command(OUTPUT "${doc_root}/landing/index.rst"
     COMMAND M4::M4
@@ -157,7 +162,11 @@ ${landing_conf}
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS "${doc_root}/landing/index.rst" "${doc_root}/cetmodules-common.rst"
+    TARGETS_VAR publish_landing_target
   )
+
+  add_custom_target(doc-cetmodules-publish)
+  add_dependencies(doc-cetmodules-publish ${publish_ref_target} ${publish_landing_target})
 endfunction()
 
 # Are we going with standard version/release, or using git branch/commit
