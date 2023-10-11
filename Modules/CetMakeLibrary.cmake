@@ -90,22 +90,46 @@ set(_cet_make_library_usage "")
    """""""""""""""
 
    ``INSTALLED_PATH_BASE <base>``
+     Specify the path to the installation directory for ``SOURCE``
+     headers relative to |pv|
+     :variable:`<PROJECT-NAME>_INCLUDE_DIR`. Only valid for
+     ``INTERFACE``-type libraries.
 
    ``LIBRARIES <library-specification> ...``
+     Library dependencies (passed to :command:`target_link_libraries()
+     <cmake-ref-current:command:target_link_libraries>`).
 
    ``LOCAL_INCLUDE_DIRS <dir> ...``
+     Specify local include directories.
 
    ``NO_SOURCE``
+     Indicate that no sources are specified at this time. Add them later
+     with :command:`target_sources()
+     <cmake-ref-current:command:target_sources>`. Mutually-exclusive
+     with ``SOURCE <source> ...``.
 
    ``SOURCE <source> ...``
+     Source files for inclusion in the library. Mutually-exclusive with
+     ``NO_SOURCE``.
 
-   ``SOVERSION <version>``
+   ``SOVERSION <api-version>``
+     Specify the :prop_tgt:`API version
+     <cmake-ref-current:prop_tgt:SOVERSION>` of the library.
 
    ``STRIP_LIBS``
+     After the library is built, symbols will be stripped using
+     :manpage:`strip(1)`.
 
    ``USE_BOOST_UNIT``
+     The library uses `Boost unit test functions
+     <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
 
-   ``VERSION``
+   ``VERSION [<build-version>]``
+     Specify the :prop_tgt:`build version
+     <cmake-ref-current:prop_tgt:VERSION>` of the library. If the
+     ``<build-version>`` is missing, use
+     :variable:`CETMODULES_CURRENT_PROJECT_VERSION`.
 
    .. _cet_make_library_target_options:
 
@@ -113,34 +137,71 @@ set(_cet_make_library_usage "")
    """"""""""""""
 
    ``ALIAS <alias-target> ...``
+     Add ``<alias-target> ...`` as aliases for the primary library
+     target. If ``<alias-target>`` is scoped (contains ``::``) the alias
+     will be defined as a non-exported (build-time only) target exactly
+     as specified. Otherwise it will be scoped according to
+     ``EXPORT_SET`` if specified, or the default namespace defined by
+     :command:`cet_register_export_set` if not.
+
+     .. seealso:: :external+cmake-ref-current:ref:`alias targets`
 
    ``EXCLUDE_FROM_ALL``
+     Set the :prop_tgt:`EXCLUDE_FROM_ALL
+     <cmake-ref-current:prop_tgt:EXCLUDE_FROM_ALL>` property on all
+     targets.
 
    ``EXPORT_SET <export-set>``
+     The library will be exported as part of the specified
+     :external+cmake-ref-current:ref:`export set <install(export)>`.
 
    ``HEADERS_TARGET``
+     Define an ``INTERFACE`` target
+     ``<CETMODULES_CURRENT_PROJECT_NAME>_headers`` embodying the
+     locations of include directories for the package.
 
    ``HEADERS_TARGET_ONLY``
+     Define _only_ the target
+     ``<CETMODULES_CURRENT_PROJECT_NAME>_headers`` (implies
+     ``HEADERS_TARGET``).
 
    ``NO_EXPORT``
+     Targets will not be exported or installed.
+
+   ``TARGET_NAME <target-name>``
+     Specify the primary target name independently of the library
+     name. If ``<target-name>`` is the special keyword, ``BASENAME``
+     then the target will be set to the basename of
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
 
    Details
    ^^^^^^^
 
-   .. _cet_make_library_object_libraries:
+   ``cet_make_library()`` is a "one-stop shop" for creating, installing,
+   and exporting libraries:
 
-   Object Libraries
-   """"""""""""""""
+   * Library file and target names may be calculated or
+     specified—independently or otherwise as desired.
 
-   An :external+cmake-ref-current:ref:`OBJECT <object libraries>`
-   library is a CMake artifact representing a collection of compiled
-   object files.
+   * Alias targets can be created and exported along with their target
+     libraries.
 
-   .. seealso:: :command:`cmake-ref-current:command:add_library`,
-                :command:`cmake-ref-current:command:target_sources`,
-                :command:`cmake-ref-current:command:target_include_directories`,
-                :command:`cmake-ref-current:command:target_link_libraries`,
-                :command:`cmake-ref-current:command:install`,
+   * Library build and API versions may be specified.
+
+   * Libraries may be stripped of symbols afer building.
+
+   * ``cet_make_library()`` does all the bookkeeping necessary to ensure
+     that necessary dependencies are found when the installed package is
+     used downstream via :command:`find_package()
+     <cmake-ref-current:command:find_package>`
+
+   .. seealso:: :command:`add_library() <cmake-ref-current:command:add_library>`,
+                :command:`target_sources() <cmake-ref-current:command:target_sources>`,
+                :command:`target_include_directories() <cmake-ref-current:command:target_include_directories>`,
+                :command:`target_link_libraries() <cmake-ref-current:command:target_link_libraries>`,
+                :command:`install() <cmake-ref-current:command:install>`,
+                :command:`cet_cmake_config`,
                 :command:`cet_make_alias`,
                 :command:`cet_register_export_set`
 
