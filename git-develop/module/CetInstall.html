@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetInstall &mdash; Cetmodules git-develop-1cadb2c Reference</title>
+  <title>CetInstall &mdash; Cetmodules git-develop-7288f75 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=7458189f"></script>
+    <script src="../_static/documentation_options.js?v=c0cb701d"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -91,25 +91,21 @@ b) to a base directory.</p></li>
 <li><p>Optionally, copy files for use in the build tree in addition to
 installing them.</p></li>
 </ul>
-<dl class="simple">
-<dt><span class="target" id="index-0-command:_cet_install"></span><a class="reference internal" href="#command:_cet_install" title="_cet_install"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">_cet_install()</span></code></a> is a “toolkit” function, intended to facilitate</dt><dd><p>the generation of <code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_X()</span> <span class="pre">&lt;!install_X()&gt;()</span></code> functions with
-particular default or enforced characteristics for files of a
-particular type.</p>
-</dd>
-</dl>
+<p><span class="target" id="index-0-command:_cet_install"></span><a class="reference internal" href="#command:_cet_install" title="_cet_install"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">_cet_install()</span></code></a> is a “toolkit” function, intended to
+facilitate the generation of <code class="docutils literal notranslate"><span class="pre">install_X()</span></code> functions with particular
+default or enforced characteristics for files of a particular type.</p>
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:_cet_install">
 <span class="sig-name descname"><span class="pre">_cet_install</span></span><a class="headerlink" href="#command:_cet_install" title="Link to this definition">¶</a></dt>
 <dd><p>Install files of a particular type or category with installation
 semantics common to that type of file.</p>
-<dl>
-<dt><strong>Synopsis:</strong></dt><dd><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">_cet_install(</span><span class="nv">&lt;category&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;meta-options&gt;...</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;...</span><span class="p">]</span><span class="nf">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">_cet_install(</span><span class="nv">&lt;category&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;meta-options&gt;...</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;...</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<dl id="p-cet-install-options">
-<dt><strong>Options:</strong></dt><dd><dl class="simple" id="p-cet-install-basename-excludes">
+<section id="options">
+<span id="p-cet-install-options"></span><h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><dl class="simple" id="p-cet-install-basename-excludes">
 <dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[[REGEX]</span> <span class="pre">&lt;exp&gt;]...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
 are excluded from installation; <span class="target" id="index-1-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions are
 permitted.</p>
@@ -129,20 +125,29 @@ wildcards or directories</p>
 </dl>
 <dl class="simple" id="p-cet-install-opt-list">
 <dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">[&lt;file&gt;...]</span></code></dt><dd><p>A list of files to install. Mutually-exclusive with any option
-assuming a generated list via <a class="reference internal" href="#p-cet-install-glob">p_cet_install-_GLOB</a>,
-specifically <a class="reference internal" href="#p-cet-install-excludes">p_cet_install-EXCLUDES</a>,
-<a class="reference internal" href="#p-cet-install-basename-excludes">p_cet_install-BASENAME_EXCLUDES</a>, <a class="reference internal" href="#p-cet-install-extras">p_cet_install-EXTRAS</a>,
-<a class="reference internal" href="#p-cet-install-subdirs">p_cet_install-SUBDIRS</a>,</p>
+assuming a generated list via <a class="reference internal" href="#p-cet-install-glob"><span class="std std-ref">_GLOBS [&lt;file(glob)&gt;...]</span></a>,
+specifically <a class="reference internal" href="#p-cet-install-excludes"><span class="std std-ref">EXCLUDES [&lt;exclude-exp&gt;...]</span></a>,
+<a class="reference internal" href="#p-cet-install-basename-excludes"><span class="std std-ref">BASENAME_EXCLUDES [[REGEX] &lt;exp&gt;]...</span></a>,
+<a class="reference internal" href="#p-cet-install-extras"><span class="std std-ref">EXTRAS [&lt;extra file&gt;...]</span></a>, and <a class="reference internal" href="#p-cet-install-subdirs"><span class="std std-ref">SUBDIRS [&lt;source-subdir&gt;...]</span></a>,</p>
 </dd>
 </dl>
-<p id="p-cet-install-extras"><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">[&lt;extra</span> <span class="pre">file&gt;...]</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></p>
-<p id="p-cet-install-subdirs"><code class="docutils literal notranslate"><span class="pre">SUBDIRS</span> <span class="pre">[&lt;source-subdir&gt;...]</span></code></p>
+<dl class="simple" id="p-cet-install-extras">
+<dt><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">[&lt;extra</span> <span class="pre">file&gt;...]</span></code></dt><dd><p>TODO.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></dt><dd><p>TODO.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></dt><dd><p>TODO.</p>
 </dd>
 </dl>
-<dl id="p-cet-install-meta-options">
-<dt><strong>Meta-options:</strong></dt><dd><dl class="simple">
+<dl class="simple" id="p-cet-install-subdirs">
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRS</span> <span class="pre">[&lt;source-subdir&gt;...]</span></code></dt><dd><p>TODO.</p>
+</dd>
+</dl>
+</div></blockquote>
+<section id="meta-options">
+<span id="p-cet-install-meta-options"></span><h3>Meta-options<a class="headerlink" href="#meta-options" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_BASENAME_EXCLUDES</span> <span class="pre">[&lt;basename-exclude-exp&gt;...]</span></code></dt><dd><p>Additional basename exclusion expressions.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>Additional full-path exclusion expressions.</p>
@@ -172,13 +177,11 @@ source tree.</p>
 calculating the copy/install destination.</p>
 </dd>
 </dl>
-</dd>
-</dl>
-</dd></dl>
-
+</div></blockquote>
+</section>
 </section>
 <section id="details">
-<h1>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h1>
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
 <p><a class="reference internal" href="#p-cet-install-meta-options"><span class="std std-ref">Meta-options</span></a> to
 <code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_install()</span></code> are distinguished by a leading underscore and
 are intended for use by wrapper functions specific to a particular
@@ -193,6 +196,9 @@ generate targets is not CMake best practice, and may lead to
 hysteresis if looking for generated files in the build tree.</p>
 </div>
 </section>
+</dd></dl>
+
+</section>
 
 
             <div class="clearer"></div>
@@ -201,14 +207,6 @@ hysteresis if looking for generated files in the build tree.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">CetInstall</a></li>
-<li><a class="reference internal" href="#details">Details</a></li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="CetGenerateSphinxDocs.html"
@@ -263,7 +261,7 @@ hysteresis if looking for generated files in the build tree.</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

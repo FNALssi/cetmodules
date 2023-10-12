@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>BasicPlugin &mdash; Cetmodules git-develop-1cadb2c Reference</title>
+  <title>BasicPlugin &mdash; Cetmodules git-develop-7288f75 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=7458189f"></script>
+    <script src="../_static/documentation_options.js?v=c0cb701d"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -86,19 +86,20 @@ generic plugin module.</p>
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:basic_plugin">
 <span class="sig-name descname"><span class="pre">basic_plugin</span></span><a class="headerlink" href="#command:basic_plugin" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Create a plugin library, with or without a separate registration library
-to avoid <abbr title="One Definition Rule">ODR</abbr> violations.</p>
+<dd><p>Create a plugin library, with or without a separate registration
+library to avoid <abbr title="One Definition Rule">ODR</abbr> violations.</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">basic_plugin(</span><span class="nv">&lt;name&gt;</span><span class="w"> </span><span class="nv">&lt;suffix&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <section id="source-specification-options">
-<h2>Source specification options<a class="headerlink" href="#source-specification-options" title="Link to this heading">¶</a></h2>
+<h3>Source specification options<a class="headerlink" href="#source-specification-options" title="Link to this heading">¶</a></h3>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">IMPL_SOURCE</span> <span class="pre">&lt;implementation-source&gt;...</span></code></dt><dd><p>Specify source to compile into the plugin’s interface implementation
-library, if appropriate. The implementation should <em>not</em> invoke any
-registration definition macros or the <abbr title="One Definition Rule">ODR</abbr> will be violated.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">IMPL_SOURCE</span> <span class="pre">&lt;implementation-source&gt;...</span></code></dt><dd><p>Specify source to compile into the plugin’s interface
+implementation library, if appropriate. The implementation should
+<em>not</em> invoke any registration definition macros or the <abbr title="One Definition Rule">ODR</abbr> will
+be violated.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">REG_SOURCE</span> <span class="pre">&lt;registration-source&gt;...</span></code></dt><dd><p>Specify source to compile into the plugin registration library,
 intended only for runtime injection (via e.g. <em class="manpage"><a class="manpage reference external" href="https://man7.org/linux/man-pages/man3/dlopen.3.html">dlopen(3)</a></em>)
@@ -114,46 +115,49 @@ into an executable, and not for dynamic linking.</p>
 </div>
 </section>
 <section id="dependency-specification-options">
-<h2>Dependency specification options<a class="headerlink" href="#dependency-specification-options" title="Link to this heading">¶</a></h2>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">[CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]</span></code></dt><dd><p>&lt;library-dependency&gt;…`` Specify targets and/or libraries upon which
-the implementation (<code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>, <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code>, <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code>), or
-registration (<code class="docutils literal notranslate"><span class="pre">REG</span></code>) libraries should depend. If implementation and
-registration share a dependency not inherited by public callers of the
-implementation, specify the library twice with one mention prefaced with
+<h3>Dependency specification options<a class="headerlink" href="#dependency-specification-options" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">[CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]</span>
+<span class="pre">&lt;library-dependency&gt;...</span></code></p>
+<blockquote>
+<div><p>Specify targets and/or libraries upon which the implementation
+(<code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>, <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code>, <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code>), or registration (<code class="docutils literal notranslate"><span class="pre">REG</span></code>)
+libraries should depend. If implementation and registration share a
+dependency not inherited by public callers of the implementation,
+specify the library twice with one mention prefaced with
 <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code> and the other with <code class="docutils literal notranslate"><span class="pre">REG</span></code>.</p>
-</dd>
-</dl>
+</div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul class="simple">
 <li><p>The registration library has an automatic dependence on the
 implementation library (if present).</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> or <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> dependencies are specified and there
-is no implementation source, then the plugin will be built as a
-shared library rather than as a module, and all responsibility for
-<abbr title="One Definition Rule">ODR</abbr> violations rests with the plugin builder.</p></li>
-<li><p>An additional dependency designation, <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code>, is accepted
-and is intended for use by intermediate CMake functions that add
-dependencies to a library. <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code> is identical to
-<code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> without making a statement about the shared or module
-nature of the combined implementation/registration library or the
-presence of a public (non-plugin) calling interface.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> or <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> dependencies are specified and
+there is no implementation source, then the plugin will be built
+as a shared library rather than as a module, and all
+responsibility for <abbr title="One Definition Rule">ODR</abbr> violations rests with the plugin
+builder.</p></li>
+<li><p>An additional dependency designation, <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code>, is
+accepted and is intended for use by intermediate CMake functions
+that add dependencies to a library. <code class="docutils literal notranslate"><span class="pre">CONDITIONAL</span></code> is identical
+to <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> without making a statement about the shared or
+module nature of the combined implementation/registration
+library or the presence of a public (non-plugin) calling
+interface.</p></li>
 </ul>
 </div>
 </section>
 <section id="other-options">
-<h2>Other options<a class="headerlink" href="#other-options" title="Link to this heading">¶</a></h2>
+<h3>Other options<a class="headerlink" href="#other-options" title="Link to this heading">¶</a></h3>
 <dl>
 <dt><code class="docutils literal notranslate"><span class="pre">ALIAS</span> <span class="pre">&lt;alias&gt;...</span></code></dt><dd><p>Create the specified CMake alias targets to the implementation
 library.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">ALLOW_UNDERSCORES</span></code></dt><dd><p>Normally, neither <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code> may contain underscores
-in order to avoid possible ambiguities. Allow them with this option at
-your own risk.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">ALLOW_UNDERSCORES</span></code></dt><dd><p>Normally, neither <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code> may contain
+underscores in order to avoid possible ambiguities. Allow them with
+this option at your own risk.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></dt><dd><p>Do not add the relative path (directories delimited by <code class="docutils literal notranslate"><span class="pre">_</span></code>) to the
-front of the plugin library name.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></dt><dd><p>Do not add the relative path (directories delimited by <code class="docutils literal notranslate"><span class="pre">_</span></code>) to
+the front of the plugin library name.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-name&gt;</span></code></dt><dd><p>Add the library to the <code class="docutils literal notranslate"><span class="pre">&lt;export-name&gt;</span></code> export set.</p>
 </dd>
@@ -168,10 +172,13 @@ target in <code class="docutils literal notranslate"><span class="pre">&lt;var&g
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>Do not install the generated library or libraries.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></dt><dd><p>The library’s compatibility version (<em>cf</em> CMake <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:SOVERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/SOVERSION.html#prop_tgt:SOVERSION" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">SOVERSION</span></code></a> property).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></dt><dd><p>The library’s compatibility version (<em>cf</em> CMake
+<span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:SOVERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/SOVERSION.html#prop_tgt:SOVERSION" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">SOVERSION</span></code></a>
+property).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The plugin uses Boost unit test functions and should be compiled and
-linked accordingly.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The plugin uses <a href="#id1"><span class="problematic" id="id2">`Boost unit test
+functions&lt;https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html&gt;`_</span></a>
+and should be compiled and linked accordingly.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code></dt><dd><div class="versionadded">
 <p><span class="versionmodified added">New in version 3.23.00.</span></p>
@@ -186,7 +193,7 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
 </dl>
 </section>
 <section id="deprecated-options">
-<h2>Deprecated options<a class="headerlink" href="#deprecated-options" title="Link to this heading">¶</a></h2>
+<h3>Deprecated options<a class="headerlink" href="#deprecated-options" title="Link to this heading">¶</a></h3>
 <dl>
 <dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;...</span></code></dt><dd><blockquote>
 <div><p>Specify sources to compile into the plugin.</p>
@@ -203,7 +210,7 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
 </dl>
 </section>
 <section id="non-option-arguments">
-<h2>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h2>
+<h3>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h3>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code></dt><dd><p>The name stem for the library to be generated.</p>
 </dd>
@@ -216,6 +223,9 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
 </div>
 </section>
 </section>
+</dd></dl>
+
+</section>
 
 
             <div class="clearer"></div>
@@ -224,20 +234,6 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">BasicPlugin</a><ul>
-<li><a class="reference internal" href="#source-specification-options">Source specification options</a></li>
-<li><a class="reference internal" href="#dependency-specification-options">Dependency specification options</a></li>
-<li><a class="reference internal" href="#other-options">Other options</a></li>
-<li><a class="reference internal" href="#deprecated-options">Deprecated options</a></li>
-<li><a class="reference internal" href="#non-option-arguments">Non-option arguments</a></li>
-</ul>
-</li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="../manual/cetmodules-modules.7.html"
@@ -292,7 +288,7 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

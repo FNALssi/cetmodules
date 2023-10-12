@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetMakeLibrary &mdash; Cetmodules git-develop-1cadb2c Reference</title>
+  <title>CetMakeLibrary &mdash; Cetmodules git-develop-7288f75 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=7458189f"></script>
+    <script src="../_static/documentation_options.js?v=c0cb701d"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -86,99 +86,157 @@ libraries and plugins.</p>
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:cet_make_library">
 <span class="sig-name descname"><span class="pre">cet_make_library</span></span><a class="headerlink" href="#command:cet_make_library" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Create a library.</p>
+<dd><p>Create a library.</p>
 <pre class="literal-block">cet_make_library([<a class="reference internal" href="#cet-make-library-name-options"><span class="std std-ref">&lt;name-options&gt;</span></a>] [<a class="reference internal" href="#cet-make-library-type-options"><span class="std std-ref">&lt;type-options&gt;</span></a>]
                  [<a class="reference internal" href="#cet-make-library-options"><span class="std std-ref">&lt;library-options&gt;</span></a>] [<a class="reference internal" href="#cet-make-library-target-options"><span class="std std-ref">&lt;target-options&gt;</span></a>])</pre>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <section id="name-options">
-<span id="cet-make-library-name-options"></span><h2>Name Options<a class="headerlink" href="#name-options" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></p>
-<blockquote>
-<div><p>Calculate the name of the library based only on the basename of
+<span id="cet-make-library-name-options"></span><h3>Name Options<a class="headerlink" href="#name-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></dt><dd><p>Calculate the name of the library based only on the basename of
 <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a>;
 mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code>.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span> <span class="pre">&lt;name&gt;</span></code></p>
-<blockquote>
-<div><p class="text-start">Specify the library name as <code class="docutils literal notranslate"><span class="pre">name</span></code>. If this option is not provided
-the library’s name will be calculated from the relative path of
-<span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> with respect to
-<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_SOURCE_DIR.html#variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR" title="CETMODULES_CURRENT_PROJECT_SOURCE_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_SOURCE_DIR</span></code></a> subject to possible
-modification by <code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code> (replacing path-separators with
-<code class="docutils literal notranslate"><span class="pre">_</span></code>). <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code> is mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code>.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME_VAR</span> <span class="pre">&lt;var&gt;</span></code></p>
-<blockquote>
-<div><p>Return the calculated/modified library name in the variable <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code></p>
-<blockquote>
-<div><p>Modify the provided or calculated library name by prepending
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span> <span class="pre">&lt;name&gt;</span></code></dt><dd><p class="text-start">Specify the library name as <code class="docutils literal notranslate"><span class="pre">name</span></code>. If this option is not
+provided the library’s name will be calculated from the relative
+path of <span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> with respect
+to <span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_SOURCE_DIR.html#variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR" title="CETMODULES_CURRENT_PROJECT_SOURCE_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_SOURCE_DIR</span></code></a> subject to
+possible modification by <code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code> (replacing
+path-separators with <code class="docutils literal notranslate"><span class="pre">_</span></code>). <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code> is mutually-exclusive
+with <code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return the calculated/modified library name in the variable
+<code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code></dt><dd><p>Modify the provided or calculated library name by prepending
 <span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_NAME</span></code></a> and a separating <code class="docutils literal notranslate"><span class="pre">_</span></code>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </section>
 <section id="type-options">
-<span id="cet-make-library-type-options"></span><h2>Type Options<a class="headerlink" href="#type-options" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">INTERFACE,</span> <span class="pre">MODULE,</span> <span class="pre">OBJECT,</span> <span class="pre">SHARED,</span> <span class="pre">STATIC</span></code></p>
-<blockquote>
-<div><p>Make a CMake library of the specified type(s). An <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>
+<span id="cet-make-library-type-options"></span><h3>Type Options<a class="headerlink" href="#type-options" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">INTERFACE,</span> <span class="pre">MODULE,</span> <span class="pre">OBJECT,</span> <span class="pre">SHARED,</span> <span class="pre">STATIC</span></code></dt><dd><p>Make a CMake library of the specified type(s). An <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>
 library is incompatible with every other library type, and the
 <code class="docutils literal notranslate"><span class="pre">SHARED</span></code> and <code class="docutils literal notranslate"><span class="pre">MODULE</span></code> Library types are mutually incompatible.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">NO_OBJECT</span></code></p>
-<blockquote>
-<div><p>Disable the automatic addition and use of an <code class="docutils literal notranslate"><span class="pre">OBJECT</span></code> library where
-it would otherwise be appropriate (e.g. <code class="docutils literal notranslate"><span class="pre">STATIC</span></code> and <code class="docutils literal notranslate"><span class="pre">SHARED</span></code> are
-both specified). See <a class="reference internal" href="#cet-make-library-object-libraries"><span class="std std-ref">Object Libraries</span></a> for more
-information.</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">WITH_STATIC_LIBRARY</span></code></p>
-<blockquote>
-<div><div class="deprecated">
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#interface-libraries" title="(in CMake v3.27.7)"><span>Interface Libraries</span></a>,
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#object-libraries" title="(in CMake v3.27.7)"><span>Object Libraries</span></a>,
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#normal-libraries" title="(in CMake v3.27.7)"><span>Normal Libraries</span></a></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_OBJECT</span></code></dt><dd><p>Disable the automatic addition and use of an <code class="docutils literal notranslate"><span class="pre">OBJECT</span></code> library
+where it would otherwise be appropriate (e.g. <code class="docutils literal notranslate"><span class="pre">STATIC</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SHARED</span></code> are both specified).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">WITH_STATIC_LIBRARY</span></code></dt><dd><div class="deprecated">
 <p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>use <code class="docutils literal notranslate"><span class="pre">STATIC</span></code> instead.</p>
 </div>
-</div></blockquote>
+</dd>
+</dl>
 </section>
 <section id="library-options">
-<span id="cet-make-library-options"></span><h2>Library Options<a class="headerlink" href="#library-options" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">INSTALLED_PATH_BASE</span> <span class="pre">&lt;base&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">&lt;library-specification&gt;</span> <span class="pre">...</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;version&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">STRIP_LIBS</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">VERSION</span></code></p>
+<span id="cet-make-library-options"></span><h3>Library Options<a class="headerlink" href="#library-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">INSTALLED_PATH_BASE</span> <span class="pre">&lt;base&gt;</span></code></dt><dd><p>Specify the path to the installation directory for <code class="docutils literal notranslate"><span class="pre">SOURCE</span></code>
+headers relative to <span class="target" id="index-1-module:ProjectVariable"></span><a class="reference internal" href="ProjectVariable.html#module:ProjectVariable" title="ProjectVariable"><code class="xref cmake cmake-module docutils literal notranslate"><span class="pre">project</span> <span class="pre">variable</span></code></a>
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_INCLUDE_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_INCLUDE_DIR.html#variable:&lt;PROJECT-NAME&gt;_INCLUDE_DIR" title="&lt;PROJECT-NAME&gt;_INCLUDE_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_INCLUDE_DIR</span></code></a>. Only valid for
+<code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>-type libraries.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">&lt;library-specification&gt;</span> <span class="pre">...</span></code></dt><dd><p>Library dependencies (passed to <span class="target" id="index-0-command:cmake-ref-current:command:target_link_libraries"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_link_libraries.html#command:target_link_libraries" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_link_libraries()</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify local include directories.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code></dt><dd><p>Indicate that no sources are specified at this time. Add them later
+with <span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_sources()</span></code></a>. Mutually-exclusive
+with <code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></dt><dd><p>Source files for inclusion in the library. Mutually-exclusive with
+<code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;api-version&gt;</span></code></dt><dd><p>Specify the <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:SOVERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/SOVERSION.html#prop_tgt:SOVERSION" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">API</span> <span class="pre">version</span></code></a> of the library.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">STRIP_LIBS</span></code></dt><dd><p>After the library is built, symbols will be stripped using
+<em class="manpage"><a class="manpage reference external" href="https://man7.org/linux/man-pages/man1/strip.1.html">strip(1)</a></em>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The library uses <a class="reference external" href="https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html">Boost unit test functions</a>
+and should be compiled and linked accordingly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">VERSION</span> <span class="pre">[&lt;build-version&gt;]</span></code></dt><dd><p>Specify the <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:VERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/VERSION.html#prop_tgt:VERSION" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">build</span> <span class="pre">version</span></code></a> of the library. If the
+<code class="docutils literal notranslate"><span class="pre">&lt;build-version&gt;</span></code> is missing, use
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_VERSION"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_VERSION.html#variable:CETMODULES_CURRENT_PROJECT_VERSION" title="CETMODULES_CURRENT_PROJECT_VERSION"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_VERSION</span></code></a>.</p>
+</dd>
+</dl>
 </section>
 <section id="target-options">
-<span id="cet-make-library-target-options"></span><h2>Target Options<a class="headerlink" href="#target-options" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ALIAS</span> <span class="pre">&lt;alias-target&gt;</span> <span class="pre">...</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET_ONLY</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></p>
+<span id="cet-make-library-target-options"></span><h3>Target Options<a class="headerlink" href="#target-options" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">ALIAS</span> <span class="pre">&lt;alias-target&gt;</span> <span class="pre">...</span></code></dt><dd><p>Add <code class="docutils literal notranslate"><span class="pre">&lt;alias-target&gt;</span> <span class="pre">...</span></code> as aliases for the primary library
+target. If <code class="docutils literal notranslate"><span class="pre">&lt;alias-target&gt;</span></code> is scoped (contains <code class="docutils literal notranslate"><span class="pre">::</span></code>) the alias
+will be defined as a non-exported (build-time only) target exactly
+as specified. Otherwise it will be scoped according to
+<code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span></code> if specified, or the default namespace defined by
+<span class="target" id="index-0-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code> if not.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#alias-targets" title="(in CMake v3.27.7)"><span>Alias Targets</span></a></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></dt><dd><p>Set the <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:EXCLUDE_FROM_ALL"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/EXCLUDE_FROM_ALL.html#prop_tgt:EXCLUDE_FROM_ALL" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></a> property on all
+targets.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></dt><dd><p>The library will be exported as part of the specified
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#install-export" title="(in CMake v3.27.7)"><span class="xref std std-ref">export set</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET</span></code></dt><dd><p>Define an <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code> target
+<code class="docutils literal notranslate"><span class="pre">&lt;CETMODULES_CURRENT_PROJECT_NAME&gt;_headers</span></code> embodying the
+locations of include directories for the package.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET_ONLY</span></code></dt><dd><p>Define _only_ the target
+<code class="docutils literal notranslate"><span class="pre">&lt;CETMODULES_CURRENT_PROJECT_NAME&gt;_headers</span></code> (implies
+<code class="docutils literal notranslate"><span class="pre">HEADERS_TARGET</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></dt><dd><p>Targets will not be exported or installed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TARGET_NAME</span> <span class="pre">&lt;target-name&gt;</span></code></dt><dd><p>Specify the primary target name independently of the library
+name. If <code class="docutils literal notranslate"><span class="pre">&lt;target-name&gt;</span></code> is the special keyword, <code class="docutils literal notranslate"><span class="pre">BASENAME</span></code>
+then the target will be set to the basename of
+<span class="target" id="index-2-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a>.</p>
+</dd>
+</dl>
+</section>
 </section>
 <section id="details">
 <h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
-<section id="object-libraries">
-<span id="cet-make-library-object-libraries"></span><h3>Object Libraries<a class="headerlink" href="#object-libraries" title="Link to this heading">¶</a></h3>
-<p>An <a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-buildsystem.7.html#object-libraries" title="(in CMake v3.27.7)"><span class="xref std std-ref">OBJECT</span></a> library
-is a CMake artifact representing a collection of compiled object files.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cet_make_library()</span></code> is a “one-stop shop” for creating, installing,
+and exporting libraries:</p>
+<ul class="simple">
+<li><p>Library file and target names may be calculated or
+specified—independently or otherwise as desired.</p></li>
+<li><p>Alias targets can be created and exported along with their target
+libraries.</p></li>
+<li><p>Library build and API versions may be specified.</p></li>
+<li><p>Libraries may be stripped of symbols afer building.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cet_make_library()</span></code> does all the bookkeeping necessary to ensure
+that necessary dependencies are found when the installed package is
+used downstream via <span class="target" id="index-0-command:cmake-ref-current:command:find_package"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/find_package.html#command:find_package" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">find_package()</span></code></a></p></li>
+</ul>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><span class="target" id="index-0-command:cmake-ref-current:command:add_library"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_library.html#command:add_library" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:add_library()</span></code></a>,
-<span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_sources()</span></code></a>,
-<span class="target" id="index-0-command:cmake-ref-current:command:target_include_directories"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_include_directories.html#command:target_include_directories" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_include_directories()</span></code></a>,
-<span class="target" id="index-0-command:cmake-ref-current:command:target_link_libraries"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_link_libraries.html#command:target_link_libraries" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:target_link_libraries()</span></code></a>,
-<span class="target" id="index-0-command:cmake-ref-current:command:install"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#command:install" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">command:install()</span></code></a>,
+<p><span class="target" id="index-0-command:cmake-ref-current:command:add_library"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_library.html#command:add_library" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_library()</span></code></a>,
+<span class="target" id="index-1-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_sources()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:target_include_directories"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_include_directories.html#command:target_include_directories" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_include_directories()</span></code></a>,
+<span class="target" id="index-1-command:cmake-ref-current:command:target_link_libraries"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_link_libraries.html#command:target_link_libraries" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_link_libraries()</span></code></a>,
+<span class="target" id="index-0-command:cmake-ref-current:command:install"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#command:install" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install()</span></code></a>,
+<span class="target" id="index-0-command:cet_cmake_config"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_config()</span></code>,
 <span class="target" id="index-0-command:cet_make_alias"></span><a class="reference internal" href="CetCMakeUtils.html#command:cet_make_alias" title="cet_make_alias"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_alias()</span></code></a>,
-<span class="target" id="index-0-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></p>
+<span class="target" id="index-1-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></p>
 </div>
 </section>
-</section>
+</dd></dl>
+
 </section>
 
 
@@ -188,23 +246,6 @@ is a CMake artifact representing a collection of compiled object files.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">CetMakeLibrary</a><ul>
-<li><a class="reference internal" href="#name-options">Name Options</a></li>
-<li><a class="reference internal" href="#type-options">Type Options</a></li>
-<li><a class="reference internal" href="#library-options">Library Options</a></li>
-<li><a class="reference internal" href="#target-options">Target Options</a></li>
-<li><a class="reference internal" href="#details">Details</a><ul>
-<li><a class="reference internal" href="#object-libraries">Object Libraries</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="CetMakeCompletions.html"
@@ -259,7 +300,7 @@ is a CMake artifact representing a collection of compiled object files.</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1cadb2c</span>
+    <span class="version_switch">git-develop-7288f75</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

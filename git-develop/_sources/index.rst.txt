@@ -41,8 +41,17 @@ Helpers and Legacy Tools
    manual/make_bash_completions.1
    manual/migrate.1
 
-
 .. only:: html
+
+   Other Documentation
+   ===================
+
+   .. button-link:: ../
+      :expand:
+      :outline:
+      :color: primary
+
+      Cetmodules Documentation
 
    Index and Search
    ================
