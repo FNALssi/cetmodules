@@ -64,15 +64,20 @@ function(cet_cmake_config)
 ")
 endfunction()
 
+function(cet_finalize)
+  # Delay the call until we're (almost) done with the project.
+  cmake_language(EVAL CODE "
+    cmake_language(DEFER DIRECTORY \"${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}\"
+      CALL _cet_finalize_impl)\
+")
+endfunction()
+
 # Generate config and version files for the current project.
 function(_cet_cmake_config_impl)
   message(VERBOSE "executing delayed generation of config files")
   project_variable(NOARCH TYPE BOOL
     DOCSTRING "If TRUE, ${CETMODULES_CURRENT_PROJECT_NAME} is (at least nominally) architecture-independent.")
-  # Save CMAKE_MODULE_PATH for later.
-  cet_checkpoint_cmp()
-  # Save INCLUDE_DIRECTORIES for later.
-  cet_checkpoint_did()
+  _cet_finalize_impl()
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
@@ -199,6 +204,17 @@ CONFIG_OUTPUT_ROOT_DIR to suppress this message\
   # Packaging.
   if (CETMODULES_CONFIG_CPACK_MACRO)
     _configure_cpack()
+  endif()
+endfunction()
+
+function(_cet_finalize_impl)
+  if (NOT $CACHE{_CETMODULES_FINALIZED_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(_CETMODULES_FINALIZED_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} TRUE
+      CACHE INTERNAL "Have we finalized project ${CETMODULES_CURRENT_PROJECT_NAME}?")
+    # Save CMAKE_MODULE_PATH for later.
+    cet_checkpoint_cmp()
+    # Save INCLUDE_DIRECTORIES for later.
+    cet_checkpoint_did()
   endif()
 endfunction()
 
