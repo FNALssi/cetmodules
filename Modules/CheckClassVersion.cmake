@@ -1,7 +1,15 @@
 #[================================================================[.rst:
-X
--
+CheckClassVersion
+-----------------
+
+.. admonition:: ROOT
+   :class: admonition-app
+
+   Module defining the function :command:`check_class_version` to check
+   ROOT dictionary object versions and checksums.
+
 #]================================================================]
+
 include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
@@ -30,6 +38,52 @@ function(_verify_pyroot)
     endif()
   endif()
 endfunction()
+
+#[================================================================[.rst:
+.. command:: check_class_version
+
+   .. admonition:: ROOT
+      :class: admonition-app
+
+      Check ROOT dictionary object versions and checksums.
+
+   .. seealso:: :manual:`checkClassVersion(1)`
+
+   .. code-block:: cmake
+
+      check_class_version([<options>])
+
+   Options
+   ^^^^^^^
+
+   ``CLASSES_DEF_XML <xml-file>``
+     Specify the selection XML file describing the classes to be
+     checked.
+
+   ``ENVIRONMENT <env>...``
+     Inject ``<env>`` into the environment of the invocation of
+     :manual:`checkClassVersion(1)`; ``<env>`` should be in the form
+     ``<var>=<val>``
+
+   ``(NO_)?RECURSIVE``
+     Enable/disable recursive dictionary checks.
+
+   ``REQUIRED_DICTIONARIES <dict>...``
+     .. deprecated:: 3.23.00 remove.
+
+   ``UPDATE_IN_PLACE``
+     Update the selection XML file in place and exit with non-zero
+     status.
+
+  Notes
+  ^^^^^
+
+  .. note::
+
+     In general ``check_class_version()`` should be invoked via
+     :command:`build_dictionary` rather than standalone.
+
+#]================================================================]
 
 function(check_class_version)
   _verify_pyroot()
