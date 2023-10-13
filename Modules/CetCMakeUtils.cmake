@@ -31,101 +31,100 @@ include(CetRegexEscape)
    Options
    ^^^^^^^
 
-     ``EMPTY_KEYWORD <empty-keyword>``
-       If ``<in-var>`` or ``VALUES`` evaluates to the empty string, the
-       result is ``<empty-keyword>``
+   ``EMPTY_KEYWORD <empty-keyword>``
+     If ``<in-var>`` or ``VALUES`` evaluates to the empty string, the
+     result is ``<empty-keyword>``
 
-     ``FLAG``
-       If ``<in-var>`` or ``VALUES`` evaluates to ``TRUE``, the result
-       is ``<keyword>`` (or see ``KEYWORD``, below). Otherwise the
-       result will be the empty string (or see ``EMPTY_KEYWORD``,
-       above).
+   ``FLAG``
+     If ``<in-var>`` or ``VALUES`` evaluates to ``TRUE``, the result is
+     ``<keyword>`` (or see ``KEYWORD``, below). Otherwise the result
+     will be the empty string (or see ``EMPTY_KEYWORD``, above).
 
-     ``IN_PLACE``
-       If ``<in-var>`` is specified this option signifies that the
-       result will be placed in ``<in-var>``. In this case ``<out-var>``
-       must then *not* be present.
+   ``IN_PLACE``
+     If ``<in-var>`` is specified this option signifies that the result
+     will be placed in ``<in-var>``. In this case ``<out-var>`` must
+     then *not* be present.
 
-     ``KEYWORD <keyword>``
-       If specified, the option keyword will be
-       ``<keyword>``. Otherwise, if ``<in-var>`` is specified, then it
-       will be the name "``<in-var>``" with any leading ``<prefix>_``
-       stripped off the front. Failing that, the name "``<out-var>``"
-       will be used as the default.
+   ``KEYWORD <keyword>``
+     If specified, the option keyword will be ``<keyword>``. Otherwise,
+     if ``<in-var>`` is specified, then it will be the name
+     "``<in-var>``" with any leading ``<prefix>_`` stripped off the
+     front. Failing that, the name "``<out-var>``" will be used as the
+     default.
 
-     ``VALUES <val>...``
-       The values to be passed through to another function or macro may
-       be specified as ``<val>...`` rather than as ``<in-var>``. In this
-       case, ``<out-var>`` is required and ``IN_PLACE`` is not
-       permitted.
+   ``VALUES <val>...``
+     The values to be passed through to another function or macro may be
+     specified as ``<val>...`` rather than as ``<in-var>``. In this
+     case, ``<out-var>`` is required and ``IN_PLACE`` is not permitted.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^  
 
-     ``<in-var>``
-       The name of a variable holding the values to be passed
-       through. ``<in-var>`` must *not* be present if ``VALUES`` is
-       specified.
+   ``<in-var>``
+     The name of a variable holding the values to be passed
+     through. ``<in-var>`` must *not* be present if ``VALUES`` is
+     specified.
 
-     ``<out-var>``
-       The name of a variable to hold the values in passthrough form. If
-       ``IN_PLACE`` and ``<in-var>`` are both specified, than
-       ``<out-var>`` must *not* be present.
+   ``<out-var>``
+     The name of a variable to hold the values in passthrough form. If
+     ``IN_PLACE`` and ``<in-var>`` are both specified, than
+     ``<out-var>`` must *not* be present.
 
    Examples
    ^^^^^^^^
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          set(MYOPTS_VERBOSE TRUE)
-          cet_passthrough(FLAG IN_PLACE MYOPTS_VERBOSE)
+        set(MYOPTS_VERBOSE TRUE)
+        cet_passthrough(FLAG IN_PLACE MYOPTS_VERBOSE)
 
-       ``MYOPTS_VERBOSE`` will have the value "VERBOSE" in the calling
-       function or macro.
+     ``MYOPTS_VERBOSE`` will have the value "VERBOSE" in the calling
+     function or macro.
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_passthrough(FLAG VALUES "NOTFOUND" USE_MYPACKAGE)
+        cet_passthrough(FLAG VALUES "NOTFOUND" USE_MYPACKAGE)
 
-       ``USE_MYPACKAGE`` will be empty in the calling function or macro.
+     ``USE_MYPACKAGE`` will be empty in the calling function or macro.
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_passthrough(FLAG VALUES "MYTEXT" USE_MYPACKAGE)
+        cet_passthrough(FLAG VALUES "MYTEXT" USE_MYPACKAGE)
 
-       ``USE_MYPACKAGE`` will have the value ``USE_MYPACKAGE`` in the
-       calling function or macro.
+     ``USE_MYPACKAGE`` will have the value ``USE_MYPACKAGE`` in the
+     calling function or macro.
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_passthrough(IN_PLACE VALUES
-            "Mary had a little lamb; Its fleece was white as snow"
-            KEYWORD RHYME MARY_LAMB)
+        cet_passthrough(IN_PLACE VALUES
+          "Mary had a little lamb; Its fleece was white as snow"
+          KEYWORD RHYME MARY_LAMB)
 
-       The list ``MARY_LAMB`` will consist of the **three** elements:
+     The list ``MARY_LAMB`` will consist of the **three** elements:
 
-       .. code-block:: console
+     .. code-block:: console
 
-          "RHYME" "Mary had a little lamb" "Its fleece was white as snow"
+        "RHYME" "Mary had a little lamb" "Its fleece was white as snow"
 
-       in the calling function or macro. Note the lack of whitespace at
-       the beginning of the third element of the list.
+     in the calling function or macro. Note the lack of whitespace at
+     the beginning of the third element of the list.
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_passthrough(VALUES
-            "Mary had a little lamb\\\\; Its fleece was white as snow"
-            KEYWORD RHYME MARY_LAMB)
+        cet_passthrough(VALUES
+          "Mary had a little lamb\\\\; Its fleece was white as snow"
+          KEYWORD RHYME MARY_LAMB)
 
-       The list ``MARY_LAMB`` will consist of the **two** elements:
+     The list ``MARY_LAMB`` will consist of the **two** elements:
 
-       .. code-block:: console
+     .. code-block:: console
 
-          "RHYME" "Mary had a little lamb; Its fleece was white as snow"
+        "RHYME" "Mary had a little lamb; Its fleece was white as snow"
 
-       in the calling function or macro.
+     in the calling function or macro.
 
 #]================================================================]
+
 function(cet_passthrough)
   cmake_parse_arguments(PARSE_ARGV 0 CP
     "APPEND;FLAG;IN_PLACE" "EMPTY_KEYWORD;KEYWORD" "VALUES")
@@ -209,8 +208,11 @@ endfunction()
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<out-var>``
-       Variable to contain the resulting ordered list of extensions.
+   ``<out-var>``
+     Variable to contain the resulting ordered list of extensions.
+
+   Notes
+   ^^^^^
 
    .. note:: Prescribed order of enabled languages: ``CUDA``, ``CXX``
       ``C``, ``Fortran``, ``<lang>...``, ``ASM``.
@@ -244,22 +246,25 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``NOP``
-       Optional separator between a list option and non-option
-       arguments; no other effect.
+   ``NOP``
+     Optional separator between a list option and non-option arguments;
+     no other effect.
 
-     ``REGEX``
-       Entries in ``<sources-var>`` matching ``<regex>...`` will be
-       removed.
+   ``REGEX``
+     Entries in ``<sources-var>`` matching ``<regex>...`` will be
+     removed.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<sources-var>``
-       The name of a variable containing a list of files to be pruned.
+   ``<sources-var>``
+     The name of a variable containing a list of files to be pruned.
 
-     ``<file>...``
-       Files to be removed from ``<sources-var>`` (exact matches only).
+   ``<file>...``
+     Files to be removed from ``<sources-var>`` (exact matches only).
+
+   Notes
+   ^^^^^
 
    .. note:: Relative paths are interpreted with respect to the value of
       :variable:`CMAKE_CURRENT_SOURCE_DIR
@@ -301,45 +306,48 @@ endfunction()
    Options
    ^^^^^^^
 
-     .. _cet_timestamp-SYSTEM_DATE_CMD:
+   .. _cet_timestamp-SYSTEM_DATE_CMD:
 
-     ``SYSTEM_DATE_CMD``
-       Use the system :manpage:`date(1)` command even if ``<fmt>`` is
-       understood by :command:`string(TIMESTAMP)
-       <cmake-ref-current:command:string(timestamp)>`
+   ``SYSTEM_DATE_CMD``
+     Use the system :manpage:`date(1)` command even if ``<fmt>`` is
+     understood by :command:`string(TIMESTAMP)
+     <cmake-ref-current:command:string(timestamp)>`
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<out-var>``
-       Variable in which to store the formatted timestamp.
+   ``<out-var>``
+     Variable in which to store the formatted timestamp.
 
-     ``<fmt>``
-       The desired format of the timestamp, using ``%`` placeholders
-       understood by :command:`string(TIMESTAMP)
-       <cmake-ref-current:command:string(timestamp)>` or the system
-       :manpage:`date(1)` command.
+   ``<fmt>``
+     The desired format of the timestamp, using ``%`` placeholders
+     understood by :command:`string(TIMESTAMP)
+     <cmake-ref-current:command:string(timestamp)>` or the system
+     :manpage:`date(1)` command.
 
    Examples
    ^^^^^^^^
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_timestamp(RESULT)
-          message(STATUS "${RESULT}")
+        cet_timestamp(RESULT)
+        message(STATUS "${RESULT}")
 
-       .. code-block:: console
+     .. code-block:: console
 
-          -- Sun Jan 01 23:59:59 CST 1970
+        -- Sun Jan 01 23:59:59 CST 1970
 
-     * .. code-block:: cmake
+   * .. code-block:: cmake
 
-          cet_timestamp(RESULT "%Y-%m-%d %H:%M:%S %z")
-          message(STATUS "${RESULT}")
+        cet_timestamp(RESULT "%Y-%m-%d %H:%M:%S %z")
+        message(STATUS "${RESULT}")
 
-       .. code-block:: console
+     .. code-block:: console
 
-          -- 1970-01-01 23:59:59 -0600
+        -- 1970-01-01 23:59:59 -0600
+
+   Notes
+   ^^^^^
 
    .. versionchanged:: 2.07.00
 
@@ -404,43 +412,44 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``HEADERS <header>...``
-       Look for ``<header>...`` to ascertain the include path. If not
-       specified, use ``<name>.{h,hh,H,hxx,hpp}``
+   ``HEADERS <header>...``
+     Look for ``<header>...`` to ascertain the include path. If not
+     specified, use ``<name>.{h,hh,H,hxx,hpp}``
 
-     ``INCPATH_SUFFIXES <dir>...``
-       Add ``<suffix>...`` to paths when searching for headers (defaults
-       to "include").
+   ``INCPATH_SUFFIXES <dir>...``
+     Add ``<suffix>...`` to paths when searching for headers (defaults
+     to "include").
 
-     ``INCPATH_VAR <var>``
-       Store the found include path in ``<var>``. If not specified, we
-       invoke :command:`include_directories()
-       <cmake-ref-current:command:include_directories>` with the found
-       include path.
+   ``INCPATH_VAR <var>``
+     Store the found include path in ``<var>``. If not specified, we
+     invoke :command:`include_directories()
+     <cmake-ref-current:command:include_directories>` with the found
+     include path.
 
-     ``LIB_VAR <var>``
-       Store the found library as ``<var>``. If not specified, use
-       ``<name>`` as converted to an upper case identifier.
+   ``LIB_VAR <var>``
+     Store the found library as ``<var>``. If not specified, use
+     ``<name>`` as converted to an upper case identifier.
 
-     ``LIBNAMES <libname>...``
-       Look for ``<libname>...`` as a library in addition to ``name``.
+   ``LIBNAMES <libname>...``
+     Look for ``<libname>...`` as a library in addition to ``name``.
 
-     ``LIBPATH_SUFFIXES <dir>...``
-       Add ``<dir>...`` to paths when searching for libraries.
+   ``LIBPATH_SUFFIXES <dir>...``
+     Add ``<dir>...`` to paths when searching for libraries.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<name>``
-       The primary name of the library (without prefix or suffix) or
-       headers to be found.
+   ``<name>``
+     The primary name of the library (without prefix or suffix) or
+     headers to be found.
 
    Variables controlling behavior
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-     :variable:`WANT_INCLUDE_DIRECTORIES`
+   :variable:`WANT_INCLUDE_DIRECTORIES`
 
 #]================================================================]
+
 function(cet_find_simple_package NAME)
   warn_deprecated("cet_find_simple_package()" NEW
     "find_package() with custom Find module where appropriate")
@@ -492,11 +501,11 @@ endfunction()
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<project>``
-       The name of a CMake project in the current source tree.
+   ``<project>``
+     The name of a CMake project in the current source tree.
 
-     ``<project-var-name>``
-       The name of a project variable (without a ``<project>_`` prefix).
+   ``<project-var-name>``
+     The name of a project variable (without a ``<project>_`` prefix).
 
 #]================================================================]
 function(cet_localize_pv PROJECT)
@@ -577,39 +586,39 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``BINARY``
-       Also add the corresponding directories in the project build tree
-       to :variable:`CMAKE_MODULE_PATH
-       <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
-       scope.
+   ``BINARY``
+     Also add the corresponding directories in the project build tree to
+     :variable:`CMAKE_MODULE_PATH
+     <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
+     scope.
 
-       .. seealso:: :ref:`NO_LOCAL
-                    <cet_cmake_module_directories-NO_LOCAL>`
+     .. seealso:: :ref:`NO_LOCAL
+                  <cet_cmake_module_directories-NO_LOCAL>`
 
-     ``NO_CONFIG``
-       Do not add these directories to :variable:`CMAKE_MODULE_PATH
-       <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the CMake
-       config file for ``<project>``.
+   ``NO_CONFIG``
+     Do not add these directories to :variable:`CMAKE_MODULE_PATH
+     <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the CMake config
+     file for ``<project>``.
 
-     .. _cet_cmake_module_directories-NO_LOCAL:
+   .. _cet_cmake_module_directories-NO_LOCAL:
 
-     ``NO_LOCAL``
-       Do not add these directories to :variable:`CMAKE_MODULE_PATH
-       <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
-       scope. Implied if ``<project>`` is not equal to the value of
-       :variable:`CETMODULES_CURRENT_PROJECT_NAME`
+   ``NO_LOCAL``
+     Do not add these directories to :variable:`CMAKE_MODULE_PATH
+     <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
+     scope. Implied if ``<project>`` is not equal to the value of
+     :variable:`CETMODULES_CURRENT_PROJECT_NAME`
 
-     ``PROJECT <project>``
-       Specify the project to which these module directories belong. If
-       not specifed, ``<project>`` defaults to
-       :variable:`CETMODULES_CURRENT_PROJECT_NAME
-       <CETMODULES_CURRENT_PROJECT_NAME>`.
+   ``PROJECT <project>``
+     Specify the project to which these module directories belong. If
+     not specifed, ``<project>`` defaults to
+     :variable:`CETMODULES_CURRENT_PROJECT_NAME
+     <CETMODULES_CURRENT_PROJECT_NAME>`.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<dir>...``
-       Directories containing CMake modules.
+   ``<dir>...``
+     Directories containing CMake modules.
 
 #]================================================================]
 function(cet_cmake_module_directories)
@@ -662,38 +671,39 @@ endfunction()
    Options
    ^^^^^^^
 
-     .. _cet_export_alias_ALIAS:
+   .. _cet_export_alias_ALIAS:
 
-     ``ALIAS <target>...``
-       Optional keyword specifying targets to be aliased. If non-option
-       arguments are also specified, they will be appended to the list
-       specified here.
+   ``ALIAS <target>...``
+     Optional keyword specifying targets to be aliased. If non-option
+     arguments are also specified, they will be appended to the list
+     specified here.
 
-     ``ALIAS_NAMESPACE <namespace>``
-       Targets specified without a namespace (via ``::``) will be taken
-       from ``<namespace>``.
+   ``ALIAS_NAMESPACE <namespace>``
+     Targets specified without a namespace (via ``::``) will be taken
+     from ``<namespace>``.
 
-     ``EXPORT_SET <export-set>``
-       Aliased targets will be exported into ``<export-set>``, which
-       will be created if necessary with
-       :command:`cet_register_export_set` and an appropriate default
-       namespace based on ``<export-set>``. If you require a different
-       namespace than the default, call
-       :command:`cet_register_export_set` yourself prior to calling
-       :command:`cet_export_alias`.
+   ``EXPORT_SET <export-set>``
+     Aliased targets will be exported into ``<export-set>``, which will
+     be created if necessary with :command:`cet_register_export_set` and
+     an appropriate default namespace based on ``<export-set>``. If you
+     require a different namespace than the default, call
+     :command:`cet_register_export_set` yourself prior to calling
+     :command:`cet_export_alias`.
 
-     ``NOP``
-       Optional separator between a list option and non-option
-       arguments; no other effect.
+   ``NOP``
+     Optional separator between a list option and non-option
+     arguments; no other effect.
 
   Non-option arguments
   ^^^^^^^^^^^^^^^^^^^^
 
-    ``<target>...``
+  ``<target>...``
+    Targets to be aliased.
 
-      Targets to be aliased.
+    .. seealso:: :ref:`ALIAS <cet_export_alias_ALIAS>`
 
-      .. seealso:: :ref:`ALIAS <cet_export_alias_ALIAS>`
+  Notes
+  ^^^^^
 
   .. note:: If no ``<export-set>`` is specified, the default export set
      will be used.
@@ -761,35 +771,37 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``EXPORT_SET <export-set>``
-       Aliased targets will be exported into ``<export-set>``, which
-       will be created if necessary with
-       :command:`cet_register_export_set` and an appropriate default
-       namespace based on ``<export-set>``. If you require a different
-       namespace than the default, call
-       :command:`cet_register_export_set` yourself prior to calling
-       :command:`cet_export_alias`. If no ``<export-set>`` is specified,
-       the default export set will be used.
+   ``EXPORT_SET <export-set>``
+     Aliased targets will be exported into ``<export-set>``, which will
+     be created if necessary with :command:`cet_register_export_set` and
+     an appropriate default namespace based on ``<export-set>``. If you
+     require a different namespace than the default, call
+     :command:`cet_register_export_set` yourself prior to calling
+     :command:`cet_export_alias`. If no ``<export-set>`` is specified,
+     the default export set will be used.
 
-     ``NAME <name>``
-       Specify the alias as ``<name>``. If ``<name>`` is namespaced,
-       then it will not be exported, and the presence of ``EXPORT_SET``
-       is an error. Without ``NAME`` the alias will have the same root
-       name as ``<target>``.
+   ``NAME <name>``
+     Specify the alias as ``<name>``. If ``<name>`` is namespaced, then
+     it will not be exported, and the presence of ``EXPORT_SET`` is an
+     error. Without ``NAME`` the alias will have the same root name as
+     ``<target>``.
 
-     ``NOP``
-       Optional separator between a list option and non-option
-       arguments; no other effect.
+   ``NOP``
+     Optional separator between a list option and non-option arguments;
+     no other effect.
 
-     .. _cet_make_alias_TARGET:
+   .. _cet_make_alias_TARGET:
 
-     ``TARGET <target>``
-       Target to be aliased.
+   ``TARGET <target>``
+     Target to be aliased.
 
-     ``TARGET_EXPORT_SET <target-export-set>``
-       If the primary target (after resolving all aliases) represented
-       by ``<target>`` may be found in multiple export sets, specify the
-       correct one here.
+   ``TARGET_EXPORT_SET <target-export-set>``
+     If the primary target (after resolving all aliases) represented by
+     ``<target>`` may be found in multiple export sets, specify the
+     correct one here.
+
+  Notes
+  ^^^^^
 
   .. seealso:: :command:`cet_register_export_set`,
                :manual:`cmake-packages(7)
@@ -875,19 +887,19 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``LIST``
-       Results will be returned in ``<out-var>`` as a ";"-separated
-       CMake list rather than the default ":"-separated
-       :envvar:`PATH`-like string.
+   ``LIST``
+     Results will be returned in ``<out-var>`` as a ";"-separated CMake
+     list rather than the default ":"-separated :envvar:`PATH`-like
+     string.
 
-    Non-option arguments
-    ^^^^^^^^^^^^^^^^^^^^
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
 
-      ``<out-var>``
-         Variable to hold the results.
+   ``<out-var>``
+      Variable to hold the results.
 
-      ``<path>``
-        Input paths for conversion.
+   ``<path>``
+     Input paths for conversion.
 
 #]============================================================]
 function(cet_real_path OUT_VAR)
@@ -916,15 +928,15 @@ endfunction()
    Options
    ^^^^^^^
 
-     ``EXCLUDE <root>...``, ``INCLUDE <root>...``
-       Exclude or select ``<path>`` based on whether it is a
-       subdirectory of ``<root>`` after accounting for symbolic links.
+   ``(EXCLUDE|INCLUDE) <root>...``
+     Exclude or select ``<path>`` based on whether it is a subdirectory
+     of ``<root>`` after accounting for symbolic links.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
 
-     ``<path>...``
-       Candidate paths to be filtered.
+   ``<path>...``
+     Candidate paths to be filtered.
 
 #]============================================================]
 function(cet_filter_subdirs OUT_VAR)

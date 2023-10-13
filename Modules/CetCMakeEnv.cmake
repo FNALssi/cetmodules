@@ -74,12 +74,15 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
    Options
    ^^^^^^^
 
-     ``NO_INSTALL_PKGMETA``
-       Under normal circumstances, :command:`!cet_cmake_env` will call
-       :command:`install_pkgmeta` to automatically find ``LICENSE`` and
-       ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
-       if you wish to call :command:`install_pkgmeta` yourself (or not
-       at all).
+   ``NO_INSTALL_PKGMETA``
+     Under normal circumstances, :command:`!cet_cmake_env` will call
+     :command:`install_pkgmeta` to automatically find ``LICENSE`` and
+     ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
+     if you wish to call :command:`install_pkgmeta` yourself (or not
+     at all).
+
+   Notes
+   ^^^^^
 
    .. note::
 
@@ -94,12 +97,13 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
    Variables controlling behavior
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-     * :variable:`WANT_UPS`
-     * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
-     * :variable:`BUILD_STATIC_LIBS`
-     * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+   * :variable:`WANT_UPS`
+   * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
+   * :variable:`BUILD_STATIC_LIBS`
+   * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
 
 #]================================================================]
+
 macro(cet_cmake_env)
   # project() must have been called first.
   if (NOT CMAKE_PROJECT_NAME)
