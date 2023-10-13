@@ -44,6 +44,9 @@ function(check_class_version)
     MESSAGE(FATAL_ERROR "LIBRARIES option not supported at this time: "
       "ensure your library is linked to any necessary libraries not already pulled in by ART.")
   ENDIF()
+  if (CCV_REQUIRED_DICTIONARIES)
+    warn_deprecated("REQUIRED_DICTIONARIES" SINCE 3.23.00 " - remove")
+  endif()
   if (CCV_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "Unparsed arguments: ${CCV_UNPARSED_ARGUMENTS}")
   endif()
@@ -93,7 +96,4 @@ function(check_class_version)
   # All checkClassVersion invocations must wait until after *all*
   # dictionaries have been built.
   add_dependencies(checkClassVersion_${dictname} BuildDictionary_AllDicts)
-  if (CCV_REQUIRED_DICTIONARIES)
-    add_dependencies(${dictname}_dict ${CCV_REQUIRED_DICTIONARIES})
-  endif()
 endfunction()
