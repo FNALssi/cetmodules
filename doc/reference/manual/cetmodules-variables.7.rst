@@ -16,8 +16,8 @@ Project Variables
 
    /variable/PROJECT-NAME_*
 
-Variables that Change Behavior
-==============================
+Variables Affecting Behavior
+============================
 
 .. toctree::
    :maxdepth: 1

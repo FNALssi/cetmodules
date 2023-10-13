@@ -94,8 +94,8 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
       * Any initial or override values for
         :manual:`project variables <cetmodules-project-variables(7)>` should be set.
 
-   Variables controlling behavior
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Variables affecting behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    * :variable:`WANT_UPS`
    * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`

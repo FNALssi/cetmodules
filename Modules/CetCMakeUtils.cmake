@@ -443,10 +443,10 @@ endfunction()
      The primary name of the library (without prefix or suffix) or
      headers to be found.
 
-   Variables controlling behavior
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Variables affecting behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   :variable:`WANT_INCLUDE_DIRECTORIES`
+   * :variable:`WANT_INCLUDE_DIRECTORIES`
 
 #]================================================================]
 
