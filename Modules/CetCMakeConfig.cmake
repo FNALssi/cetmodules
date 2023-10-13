@@ -160,7 +160,7 @@ function(_cet_cmake_config_impl)
   endif()
   if (CCC_NO_FLAVOR)
     warn_deprecated("cet_cmake_config(NO_FLAVOR)"
-      NEW "cet_cmake_config(ARCH_INDEPENDENT) (a.k.a. NOARCH)")
+      NEW "\${<PROJECT-NAME>_NOARCH}")
   endif()
   ####################################
   # Generate UPS table files, etc. if requested.
