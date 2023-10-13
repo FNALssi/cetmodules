@@ -443,11 +443,6 @@ endfunction()
      The primary name of the library (without prefix or suffix) or
      headers to be found.
 
-   Variables affecting behavior
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   * :variable:`WANT_INCLUDE_DIRECTORIES`
-
 #]================================================================]
 
 function(cet_find_simple_package NAME)
@@ -474,14 +469,13 @@ function(cet_find_simple_package NAME)
   endif()
   if (NOT CFSP_INCPATH_VAR)
     set(CFSP_INCPATH_VAR ${CFSP_LIB_VAR}_INCLUDE)
-    set(WANT_INCLUDE_DIRECTORIES ON)
   endif()
   find_path(${CFSP_INCPATH_VAR}
     NAMES ${CFSP_HEADERS}
     PATH_SUFFIXES ${CFSP_INCPATH_SUFFIXES}
     NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH
     )
-  if (WANT_INCLUDE_DIRECTORIES)
+  if (CFSP_INCPATH_VAR AND ${CFSP_INCPATH_VAR})
     include_directories(${${CFSP_INCPATH_VAR}})
   endif()
 endfunction()
