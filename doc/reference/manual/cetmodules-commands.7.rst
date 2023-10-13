@@ -3,10 +3,11 @@
 cetmodules-commands(7)
 **********************
 
-Initialization
-==============
+Initialization and Finalization
+===============================
 
 * :command:`cet_cmake_env`
+* :command:`cet_finalize`
 * :command:`cet_set_version_from_file`
 
 Project Variables
@@ -20,6 +21,7 @@ Generation, Installation, and Export
 
 * :command:`basic_plugin`
 * :command:`build_dictionary`
+* :command:`cet_cmake_config`
 * :command:`cet_cmake_module_directories`
 * :command:`cet_make_alias`
 * :command:`cet_make_library`

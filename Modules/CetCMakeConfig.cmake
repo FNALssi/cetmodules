@@ -1,49 +1,20 @@
 #[================================================================[.rst:
-X
--
-#]================================================================]
+CetCMakeConfig
+--------------
 
-########################################################################
-# cet_cmake_config
-#
-# Generate and install PackageConfig.cmake and PackageConfigVersion.cmake.
-#
-# USAGE: cet_cmake_config([ARCH_INDEPENDENT|NOARCH|NO_FLAVOR]
-#                         [COMPATIBILITY <compatibility>]
-#                         [NO_CMAKE_CONFIG|CONFIG_FRAGMENTS <config-fragment>...])
-#
-####################################
-# OPTIONS
-#
-# COMPATIBILITY
-#
-#   Passed through to write_basic_package_version_file(). See
-#   https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#generating-a-package-version-file
-#   for valid values. If not specified, we default to AnyNewerVersion.
-#
-# CONFIG_FRAGMENTS <config-fragment>...
-#
-#   These user-specified fragments are incorporated into the
-#   CMakeConfig.cmake file, and any @-bracketed-identifiers are expanded
-#   with the value of the corresponding CMake variable.
-#
-#   If recursive expansion is required, use @AT@ to delay expansion for
-#   as many levels as necessary (e.g. see
-#   cetmodules/config/package-config.cmake.in.top).
-#
-####################################
-# NOTES
-#
-#   The ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake and
-#   ${CETMODULES_CURRENT_PROJECT_NAME}ConfigVersion.cmake files are installed under
-#   ${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR} unless the project-specific variable
-#   ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH is TRUE, in which case the files are
-#   installed under ${${CETMODULES_CURRENT_PROJECT_NAME}_DATA_ROOT_DIR}. If
-#   ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH is explicitly set FALSE, then we fail if
-#   ${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR is (explicitly) unset. If
-#   ${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH is merely unset, we generate a warning only.
-#
-########################################################################
+Module defining the lazy functions:
+
+  * :command:`cet_cmake_config` to finalize project bookkeeping and
+    generate CMake "config" and "version" files.
+  * :command:`cet_finalize` to finalize project bookkeeping *without*
+    generating config and version files.
+
+.. note::
+
+   Precisely one of the above functions should be called precisely once
+   after each :command:`cet_cmake_env` call.
+
+#]================================================================]
 
 # Avoid unnecessary repeat inclusion.
 include_guard()
@@ -56,6 +27,81 @@ include(compat/Compatibility)
 include(GenerateFromFragments)
 include(ParseVersionString)
 
+#[================================================================[.rst:
+.. command:: cet_cmake_config
+
+   .. rst-class:: text-start
+
+   Generate and install ``<PROJECT-NAME>Config.cmake`` and
+   ``<PROJECT-NAME>ConfigVersion.cmake``.
+
+   .. code-block:: cmake
+
+      cet_make_config([<options>])
+
+   Options
+   ^^^^^^^
+
+   ``COMPATIBILITY <val>``
+     Set the compatibility for this version of your package (default ``AnyNewerVersion``).
+
+     .. seealso:: :command:`write_basic_package_version_file()
+                  <cmake-ref-current:command:write_basic_package_version_file>`
+
+   .. rst-class:: text-start
+
+   ``CONFIG_PRE_INIT <config-fragment-file>... CONFIG_POST_(DEPS|INIT|TARGETS|TARGET_VARS|VARS) <config-fragment-file>...``
+     Specify files containing CMake code to be included in the CMake
+     config file at the appropriate place.
+
+   .. admonition:: cetbuildtools
+      :class: admonition-legacy
+
+      ``EXTRA_TARGET_VARS <target>``
+        Create cetbuidltools-compatible variables for the specified
+        targets.
+
+   ``NO_CMAKE_CONFIG``
+     .. rst-class:: text-start
+
+     Disable the production of ``<PROJECT-NAME>Config.cmake`` and
+     ``<PROJECT-NAME>ConfigVersion.cmake``; necessary bookkeeping is
+     still done.
+
+     .. deprecated:: 3.23.00 use :command:`cet_finalize`
+
+   ``PATH_VARS <path-vars>``
+     Specify variables containing paths that will be defined in the
+     CMake config file relative to the installation path.
+
+     .. seealso:: :command:`configure_package_config_file(... PATH_VARS)
+                  <cmake-ref-current:command:configure_package_config_file>`
+
+   ``WORKDIR <workdir>``
+     .. rst-class:: text-start
+
+     Set the directory in which to generate config files for later
+     installation (default ``genConfig``). If ``workdir`` is not
+     absolute it will be calculated relative to
+     :variable:`CETMODULES_CURRENT_PROJECT_BINARY_DIR`
+
+   Variables affecting behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   * :variable:`<PROJECT-NAME>_NOARCH`
+
+     If ``TRUE``, the CMake config and version files will be installed
+     under :variable:`<PROJECT-NAME>_DATA_DIR` rather than
+     :variable:`<PROJECT-NAME>_LIBRARY_DIR`.
+
+     If unset, a vacuous :variable:`<PROJECT-NAME>_LIBRARY_DIR` will
+     produce a warning.
+
+     If explicitly ``FALSE``, ``cet_cmake_config()`` will fail on
+     vacuous :variable:`<PROJECT-NAME>_LIBRARY_DIR`.
+
+#]================================================================]
+
 function(cet_cmake_config)
   # Delay the call until we're (almost) done with the project.
   cmake_language(EVAL CODE "
@@ -63,6 +109,26 @@ function(cet_cmake_config)
       CALL _cet_cmake_config_impl ${ARGV})\
 ")
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_finalize
+
+   Finalize bookkeeping for the current project.
+
+   .. versionadded:: 3.23.00 to replace :command:`cet_cmake_config(NO_CMAKE_CONFIG) <cet_cmake_config>`
+
+   .. note::
+
+      ``cet_finalize()`` should be called—at most—once after calling
+      :command:`cet_cmake_env` for each project.
+
+   .. note::
+
+      An explicit call to ``cet_finalize()`` for a project is not
+      necessary if :command:`cet_cmake_config` is invoked for that
+      project.
+
+#]================================================================]
 
 function(cet_finalize)
   # Delay the call until we're (almost) done with the project.

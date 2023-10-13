@@ -94,6 +94,8 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
       * Any initial or override values for
         :manual:`project variables <cetmodules-project-variables(7)>` should be set.
 
+   .. seealso:: :command:`cet_finalize`
+
    Variables affecting behavior
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
