@@ -2,9 +2,11 @@
 BuildDictionary
 ---------------
 
-Module defining the function :command:`build_dictionary` to
-generate a ROOT dictionary from a selection XML
-(:file:`classes_def.xml`).
+.. admonition:: ROOT
+   :class: admonition-app
+
+   Module defining the function :command:`build_dictionary` to generate
+   a ROOT dictionary from a selection XML (:file:`classes_def.xml`).
 
 .. seealso::
 
@@ -105,8 +107,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      determined by :command:`check_class_version`).
 
    ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
-     Specify dictionary dependencies required to be available for
-     successful validation.
+     .. deprecated:: 3.23.00 remove.
 
    ``USE_PRODUCT_NAME``
      .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
@@ -129,6 +130,9 @@ function(build_dictionary)
   list(POP_FRONT BD_UNPARSED_ARGUMENTS dictname)
   if (BD_UNPARSED_ARGUMENTS)
 	  message(FATAL_ERROR  "build_dictionary: too many arguments: \"${BD_UNPARSED_ARGUMENTS}\" from \"${ARGV}\" \n ${build_dictionary_usage}")
+  endif()
+  if (BD_REQUIRED_DICTIONARIES)
+    warn_deprecated("REQUIRED_DICTIONARIES" SINCE 3.23.00 " - remove")
   endif()
   if (NOT TARGET ROOT::Core)
     find_package(ROOT 6.00.00 EXPORT QUIET REQUIRED COMPONENTS Core)
@@ -200,13 +204,11 @@ function(build_dictionary)
   add_dependencies(BuildDictionary_AllDicts ${dictname}_dict)
   if (BD_NO_CHECK_CLASS_VERSION OR NOT DEFINED CCV_DEFAULT_RECURSIVE)
     # Turned off manually, or we're using or building an older art.
-    if (BD_REQUIRED_DICTIONARIES OR
-        BD_RECURSIVE OR BD_NO_RECURSIVE OR BD_CCV_ENVIRONMENT)
-      message(WARNING "BuildDictionary: NO_CHECK_CLASS_VERSION is set: CCV_ENVIRONMENT, REQUIRED_DICTIONARIES, RECURSIVE AND NO_RECURSIVE are ignored.")
+    if (BD_RECURSIVE OR BD_NO_RECURSIVE OR BD_CCV_ENVIRONMENT)
+      message(WARNING "BuildDictionary: NO_CHECK_CLASS_VERSION is set: CCV_ENVIRONMENT, RECURSIVE AND NO_RECURSIVE are ignored.")
     endif()
   else ()
     set(BD_CCV_ARGS)
-    cet_passthrough(APPEND BD_REQUIRED_DICTIONARIES BD_CCV_ARGS)
     cet_passthrough(APPEND BD_CLASSES_DEF_XML BD_CCV_ARGS)
     cet_passthrough(FLAG APPEND BD_RECURSIVE BD_CCV_ARGS)
     cet_passthrough(FLAG APPEND BD_NO_RECURSIVE BD_CCV_ARGS)
