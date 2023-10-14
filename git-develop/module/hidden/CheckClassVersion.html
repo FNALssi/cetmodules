@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-7288f75 Reference</title>
+  <title>CheckClassVersion &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=c0cb701d"></script>
+    <script src="../../_static/documentation_options.js?v=567c09b0"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,12 +55,12 @@
     <a href="../../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CheckClassVersion</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,57 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CheckClassVersion"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CheckClassVersion"></span><section id="checkclassversion">
+<h1>CheckClassVersion<a class="headerlink" href="#checkclassversion" title="Link to this heading">¶</a></h1>
+<div class="admonition-app admonition">
+<p class="admonition-title">ROOT</p>
+<p>Module defining the function <span class="target" id="index-0-command:check_class_version"></span><a class="reference internal" href="#command:check_class_version" title="check_class_version"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">check_class_version()</span></code></a> to check
+ROOT dictionary object versions and checksums.</p>
+</div>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:check_class_version">
+<span class="sig-name descname"><span class="pre">check_class_version</span></span><a class="headerlink" href="#command:check_class_version" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><div class="admonition-app admonition">
+<p class="admonition-title">ROOT</p>
+<p>Check ROOT dictionary object versions and checksums.</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-manual:checkClassVersion(1)"></span><a class="reference internal" href="../../manual/checkClassVersion.1.html#manual:checkClassVersion(1)" title="checkClassVersion(1)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">checkClassVersion(1)</span></code></a></p>
+</div>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">check_class_version(</span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">CLASSES_DEF_XML</span> <span class="pre">&lt;xml-file&gt;</span></code></dt><dd><p>Specify the selection XML file describing the classes to be
+checked.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span> <span class="pre">&lt;env&gt;...</span></code></dt><dd><p>Inject <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;</span></code> into the environment of the invocation of
+<span class="target" id="index-1-manual:checkClassVersion(1)"></span><a class="reference internal" href="../../manual/checkClassVersion.1.html#manual:checkClassVersion(1)" title="checkClassVersion(1)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">checkClassVersion(1)</span></code></a>; <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;</span></code> should be in the form
+<code class="docutils literal notranslate"><span class="pre">&lt;var&gt;=&lt;val&gt;</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">(NO_)?RECURSIVE</span></code></dt><dd><p>Enable/disable recursive dictionary checks.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">REQUIRED_DICTIONARIES</span> <span class="pre">&lt;dict&gt;...</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>remove.</p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">UPDATE_IN_PLACE</span></code></dt><dd><p>Update the selection XML file in place and exit with non-zero
+status.</p>
+</dd>
+</dl>
+</div></blockquote>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In general <code class="docutils literal notranslate"><span class="pre">check_class_version()</span></code> should be invoked via
+<span class="target" id="index-0-command:build_dictionary"></span><a class="reference internal" href="../BuildDictionary.html#command:build_dictionary" title="build_dictionary"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">build_dictionary()</span></code></a> rather than standalone.</p>
+</div>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -144,12 +193,12 @@
     <a href="../../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CheckClassVersion</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

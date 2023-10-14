@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-7288f75 Reference</title>
+  <title>CetCMakeConfig &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=c0cb701d"></script>
+    <script src="../_static/documentation_options.js?v=567c09b0"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetCMakeConfig</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,111 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetCMakeConfig"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CetCMakeConfig"></span><section id="cetcmakeconfig">
+<h1>CetCMakeConfig<a class="headerlink" href="#cetcmakeconfig" title="Link to this heading">¶</a></h1>
+<p>Module defining the lazy functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="target" id="index-0-command:cet_cmake_config"></span><a class="reference internal" href="#command:cet_cmake_config" title="cet_cmake_config"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_config()</span></code></a> to finalize project bookkeeping and
+generate CMake “config” and “version” files.</p></li>
+<li><p><span class="target" id="index-0-command:cet_finalize"></span><a class="reference internal" href="#command:cet_finalize" title="cet_finalize"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_finalize()</span></code></a> to finalize project bookkeeping <em>without</em>
+generating config and version files.</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Precisely one of the above functions should be called precisely once
+after each <span class="target" id="index-0-command:cet_cmake_env"></span><a class="reference internal" href="CetCMakeEnv.html#command:cet_cmake_env" title="cet_cmake_env"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_env()</span></code></a> call.</p>
+</div>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_cmake_config">
+<span class="sig-name descname"><span class="pre">cet_cmake_config</span></span><a class="headerlink" href="#command:cet_cmake_config" title="Link to this definition">¶</a></dt>
+<dd><p class="text-start">Generate and install <code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;Config.cmake</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;ConfigVersion.cmake</span></code>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_make_config(</span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">COMPATIBILITY</span> <span class="pre">&lt;val&gt;</span></code></dt><dd><p>Set the compatibility for this version of your package (default <code class="docutils literal notranslate"><span class="pre">AnyNewerVersion</span></code>).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cmake-ref-current:command:write_basic_package_version_file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">write_basic_package_version_file()</span></code></a></p>
+</div>
+</dd>
+</dl>
+<dl class="simple text-start">
+<dt><code class="docutils literal notranslate"><span class="pre">CONFIG_PRE_INIT</span> <span class="pre">&lt;config-fragment-file&gt;...</span> <span class="pre">CONFIG_POST_(DEPS|INIT|TARGETS|TARGET_VARS|VARS)</span> <span class="pre">&lt;config-fragment-file&gt;...</span></code></dt><dd><p>Specify files containing CMake code to be included in the CMake
+config file at the appropriate place.</p>
+</dd>
+</dl>
+<div class="admonition-legacy admonition">
+<p class="admonition-title">cetbuildtools</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">EXTRA_TARGET_VARS</span> <span class="pre">&lt;target&gt;</span></code></dt><dd><p>Create cetbuidltools-compatible variables for the specified
+targets.</p>
+</dd>
+</dl>
+</div>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_CMAKE_CONFIG</span></code></dt><dd><p class="text-start">Disable the production of <code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;Config.cmake</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;ConfigVersion.cmake</span></code>; necessary bookkeeping is
+still done.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>use <span class="target" id="index-1-command:cet_finalize"></span><a class="reference internal" href="#command:cet_finalize" title="cet_finalize"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_finalize()</span></code></a></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PATH_VARS</span> <span class="pre">&lt;path-vars&gt;</span></code></dt><dd><p>Specify variables containing paths that will be defined in the
+CMake config file relative to the installation path.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cmake-ref-current:command:configure_package_config_file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/module/CMakePackageConfigHelpers.html#command:configure_package_config_file" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">configure_package_config_file(...</span> <span class="pre">PATH_VARS)</span></code></a></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">WORKDIR</span> <span class="pre">&lt;workdir&gt;</span></code></dt><dd><p class="text-start">Set the directory in which to generate config files for later
+installation (default <code class="docutils literal notranslate"><span class="pre">genConfig</span></code>). If <code class="docutils literal notranslate"><span class="pre">workdir</span></code> is not
+absolute it will be calculated relative to
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_BINARY_DIR.html#variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR" title="CETMODULES_CURRENT_PROJECT_BINARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_BINARY_DIR</span></code></a></p>
+</dd>
+</dl>
+</section>
+<section id="variables-affecting-behavior">
+<h2>Variables affecting behavior<a class="headerlink" href="#variables-affecting-behavior" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p><span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_NOARCH"></span><a class="reference internal" href="../variable/PROJECT-NAME_NOARCH.html#variable:&lt;PROJECT-NAME&gt;_NOARCH" title="&lt;PROJECT-NAME&gt;_NOARCH"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_NOARCH</span></code></a></p>
+<p>If <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, the CMake config and version files will be installed
+under <span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_DATA_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_DATA_DIR.html#variable:&lt;PROJECT-NAME&gt;_DATA_DIR" title="&lt;PROJECT-NAME&gt;_DATA_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_DATA_DIR</span></code></a> rather than
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_LIBRARY_DIR.html#variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR" title="&lt;PROJECT-NAME&gt;_LIBRARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_LIBRARY_DIR</span></code></a>.</p>
+<p>If unset, a vacuous <span class="target" id="index-1-variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_LIBRARY_DIR.html#variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR" title="&lt;PROJECT-NAME&gt;_LIBRARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_LIBRARY_DIR</span></code></a> will
+produce a warning.</p>
+<p>If explicitly <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>, <code class="docutils literal notranslate"><span class="pre">cet_cmake_config()</span></code> will fail on
+vacuous <span class="target" id="index-2-variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_LIBRARY_DIR.html#variable:&lt;PROJECT-NAME&gt;_LIBRARY_DIR" title="&lt;PROJECT-NAME&gt;_LIBRARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_LIBRARY_DIR</span></code></a>.</p>
+</li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_finalize">
+<span class="sig-name descname"><span class="pre">cet_finalize</span></span><a class="headerlink" href="#command:cet_finalize" title="Link to this definition">¶</a></dt>
+<dd><p>Finalize bookkeeping for the current project.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.23.00: </span>to replace <span class="target" id="index-1-command:cet_cmake_config"></span><a class="reference internal" href="#command:cet_cmake_config" title="cet_cmake_config"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_config(NO_CMAKE_CONFIG)</span></code></a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">cet_finalize()</span></code> should be called—at most—once after calling
+<span class="target" id="index-1-command:cet_cmake_env"></span><a class="reference internal" href="CetCMakeEnv.html#command:cet_cmake_env" title="cet_cmake_env"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_env()</span></code></a> for each project.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An explicit call to <code class="docutils literal notranslate"><span class="pre">cet_finalize()</span></code> for a project is not
+necessary if <span class="target" id="index-2-command:cet_cmake_config"></span><a class="reference internal" href="#command:cet_cmake_config" title="cet_cmake_config"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_config()</span></code></a> is invoked for that
+project.</p>
+</div>
+</dd></dl>
+
 </section>
 
 
@@ -144,12 +247,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetCMakeConfig</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

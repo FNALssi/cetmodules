@@ -1,6 +1,6 @@
-<PROJECT-NAME>_INCLUDE_DIR
+<PROJECT-NAME>_LIBRARY_DIR
 --------------------------
 
-Installation include directory.
+Installation library directory.
 
 .. seealso:: :module:`GNUInstallDirs <cmake-ref-current:module:GNUInstallDirs>`

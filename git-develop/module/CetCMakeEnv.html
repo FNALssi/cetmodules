@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetCMakeEnv &mdash; Cetmodules git-develop-7288f75 Reference</title>
+  <title>CetCMakeEnv &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=c0cb701d"></script>
+    <script src="../_static/documentation_options.js?v=567c09b0"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="CetCMakeUtils" href="CetCMakeUtils.html" />
-    <link rel="prev" title="X" href="CetCMakeConfig.html" />
+    <link rel="prev" title="CetCMakeConfig" href="CetCMakeConfig.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
   
@@ -42,7 +42,7 @@
           <a href="CetCMakeUtils.html" title="CetCMakeUtils"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="CetCMakeConfig.html" title="X"
+          <a href="CetCMakeConfig.html" title="CetCMakeConfig"
              accesskey="P">previous</a> |</li>
   <li>
     <a href="https://github.com/FNALssi/cetmodules">
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -93,8 +93,7 @@ the current project.</p>
 </div>
 <section id="options">
 <h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
-<blockquote>
-<div><dl class="simple">
+<dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL_PKGMETA</span></code></dt><dd><p>Under normal circumstances, <code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_env()</span></code> will call
 <span class="target" id="index-0-command:install_pkgmeta"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_pkgmeta()</span></code> to automatically find <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and
 <code class="docutils literal notranslate"><span class="pre">README</span></code> files and install them. Specify <code class="docutils literal notranslate"><span class="pre">NO_INSTALL_PKGMETA</span></code>
@@ -102,7 +101,9 @@ if you wish to call <span class="target" id="index-1-command:install_pkgmeta"></
 at all).</p>
 </dd>
 </dl>
-</div></blockquote>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Prior to calling <span class="target" id="index-1-command:cet_cmake_env"></span><a class="reference internal" href="#command:cet_cmake_env" title="cet_cmake_env"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_env()</span></code></a>:</p>
@@ -113,17 +114,19 @@ at all).</p>
 <span class="target" id="index-0-manual:cetmodules-project-variables(7)"></span><a class="reference internal" href="../manual/cetmodules-project-variables.7.html#manual:cetmodules-project-variables(7)" title="cetmodules-project-variables(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">project</span> <span class="pre">variables</span></code></a> should be set.</p></li>
 </ul>
 </div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cet_finalize"></span><a class="reference internal" href="CetCMakeConfig.html#command:cet_finalize" title="cet_finalize"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_finalize()</span></code></a></p>
+</div>
 </section>
-<section id="variables-controlling-behavior">
-<h2>Variables controlling behavior<a class="headerlink" href="#variables-controlling-behavior" title="Link to this heading">¶</a></h2>
-<blockquote>
-<div><ul class="simple">
+<section id="variables-affecting-behavior">
+<h2>Variables affecting behavior<a class="headerlink" href="#variables-affecting-behavior" title="Link to this heading">¶</a></h2>
+<ul class="simple">
 <li><p><span class="target" id="index-0-variable:WANT_UPS"></span><a class="reference internal" href="../variable/WANT_UPS.html#variable:WANT_UPS" title="WANT_UPS"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">WANT_UPS</span></code></a></p></li>
 <li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:BUILD_SHARED_LIBS"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/BUILD_SHARED_LIBS.html#variable:BUILD_SHARED_LIBS" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">BUILD_SHARED_LIBS</span></code></a></p></li>
 <li><p><span class="target" id="index-0-variable:BUILD_STATIC_LIBS"></span><a class="reference internal" href="../variable/BUILD_STATIC_LIBS.html#variable:BUILD_STATIC_LIBS" title="BUILD_STATIC_LIBS"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">BUILD_STATIC_LIBS</span></code></a></p></li>
 <li><p><span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_INSTALL_RPATH_USE_LINK_PATH.html#variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_RPATH_USE_LINK_PATH</span></code></a></p></li>
 </ul>
-</div></blockquote>
 </section>
 </dd></dl>
 
@@ -139,7 +142,7 @@ at all).</p>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="CetCMakeConfig.html"
-                          title="previous chapter">X</a></p>
+                          title="previous chapter">CetCMakeConfig</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -177,7 +180,7 @@ at all).</p>
           <a href="CetCMakeUtils.html" title="CetCMakeUtils"
              >next</a> |</li>
         <li class="right" >
-          <a href="CetCMakeConfig.html" title="X"
+          <a href="CetCMakeConfig.html" title="CetCMakeConfig"
              >previous</a> |</li>
   <li>
     <a href="https://github.com/FNALssi/cetmodules">
@@ -190,7 +193,7 @@ at all).</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-7288f75</span>
+    <span class="version_switch">git-develop-1ffbe95</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
