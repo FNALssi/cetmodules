@@ -305,217 +305,6 @@ define_property(TEST PROPERTY KEYWORDS
   FULL_DOCS "ETHEL")
 ##################
 
-function(_update_defined_test_groups)
-  set(TMP_LIST ${CET_DEFINED_TEST_GROUPS} ${ARGN})
-  list(REMOVE_DUPLICATES TMP_LIST)
-  set(CET_DEFINED_TEST_GROUPS ${TMP_LIST}
-    CACHE STRING "List of defined test groups."
-    FORCE
-    )
-endfunction()
-
-function(_cet_process_pargs NTEST_VAR)
-  set(NTESTS 1)
-  foreach (label IN LISTS ARGN)
-    list(LENGTH CETP_PARG_${label} ${label}_length)
-    math(EXPR ${label}_length "${${label}_length} - 1")
-    if (NOT ${label}_length)
-      message(FATAL_ERROR "For test ${TEST_TARGET_NAME}: Permuted options are not yet supported.")
-    endif()
-    if (${label}_length GREATER NTESTS)
-      set(NTESTS ${${label}_length})
-    endif()
-    list(GET CETP_PARG_${label} 0 ${label}_arg)
-    set(${label}_arg ${${label}_arg} PARENT_SCOPE)
-    list(REMOVE_AT CETP_PARG_${label} 0)
-    set(CETP_PARG_${label} ${CETP_PARG_${label}} PARENT_SCOPE)
-    set(${label}_length ${${label}_length} PARENT_SCOPE)
-  endforeach()
-  foreach (label IN LISTS ARGN)
-    if (${label}_length LESS NTESTS)
-      # Need to pad
-      math(EXPR nextra "${NTESTS} - ${${label}_length}")
-      set(nind 0)
-      while (nextra)
-        math(EXPR lind "${nind} % ${${label}_length}")
-        list(GET CETP_PARG_${label} ${lind} item)
-        list(APPEND CETP_PARG_${label} ${item})
-        math(EXPR nextra "${nextra} - 1")
-        math(EXPR nind "${nind} + 1")
-      endwhile()
-      set(CETP_PARG_${label} ${CETP_PARG_${label}} PARENT_SCOPE)
-    endif()
-  endforeach()
-  set(${NTEST_VAR} ${NTESTS} PARENT_SCOPE)
-endfunction()
-
-function(_cet_print_pargs)
-  string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE_UC)
-  if (NOT BTYPE_UC STREQUAL "DEBUG")
-    return()
-  endif()
-  list(LENGTH ARGN nlabels)
-  if (NOT nlabels)
-    return()
-  endif()
-  message(STATUS "Test ${TEST_TARGET_NAME}: found ${nlabels} labels for permuted test arguments")
-  foreach (label IN LISTS ARGN)
-    message(STATUS "  Label: ${label}, arg: ${${label}_arg}, # vals: ${${label}_length}, vals: ${CETP_PARG_${label}}")
-  endforeach()
-  message(STATUS "  Calculated ${NTESTS} tests")
-endfunction()
-
-function(_cet_test_pargs VAR)
-  foreach (label IN LISTS parg_labels)
-    list(GET CETP_PARG_${label} ${tid} arg)
-    if (${label}_arg MATCHES [[=$]])
-      list(APPEND test_args "${${label}_arg}${arg}")
-    else()
-      list(APPEND test_args "${${label}_arg}" "${arg}")
-    endif()
-  endforeach()
-  set(${VAR} ${test_args} ${ARGN} PARENT_SCOPE)
-endfunction()
-
-function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
-  _cet_test_pargs(test_args ${ARGN})
-  add_test(NAME "${TNAME}"
-    CONFIGURATIONS ${CET_CONFIGURATIONS}
-    COMMAND
-    ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
-    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
-    --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
-    --skip-return-code ${skip_return_code}
-    ${TEXEC} ${test_args})
-  _cet_add_test_properties(${TNAME} ${TEXEC})
-endfunction()
-
-function(_cet_exec_location LOC_VAR)
-  list(POP_FRONT ARGN EXEC)
-  string(TOUPPER "${EXEC}" EXEC_UC)
-  if (DEFINED ${EXEC_UC})
-    set(EXEC "${${EXEC_UC}}")
-    if ("${EXEC}" STREQUAL "") # Empty.
-      set(${LOC_VAR} PARENT_SCOPE)
-      return()
-    endif()
-    unset(${EXEC_UC}) # Prevent cycles.
-    _cet_exec_location(EXEC "${EXEC}")
-  endif()
-  if (TARGET "${EXEC}")
-    # FIXME: could load all this up as a generator expression if we
-    #        cared enough to deal with targets not being defined yet.
-    get_property(target_type TARGET ${EXEC} PROPERTY TYPE)
-    if (target_type STREQUAL "EXECUTABLE")
-      set(EXEC "$<TARGET_FILE:${EXEC}>")
-    else()
-      get_property(imported TARGET ${EXEC} PROPERTY IMPORTED)
-      if (imported)
-        set(EXEC "$<TARGET_PROPERTY:${EXEC},IMPORTED_LOCATION>")
-      else()
-        get_property(exec_location TARGET ${EXEC} PROPERTY CET_EXEC_LOCATION)
-        if (exec_location)
-          set(EXEC "${exec_location}")
-        endif()
-      endif()
-    endif()
-  endif()
-  set(${LOC_VAR} "${EXEC}" PARENT_SCOPE)
-endfunction()
-
-function(_cet_add_test)
-  _cet_exec_location(TEXEC ${CET_TEST_EXEC})
-  if (${NTESTS} EQUAL 1)
-    _cet_add_test_detail(${TEST_TARGET_NAME} ${TEXEC} ${CET_TEST_WORKDIR} ${ARGN})
-    list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
-    file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
-    set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
-    cet_copy(${CET_DATAFILES} DESTINATION ${CET_TEST_WORKDIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  else()
-    math(EXPR tidmax "${NTESTS} - 1")
-    string(LENGTH "${tidmax}" nd)
-    foreach (tid RANGE ${tidmax})
-      execute_process(COMMAND printf "_%0${nd}d" ${tid}
-        OUTPUT_VARIABLE tnum
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-      set(tname "${TEST_TARGET_NAME}${tnum}")
-      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
-      _cet_add_test_detail(${tname} ${TEXEC} ${test_workdir} ${ARGN})
-      list(APPEND ALL_TEST_TARGETS ${tname})
-      file(MAKE_DIRECTORY "${test_workdir}")
-      set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
-      cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    endforeach()
-  endif()
-  set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
-endfunction()
-
-function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
-  _cet_test_pargs(tmp_args ${ARGN})
-  separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
-  cet_localize_pv(cetmodules LIBEXEC_DIR)
-  add_test(NAME "${TNAME}"
-    CONFIGURATIONS ${CET_CONFIGURATIONS}
-    COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
-    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
-    --required-files "${CET_REQUIRED_FILES}"
-    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
-    --skip-return-code ${skip_return_code}
-    ${CMAKE_COMMAND}
-    -DTEST_EXEC=${CET_TEST_EXEC}
-    -DTEST_ARGS=${test_args}
-    -DTEST_REF=${OUTPUT_REF}
-    ${DEFINE_ERROR_REF}
-    ${DEFINE_TEST_ERR}
-    -DTEST_OUT=${CET_TARGET}.out
-    ${DEFINE_OUTPUT_FILTER} ${DEFINE_OUTPUT_FILTER_ARGS} ${DEFINE_OUTPUT_FILTERS}
-    -Dcetmodules_LIBEXEC_DIR=${cetmodules_LIBEXEC_DIR}
-    -P ${CET_RUNANDCOMPARE}
-    )
-endfunction()
-
-function(_cet_add_ref_test)
-  if (${NTESTS} EQUAL 1)
-    _cet_add_ref_test_detail(${TEST_TARGET_NAME} ${CET_TEST_WORKDIR} ${ARGN})
-    list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
-    file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
-    set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
-    cet_copy(${CET_DATAFILES} DESTINATION ${CET_TEST_WORKDIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  else()
-    math(EXPR tidmax "${NTESTS} - 1")
-    string(LENGTH "${tidmax}" nd)
-    foreach (tid RANGE ${tidmax})
-      execute_process(COMMAND printf "_%0${nd}d" ${tid}
-        OUTPUT_VARIABLE tnum
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-      set(tname "${TEST_TARGET_NAME}${tnum}")
-      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
-      _cet_add_ref_test_detail(${tname} ${test_workdir} ${ARGN})
-      list(APPEND ALL_TEST_TARGETS ${tname})
-      file(MAKE_DIRECTORY "${test_workdir}")
-      set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
-      if (CET_DATAFILES)
-        cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-      endif()
-    endforeach()
-  endif()
-  set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
-endfunction()
-
-####################################
-# Main function definitions.
-function(cet_test_env)
-  cmake_parse_arguments(PARSE_ARGV 0 CET_TEST "CLEAR" "" "")
-  if (CET_TEST_CLEAR)
-    set(CET_TEST_ENV)
-  endif()
-  list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
-  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
-endfunction()
-
 function(cet_test CET_TARGET)
   if (NOT BUILD_TESTING) # See CMake's CTest module.
     return()
@@ -867,6 +656,110 @@ function(cet_test_assertion CONDITION FIRST_TARGET)
   endif()
 endfunction()
 
+function(cet_test_env)
+  cmake_parse_arguments(PARSE_ARGV 0 CET_TEST "CLEAR" "" "")
+  if (CET_TEST_CLEAR)
+    set(CET_TEST_ENV)
+  endif()
+  list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
+  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
+endfunction()
+
+function(_cet_add_ref_test)
+  if (${NTESTS} EQUAL 1)
+    _cet_add_ref_test_detail(${TEST_TARGET_NAME} ${CET_TEST_WORKDIR} ${ARGN})
+    list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
+    file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
+    set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
+    cet_copy(${CET_DATAFILES} DESTINATION ${CET_TEST_WORKDIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  else()
+    math(EXPR tidmax "${NTESTS} - 1")
+    string(LENGTH "${tidmax}" nd)
+    foreach (tid RANGE ${tidmax})
+      execute_process(COMMAND printf "_%0${nd}d" ${tid}
+        OUTPUT_VARIABLE tnum
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+      set(tname "${TEST_TARGET_NAME}${tnum}")
+      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
+      _cet_add_ref_test_detail(${tname} ${test_workdir} ${ARGN})
+      list(APPEND ALL_TEST_TARGETS ${tname})
+      file(MAKE_DIRECTORY "${test_workdir}")
+      set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
+      if (CET_DATAFILES)
+        cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      endif()
+    endforeach()
+  endif()
+  set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
+endfunction()
+
+function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
+  _cet_test_pargs(tmp_args ${ARGN})
+  separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
+  cet_localize_pv(cetmodules LIBEXEC_DIR)
+  add_test(NAME "${TNAME}"
+    CONFIGURATIONS ${CET_CONFIGURATIONS}
+    COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
+    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
+    --required-files "${CET_REQUIRED_FILES}"
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
+    --skip-return-code ${skip_return_code}
+    ${CMAKE_COMMAND}
+    -DTEST_EXEC=${CET_TEST_EXEC}
+    -DTEST_ARGS=${test_args}
+    -DTEST_REF=${OUTPUT_REF}
+    ${DEFINE_ERROR_REF}
+    ${DEFINE_TEST_ERR}
+    -DTEST_OUT=${CET_TARGET}.out
+    ${DEFINE_OUTPUT_FILTER} ${DEFINE_OUTPUT_FILTER_ARGS} ${DEFINE_OUTPUT_FILTERS}
+    -Dcetmodules_LIBEXEC_DIR=${cetmodules_LIBEXEC_DIR}
+    -P ${CET_RUNANDCOMPARE}
+    )
+endfunction()
+
+function(_cet_add_test)
+  _cet_exec_location(TEXEC ${CET_TEST_EXEC})
+  if (${NTESTS} EQUAL 1)
+    _cet_add_test_detail(${TEST_TARGET_NAME} ${TEXEC} ${CET_TEST_WORKDIR} ${ARGN})
+    list(APPEND ALL_TEST_TARGETS ${TEST_TARGET_NAME})
+    file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
+    set_tests_properties(${TEST_TARGET_NAME} PROPERTIES WORKING_DIRECTORY ${CET_TEST_WORKDIR})
+    cet_copy(${CET_DATAFILES} DESTINATION ${CET_TEST_WORKDIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  else()
+    math(EXPR tidmax "${NTESTS} - 1")
+    string(LENGTH "${tidmax}" nd)
+    foreach (tid RANGE ${tidmax})
+      execute_process(COMMAND printf "_%0${nd}d" ${tid}
+        OUTPUT_VARIABLE tnum
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+      set(tname "${TEST_TARGET_NAME}${tnum}")
+      string(REGEX REPLACE [[\.d$]] "${tnum}.d" test_workdir "${CET_TEST_WORKDIR}")
+      _cet_add_test_detail(${tname} ${TEXEC} ${test_workdir} ${ARGN})
+      list(APPEND ALL_TEST_TARGETS ${tname})
+      file(MAKE_DIRECTORY "${test_workdir}")
+      set_tests_properties(${tname} PROPERTIES WORKING_DIRECTORY ${test_workdir})
+      cet_copy(${CET_DATAFILES} DESTINATION ${test_workdir} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endforeach()
+  endif()
+  set(ALL_TEST_TARGETS ${ALL_TEST_TARGETS} PARENT_SCOPE)
+endfunction()
+
+function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
+  _cet_test_pargs(test_args ${ARGN})
+  add_test(NAME "${TNAME}"
+    CONFIGURATIONS ${CET_CONFIGURATIONS}
+    COMMAND
+    ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
+    --remove-on-failure "${CET_REMOVE_ON_FAILURE}"
+    --required-files "${CET_REQUIRED_FILES}"
+    --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
+    --skip-return-code ${skip_return_code}
+    ${TEXEC} ${test_args})
+  _cet_add_test_properties(${TNAME} ${TEXEC})
+endfunction()
+
 # FIXME: Needs work!
 function(_cet_add_test_properties TEST_NAME TEST_EXEC)
   if (NOT TARGET ${TEST_EXEC}) # Not interested.
@@ -875,3 +768,109 @@ function(_cet_add_test_properties TEST_NAME TEST_EXEC)
   set_property(TEST ${TEST_NAME} APPEND PROPERTY KEYWORDS CET
     $<TARGET_PROPERTY:${TEST_EXEC}>)
 endfunction()
+
+function(_cet_exec_location LOC_VAR)
+  list(POP_FRONT ARGN EXEC)
+  string(TOUPPER "${EXEC}" EXEC_UC)
+  if (DEFINED ${EXEC_UC})
+    set(EXEC "${${EXEC_UC}}")
+    if ("${EXEC}" STREQUAL "") # Empty.
+      set(${LOC_VAR} PARENT_SCOPE)
+      return()
+    endif()
+    unset(${EXEC_UC}) # Prevent cycles.
+    _cet_exec_location(EXEC "${EXEC}")
+  endif()
+  if (TARGET "${EXEC}")
+    # FIXME: could load all this up as a generator expression if we
+    #        cared enough to deal with targets not being defined yet.
+    get_property(target_type TARGET ${EXEC} PROPERTY TYPE)
+    if (target_type STREQUAL "EXECUTABLE")
+      set(EXEC "$<TARGET_FILE:${EXEC}>")
+    else()
+      get_property(imported TARGET ${EXEC} PROPERTY IMPORTED)
+      if (imported)
+        set(EXEC "$<TARGET_PROPERTY:${EXEC},IMPORTED_LOCATION>")
+      else()
+        get_property(exec_location TARGET ${EXEC} PROPERTY CET_EXEC_LOCATION)
+        if (exec_location)
+          set(EXEC "${exec_location}")
+        endif()
+      endif()
+    endif()
+  endif()
+  set(${LOC_VAR} "${EXEC}" PARENT_SCOPE)
+endfunction()
+
+function(_cet_print_pargs)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE_UC)
+  if (NOT BTYPE_UC STREQUAL "DEBUG")
+    return()
+  endif()
+  list(LENGTH ARGN nlabels)
+  if (NOT nlabels)
+    return()
+  endif()
+  message(STATUS "Test ${TEST_TARGET_NAME}: found ${nlabels} labels for permuted test arguments")
+  foreach (label IN LISTS ARGN)
+    message(STATUS "  Label: ${label}, arg: ${${label}_arg}, # vals: ${${label}_length}, vals: ${CETP_PARG_${label}}")
+  endforeach()
+  message(STATUS "  Calculated ${NTESTS} tests")
+endfunction()
+
+function(_cet_process_pargs NTEST_VAR)
+  set(NTESTS 1)
+  foreach (label IN LISTS ARGN)
+    list(LENGTH CETP_PARG_${label} ${label}_length)
+    math(EXPR ${label}_length "${${label}_length} - 1")
+    if (NOT ${label}_length)
+      message(FATAL_ERROR "For test ${TEST_TARGET_NAME}: Permuted options are not yet supported.")
+    endif()
+    if (${label}_length GREATER NTESTS)
+      set(NTESTS ${${label}_length})
+    endif()
+    list(GET CETP_PARG_${label} 0 ${label}_arg)
+    set(${label}_arg ${${label}_arg} PARENT_SCOPE)
+    list(REMOVE_AT CETP_PARG_${label} 0)
+    set(CETP_PARG_${label} ${CETP_PARG_${label}} PARENT_SCOPE)
+    set(${label}_length ${${label}_length} PARENT_SCOPE)
+  endforeach()
+  foreach (label IN LISTS ARGN)
+    if (${label}_length LESS NTESTS)
+      # Need to pad
+      math(EXPR nextra "${NTESTS} - ${${label}_length}")
+      set(nind 0)
+      while (nextra)
+        math(EXPR lind "${nind} % ${${label}_length}")
+        list(GET CETP_PARG_${label} ${lind} item)
+        list(APPEND CETP_PARG_${label} ${item})
+        math(EXPR nextra "${nextra} - 1")
+        math(EXPR nind "${nind} + 1")
+      endwhile()
+      set(CETP_PARG_${label} ${CETP_PARG_${label}} PARENT_SCOPE)
+    endif()
+  endforeach()
+  set(${NTEST_VAR} ${NTESTS} PARENT_SCOPE)
+endfunction()
+
+function(_cet_test_pargs VAR)
+  foreach (label IN LISTS parg_labels)
+    list(GET CETP_PARG_${label} ${tid} arg)
+    if (${label}_arg MATCHES [[=$]])
+      list(APPEND test_args "${${label}_arg}${arg}")
+    else()
+      list(APPEND test_args "${${label}_arg}" "${arg}")
+    endif()
+  endforeach()
+  set(${VAR} ${test_args} ${ARGN} PARENT_SCOPE)
+endfunction()
+
+function(_update_defined_test_groups)
+  set(TMP_LIST ${CET_DEFINED_TEST_GROUPS} ${ARGN})
+  list(REMOVE_DUPLICATES TMP_LIST)
+  set(CET_DEFINED_TEST_GROUPS ${TMP_LIST}
+    CACHE STRING "List of defined test groups."
+    FORCE
+    )
+endfunction()
+
