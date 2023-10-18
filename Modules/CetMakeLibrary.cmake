@@ -25,7 +25,7 @@ set(_cet_make_library_usage "")
    .. parsed-literal::
 
       cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
-                       [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`])
+                       [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`] [:ref:`\<miscellaneous-options> <cet_make_library_misc_options>`])
 
    Options
    ^^^^^^^
@@ -174,6 +174,14 @@ set(_cet_make_library_usage "")
      then the target will be set to the basename of
      :variable:`CMAKE_CURRENT_SOURCE_DIR
      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
+
+   .. _cet_make_library_misc_options:
+
+   Miscellaneous Options
+   """""""""""""""""""""
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
 
    Details
    ^^^^^^^
