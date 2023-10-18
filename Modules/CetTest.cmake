@@ -941,6 +941,29 @@ endfunction(cet_test)
 #[================================================================[.rst:
 .. command:: cet_test_assertion
 
+   Look for the specified assertion failure in test output for the
+   specified targets.
+
+   .. code-block:: cmake
+
+      cet_test_assertion(<condition> <target> ...)
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<condition>``
+     .. rst-class:: text-start
+
+     Look for the string ``Assertion failed: (<condition>),`` (Darwin)
+     or ``Assertion `<condition>' failed.`` (Linux).
+
+   ``<target>``
+     One or more targets to be subject to this test.
+
+   .. seealso::
+
+     :prop_test:`PASS_REGULAR_EXPRESSION
+     <cmake-ref-current:prop_test:PASS_REGULAR_EXPRESSION>`.
 
 #]================================================================]
 
@@ -960,6 +983,20 @@ endfunction()
 
 #[================================================================[.rst:
 .. command:: cet_test_env
+
+   Add environment variables to the test environment for tests defined
+   in and below the current directory.
+
+   .. code-block:: cmake
+
+      cet_test_env([CLEAR] <var>=<val> ...)
+
+   Options
+   ^^^^^^^
+
+   ``CLEAR``
+     Clear the test environment in the current directory scope;
+     otherwise, append.
 
 #]================================================================]
 
