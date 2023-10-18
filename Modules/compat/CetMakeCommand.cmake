@@ -6,6 +6,7 @@ Defines the deprecated function :command:`cet_make`.
 
 #]================================================================]
 
+# Avoid unwanted repeat inclusion.
 include_guard()
 
 include(CetCMakeUtils)
