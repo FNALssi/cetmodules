@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>CetRegisterExportSet &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetRegisterExportSet</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,83 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetRegisterExportSet"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CetRegisterExportSet"></span><section id="cetregisterexportset">
+<h1>CetRegisterExportSet<a class="headerlink" href="#cetregisterexportset" title="Link to this heading">¶</a></h1>
+<p>Defines <span class="target" id="index-0-command:cet_register_export_set"></span><a class="reference internal" href="#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a> to register export sets and
+target namespaces.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_register_export_set">
+<span class="sig-name descname"><span class="pre">cet_register_export_set</span></span><a class="headerlink" href="#command:cet_register_export_set" title="Link to this definition">¶</a></dt>
+<dd><p>Register export sets and target namespaces; also determine the
+default namespace to use for local (non-exported) target aliases.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_register_export_set(</span><span class="p">[</span><span class="o">&lt;</span><span class="nb">options</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NAMESPACE</span> <span class="pre">&lt;namespace&gt;</span></code></dt><dd><p>Set the namespace to be associated with the export set.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NAMESPACE_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return the namespace in <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_REDEFINE</span></code></dt><dd><p>Do not attempt to redefine the export set if it exists already.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SET_DEFAULT</span></code></dt><dd><p>Set the default export set to be used by Cetmodules build commands
+if not otherwise specified.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SET_NAME</span> <span class="pre">&lt;name&gt;</span></code></dt><dd><p>Specify the export set name to <code class="docutils literal notranslate"><span class="pre">name</span></code> (defaults to
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET"></span><a class="reference internal" href="../variable/PROJECT-NAME_DEFAULT_EXPORT_SET.html#variable:&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET" title="&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SET_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return the export set name in <code class="docutils literal notranslate"><span class="pre">var</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">cet_register_export_set</span></code> registers an export set with an
+optionally-defined namespace exported targets, optionally setting it
+as default for use by Cetmodules commands such as
+<span class="target" id="index-0-command:cet_make_library"></span><a class="reference internal" href="CetMakeLibrary.html#command:cet_make_library" title="cet_make_library"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_library()</span></code></a> and <span class="target" id="index-0-command:cet_make_exec"></span><a class="reference internal" href="CetMake.html#command:cet_make_exec" title="cet_make_exec"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_exec()</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An export set should be unique to a given project: the
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_NAME</span></code></a> is therefore prepended
+to any spacified export set name separated by <code class="docutils literal notranslate"><span class="pre">_</span></code> unless it
+already has such a prefix.</p>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<ul>
+<li><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_register_export_set(</span><span class="no">NAMESPACE_VAR</span><span class="w"> </span><span class="nb">ns</span><span class="w"> </span><span class="no">NO_REDEFINE</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>Return the current default namespace scope as variable <code class="docutils literal notranslate"><span class="pre">ns</span></code></p>
+</li>
+<li><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_register_export_set(</span><span class="no">SET_VAR</span><span class="w"> </span><span class="nb">es</span><span class="w"> </span><span class="no">NO_REDEFINE</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>Return the current default export set name as variable <code class="docutils literal notranslate"><span class="pre">es</span></code></p>
+</li>
+<li><div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_register_export_set(</span><span class="no">SET_NAME</span><span class="w"> </span><span class="nb">my_es</span><span class="w"> </span><span class="no">NAMESPACE</span><span class="w"> </span><span class="nb">my_ns</span><span class="w"> </span><span class="no">SET_DEFAULT</span><span class="w"> </span><span class="no">SET_VAR</span><span class="w"> </span><span class="nb">ns</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>Define a new export set <code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_my_es</span></code> with namespace
+<code class="docutils literal notranslate"><span class="pre">my_ns</span></code> and set it as the default. Subsequent targets will be
+exported in this set with exported target name <code class="docutils literal notranslate"><span class="pre">my_ns::&lt;target&gt;</span></code>
+if not otherwise specified.</p>
+</li>
+</ul>
+</section>
+<section id="variables-affecting-behavior">
+<h2>Variables affecting behavior<a class="headerlink" href="#variables-affecting-behavior" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><span class="target" id="index-1-variable:&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET"></span><a class="reference internal" href="../variable/PROJECT-NAME_DEFAULT_EXPORT_SET.html#variable:&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET" title="&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_DEFAULT_EXPORT_SET</span></code></a></p></li>
+<li><p><span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_NAMESPACE"></span><a class="reference internal" href="../variable/PROJECT-NAME_NAMESPACE.html#variable:&lt;PROJECT-NAME&gt;_NAMESPACE" title="&lt;PROJECT-NAME&gt;_NAMESPACE"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_NAMESPACE</span></code></a></p></li>
+</ul>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -144,12 +219,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetRegisterExportSet</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

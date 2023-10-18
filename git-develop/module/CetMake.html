@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>CetMake &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetMake</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,110 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetMake"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CetMake"></span><section id="cetmake">
+<h1>CetMake<a class="headerlink" href="#cetmake" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">CetMake.cmake</span></code> defines several commands for specifying build
+operations in CMake:</p>
+<ul class="simple">
+<li><p><span class="target" id="index-0-command:cet_make_exec"></span><a class="reference internal" href="#command:cet_make_exec" title="cet_make_exec"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_exec()</span></code></a></p></li>
+<li><p><span class="target" id="index-0-command:cet_script"></span><a class="reference internal" href="#command:cet_script" title="cet_script"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_script()</span></code></a></p></li>
+</ul>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_make_exec">
+<span class="sig-name descname"><span class="pre">cet_make_exec</span></span><a class="headerlink" href="#command:cet_make_exec" title="Link to this definition">¶</a></dt>
+<dd><p>Make an executable.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cmake-ref-current:command:add_executable"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_executable.html#command:add_executable" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_executable()</span></code></a>.</p>
+</div>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_make_exec(</span><span class="no">NAME</span><span class="w"> </span><span class="nv">&lt;exec-name&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></dt><dd><p>Set the <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:EXCLUDE_FROM_ALL"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/EXCLUDE_FROM_ALL.html#prop_tgt:EXCLUDE_FROM_ALL" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">EXCLUDE_FROM_ALL</span></code></a> property on the
+executable target.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXEC_NAME</span> <span class="pre">&lt;exec-name&gt;</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.10.00: </span>use <code class="docutils literal notranslate"><span class="pre">NAME</span> <span class="pre">&lt;exec-name&gt;</span> <span class="pre">instead</span></code></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></dt><dd><p>The executable will be exported as part of the specified
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#install-export" title="(in CMake v3.27.7)"><span class="xref std std-ref">export set</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LIBRARIES</span> <span class="pre">&lt;library-specification&gt;</span> <span class="pre">...</span></code></dt><dd><p>Library dependencies (passed to <span class="target" id="index-0-command:cmake-ref-current:command:target_link_libraries"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_link_libraries.html#command:target_link_libraries" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_link_libraries()</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify local include directories.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NAME</span> <span class="pre">&lt;exec-name&gt;</span></code></dt><dd><p>The built executable shall be named <code class="docutils literal notranslate"><span class="pre">&lt;exec-name&gt;</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></dt><dd><p>The executable target will not be exported or installed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_EXPORT_ALL_SYMBOLS</span></code></dt><dd><p>Disable the default addition of <a class="reference external" href="https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#index-rdynamic">-rdynamic</a>
+or equivalent to the executable link stage.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>Synonym for <code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></dt><dd><p>Source files to be compiled to produce the executable.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The executable uses <a class="reference external" href="https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html">Boost unit test functions</a>
+and should be compiled and linked accordingly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_CATCH2_MAIN</span></code></dt><dd><p>The executable uses a generic <a class="reference external" href="https://github.com/catchorg/Catch2">Catch2</a> <code class="docutils literal notranslate"><span class="pre">main()</span></code> function and
+should be compiled and linked accordingly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_CATCH_MAIN</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.10.00: </span>use <code class="docutils literal notranslate"><span class="pre">USE_CATCH2_MAIN</span></code></p>
+</div>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_script">
+<span class="sig-name descname"><span class="pre">cet_script</span></span><a class="headerlink" href="#command:cet_script" title="Link to this definition">¶</a></dt>
+<dd><p>Install the named scripts.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_script(</span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;script&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="id1">
+<h2>Options<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">ALWAYS_COPY</span></code></dt><dd><p>If specified, scripts will be copied to
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_RUNTIME_OUTPUT_DIRECTORY"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_RUNTIME_OUTPUT_DIRECTORY.html#variable:CMAKE_RUNTIME_OUTPUT_DIRECTORY" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_RUNTIME_OUTPUT_DIRECTORY</span></code></a> at
+build time in addition to being installed. Otherwise, scripts will
+only be copied if they need to be made executable prior to
+installation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">DEPENDENCIES</span> <span class="pre">&lt;dep&gt;</span> <span class="pre">...</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">&lt;dep&gt;</span></code> changes, <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code> shall be considered out-of-date.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;dir&gt;</span></code></dt><dd><p>Specify the installation directory (default
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_SCRIPTS_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_SCRIPTS_DIR.html#variable:&lt;PROJECT-NAME&gt;_SCRIPTS_DIR" title="&lt;PROJECT-NAME&gt;_SCRIPTS_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_SCRIPTS_DIR</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></dt><dd><p>Scripts will be exported as part of the specified
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#install-export" title="(in CMake v3.27.7)"><span class="xref std std-ref">export set</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">GENERATED</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.10.00: </span>Redundant—added automatically by <span class="target" id="index-0-command:cmake-ref-current:command:add_custom_command"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_custom_command.html#command:add_custom_command" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_custom_command()</span></code></a>.</p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code></dt><dd><p>The scripts shall not be exported as targets.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>The scripts shall not be installed; implies <code class="docutils literal notranslate"><span class="pre">NO_EXPORT</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">REMOVE_EXTENSIONS</span></code></dt><dd><p>Extensions will be removed from script names when they are
+installed.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -144,12 +246,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetMake</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

@@ -8,15 +8,17 @@ buildtool(1)
 Synopsis
 ========
 
-:program:`buildtool` [:ref:`mode-option <buildtool-mode-options>`\|\
-:ref:`combo-option <buildtool-combo-options>` ...] [:ref:`misc-options
-<buildtool-misc-options>`] [``--`` [:ref:`CMake build options
-<buildtool-cmake-build-options>`] [``--`` :ref:`generator options
-<buildtool-generator-options>`]]
+.. parsed-literal::
 
-:program:`buildtool`\  :option:`--help`\|\ :option:`-h`
+   :program:`buildtool` [:ref:`mode-option <buildtool-mode-options>`\|\
+   :ref:`combo-option <buildtool-combo-options>` ...] [:ref:`misc-options
+   <buildtool-misc-options>`]
+   [``--`` [:ref:`CMake build options <buildtool-cmake-build-options>`]\
+   [``--`` :ref:`generator options <buildtool-generator-options>`]]
 
-:program:`buildtool`\  :option:`--usage`
+   :program:`buildtool`\  :option:`--help`\|\ :option:`-h`
+
+   :program:`buildtool`\  :option:`--usage`
 
 :ref:`Exclusive mode options <buildtool-mode-options>`: :option:`-A`\|\
 :option:`--all` :option:`-C`\|\ :option:`--cmake-only` :option:`--info`

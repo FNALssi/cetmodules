@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>CetCmdWrapper &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -23,7 +23,7 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="X" href="CetCopy.html" />
+    <link rel="next" title="CetCopy" href="CetCopy.html" />
     <link rel="prev" title="CetCMakeUtils" href="CetCMakeUtils.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="CetCopy.html" title="X"
+          <a href="CetCopy.html" title="CetCopy"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="CetCMakeUtils.html" title="CetCMakeUtils"
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetCmdWrapper</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,30 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetCmdWrapper"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CetCmdWrapper"></span><section id="cetcmdwrapper">
+<h1>CetCmdWrapper<a class="headerlink" href="#cetcmdwrapper" title="Link to this heading">¶</a></h1>
+<p>Invoke an external command with optional completion timestamp and/or
+deletion of specified outputs on command error.</p>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Link to this heading">¶</a></h2>
+<pre class="literal-block"><span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_COMMAND"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_COMMAND.html#variable:CMAKE_COMMAND" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CMAKE_COMMAND}</span></code></a> -DCMD=&lt;cmd&gt; -DCMD_(ARGS|DONE_STAMP|DELETE_ON_FAILURE)=&lt;val&gt;...
+-P&lt;path-to-CetCmdWrapper.cmake&gt;</pre>
+</section>
+<section id="variables-affecting-behavior">
+<h2>Variables affecting Behavior<a class="headerlink" href="#variables-affecting-behavior" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">CMD</span></code></dt><dd><p>The command to be invoked.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">CMD_ARGS</span></code></dt><dd><p>A semicolon-separated list of arguments to be passed to the command.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">CMD_DONE_STAMP</span></code></dt><dd><p>A file to be touched in the event of a successful (zero exit status)
+execution of the command.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">CMD_DELETE_ON_FAILURE</span></code></dt><dd><p>The specified semicolon-separated list of paths will be recursively
+deleted upon non-zero exit from the command.</p>
+</dd>
+</dl>
+</section>
 </section>
 
 
@@ -91,6 +113,17 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">CetCmdWrapper</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#variables-affecting-behavior">Variables affecting Behavior</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="CetCMakeUtils.html"
                           title="previous chapter">CetCMakeUtils</a></p>
@@ -98,7 +131,7 @@
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="CetCopy.html"
-                          title="next chapter">X</a></p>
+                          title="next chapter">CetCopy</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -128,7 +161,7 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="CetCopy.html" title="X"
+          <a href="CetCopy.html" title="CetCopy"
              >next</a> |</li>
         <li class="right" >
           <a href="CetCMakeUtils.html" title="CetCMakeUtils"
@@ -144,12 +177,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetCmdWrapper</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

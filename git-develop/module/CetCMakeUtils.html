@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetCMakeUtils &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>CetCMakeUtils &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -23,7 +23,7 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="X" href="CetCmdWrapper.html" />
+    <link rel="next" title="CetCmdWrapper" href="CetCmdWrapper.html" />
     <link rel="prev" title="CetCMakeEnv" href="CetCMakeEnv.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="CetCmdWrapper.html" title="X"
+          <a href="CetCmdWrapper.html" title="CetCmdWrapper"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="CetCMakeEnv.html" title="CetCMakeEnv"
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -460,10 +460,10 @@ specified here.</p>
 from <code class="docutils literal notranslate"><span class="pre">&lt;namespace&gt;</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></dt><dd><p>Aliased targets will be exported into <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code>, which will
-be created if necessary with <span class="target" id="index-0-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code> and
+be created if necessary with <span class="target" id="index-0-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a> and
 an appropriate default namespace based on <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code>. If you
 require a different namespace than the default, call
-<span class="target" id="index-1-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code> yourself prior to calling
+<span class="target" id="index-1-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a> yourself prior to calling
 <span class="target" id="index-0-command:cet_export_alias"></span><a class="reference internal" href="#command:cet_export_alias" title="cet_export_alias"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_export_alias()</span></code></a>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Optional separator between a list option and non-option
@@ -491,7 +491,7 @@ will be used.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><span class="target" id="index-2-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code>,
+<p><span class="target" id="index-2-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a>,
 <span class="target" id="index-1-manual:cmake-ref-current:manual:cmake-packages(7)"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-packages.7.html#manual:cmake-packages(7)" title="(in CMake v3.27.7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">cmake-packages(7)</span></code></a></p>
 </div>
 </section>
@@ -507,10 +507,10 @@ will be used.</p>
 </div>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">EXPORT_SET</span> <span class="pre">&lt;export-set&gt;</span></code></dt><dd><p>Aliased targets will be exported into <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code>, which will
-be created if necessary with <span class="target" id="index-3-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code> and
+be created if necessary with <span class="target" id="index-3-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a> and
 an appropriate default namespace based on <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code>. If you
 require a different namespace than the default, call
-<span class="target" id="index-4-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code> yourself prior to calling
+<span class="target" id="index-4-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a> yourself prior to calling
 <span class="target" id="index-1-command:cet_export_alias"></span><a class="reference internal" href="#command:cet_export_alias" title="cet_export_alias"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_export_alias()</span></code></a>. If no <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code> is specified,
 the default export set will be used.</p>
 </dd>
@@ -536,7 +536,7 @@ correct one here.</p>
 <h2>Notes<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><span class="target" id="index-5-command:cet_register_export_set"></span><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code>,
+<p><span class="target" id="index-5-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a>,
 <span class="target" id="index-2-manual:cmake-ref-current:manual:cmake-packages(7)"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-packages.7.html#manual:cmake-packages(7)" title="(in CMake v3.27.7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">cmake-packages(7)</span></code></a></p>
 </div>
 </section>
@@ -611,7 +611,7 @@ of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</sp
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="CetCmdWrapper.html"
-                          title="next chapter">X</a></p>
+                          title="next chapter">CetCmdWrapper</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -641,7 +641,7 @@ of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</sp
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="CetCmdWrapper.html" title="X"
+          <a href="CetCmdWrapper.html" title="CetCmdWrapper"
              >next</a> |</li>
         <li class="right" >
           <a href="CetCMakeEnv.html" title="CetCMakeEnv"
@@ -657,7 +657,7 @@ of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</sp
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

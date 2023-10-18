@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>filter-output(1) &mdash; Cetmodules git-develop-9d16296 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="format-code(1)" href="format-code.1.html" />
+    <link rel="prev" title="code-dep-graph(1)" href="code-dep-graph.1.html" />
+  
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="format-code.1.html" title="format-code(1)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">git-develop-9d16296</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">filter-output(1)</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../latest/manual/filter-output.1.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="manual:filter-output(1)"></span><section id="filter-output-1">
+<h1>filter-output(1)<a class="headerlink" href="#filter-output-1" title="Link to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Link to this heading">¶</a></h2>
+<pre class="literal-block"><code class="docutils literal notranslate"><span class="pre">&lt;my-test-program&gt;</span></code> <code class="docutils literal notranslate"><span class="pre">[&lt;arg&gt;</span> <span class="pre">...]</span></code> | <strong class="program">filter-output</strong></pre>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p><strong class="program">filter-output</strong> is a filter, receiving input on <code class="docutils literal notranslate"><span class="pre">STDIN</span></code> and
+producing output on <code class="docutils literal notranslate"><span class="pre">STDOUT</span></code>.</p>
+<p><strong class="program">filter-output</strong> is usually invoked as part of a test
+configured using the <span class="target" id="index-0-command:cet_test"></span><a class="reference internal" href="../module/CetTest.html#command:cet_test" title="cet_test"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_test()</span></code></a> command in order to sanitize
+the test-output to improve its suitability for comparison with a
+reference to (e.g.) detect regressions. It may also be used in order to
+produce such references for later comparison.</p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p>The following transformations are performed on
+<strong class="program">filter-output</strong>’s input:</p>
+<ul class="simple">
+<li><p>Recognizable date/time formats -&gt; <code class="docutils literal notranslate"><span class="pre">&lt;date-time&gt;</span></code>.</p></li>
+<li><p>Variable length separator/filler strings of at least 15 consecutive
+occurrences of the same symbol (<code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">=</span></code>, <code class="docutils literal notranslate"><span class="pre">.</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">~</span></code> or
+<code class="docutils literal notranslate"><span class="pre">/</span></code>) -&gt; <code class="docutils literal notranslate"><span class="pre">&lt;separator</span> <span class="pre">(&lt;char&gt;)&gt;</span></code>.</p></li>
+<li><p>Platform identifiers starting with <code class="docutils literal notranslate"><span class="pre">Darwin</span></code> or <code class="docutils literal notranslate"><span class="pre">Linux</span></code> -&gt;
+<code class="docutils literal notranslate"><span class="pre">&lt;platform&gt;</span></code>.</p></li>
+</ul>
+<div class="admonition-app admonition">
+<p class="admonition-title"><a class="reference external" href="https://art.fnal.gov/">art</a></p>
+<ul class="simple">
+<li><p>Absolute paths to source files ending in
+<code class="docutils literal notranslate"><span class="pre">_(plugin|module|service|tool).cc</span></code> are truncated to <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;/</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TimeReport</span></code> values -&gt; <code class="docutils literal notranslate"><span class="pre">&lt;duration&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MemReport</span></code> sections are elided.</p></li>
+</ul>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<ul>
+<li><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>my-test<span class="w"> </span><span class="p">|</span><span class="w"> </span>filter-output<span class="w"> </span>&gt;my-test-ref.out<span class="w"> </span><span class="m">2</span>&gt;my-test-ref.err
+</pre></div>
+</div>
+</li>
+<li><pre class="literal-block"><span class="target" id="index-1-command:cet_test"></span><a class="reference internal" href="../module/CetTest.html#handbuilt" title="cet_test(handbuilt)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_test</span></code></a>(my-test HANDBUILT TEST_EXEC my-test REF my-test-ref.out my-test-ref.err)</pre>
+</li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">filter-output(1)</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#details">Details</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="code-dep-graph.1.html"
+                          title="previous chapter">code-dep-graph(1)</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="format-code.1.html"
+                          title="next chapter">format-code(1)</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/filter-output.1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="format-code.1.html" title="format-code(1)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">git-develop-9d16296</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">filter-output(1)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2023, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

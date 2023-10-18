@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>InstallPkgMeta &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../../_static/documentation_options.js?v=96328d05"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,12 +55,12 @@
     <a href="../../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">InstallPkgMeta</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,56 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:InstallLicense"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:InstallLicense"></span><section id="installpkgmeta">
+<h1>InstallPkgMeta<a class="headerlink" href="#installpkgmeta" title="Link to this heading">¶</a></h1>
+<p>This module defines <span class="target" id="index-0-command:install_pkgmeta"></span><a class="reference internal" href="#command:install_pkgmeta" title="install_pkgmeta"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_pkgmeta()</span></code></a> and the deprecated
+<span class="target" id="index-0-command:install_license"></span><a class="reference internal" href="#command:install_license" title="install_license"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_license()</span></code></a> to install metadata files such as
+<code class="docutils literal notranslate"><span class="pre">INSTALL</span></code>, <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, or <code class="docutils literal notranslate"><span class="pre">README</span></code>.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:install_pkgmeta">
+<span class="sig-name descname"><span class="pre">install_pkgmeta</span></span><a class="headerlink" href="#command:install_pkgmeta" title="Link to this definition">¶</a></dt>
+<dd><p>Install metadata files.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">install_pkgmeta(</span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">INSTALLER_LICENSE</span> <span class="pre">&lt;license-file&gt;</span></code></dt><dd><p>Install the specified <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> file.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">INSTALLER_README</span> <span class="pre">&lt;readme-file&gt;</span></code></dt><dd><p>Install the specified <code class="docutils literal notranslate"><span class="pre">README</span></code> file.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">INSTALLER_WELCOME</span> <span class="pre">&lt;welcome-file&gt;</span></code></dt><dd><p>Install the specified <code class="docutils literal notranslate"><span class="pre">WELCOME</span></code> file.</p>
+</dd>
+</dl>
+<p>Unrecognized options are passed to <span class="target" id="index-0-command:_cet_install"></span><a class="reference internal" href="../CetInstall.html#command:_cet_install" title="_cet_install"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">_cet_install()</span></code></a></p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p>The following patterns are used to identify metadata files for
+installation in addition to any options used:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">COPYING</span></code>, <code class="docutils literal notranslate"><span class="pre">COPYING.*</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LICEN[CS]E</span></code>, <code class="docutils literal notranslate"><span class="pre">LICEN[CS]E.*</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LICEN[CS]ES</span></code>, <code class="docutils literal notranslate"><span class="pre">LICEN[CS]ES.*</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INSTALL*</span></code>, <code class="docutils literal notranslate"><span class="pre">*README*</span></code></p></li>
+</ul>
+<p>If not identified specifically by the relevant option, the
+lexically-first identified <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, <code class="docutils literal notranslate"><span class="pre">README</span></code>, or <code class="docutils literal notranslate"><span class="pre">WELCOME</span></code>
+files will be used to set <span class="target" id="index-0-variable:cmake-ref-current:variable:CPACK_RESOURCE_FILE_LICENSE"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/module/CPack.html#variable:CPACK_RESOURCE_FILE_LICENSE" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CPACK_RESOURCE_FILE_LICENSE</span></code></a>,
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CPACK_RESOURCE_FILE_README"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/module/CPack.html#variable:CPACK_RESOURCE_FILE_README" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CPACK_RESOURCE_FILE_README</span></code></a>, and,
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CPACK_RESOURCE_FILE_WELCOME"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/module/CPack.html#variable:CPACK_RESOURCE_FILE_WELCOME" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CPACK_RESOURCE_FILE_WELCOME</span></code></a>
+respectively.</p>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:install_license">
+<span class="sig-name descname"><span class="pre">install_license</span></span><a class="headerlink" href="#command:install_license" title="Link to this definition">¶</a></dt>
+<dd><p>Install metadata files.</p>
+<p>..deprecated:: use <span class="target" id="index-1-command:install_pkgmeta"></span><a class="reference internal" href="#command:install_pkgmeta" title="install_pkgmeta"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_pkgmeta()</span></code></a>.</p>
+</dd></dl>
+
 </section>
 
 
@@ -144,12 +192,12 @@
     <a href="../../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">InstallPkgMeta</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

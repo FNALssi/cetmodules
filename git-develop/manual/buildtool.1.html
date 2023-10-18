@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>buildtool(1) &mdash; Cetmodules git-develop-1ffbe95 Reference</title>
+  <title>buildtool(1) &mdash; Cetmodules git-develop-9d16296 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=567c09b0"></script>
+    <script src="../_static/documentation_options.js?v=96328d05"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -82,9 +82,12 @@
 <h1>buildtool(1)<a class="headerlink" href="#buildtool-1" title="Link to this heading">¶</a></h1>
 <section id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Link to this heading">¶</a></h2>
-<p><strong class="program">buildtool</strong> [<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option</span></a> …] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>] [<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]</p>
-<p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a></p>
-<p><strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-usage"><code class="xref std std-option docutils literal notranslate"><span class="pre">--usage</span></code></a></p>
+<pre class="literal-block"><strong class="program">buildtool</strong> [<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option</span></a> ...] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>]
+[<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>][<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]
+
+<strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a>
+
+<strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-usage"><code class="xref std std-option docutils literal notranslate"><span class="pre">--usage</span></code></a></pre>
 <p><a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">Exclusive mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">-A</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">--all</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">-C</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-only</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--info</span></code></a></p>
 <p><a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">Other mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">-b</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">--build</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">-i</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-p</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">--package</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--sc</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--short-circuit</span></code></a>
 <a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">-t</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test</span></code></a></p>
@@ -716,7 +719,7 @@ parallelism is controlled by the generator (e.g. <code class="docutils literal n
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-1ffbe95</span>
+    <span class="version_switch">git-develop-9d16296</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
