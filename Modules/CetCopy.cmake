@@ -1,50 +1,12 @@
 #[================================================================[.rst:
-X
--
+CetCopy
+-------
+
+Module defining the function :command:`cet_copy` to copy a file or files
+to a destination directory as part of the build.
+
 #]================================================================]
-########################################################################
-# cet_copy
-#
-# Simple internal copy target to avoid triggering a CMake when files
-# have changed.
-#
-# Usage: cet_copy(<sources>... DESTINATION <dir> [options])
-#
-####################################
-# Options:
-#
-# DEPENDENCIES <deps>...
-#
-#   If any <deps> change, the file shall be re-copied (the source file
-#   itself is always a dependency).
-#
-# NAME
-#
-#   New name for the file in its final destination.
-#
-# NAME_AS_TARGET
-#
-#   Use the basename of the file as the target for the copy operation,
-#   in order to facilitate dependency references. This non-default
-#   option has the caveat that it is left to the package author to
-#   ensure that there are no name collisions.
-#
-# PROGRAMS
-#
-#   Copied files should be made executable.
-#
-# WORKING_DIRECTORY <dir>
-#
-#   Paths are relative to the specified directory (default
-#   CMAKE_CURRENT_BINARY_DIR).
-#
-####################################
-# Notes
-#
-# For PROGRAMS, custom commands using them will be updated when the
-# program changes if one lists the script in the DEPENDS list of the
-# custom command.
-########################################################################
+
 
 # Avoid unnecessary repeat inclusion.
 include_guard()
@@ -53,12 +15,81 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetPackagePath)
 
+#[================================================================[.rst:
+.. command:: cet_copy
+
+   Copy one or more files as part of the build process (defining a
+   target).
+
+   .. parsed-literal::
+
+      cet_copy(<source> DESTINATION <dir> :ref:`common options <cet_copy-common-options>` \
+      :ref:`single-source options <cet_copy-single-source-options>`)
+
+      cet_copy(<sources>... DESTINATION <dir> :ref:`common options <cet_copy-common-options>`)
+
+   .. versionchanged:: 3.23.00
+                     
+      Use of :ref:`single-source options
+      <cet_copy-single-source-options>` for multiple sources is an
+      error.
+
+   Options
+   ^^^^^^^
+
+   ``DESTINATION <directory>``
+     The destination directory. If relative, the destination shall be
+     calculated relative to :variable:`CMAKE_CURRENT_BINARY_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>`
+
+   .. _cet_copy-common-options:
+
+   Common options
+   """"""""""""""
+
+   ``DEPENDENCIES <dep>...``
+     If ``<dep>`` changes, ``<sources>`` shall be considered out-of-date
+     (``<source>`` is always a dependency of its corresponding copy
+     command).
+
+   ``PROGRAMS``
+     Copied files should be made executable at their destination.
+
+   ``WORKING_DIRECTORY <dir>``
+     Specify the working directory for the copy command (default
+     :variable:`CMAKE_CURRENT_BINARY_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>`).
+
+   .. _cet_copy-single-source-options:
+
+   Single-source options
+   """""""""""""""""""""
+
+   ``NAME <name>``
+     New name for the file in its final destination.
+
+   ``NAME_AS_TARGET``
+     If specified, the target name will be the basename of the
+     destination file; otherwise it will be formed by calculating the
+     destination path relative to
+     :variable:`CETMODULES_CURRENT_PROJECT_BINARY_DIR` and replacing
+     path separators with ``_``.
+
+   ``TARGET_VAR <var>``
+     Return the calculated target name as ``<var>``.
+
+#]================================================================]
+
 function (cet_copy)
   cmake_parse_arguments(PARSE_ARGV 0 CETC "PROGRAMS;NAME_AS_TARGET"
     "DESTINATION;NAME;TARGET_VAR;WORKING_DIRECTORY"
     "DEPENDENCIES")
   if (NOT CETC_DESTINATION)
     message(FATAL_ERROR "Missing required option argument DESTINATION")
+  endif()
+  list(LENGTH CETC_UNPARSED_ARGUMENTS num_sources)
+  if (num_sources GREATER 1 AND (CETC_NAME OR CET_NAME_AS_TARGET OR CET_TARGET_VAR))
+    message(STATUS "Specification of multiple sources is incompatible with NAME, NAME_AS_TARGET, or TARGET_VAR")
   endif()
   get_filename_component(real_dest "${CETC_DESTINATION}" REALPATH)
   if (NOT CETC_WORKING_DIRECTORY)

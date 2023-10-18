@@ -21,11 +21,17 @@ Generation, Installation, and Export
 
 * :command:`basic_plugin`
 * :command:`build_dictionary`
+* :command:`cet_copy`
 * :command:`check_class_version`
 * :command:`cet_cmake_config`
 * :command:`cet_cmake_module_directories`
 * :command:`cet_make_alias`
 * :command:`cet_make_library`
+* :command:`cet_make_exec`
+* :command:`cet_register_export_set`
+* :command:`cet_script`
+* :command:`cet_test`
+* :command:`install_pkgmeta`
 
 Utility
 =======
@@ -35,9 +41,12 @@ Utility
 * :command:`cet_passthrough`
 * :command:`cet_real_path`
 * :command:`cet_source_file_extensions`
+* :command:`cet_test_assertion`
+* :command:`cet_test_env`
 * :command:`cet_timestamp`
 
 Deprecated
 ==========
 
 * :command:`cet_find_simple_package`
+* :command:`cet_register_export_name`

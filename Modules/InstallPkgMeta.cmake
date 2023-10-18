@@ -1,39 +1,63 @@
 #[================================================================[.rst:
-X
--
+InstallPkgMeta
+--------------
+
+This module defines :command:`install_pkgmeta` and the deprecated
+:command:`install_license` to install metadata files such as
+``INSTALL``, ``LICENSE``, or ``README``.
+
 #]================================================================]
-########################################################################
-# install_pkgmeta()
-# install_license()
-#
-#   Install package metadata such as INSTALL, README and LICENSE files
-# in ${${CETMODULES_CURRENT_PROJECT_NAME}_PKG_META_DIR}.
-#
-# Usage: install_pkgmeta([SUBDIRNAME <subdir>] LIST ...)
-#        install_pkgmeta([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
-#          [EXCLUDES ...] [EXTRAS ...] [SUBDIRS ...])
-#
-# Both forms take optional one-argument install options
-# INSTALLER_LICENSE, INSTALLER_README and INSTALLER_WELCOME. These are
-# ignored for "normal" tar-based archives, but if one specifies one or
-# more suitable CPACK_GENERATOR values, the specified files will be
-# embedded into the appropriate installer by CPack irrespective of any
-# instruction to install the file.
-#
-# See CetInstall.cmake for full usage description.
-#
-# Recognized filename patterns:
-#   INSTALL* *README* LICEN[CS]E LICEN[CS]E.* COPYING COPYING.*
-#
-# "install_license" was never completely appropriate as a name, so now
-# we have a preferred new name with the former retained for historical
-# compatibility.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+
+#[================================================================[.rst:
+.. command:: install_pkgmeta
+
+   Install metadata files.
+
+   .. code-block:: cmake
+
+      install_pkgmeta([<options>])
+
+   Options
+   ^^^^^^^
+
+   ``INSTALLER_LICENSE <license-file>``
+     Install the specified ``LICENSE`` file.
+
+   ``INSTALLER_README <readme-file>``
+     Install the specified ``README`` file.
+
+   ``INSTALLER_WELCOME <welcome-file>``
+     Install the specified ``WELCOME`` file.
+
+   Unrecognized options are passed to :command:`_cet_install`
+
+   Details
+   ^^^^^^^
+
+   The following patterns are used to identify metadata files for
+   installation in addition to any options used:
+
+   * ``COPYING``, ``COPYING.*``
+   * ``LICEN[CS]E``, ``LICEN[CS]E.*``
+   * ``LICEN[CS]ES``, ``LICEN[CS]ES.*``
+   * ``INSTALL*``, ``*README*``
+
+   If not identified specifically by the relevant option, the
+   lexically-first identified ``LICENSE``, ``README``, or ``WELCOME``
+   files will be used to set :variable:`CPACK_RESOURCE_FILE_LICENSE
+   <cmake-ref-current:variable:CPACK_RESOURCE_FILE_LICENSE>`,
+   :variable:`CPACK_RESOURCE_FILE_README
+   <cmake-ref-current:variable:CPACK_RESOURCE_FILE_README>`, and,
+   :variable:`CPACK_RESOURCE_FILE_WELCOME
+   <cmake-ref-current:variable:CPACK_RESOURCE_FILE_WELCOME>`
+   respectively.
+
+#]================================================================]
 
 function(install_pkgmeta)
   project_variable(PKG_META_DIR .
@@ -46,7 +70,7 @@ function(install_pkgmeta)
   _cet_install(pkgmeta ${CETMODULES_CURRENT_PROJECT_NAME}_PKG_META_DIR
     ${_IP_UNPARSED_ARGUMENTS}
     _SQUASH_SUBDIRS _INSTALL_ONLY
-    _EXTRA_EXTRAS ${_IP_LIST} ${_IP_INSTALLER_LICENSE}
+    _EXTRA_EXTRAS ${_IP_INSTALLER_LICENSE}
     ${_IP_INSTALLER_README} ${_IP_INSTALLER_WELCOME}
     _INSTALLED_FILES_VAR installed_files
     _GLOBS "INSTALL*" "*README*"
@@ -85,6 +109,15 @@ function(install_pkgmeta)
       "Installer WELCOME file for CMake Project ${CMAKE_PROJECT}")
   endif()
 endfunction()
+
+#[================================================================[.rst:
+.. command:: install_license
+
+   Install metadata files.
+
+   ..deprecated:: use :command:`install_pkgmeta`.
+
+#]================================================================]
 
 function(install_license)
   message(WARNING "install_license() is deprecated in favor of install_pkgmeta()")

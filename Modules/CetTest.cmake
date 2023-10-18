@@ -1,7 +1,13 @@
 #[================================================================[.rst:
-X
--
+CetTest
+-------
+
+  This module defines the function :command:`cet_test` to specify tests,
+  and the related utility functions :command:`cet_test_env`, and
+  :command:`cet_test_assertion`.
+
 #]================================================================]
+
 ########################################################################
 # cet_test: specify tests in a concise and transparent way (see also
 #           cet_test_env() and cet_test_assertion(), below).
@@ -305,6 +311,296 @@ define_property(TEST PROPERTY KEYWORDS
   FULL_DOCS "ETHEL")
 ##################
 
+#[================================================================[.rst:
+.. command:: cet_test
+
+   Define a test target for execution by :manual:`ctest(1)
+   <cmake-ref-current:manual:ctest(1)>`
+
+   .. seealso:: :command:`add_test() <cmake-ref-current:command:add_test>`.
+
+   .. parsed-literal::
+
+      cet_test([`BUILD_EXECUTABLE`_] :ref:`\<target> <cet_test-target>` :ref:`\<build-options> <cet_test-build-options>` [:ref:`\<install-options> <cet_test-install-options>`]
+               [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+      cet_test(`COMPILE_ONLY`_ :ref:`\<target> <cet_test-target>` :ref:`\<build-options> <cet_test-build-options>` [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+      cet_test(`HANDBUILT`_ :ref:`\<target> <cet_test-target>` [:ref:`\<install-options> <cet_test-install-options>`] [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+      cet_test(`PREBUILT`_ :ref:`\<target> <cet_test-target>` [:ref:`DEPENDENCIES \<dep-target> ... <cet_test-DEPENDENCIES-opt>`] [:ref:`\<install-options> <cet_test-install-options>`]
+               [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+
+   .. signature::
+      cet_test(BUILD_EXECUTABLE <target> <build-options> [...])
+
+      .. parsed-literal::
+
+         cet_test([BUILD_EXECUTABLE] :ref:`\<target> <cet_test-target>` :ref:`\<build-options> <cet_test-build-options>` [:ref:`\<install-options> <cet_test-install-options>`]
+                  [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+
+      Build the test executable with specified ``build-options`` in
+      addition to configuring its invocation as a test.
+
+   .. signature::
+      cet_test(COMPILE_ONLY <target> <build-options> [...])
+
+      .. versionadded:: 3.21.00
+
+      .. parsed-literal::
+
+         cet_test(COMPILE_ONLY :ref:`\<target> <cet_test-target>` :ref:`\<build-options> <cet_test-build-options>` [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+
+      Configure a test to compile and link—but not run—an executable.
+
+   .. signature::
+      cet_test(PREBUILT <target> [...])
+
+      .. parsed-literal::
+
+         cet_test(PREBUILT :ref:`\<target> <cet_test-target>` [:ref:`DEPENDENCIES \<dep-target> ... <cet_test-DEPENDENCIES-opt>`] [:ref:`\<install-options> <cet_test-install-options>`]
+                  [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+
+      Configure a test to run a script.
+
+   .. signature::
+      cet_test(HANDBUILT <target> [...])
+
+      .. parsed-literal::
+
+         cet_test(HANDBUILT :ref:`\<target> <cet_test-target>` [:ref:`\<install-options> <cet_test-install-options>`] [:ref:`NO_AUTO <cet_test-NO_AUTO-opt>`\|\ :ref:`\<test-options> <cet_test-test-options>`])
+
+      Configure a test to run an arbitrary executable.
+
+   Options
+   ^^^^^^^
+
+   .. _cet_test-DEPENDENCIES-opt:
+
+   ``DEPENDENCIES <dep-target> ...``
+     List of top-level dependencies to consider for a ``PREBUILT``
+     target. "Top-level" implies a target (not file) created with
+     :command:`add_executable()
+     <cmake-ref-current:command:add_executable>`,
+     :command:`add_library() <cmake-ref-current:command:add_library>` or
+     :command:`add_custom_target()
+     <cmake-ref-current:command:add_custom_target>`.
+     
+     .. seealso::
+
+        :command:`add_dependencies()
+        <cmake-ref-current:command:add_dependencies>`
+
+   .. _cet_test-NO_AUTO-opt:
+
+   ``NO_AUTO``
+     Do not configure the test(s) with :command:`add_test()
+     <cmake-ref-current:command:add_test>`.
+
+   .. _cet_test-build-options:
+
+   Build options
+   """""""""""""
+
+   ``LIBRARIES <library-specification> ...``
+     Library dependencies (passed to :command:`target_link_libraries()
+     <cmake-ref-current:command:target_link_libraries>`).
+
+   ``SOURCE <source> ...``
+     Source files from which to build the test executable.
+
+   ``SOURCES <source> ...``
+     .. deprecated:: 2.10.00 use ``SOURCE``.
+
+   ``USE_BOOST_UNIT``
+     The executable uses `Boost unit test functions
+     <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
+
+   ``USE_CATCH2_MAIN``
+     The executable uses a generic `Catch2
+     <https://github.com/catchorg/Catch2>`_ ``main()`` function and
+     should be compiled and linked accordingly.
+
+   ``USE_CATCH_MAIN``
+     .. deprecated:: 2.10.00 use ``USE_CATCH2_MAIN``
+
+   .. _cet_test-install-options:
+
+   Install options
+   """""""""""""""
+
+   ``EXPORT_SET <export-set>``
+     The executable will be exported as part of the specified
+     :external+cmake-ref-current:ref:`export set <install(export)>`.
+
+   ``INSTALL_BIN``
+     Install the test script/executable into the package's binary
+     directory.
+
+   ``INSTALL_EXAMPLE``
+     Install the test's source and data files into the package's
+     examples area.
+
+   ``INSTALL_SOURCE``
+     Install the source files for the test in the package's source area.
+
+   ``NO_EXPORT``
+     The executable target will not be exported or installed.
+
+   .. _cet_test-test-options:
+
+   Test options
+   """"""""""""
+
+   ``CONFIGURATIONS <config> ...``
+     The test is valid for the specified CMake configuration(s)
+
+   ``DATAFILES <file> ...``
+     Input and/or reference output files to be copied to the test area in the
+     build tree for use by the test. If there is no path, or a relative
+     path, the file is assumed to be in or under
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
+
+   ``DIRTY_WORKDIR``
+     If set, the working directory will not be cleared prior to
+     execution of the test.
+
+   ``NO_OPTIONAL_GROUPS``
+     Do not apply any CMake test labels to the configured
+     test(s). Default behavior is to add the labels, ``DEFAULT`` and
+     ``RELEASE`` to each test.
+
+   ``OPTIONAL_GROUPS <test-group> ...``
+     Add the specified CMake test labels to the configured test(s).
+
+   ``OUTPUT_FILTER <filter>``
+     Specify a single filter for test output. Specify arguments to same
+     with ``OUTPUT_FILTER_ARGS``. Mutually-exclusive with
+     ``OUTPUT_FILTERS``.
+
+   ``OUTPUT_FILTERS "<filter [<filter-args>]>" ...``
+     Specify one or more filters to apply sequentially to test
+     output. Each specified filter with its arguments must be quoted as
+     a single shell "word." Mutually-exclusive with ``OUTPUT_FILTER``
+     and ``OUTPUT_FILTER_ARGS``.
+
+     .. note::
+
+        If no output filters are specified, a :manual:`default output
+        filter <filter-output(1)>` is run to remove dates, times,
+        pointer values and other sources of
+        distinction-without-a-difference. If you wish to invoke this
+        filter in addition to your own, use the alias ``DEFAULT`` as a
+        ``<filter>`` to specify its position in the filter invocation
+        sequence.
+
+   ``OUTPUT_FILTER_ARGS <arg> ...``
+     Specify arguments to ``<filter>`` as specified by
+     ``OUTPUT_FILTER``. Mutually-exclusive with ``OUTPUT_FILTERS``.
+
+   ``PARG_<label> <opt>[=] <opt-val> ...``
+     Specify a parameter axis ``<label>`` with values to configure a
+     combinatoric family of tests. ``<label>`` must be unique within a
+     single ``cet_test()`` invocation. If ``<opt>`` is specified with a
+     trailing ``=`` then tests will be executed with arguments
+     ``<opt>=<opt-val>`` rather than ``<opt> <opt-val>``.
+
+     .. note::
+
+        * Test target names will have ``_<num>`` appended, where
+          ``<num>`` is zero-padded to ensure the same number of digits
+          are appended to each target name.
+
+        * Permuted arguments will *precede* ``TEST_ARGS``.
+
+        * In the case of multiple ``PARG...`` options, permuted
+          arguments will be combined linearly rather than
+          multiplicatively, with shorter parameter lists being repeated
+          cyclically as necessary.
+
+   ``REF <output-ref> [<error-ref>]``
+     Specify an output and optional error-output reference file with
+     which to compare the (possibly filtered) output of the configured
+     test(s). Incompatible with the CMake test properties
+     :prop_test:`PASS_REGULAR_EXPRESSION
+     <cmake-ref-current:prop_test:PASS_REGULAR_EXPRESSION>` and
+     :prop_test:`FAIL_REGULAR_EXPRESSION
+     <cmake-ref-current:prop_test:FAIL_REGULAR_EXPRESSION>`.
+
+   ``REMOVE_ON_FAILURE <file-or-dir> ...``
+     Upon ``TEST_EXEC`` failure, these files and/or directories shall be
+     removed if they exist.
+
+   ``REQUIRED_FILES <file> ...``
+     These files are required to be present before the test will be
+     executed. If any are missing, :manual:`ctest
+     <cmake-ref-current:manual:ctest(1)>` will record ``NOT RUN`` for
+     this test.
+
+   .. _cet_test-REQUIRED_FIXTURES-opt:
+
+   ``REQUIRED_FIXTURES <test-target> ...``
+     Each specified ``<test-target>`` must be run prior to the test(s)
+     currently being configured. If ``<test-target>`` is missing from
+     the test selection for a given :manual:`ctest
+     <cmake-ref-current:manual:ctest(1)>`, it will be added.
+
+   .. _cet_test-REQUIRED_TESTS-opt:
+
+   ``REQUIRED_TESTS <test-target> ...``
+     As per ``REQUIRED_FIXTURES``, except that the test selection will
+     only be amended if
+     :variable:`\<PROJECT-NAME>_TEST_DEPS_AS_FIXTURES` is ``TRUE``.
+
+   ``*SAN_OPTIONS <val>``
+     Specify the desired value of the corresponding sanitizer control
+     environment variable for the configured test(s).
+
+   ``SCOPED``
+     Test target names will have
+     :variable:`CETMODULES_CURRENT_PROJECT_NAME`: prepended.
+
+   ``TEST_ARGS <arg> ...``
+     Specify arguments to the test executable for the configured
+     test(s).
+
+   ``TEST_EXEC <test-exec>``
+     Specify the executable to be run by the configured test(s). Valid
+     only for ``HANDBUILT`` tests.
+
+   ``TEST_PROPERTIES <prop>=<val> ...``
+     Properties to be added to the test.
+
+     .. note::
+
+        Properties must be properly escaped to avoid unwanted
+        interpolation by CMake.
+
+     .. seealso::
+
+        :command:`set_tests_properties() <cmake-ref-current:command:set_tests_properties>`,
+        :external+cmake-ref-current:ref:`CMake target properties <target properties>`.
+
+   ``TEST_WORKDIR <dir>``
+     Test to execute (and support files to be copied to) ``<dir>``. If
+     not specified, :variable:`${CMAKE_CURRENT_BINARY_DIR}
+     <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>`\/\
+     :ref:`\<target> <cet_test-target>`:file:`.d` will be created and used. If
+     relative or not qualified, ``<dir>`` is assumed to be releative to
+     :variable:`${CMAKE_CURRENT_BINARY_DIR}
+     <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>`.
+
+
+   Non-option arguments
+   """"""""""""""""""""
+
+   .. _cet_test-target:
+
+   ``<target>``
+     The name of the test target, and/or the build target if one is
+     generated.
+
+#]================================================================]
+
 function(cet_test CET_TARGET)
   if (NOT BUILD_TESTING) # See CMake's CTest module.
     return()
@@ -315,7 +611,7 @@ function(cet_test CET_TARGET)
       "target name with the HANDBUILT and TEST_EXEC options instead.")
   endif()
   cmake_parse_arguments(PARSE_ARGV 1 CET
-    "COMPILE_ONLY;DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
+    "BUILD_EXECUTABLE;COMPILE_ONLY;DIRTY_WORKDIR;HANDBUILT;INSTALL_BIN;INSTALL_EXAMPLE;INSTALL_SOURCE;NO_AUTO;NO_EXPORT;NO_OPTIONAL_GROUPS;PREBUILT;SCOPED;USE_BOOST_UNIT;USE_CATCH2_MAIN;USE_CATCH_MAIN"
     "EXPORT_SET;OUTPUT_FILTER;TEST_EXEC;TEST_WORKDIR"
     "CONFIGURATIONS;DATAFILES;DEPENDENCIES;LIBRARIES;OPTIONAL_GROUPS;OUTPUT_FILTERS;OUTPUT_FILTER_ARGS;REF;REMOVE_ON_FAILURE;REQUIRED_FILES;REQUIRED_FIXTURES;REQUIRED_TESTS;SOURCE;SOURCES;TEST_ARGS;TEST_PROPERTIES")
   if (CET_OUTPUT_FILTERS AND CET_OUTPUT_FILTER_ARGS)
@@ -337,13 +633,14 @@ function(cet_test CET_TARGET)
   endif()
 
   if (CET_COMPILE_ONLY AND
-      (CET_HANDBUILT OR
+      (CET_BUILD_EXECUTABLE OR CET_HANDBUILT OR
         CET_INSTALL_BIN OR CET_INSTALL_EXAMPLE OR
         CET_NO_AUTO OR CET_NO_EXPORT OR CET_PREBUILT OR CET_EXPORT_SET OR
-        CET_TEST_EXEC OR CET_DATAFILES OR CET_REF OR CET_REQUIRED_FILES OR
+        CET_TEST_EXEC OR CET_DATAFILES OR CET_REQUIRED_FILES OR
         CET_REQUIRED_FIXTURES OR CET_REQUIRED_TESTS OR CET_TEST_ARGS OR
         CET_TEST_WORKDIR))
     message(FATAL_ERROR "COMPILE_ONLY is incompatible with the following options:
+BUILD_EXECUTABLE
 HANDBUILT
 INSTALL_BIN
 INSTALL_EXAMPLE
@@ -353,7 +650,6 @@ PREBUILT
 EXPORT_SET
 TEST_EXEC
 DATAFILES
-REF
 REQUIRED_FILES
 REQUIRED_FIXTURES
 REQUIRED_TESTS
@@ -642,6 +938,12 @@ CONFIGURATIONS DATAFILES DIRTY_WORKDIR NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT
   endif()
 endfunction(cet_test)
 
+#[================================================================[.rst:
+.. command:: cet_test_assertion
+
+
+#]================================================================]
+
 function(cet_test_assertion CONDITION FIRST_TARGET)
   if (CMAKE_SYSTEM_NAME MATCHES "Darwin" )
     set_tests_properties(${FIRST_TARGET} ${ARGN} PROPERTIES
@@ -655,6 +957,11 @@ function(cet_test_assertion CONDITION FIRST_TARGET)
       )
   endif()
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_test_env
+
+#]================================================================]
 
 function(cet_test_env)
   cmake_parse_arguments(PARSE_ARGV 0 CET_TEST "CLEAR" "" "")
@@ -873,4 +1180,3 @@ function(_update_defined_test_groups)
     FORCE
     )
 endfunction()
-

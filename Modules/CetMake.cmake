@@ -1,62 +1,15 @@
 #[================================================================[.rst:
-X
--
+CetMake
+-------
+
+``CetMake.cmake`` defines several commands for specifying build
+operations in CMake:
+
+
+* :command:`cet_make_exec`
+* :command:`cet_script`
+
 #]================================================================]
-########################################################################
-# CetMake.cmake
-#
-# Identify the files in the current source directory and deal with them
-# appropriately.
-#
-# cet_make_library( LIBRARY_NAME <library name>
-#                   SOURCE <source code list>
-#                   [LIBRARIES <library list>]
-#                   [WITH_STATIC_LIBRARY]
-#                   [NO_INSTALL] )
-#
-#   Make the named library.
-#
-# cet_make_exec( <executable name>
-#                [SOURCE <source code list>]
-#                [LIBRARIES <library link list>]
-#                [USE_BOOST_UNIT]
-#                [NO_INSTALL] )
-#
-#   Build a regular executable.
-#
-# cet_script( <script-names> ...
-#             [DEPENDENCIES <deps>]
-#             [NO_INSTALL]
-#             [GENERATED]
-#             [REMOVE_EXTENSIONS] )
-#
-#   Copy the named scripts to ${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR} (usually bin/).
-#
-#   If the GENERATED option is used, the script will be copied from
-#   ${CMAKE_CURRENT_BINARY_DIR} (after being made by a CONFIGURE
-#   command, for example); otherwise it will be copied from
-#   ${CMAKE_CURRENT_SOURCE_DIR}.
-#
-#   If REMOVE_EXTENSIONS is specified, extensions will be removed from script names
-#   when they are installed.
-#
-#   NOTE: If you wish to use one of these scripts in a CUSTOM_COMMAND,
-#   list its name in the DEPENDS clause of the CUSTOM_COMMAND to ensure
-#   it gets re-run if the script chagees.
-#
-# cet_lib_alias(LIB_TARGET <alias>+)
-#
-#   Create a courtesy link to the library specified by LIB_TARGET for
-#   each specified <alias>, for e.g. backward compatibility
-#   reasons. LIB_TARGET must be a target defined (ultimately) by
-#   add_library.
-#
-#   e.g. cet_lib_alias(nutools_SimulationBase SimulationBase) would
-#   create a new link (e.g.) libSimulationBase.so to the generated
-#   library libnutools_SimulationBase.so (replace .so with .dylib for OS
-#   X systems).
-#
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -69,6 +22,75 @@ include(CetProcessLiblist)
 include(CetRegisterExportSet)
 
 set(_cet_make_exec_usage "")
+
+#[================================================================[.rst:
+.. command:: cet_make_exec
+
+   Make an executable.
+
+   .. seealso:: :command:`add_executable()
+                <cmake-ref-current:command:add_executable>`.
+
+   .. code-block:: cmake
+
+      cet_make_exec(NAME <exec-name> [<options>])
+
+   Options
+   ^^^^^^^
+
+   ``EXCLUDE_FROM_ALL``
+     Set the :prop_tgt:`EXCLUDE_FROM_ALL
+     <cmake-ref-current:prop_tgt:EXCLUDE_FROM_ALL>` property on the
+     executable target.
+
+   ``EXEC_NAME <exec-name>``
+     .. deprecated:: 2.10.00 use ``NAME <exec-name> instead``
+
+   ``EXPORT_SET <export-set>``
+     The executable will be exported as part of the specified
+     :external+cmake-ref-current:ref:`export set <install(export)>`.
+
+   ``LIBRARIES <library-specification> ...``
+     Library dependencies (passed to :command:`target_link_libraries()
+     <cmake-ref-current:command:target_link_libraries>`).
+
+   ``LOCAL_INCLUDE_DIRS <dir> ...``
+     Specify local include directories.
+
+   ``NAME <exec-name>``
+     The built executable shall be named ``<exec-name>``
+
+   ``NO_EXPORT``
+     The executable target will not be exported or installed.
+
+   ``NO_EXPORT_ALL_SYMBOLS``
+     Disable the default addition of `-rdynamic
+     <https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html#index-rdynamic>`_
+     or equivalent to the executable link stage.
+
+   ``NO_INSTALL``
+     Synonym for ``NO_EXPORT``.
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
+
+   ``SOURCE <source> ...``
+     Source files to be compiled to produce the executable.
+
+   ``USE_BOOST_UNIT``
+     The executable uses `Boost unit test functions
+     <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
+
+   ``USE_CATCH2_MAIN``
+     The executable uses a generic `Catch2
+     <https://github.com/catchorg/Catch2>`_ ``main()`` function and
+     should be compiled and linked accordingly.
+
+   ``USE_CATCH_MAIN``
+     .. deprecated:: 2.10.00 use ``USE_CATCH2_MAIN``
+
+#]================================================================]
 
 function(cet_make_exec)
   cmake_parse_arguments(PARSE_ARGV 0 CME
@@ -194,6 +216,58 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     endif()
   endforeach()
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_script
+
+   Install the named scripts.
+
+   .. code-block:: cmake
+
+      cet_script([<options>] <script> ...)
+
+   Options
+   ^^^^^^^
+
+   ``ALWAYS_COPY``
+     If specified, scripts will be copied to
+     :variable:`CMAKE_RUNTIME_OUTPUT_DIRECTORY
+     <cmake-ref-current:variable:CMAKE_RUNTIME_OUTPUT_DIRECTORY>` at
+     build time in addition to being installed. Otherwise, scripts will
+     only be copied if they need to be made executable prior to
+     installation.
+
+   ``DEPENDENCIES <dep> ...``
+     If ``<dep>`` changes, ``<script>`` shall be considered out-of-date.
+
+   ``DESTINATION <dir>``
+     Specify the installation directory (default
+     :variable:`\<PROJECT-NAME>_SCRIPTS_DIR`).
+
+   ``EXPORT_SET <export-set>``
+     Scripts will be exported as part of the specified
+     :external+cmake-ref-current:ref:`export set <install(export)>`.
+
+   ``GENERATED``
+     .. deprecated:: 2.10.00
+
+        Redundant—added automatically by :command:`add_custom_command()
+        <cmake-ref-current:command:add_custom_command>`.
+
+   ``NO_EXPORT``
+     The scripts shall not be exported as targets.
+
+   ``NO_INSTALL``
+     The scripts shall not be installed; implies ``NO_EXPORT``.
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
+
+   ``REMOVE_EXTENSIONS``
+     Extensions will be removed from script names when they are
+     installed.
+
+#]================================================================]
 
 function(cet_script)
   cmake_parse_arguments(PARSE_ARGV 0 CS "ALWAYS_COPY;GENERATED;NO_EXPORT;NO_INSTALL;NOP;REMOVE_EXTENSIONS"
