@@ -37,11 +37,6 @@ Utility
 * :command:`cet_source_file_extensions`
 * :command:`cet_timestamp`
 
-Compatibility
-=============
-
-
-
 Deprecated
 ==========
 
