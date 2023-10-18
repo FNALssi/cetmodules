@@ -35,7 +35,6 @@ Variables affecting Behavior
 #]================================================================]
 cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
-set(idx 1)
 if (NOT CMD)
   message(FATAL_ERROR "vacuous command")
 endif()
