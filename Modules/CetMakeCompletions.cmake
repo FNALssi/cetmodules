@@ -90,14 +90,18 @@ function(cet_make_completions exec)
   string(REGEX REPLACE "^.*::" "" output_file "${exec}")
   set(output_file "${CMAKE_CURRENT_BINARY_DIR}/${output_file}_completions")
   if(ARGV1)
-    set(user_provided_completions ${ARGV1})
+    set(user_provided_completions ${ARGN})
     set(completion_comment "${completion_comment} with customizations in ${user_provided_completions}")
   endif()
   add_custom_command(
-    OUTPUT ${output_file}
-    COMMAND ${cetmodules_BIN_DIR}/make_bash_completions
-    ${output_file} ${exec} ${user_provided_completions}
-    COMMENT ${completion_comment})
+    OUTPUT "${output_file}"
+    COMMAND "${cetmodules_BIN_DIR}/make_bash_completions"
+    "${output_file}" "${exec}" ${user_provided_completions}
+    VERBATIM
+    COMMAND_EXPAND_LISTS
+    COMMENT "${completion_comment}"
+    DEPENDS "${cetmodules_BIN_DIR}/make_bash_completions"
+  )
   add_custom_target(MakeCompletions_${exec} ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${exec}_completions)
   add_dependencies(MakeCompletions_${exec} ${exec})

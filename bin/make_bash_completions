@@ -14,9 +14,9 @@
 libexec=$(cd "${BASH_SOURCE%/*}/../libexec" && pwd -P)
 
 # Arguments.
-output=$1
-exec=$2
-user=${3:-""}
+output="$1"; shift
+exec="$1"; shift
+user_completions=(${*:+"$@"})
 
 filter="${libexec}/filter-program-options"
 
@@ -43,8 +43,12 @@ _$fcn()
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
     opts="$options"
 
+    ####################################################################
     # User-provided completions
-    $([ "$user" == "" ] && echo "# (none provided)" || cat $user)
+$( (( ${#user_completions[@]} )) &&
+     sed -Ee 's&^&    &' "${user_completions[@]}" ||
+       echo "# (none provided)")
+    ####################################################################
 
     # Standard completions
     if [[ \${cur} == -* ]] ; then
