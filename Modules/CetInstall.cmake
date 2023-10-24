@@ -26,7 +26,7 @@ include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include (CetCopy)
-include (CetExclude)
+include (private/CetExclude)
 include (ProjectVariable)
 
 #[============================================================[.rst:
