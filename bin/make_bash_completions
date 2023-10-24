@@ -28,9 +28,10 @@ options=$("${exec}" -h 2>&1 | "${filter}")
 
 # Sometimes it's necessary to rename the bash function since the exec
 # my have a hyphen in it.
-fcn=${exec//-/_}
+exec_basename="${exec##*/}"
+fcn="${fcn//-/_}"
 
-cat >$output <<EOF
+cat >"$output" <<EOF
 # Bash completions not supported by csh--bail out early.
 test \$?shell = 1 && exit
 
@@ -54,5 +55,5 @@ _$fcn()
     COMPREPLY=()
     return 0
 }
-complete -F _$fcn -o filenames -A file $exec
+complete -F _$fcn -o filenames -A file $exec_basename
 EOF
