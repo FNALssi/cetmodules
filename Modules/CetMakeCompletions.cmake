@@ -7,43 +7,6 @@ completion shell code.
 
 #]================================================================]
 
-##########################################################################
-# cet_make_completions
-#
-# This is a facility that generates bash completions for any
-# executables that follow the Boost Program Options library output
-# format.
-#
-# The call syntax is:
-#
-#   cet_make_completions(<exec> [customizations file])
-#
-# where the customizations file is optional.  The generated file is
-# called "<exec>_completions", and it is placed in the current binary
-# directory.
-#
-# To prevent CSH environments from executing the bash commands, a
-# check is made at the top of the file which exits if the environment
-# is CSH.
-#
-# The automatically generated bash completions simply allow
-# completions for any program options, irrespective of any other
-# program options that have been provided on the command line.  For
-# more specialized behavior, a customizations file can be provided as
-# a second argument to the function call.
-#
-# In this customizations file, the following dereferences are allowed:
-#
-#  ${cur} --- the command-line word currently being parsed
-#  ${prev} -- the previous word that was parsed
-#
-# as well as any of the Bash variables (e.g. COMP_WORDS, COMPREPLY, etc.)
-#
-# If a customizations file is provided, all automatically generated
-# completions are still available--it is thus not necessary to define
-# a customization for each program option.
-##########################################################################
-
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
@@ -75,9 +38,32 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
    Details
    ^^^^^^^
 
+   .. rst-class:: text-start
+
    Completions will be written to :variable:`CMAKE_CURRENT_BINARY_DIR
    <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>` and installed
    in :variable:`<PROJECT-NAME>_BIN_DIR`.
+
+   The automatically generated bash completions simply allow completions
+   for any program options, irrespective of any other program options
+   that have been provided on the command line. For more specialized
+   behavior, one or more supplementary ``<user-completion-file>``\ s can
+   be provided as non-option argmuents following ``<exec-target>``.
+
+   In this customizations file, the following dereferences are allowed:
+
+   ``${cur}``
+     The command-line word currently being parsed
+
+   ``${prev}``
+     The previous word that was parsed
+
+   as well as any of the Bash variables (e.g. ``COMP_WORDS``,
+   ``COMPREPLY``, etc.).
+
+   If a customizations file is provided, all automatically generated
+   completions are still available—it is thus not necessary to define
+   a customization for each program option.
 
 #]================================================================]
 
