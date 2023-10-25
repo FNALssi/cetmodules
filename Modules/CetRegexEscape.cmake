@@ -1,7 +1,13 @@
 #[================================================================[.rst:
-X
--
+CetRegexEscape
+--------------
+
+Define the functions :command:`cet_regex_escape` and
+:command:`cet_armor_string` to protect characters in strings from
+unwanted interpolation or interpretation by CMake.
+
 #]================================================================]
+
 ########################################################################
 # cet_regex_escape(<val> <var> [<num>])
 # cet_regex_escape(<val>... VAR <var> [NUM <num>])
@@ -34,6 +40,31 @@ include_guard()
 # Non-disruptive CMake version requirements.
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
+#[================================================================[.rst:
+.. command:: cet_regex_escape
+
+   Protect characters in a string or list of strings from interpretation
+   as regex special characters by CMake.
+
+   .. code-block:: cmake
+
+      cet_regex_escape(<val> <var> [<num>])
+      cet_regex_escape(<val> ... VAR <var> [NUM <num>])
+
+   Options
+   ^^^^^^^
+
+   ``[VAR ]<var>``
+     Return the protected string in ``var``. Use of the keyword allows
+     specification of a list of ``<val>`` rather than a single value.
+
+   ``[NUM ]<num>``
+     Armor escaped characters against macro interpolation.
+
+     .. seealso:: cet_armor_string.
+
+#]================================================================]
+
 function(cet_regex_escape)
   cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
   # Handle options.
@@ -54,6 +85,28 @@ USAGE: cet_regex_escape(<val> <var> <num>)
   endforeach()
   set(${CRE_VAR} "${RESULT}" PARENT_SCOPE)
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_armor_string
+
+   Armor escaped characters against macro interpolation.
+
+   .. code-block:: cmake
+
+      cet_armor_string(<val> <var> [<num>])
+      cet_armor_string(<val> ... VAR <var> [NUM <num>])
+
+   Options
+   ^^^^^^^
+
+   ``[VAR ]<var>``
+     Return the armored string in ``var``. Use of the keyword allows
+     specification of a list of ``<val>`` rather than a single value.
+
+   ``[NUM ]<num>``
+     Armor against ``<num>`` levels of interpolation (default 1).
+
+#]================================================================]
 
 function(cet_armor_string)
   # Handle options.
