@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetMakeCompletions &mdash; Cetmodules git-develop-a7a752c Reference</title>
+  <title>CetMakeCompletions &mdash; Cetmodules git-develop-1b07a56 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=ac032b4c"></script>
+    <script src="../_static/documentation_options.js?v=2dce606a"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a7a752c</span>
+    <span class="version_switch">git-develop-1b07a56</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -107,8 +107,25 @@ generated.</p>
 </section>
 <section id="details">
 <h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
-<p>Completions will be written to <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a> and installed
+<p class="text-start">Completions will be written to <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a> and installed
 in <span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_BIN_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_BIN_DIR.html#variable:&lt;PROJECT-NAME&gt;_BIN_DIR" title="&lt;PROJECT-NAME&gt;_BIN_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_BIN_DIR</span></code></a>.</p>
+<p>The automatically generated bash completions simply allow completions
+for any program options, irrespective of any other program options
+that have been provided on the command line. For more specialized
+behavior, one or more supplementary <code class="docutils literal notranslate"><span class="pre">&lt;user-completion-file&gt;</span></code>s can
+be provided as non-option argmuents following <code class="docutils literal notranslate"><span class="pre">&lt;exec-target&gt;</span></code>.</p>
+<p>In this customizations file, the following dereferences are allowed:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">${cur}</span></code></dt><dd><p>The command-line word currently being parsed</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">${prev}</span></code></dt><dd><p>The previous word that was parsed</p>
+</dd>
+</dl>
+<p>as well as any of the Bash variables (e.g. <code class="docutils literal notranslate"><span class="pre">COMP_WORDS</span></code>,
+<code class="docutils literal notranslate"><span class="pre">COMPREPLY</span></code>, etc.).</p>
+<p>If a customizations file is provided, all automatically generated
+completions are still available—it is thus not necessary to define
+a customization for each program option.</p>
 </section>
 </dd></dl>
 
@@ -175,7 +192,7 @@ in <span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_BIN_DIR"></spa
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a7a752c</span>
+    <span class="version_switch">git-develop-1b07a56</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

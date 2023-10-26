@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-a7a752c Reference</title>
+  <title>CetPackagePath &mdash; Cetmodules git-develop-1b07a56 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=ac032b4c"></script>
+    <script src="../_static/documentation_options.js?v=2dce606a"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -23,7 +23,7 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="X" href="CetRegexEscape.html" />
+    <link rel="next" title="CetRegexEscape" href="CetRegexEscape.html" />
     <link rel="prev" title="CetMakeLibrary" href="CetMakeLibrary.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="CetRegexEscape.html" title="X"
+          <a href="CetRegexEscape.html" title="CetRegexEscape"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="CetMakeLibrary.html" title="CetMakeLibrary"
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a7a752c</span>
+    <span class="version_switch">git-develop-1b07a56</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetPackagePath</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,70 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:CetPackagePath"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:CetPackagePath"></span><section id="cetpackagepath">
+<h1>CetPackagePath<a class="headerlink" href="#cetpackagepath" title="Link to this heading">¶</a></h1>
+<p>Defines the function <span class="target" id="index-0-command:cet_package_path"></span><a class="reference internal" href="#command:cet_package_path" title="cet_package_path"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_package_path()</span></code></a> to calculate a path
+relative to a project’s top level directory.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_package_path">
+<span class="sig-name descname"><span class="pre">cet_package_path</span></span><a class="headerlink" href="#command:cet_package_path" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate a path relative to the top-level directory of a project.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_package_path(</span><span class="nv">&lt;out-var&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;option&gt;</span><span class="p">]</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">BASE_SUBDIR</span> <span class="pre">&lt;base-subdir&gt;</span></code></dt><dd><p>Calculate the path relative to <code class="docutils literal notranslate"><span class="pre">&lt;proj-top&gt;/&lt;base-subdir&gt;</span></code>;
+<code class="docutils literal notranslate"><span class="pre">&lt;base-subdir&gt;</span></code> must be a relative path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BINARY</span></code></dt><dd><p>Look for the path in the project’s build tree (default: both source
+and build trees).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FOUND_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return an indication of the path’s location: <code class="docutils literal notranslate"><span class="pre">SOURCE</span></code> (found in
+the project’s source tree), <code class="docutils literal notranslate"><span class="pre">BINARY</span></code> (found in the project’s
+binary tree) or <code class="docutils literal notranslate"><span class="pre">NOTFOUND</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">HUMAN_READABLE</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code> will contain a human-readable represtation of the
+calculated relative path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">MUST_EXIST</span></code></dt><dd><p>If the path does not exist <code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code> will be set to
+<code class="docutils literal notranslate"><span class="pre">NOTFOUND</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PATH</span> <span class="pre">&lt;path&gt;</span></code></dt><dd><p>The path for which the relative location should be calculated. If
+not specified, default to the current source or binary directory,
+as appropriate. <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> may be an absolute or relative path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span></code></dt><dd><p>Look for the path in the project’s source tree (default: both
+source and build trees).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIR</span> <span class="pre">&lt;source-subdir&gt;</span></code></dt><dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.10.00: </span>use <code class="docutils literal notranslate"><span class="pre">PATH</span> <span class="pre">&lt;source-subdir&gt;</span> <span class="pre">SOURCE</span></code></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TOP_PROJECT</span></code></dt><dd><p>Use the top-level—as opposed to the current—project in order to
+calculate the relative path.</p>
+</dd>
+</dl>
+</section>
+<section id="non-option-arguments">
+<h2>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code></dt><dd><p>The name of a variable in which to return the calculated path.</p>
+</dd>
+</dl>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p class="text-start">Calculate the path to <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">CMAKE_CURRENT_(SOURCE|BINARY)_DIR</span></code>) relative to
+<code class="docutils literal notranslate"><span class="pre">(PROJECT|CMAKE)_(SOURCE|BINARY)_DIR[/&lt;base-subdir&gt;]</span></code> and save the
+result in <code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code>.</p>
+<p>Specifying both <code class="docutils literal notranslate"><span class="pre">SOURCE</span></code> and <code class="docutils literal notranslate"><span class="pre">BINARY</span></code> is equivalent to specifying
+neither.</p>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -98,7 +160,7 @@
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="CetRegexEscape.html"
-                          title="next chapter">X</a></p>
+                          title="next chapter">CetRegexEscape</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -128,7 +190,7 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="CetRegexEscape.html" title="X"
+          <a href="CetRegexEscape.html" title="CetRegexEscape"
              >next</a> |</li>
         <li class="right" >
           <a href="CetMakeLibrary.html" title="CetMakeLibrary"
@@ -144,12 +206,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a7a752c</span>
+    <span class="version_switch">git-develop-1b07a56</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetPackagePath</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

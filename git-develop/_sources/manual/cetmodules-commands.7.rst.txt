@@ -41,8 +41,10 @@ Utility
 * :command:`cet_filter_subdirs`
 * :command:`cet_find_pkg_config_package`
 * :command:`cet_installed_path`
+* :command:`cet_package_path`
 * :command:`cet_passthrough`
 * :command:`cet_real_path`
+* :command:`cet_regex_escape`
 * :command:`cet_source_file_extensions`
 * :command:`cet_test_assertion`
 * :command:`cet_test_env`
