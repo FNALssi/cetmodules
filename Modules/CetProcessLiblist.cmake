@@ -44,10 +44,6 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
         set(${RESULT_VAR} "${tmp}" PARENT_SCOPE)
         return()
       endif()
-      if ("${tmp}" STREQUAL "${ARG}") # Expands to self, avoid hall of mirrors...
-        set(${RESULT_VAR} "${tmp}")
-        return()
-      endif()
       cet_convert_target_args(RESULT ${DEP_TARGET} "${tmp}")
     else()
       # Delay expansion for variables resolving to paths.
