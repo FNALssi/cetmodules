@@ -8,37 +8,56 @@ unwanted interpolation or interpretation by CMake.
 
 #]================================================================]
 
-########################################################################
-# cet_regex_escape(<val> <var> [<num>])
-# cet_regex_escape(<val>... VAR <var> [NUM <num>])
-#
-#   Escape the provided string to prevent interpretation of characters
-#   as special (e.g. `.') by the CMake regex engine.
-#
-# The result of escaping characters which would be interpreted by
-# CMake's regex engine is passed through cet_armor_string if <num> is
-# specified and non-zero.
-#
-########################################################################
-# cet_armor_string(<val> <var> <num>)
-# cet_armor_string(<val>... VAR <var> NUM <num>)
-#
-#   Armor the instances of "\" in the specified values aginst being
-#   passed to a macro (and therefore being interpolated).
-#
-# The <num> argument indicates the expected interpolation level for
-# which to compensate (default 1). Every time the values are expected to
-# be passed to a macro (including cmake_parse_arguments()!), increment
-# <num> to ensure that "\" are correctly handled. This is *not*
-# necessary for a function.
-#
-########################################################################
-
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
 # Non-disruptive CMake version requirements.
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+
+#[================================================================[.rst:
+.. command:: cet_armor_string
+
+   Armor escaped characters against macro interpolation.
+
+   .. code-block:: cmake
+
+      cet_armor_string(<val> <var> [<num>])
+      cet_armor_string(<val> ... VAR <var> [NUM <num>])
+
+   Options
+   ^^^^^^^
+
+   ``[VAR ]<var>``
+     Return the armored string in ``var``. Use of the keyword allows
+     specification of a list of ``<val>`` rather than a single value.
+
+   ``[NUM ]<num>``
+     Armor against ``<num>`` levels of interpolation (default 1).
+
+#]================================================================]
+
+function(cet_armor_string)
+  # Handle options.
+  cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
+  _handle_regex_options("\
+USAGE: cet_armor_string(<val> <var> [<num>])
+       cet_armor_string(<val>... VAR <var> [NUM <num>])")
+  if (DEFINED CRE_UNPARSED_ARGUMENTS)
+    if (NOT DEFINED CRE_NUM)
+      set(CRE_NUM 1) # Default.
+    endif()
+    # Duplicate any escape characters found to handle interpolation by
+    # CMake's macro argument handling.
+    if (CRE_NUM GREATER 0)
+      foreach(count RANGE 1 ${CRE_NUM})
+        string(REPLACE "\\" "\\\\" CRE_UNPARSED_ARGUMENTS "${CRE_UNPARSED_ARGUMENTS}")
+      endforeach()
+    endif()
+    set(${CRE_VAR} "${CRE_UNPARSED_ARGUMENTS}" PARENT_SCOPE)
+  else()
+    unset(${CRE_VAR} PARENT_SCOPE)
+  endif()
+endfunction()
 
 #[================================================================[.rst:
 .. command:: cet_regex_escape
@@ -84,51 +103,6 @@ USAGE: cet_regex_escape(<val> <var> <num>)
     list(APPEND RESULT "${val}")
   endforeach()
   set(${CRE_VAR} "${RESULT}" PARENT_SCOPE)
-endfunction()
-
-#[================================================================[.rst:
-.. command:: cet_armor_string
-
-   Armor escaped characters against macro interpolation.
-
-   .. code-block:: cmake
-
-      cet_armor_string(<val> <var> [<num>])
-      cet_armor_string(<val> ... VAR <var> [NUM <num>])
-
-   Options
-   ^^^^^^^
-
-   ``[VAR ]<var>``
-     Return the armored string in ``var``. Use of the keyword allows
-     specification of a list of ``<val>`` rather than a single value.
-
-   ``[NUM ]<num>``
-     Armor against ``<num>`` levels of interpolation (default 1).
-
-#]================================================================]
-
-function(cet_armor_string)
-  # Handle options.
-  cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
-  _handle_regex_options("\
-USAGE: cet_armor_string(<val> <var> [<num>])
-       cet_armor_string(<val>... VAR <var> [NUM <num>])")
-  if (DEFINED CRE_UNPARSED_ARGUMENTS)
-    if (NOT DEFINED CRE_NUM)
-      set(CRE_NUM 1) # Default.
-    endif()
-    # Duplicate any escape characters found to handle interpolation by
-    # CMake's macro argument handling.
-    if (CRE_NUM GREATER 0)
-      foreach(count RANGE 1 ${CRE_NUM})
-        string(REPLACE "\\" "\\\\" CRE_UNPARSED_ARGUMENTS "${CRE_UNPARSED_ARGUMENTS}")
-      endforeach()
-    endif()
-    set(${CRE_VAR} "${CRE_UNPARSED_ARGUMENTS}" PARENT_SCOPE)
-  else()
-    unset(${CRE_VAR} PARENT_SCOPE)
-  endif()
 endfunction()
 
 function(_handle_regex_options MSG)
