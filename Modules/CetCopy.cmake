@@ -52,6 +52,10 @@ include(CetPackagePath)
      (``<source>`` is always a dependency of its corresponding copy
      command).
 
+   ``NO_ALL``
+     Do not add the generated target as a dependency of the ``all``
+     target.
+
    ``PROGRAMS``
      Copied files should be made executable at their destination.
 
@@ -81,7 +85,7 @@ include(CetPackagePath)
 #]================================================================]
 
 function (cet_copy)
-  cmake_parse_arguments(PARSE_ARGV 0 CETC "PROGRAMS;NAME_AS_TARGET"
+  cmake_parse_arguments(PARSE_ARGV 0 CETC "PROGRAMS;NAME_AS_TARGET;NO_ALL"
     "DESTINATION;NAME;TARGET_VAR;WORKING_DIRECTORY"
     "DEPENDENCIES")
   if (NOT CETC_DESTINATION)
@@ -124,7 +128,12 @@ function (cet_copy)
       COMMENT "Copying ${source} to ${dest_path}"
       VERBATIM COMMAND_EXPAND_LISTS
       DEPENDS "${source}" ${CETC_DEPENDENCIES})
-    add_custom_target(${target} ALL DEPENDS "${dest_path}")
+    if (CETC_NO_ALL)
+      set(all_opt)
+    else()
+      set(all_opt ALL)
+    endif()
+    add_custom_target(${target} ${all_opt} DEPENDS "${dest_path}")
     if (CETC_TARGET_VAR)
       set(${CETC_TARGET_VAR} "${target}" PARENT_SCOPE)
     endif()
