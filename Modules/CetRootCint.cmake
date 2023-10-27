@@ -1,10 +1,10 @@
 #[================================================================[.rst:
-X
--
+CetRootCint
+-----------
+
+Defines the deprecated function :commmand:`cet_rootcint`.
+
 #]================================================================]
-#
-# cet_rootcint(<output_name> [NO_INSTALL])
-# runs rootcint against files in CMAKE_CURRENT_SOURCE_DIR and puts the result in CMAKE_CURRENT_BINARY_DIR
 
 include_guard()
 
@@ -15,12 +15,31 @@ include(CetPackagePath)
 set(_RC_PROG "$<IF:$<TARGET_EXISTS:ROOT::rootcling>,ROOT::rootcling,${ROOT_rootcling_CMD}>")
 set(_RC_FLAGS "$<$<VERSION_GREATER_EQUAL:${ROOT_VERSION},6.10.04>:-noIncludePaths>")
 
+#[================================================================[.rst:
+.. command:: cet_rootcint
+
+   Generate and build a ROOT dictionary module from :file:`Linkdef.h`
+   and a package's header files.
+
+   .. deprecated 3.23.00::
+
+      use :command:`build_dictionary(<name> SOURCE
+      <header-file> ... LinkDef.h) <build_dictionary>`
+
+   .. code-block:: cmake
+
+      cet_rootcint(<name> [<options>])
+
+#]================================================================]
+
 function(cet_rootcint OUTPUT_NAME)
-  set(cet_rootcint_usage "USAGE: cet_rootcint(<package name> [NO_INSTALL])")
-  cmake_parse_arguments(PARSE_ARGV 1 RC "NO_INSTALL;VERSION" "EXPORT_SET;LIB_TARGET" "")
+  set(cet_rootcint_usage "USAGE: cet_rootcint(<package name> [NO_INSTALL] [LIB_TARGET <lib-target>)")
+  cmake_parse_arguments(PARSE_ARGV 1 RC "NO_INSTALL" "LIB_TARGET" "")
   if (RC_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR  "cet_rootcint: Incorrect arguments. ${ARGV} \n ${cet_rootcint_usage}")
   endif()
+  warn_deprecated("cet_rootcint()" SINCE 3.23.00 NEW "\n  build_dictionary(<name> [<options>] SOURCE <header-file> ... LinkDef.h)"
+    ", e.g.:\n  \n  build_dictionary(<name> NO_LIBRARY [LIB_TARGET <lib-target-name>] GENERATED_SOURCE <name>Cint.cc SOURCE  <header-file> ... LinkDef.h)")
   # generate the list of headers to be parsed by cint
   cet_package_path(curdir)
   file(GLOB CINT_CXX *.cxx)

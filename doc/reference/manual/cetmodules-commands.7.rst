@@ -22,6 +22,7 @@ Generation, Installation, and Export
 * :command:`basic_plugin`
 * :command:`build_dictionary`
 * :command:`cet_copy`
+* :command:`cet_rootcint`
 * :command:`check_class_version`
 * :command:`cet_cmake_config`
 * :command:`cet_cmake_module_directories`
