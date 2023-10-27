@@ -37,11 +37,13 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
     if (${${ARG}_UC} MATCHES ";" OR NOT ${${ARG}_UC} MATCHES "/")
       # Possibly requiring further expansion:
       set(tmp "${${${ARG}_UC}}")
-      if ("${tmp}" STREQUAL "") # Empty.
-        set(${RESULT_VAR} PARENT_SCOPE)
+      if ("${tmp}" STREQUAL "" OR
+          "${tmp}" STREQUAL "${ARG}" OR
+          "${tmp}" STREQUAL "${${ARG}_UC}") 
+        #prevent cycles
+        set(${RESULT_VAR} "${tmp}" PARENT_SCOPE)
         return()
       endif()
-      unset(${${ARG}_UC}) # Prevent cycles.
       cet_convert_target_args(RESULT ${DEP_TARGET} "${tmp}")
     else()
       # Delay expansion for variables resolving to paths.
