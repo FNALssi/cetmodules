@@ -125,6 +125,130 @@ cmake_minimum_required(VERSION 3.15...3.27 FATAL_ERROR)
 
 set(CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION 2.21.00)
 
+function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
+  string(TOUPPER "${_CMPV_PRED}" _CMPV_PRED)
+  set(_cmpv_result FALSE)
+  cet_version_cmp(_cmpv_cmp "${_CMPV_VERSION}" "${_CMPV_REF}")
+  if (_CMPV_PRED MATCHES "^VERSION_LESS(_EQUAL)?$")
+    if (_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+      set(_cmpv_result TRUE)
+    endif()
+  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)?$")
+    if (_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+      set(_cmpv_result TRUE)
+    endif()
+  elseif (_CMPV_PRED STREQUAL "VERSION_EQUAL")
+    if (NOT _cmpv_cmp)
+      set(_cmpv_result TRUE)
+    endif()
+  else()
+    message(FATAL_ERROR "predicate \"${_CMPV_PRED}\" not recognized")
+  endif()
+  set(${_CMPV_RESULT_VAR} ${_cmpv_result} PARENT_SCOPE)
+endfunction()
+
+function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
+  parse_version_string("${_CVC_VERSION}" _cvc_version_info)
+  parse_version_string("${_CVC_REF}" _cvc_ref_info)
+  set(_cvc_result 0)
+  to_cmake_version(_cvc_version_info _cvc_version_short EXTRA_VAR _cvc_version_extra)
+  to_cmake_version(_cvc_ref_info _cvc_ref_short EXTRA_VAR _cvc_ref_extra)
+  if (NOT ("${_cvc_version_short}" STREQUAL "" OR
+        "${_cvc_ref_short}" STREQUAL ""))
+    if (_cvc_version_short VERSION_LESS _cvc_ref_short)
+      set(_cvc_result -1)
+    elseif (_cvc_ref_short VERSION_LESS _cvc_version_short)
+      set(_cvc_result 1)
+    endif()
+  endif()
+  if (NOT _cvc_result)
+    parse_version_string(_cvc_version_info
+      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
+      _cvc_version_extra_type _cvc_version_extra_text _cvc_version_extra_num)
+    if (NOT _cvc_version_extra_type)
+      set(_cvc_version_extra_type 0)
+    endif()
+    parse_version_string(_cvc_ref_info
+      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
+      _cvc_ref_extra_type _cvc_ref_extra_text _cvc_ref_extra_num)
+    if (NOT _cvc_ref_extra_type)
+      set(_cvc_ref_extra_type 0)
+    endif()
+    # Type codes are ordered.
+    if (${_cvc_version_extra_type} GREATER ${_cvc_ref_extra_type})
+      set(_cvc_result 1)
+    elseif (${_cvc_ref_extra_type} GREATER ${_cvc_version_extra_type})
+      set(_cvc_result -1)
+    elseif (${_cvc_version_extra_type} EQUAL 2) # Non-special suffix.
+      if ("${_cvc_version_extra_text}" STRLESS "${_cvc_ref_extra_text}")
+        set(_cvc_result -1)
+      elseif ("${_cvc_ref_extra_text}" STRLESS "${_cvc_version_extra_text}")
+        set(_cvc_result 1)
+      endif()
+    elseif (${_cvc_version_extra_type} EQUAL 3 OR ${_cvc_version_extra_type} GREATER 100)
+      # Look for a timestamp-ish
+      foreach (v IN ITEMS version ref)
+        set(_cvc_${v}_date)
+        set(_cvc_${v}_hh "00")
+        set(_cvc_${v}_mm "00")
+        set(_cvc_${v}_ss 0)
+        if (_cvc_${v}_extra_num MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
+          set(_cvc_${v}_date "${CMAKE_MATCH_1}")
+          if (NOT "${CMAKE_MATCH_3}" STREQUAL "")
+            set(_cvc_${v}_hh "${CMAKE_MATCH_3}")
+            if (NOT "${CMAKE_MATCH_5}" STREQUAL "")
+              set(_cvc_${v}_mm "${CMAKE_MATCH_5}")
+              if (NOT "${CMAKE_MATCH_7}" STREQUAL "")
+                set(_cvc_${v}_ss "${CMAKE_MATCH_7}")
+                if (NOT "${CMAKE_MATCH_8}" STREQUAL "")
+                  string(APPEND _cvc_${v}_ss ".${CMAKE_MATCH_8}")
+                endif()
+              endif()
+            endif()
+          endif()
+        endif()
+      endforeach()
+      if (_cvc_version_date)
+        if (_cvc_version_date VERSION_LESS _cvc_ref_date)
+          set(_cvc_result -1)
+        elseif (_cvc_version_date VERSION_GREATER _cvc_ref_date)
+          set(_cvc_result -1)
+        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_LESS
+            "${_cvc_ref_hh}.${_cvc_ref_mm}")
+          set(_cvc_result -1)
+        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_GREATER
+            "${_cvc_ref_hh}.${_cvc_ref_mm}")
+          set(_cvc_result 1)
+        elseif (_cvc_version_ss LESS _cvc_ref_ss)
+          set(_cvc_result -1)
+        elseif (_cvc_version_ss GREATER _cvc_ref_ss)
+          set(_cvc_result 1)
+        endif()
+      elseif (_cvc_ref_date)
+        if (_cvc_version_date VERSION_GREATER _cvc_ref_date)
+          set(_cvc_result 1)
+        elseif (NOT _cvc_version_date VERSION_EQUAL _cvc_ref_date)
+          set(_cvc_result -1)
+        endif()
+      endif()
+    endif()
+    if (NOT (_cvc_result OR _cvc_version_date OR _cvc_ref_date))
+      if ("${_cvc_version_extra_num}" STREQUAL "")
+        set(_cvc_version_extra_num 0)
+      endif()
+      if ("${_cvc_ref_extra_num}" STREQUAL "")
+        set(_cvc_ref_extra_num 0)
+      endif()
+      if (_cvc_version_extra_num LESS _cvc_ref_extra_num)
+        set(_cvc_result -1)
+      elseif (_cvc_ref_extra_num LESS _cvc_version_extra_num)
+        set(_cvc_result 1)
+      endif()
+    endif()
+  endif()
+  set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
+endfunction()
+
 function (parse_version_string _PVS_VERSION)
   # Argument parsing and validation.
   cmake_parse_arguments(PARSE_ARGV 1 PVS "NO_EXTRA" "EXTRA_VAR;PREAMBLE;SEP;EXTRA_SEP" "")
@@ -271,39 +395,62 @@ function (parse_version_string _PVS_VERSION)
   endif()
 endfunction()
 
+#[================================================================[.rst:
+.. command:: to_cmake_version
+
+   .. code-block:: cmake
+
+      to_cmake_version(<version> <var> ...)
+
+   Equivalent to:
+
+   .. parsed-literal::
+
+      :command:`parse_version_string <parse_version_string(sep)>`\ (<version> SEP . NO_EXTRA ...)
+
+#]================================================================]
+
 macro(to_cmake_version _TCV_VERSION _TCV_VAR)
   parse_version_string("${_TCV_VERSION}" SEP . NO_EXTRA ${_TCV_VAR} ${ARGN})
 endmacro()
+
+#[================================================================[.rst:
+.. command:: to_dot_version
+
+   .. code-block:: cmake
+
+      to_dot_version(<version> <var> ...)
+
+   Equivalent to:
+
+   .. parsed-literal::
+
+      :command:`parse_version_string <parse_version_string(sep)>`\ (<version> SEP . <var> ...)
+
+#]================================================================]
 
 macro(to_dot_version _TDV_VERSION _TDV_VAR)
   parse_version_string("${_TDV_VERSION}" SEP . ${_TDV_VAR} ${ARGN})
 endmacro()
 
+#[================================================================[.rst:
+.. command:: to_version_string
+
+   .. code-block:: cmake
+
+      to_version_string(<version> <var> ...)
+
+   Equivalent to:
+
+   .. parsed-literal::
+
+      :command:`parse_version_string <parse_version_string(sep)>`\ (<version> SEP . EXTRA_SEP - <var>...)
+
+#]================================================================]
+
 macro(to_version_string _TDV_VERSION _TDV_VAR)
   parse_version_string("${_TDV_VERSION}" SEP . EXTRA_SEP - ${_TDV_VAR} ${ARGN})
 endmacro()
-
-function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
-  string(TOUPPER "${_CMPV_PRED}" _CMPV_PRED)
-  set(_cmpv_result FALSE)
-  cet_version_cmp(_cmpv_cmp "${_CMPV_VERSION}" "${_CMPV_REF}")
-  if (_CMPV_PRED MATCHES "^VERSION_LESS(_EQUAL)?$")
-    if (_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
-      set(_cmpv_result TRUE)
-    endif()
-  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)?$")
-    if (_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
-      set(_cmpv_result TRUE)
-    endif()
-  elseif (_CMPV_PRED STREQUAL "VERSION_EQUAL")
-    if (NOT _cmpv_cmp)
-      set(_cmpv_result TRUE)
-    endif()
-  else()
-    message(FATAL_ERROR "predicate \"${_CMPV_PRED}\" not recognized")
-  endif()
-  set(${_CMPV_RESULT_VAR} ${_cmpv_result} PARENT_SCOPE)
-endfunction()
 
 function(_cet_parse_version_extra)
   if ("${_pvs_extra}" MATCHES "[0-9]+(\\.?[0-9]*)?$")
@@ -345,106 +492,4 @@ function(_cet_parse_version_extra)
     set(_pe_text "${_pe_text_l}") # Standardize for comparison.
   endif()
   set(_pvs_extra_bits ${_pe_type} "${_pe_text}" ${_pe_num} PARENT_SCOPE)
-endfunction()
-
-function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
-  parse_version_string("${_CVC_VERSION}" _cvc_version_info)
-  parse_version_string("${_CVC_REF}" _cvc_ref_info)
-  set(_cvc_result 0)
-  to_cmake_version(_cvc_version_info _cvc_version_short EXTRA_VAR _cvc_version_extra)
-  to_cmake_version(_cvc_ref_info _cvc_ref_short EXTRA_VAR _cvc_ref_extra)
-  if (NOT ("${_cvc_version_short}" STREQUAL "" OR
-        "${_cvc_ref_short}" STREQUAL ""))
-    if (_cvc_version_short VERSION_LESS _cvc_ref_short)
-      set(_cvc_result -1)
-    elseif (_cvc_ref_short VERSION_LESS _cvc_version_short)
-      set(_cvc_result 1)
-    endif()
-  endif()
-  if (NOT _cvc_result)
-    parse_version_string(_cvc_version_info
-      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
-      _cvc_version_extra_type _cvc_version_extra_text _cvc_version_extra_num)
-    if (NOT _cvc_version_extra_type)
-      set(_cvc_version_extra_type 0)
-    endif()
-    parse_version_string(_cvc_ref_info
-      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
-      _cvc_ref_extra_type _cvc_ref_extra_text _cvc_ref_extra_num)
-    if (NOT _cvc_ref_extra_type)
-      set(_cvc_ref_extra_type 0)
-    endif()
-    # Type codes are ordered.
-    if (${_cvc_version_extra_type} GREATER ${_cvc_ref_extra_type})
-      set(_cvc_result 1)
-    elseif (${_cvc_ref_extra_type} GREATER ${_cvc_version_extra_type})
-      set(_cvc_result -1)
-    elseif (${_cvc_version_extra_type} EQUAL 2) # Non-special suffix.
-      if ("${_cvc_version_extra_text}" STRLESS "${_cvc_ref_extra_text}")
-        set(_cvc_result -1)
-      elseif ("${_cvc_ref_extra_text}" STRLESS "${_cvc_version_extra_text}")
-        set(_cvc_result 1)
-      endif()
-    elseif (${_cvc_version_extra_type} EQUAL 3 OR ${_cvc_version_extra_type} GREATER 100)
-      # Look for a timestamp-ish
-      foreach (v IN ITEMS version ref)
-        set(_cvc_${v}_date)
-        set(_cvc_${v}_hh "00")
-        set(_cvc_${v}_mm "00")
-        set(_cvc_${v}_ss 0)
-        if (_cvc_${v}_extra_num MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
-          set(_cvc_${v}_date "${CMAKE_MATCH_1}")
-          if (NOT "${CMAKE_MATCH_3}" STREQUAL "")
-            set(_cvc_${v}_hh "${CMAKE_MATCH_3}")
-            if (NOT "${CMAKE_MATCH_5}" STREQUAL "")
-              set(_cvc_${v}_mm "${CMAKE_MATCH_5}")
-              if (NOT "${CMAKE_MATCH_7}" STREQUAL "")
-                set(_cvc_${v}_ss "${CMAKE_MATCH_7}")
-                if (NOT "${CMAKE_MATCH_8}" STREQUAL "")
-                  string(APPEND _cvc_${v}_ss ".${CMAKE_MATCH_8}")
-                endif()
-              endif()
-            endif()
-          endif()
-        endif()
-      endforeach()
-      if (_cvc_version_date)
-        if (_cvc_version_date VERSION_LESS _cvc_ref_date)
-          set(_cvc_result -1)
-        elseif (_cvc_version_date VERSION_GREATER _cvc_ref_date)
-          set(_cvc_result -1)
-        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_LESS
-            "${_cvc_ref_hh}.${_cvc_ref_mm}")
-          set(_cvc_result -1)
-        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_GREATER
-            "${_cvc_ref_hh}.${_cvc_ref_mm}")
-          set(_cvc_result 1)
-        elseif (_cvc_version_ss LESS _cvc_ref_ss)
-          set(_cvc_result -1)
-        elseif (_cvc_version_ss GREATER _cvc_ref_ss)
-          set(_cvc_result 1)
-        endif()
-      elseif (_cvc_ref_date)
-        if (_cvc_version_date VERSION_GREATER _cvc_ref_date)
-          set(_cvc_result 1)
-        elseif (NOT _cvc_version_date VERSION_EQUAL _cvc_ref_date)
-          set(_cvc_result -1)
-        endif()
-      endif()
-    endif()
-    if (NOT (_cvc_result OR _cvc_version_date OR _cvc_ref_date))
-      if ("${_cvc_version_extra_num}" STREQUAL "")
-        set(_cvc_version_extra_num 0)
-      endif()
-      if ("${_cvc_ref_extra_num}" STREQUAL "")
-        set(_cvc_ref_extra_num 0)
-      endif()
-      if (_cvc_version_extra_num LESS _cvc_ref_extra_num)
-        set(_cvc_result -1)
-      elseif (_cvc_ref_extra_num LESS _cvc_version_extra_num)
-        set(_cvc_result 1)
-      endif()
-    endif()
-  endif()
-  set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
 endfunction()
