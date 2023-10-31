@@ -1,122 +1,42 @@
 #[================================================================[.rst:
-X
--
+ParseVersionString
+------------------
+
+Defines the following functions related to handling possibly
+non-CMake-compliant version strings:
+
+:command:`cet_compare_versions`
+  Compare versions semantically, taking account of Greek, pre-release,
+  release candidate, and patch versions. Returns ``TRUE`` or ``FALSE``
+  according to a user-provided predicate specification.
+
+:command:`cet_version_cmp`
+  Low-level "`spaceship operator
+  <https://en.wikipedia.org/wiki/Three-way_comparison#Spaceship_operator>`_"
+  comparison between two versions, returning ``-1``, ``0``, or ``1``.
+
+:command:`parse_version_string`
+  Parse and process a version string or list.
+
+:command:`to_cmake_version`
+  Convert a version string or list into a CMake-compliant version
+  string.
+
+:command:`to_dot_version`
+  Convert a version string or list into a ``.``-delimited version
+  string.
+
+:command:`to_version_string`
+  Convert a version string or list into a ``.``-delimited version string
+  with ``-``-separated non-numeric extra component.
+
+.. admonition:: cetbuildtools
+   :class: admonition-legacy
+
+   .. seealso:: :command:`to_ups_version`,
+                :command:`check_prod_version()`.
+
 #]================================================================]
-########################################################################
-# parse_version_string(<version>
-#                      [SEP <output-sep>
-#                       [NO_EXTRA|EXTRA_SEP <output-extra-sep>]]
-#                      <var> [<var>]...)
-#
-#   Parse a version string of the form:
-#
-#      [v][<major>[<sep><minor>[<sep><patch>[<sep><tweak>]]]][<extra-sep>][<extra>]
-#
-#   where <sep> and <extra-sep> are any of the usual version component
-#   separators: "-" "_" or "." and <major>, <minor>, <patch>, and
-#   <tweak> are non-negative integers, per CMake requirements.
-#
-# Notes
-##################
-#
-#   1. Per CMake convention: <major>, <minor>, <patch>, and <tweak> must
-#      be non-negative integers (with optional leading zeros), so
-#      <extra> starts from the first non-separator, non-numeric
-#      character.
-#
-#   2. If <sep> is specified, set <var> to
-#      "<major><sep><minor><sep><patch><extra-sep><extra>"
-#
-#      (a) <extra-sep> is empty unless specified.
-#
-#      (b) If multiple <var> are specified, all but the first are
-#          ignored and a warning is generated.
-#
-#      (c) If an intermediate component is empty, it will be shown as
-#          "0" in the string version.
-#
-#   3. If a single <var> is specified, it will be set to a list
-#      consisting of <major>, <minor>, <patch>, <tweak>, and <extra>.
-#      Otherwise, the values of <major>, <minor>, <patch>, <tweak>, and
-#      <extra> will be mapped to <var>..., with extra values being
-#      discarded.
-#
-####################################
-# to_cmake_version(<version> <var>...)
-#
-#   to_cmake_version() is provided as a convenience, equivalent to:
-#
-#     parse_version_string(<version> SEP . NO_EXTRA...)
-#
-####################################
-# to_dot_version(<version> <var>...)
-#
-#   to_dot_version() is provided as a convenience, equivalent to:
-#
-#     parse_version_string(<version> SEP . <var>...)
-#
-####################################
-# to_version_string(<version> <var>...)
-#
-#   to_version_string() is provided as a convenience, equivalent to:
-#
-#     parse_version_string(<version> SEP . EXTRA_SEP - <var>...)
-#
-####################################
-# cet_compare_versions(<result-var> <version> <pred> <ref-version>)
-#
-#   Compare <version> with <ref-version> according to predicate <pred>,
-#   respecting any trailing non-numeric version components <extra>, and
-#   placing the answer in <result-var>.
-#
-#   <pred> is valid if there exists a CMake if() predicate
-#   VERSION_<pred>.
-#
-#   Comparison order for (<version>-?)?(<extra-text>(-?<extra-num>)?)?:
-#
-#     (A) <version>-?alpha(-?[0-9]+)? <
-#
-#     (B) <version>-?beta(-?[0-9]+)? <
-#
-#     (C) <version>-?gamma(-?[0-9]+)? <
-#
-#     (D) <version>-?(rc|pre)(-?[0-9]+)? <
-#
-#     (E) <version>-? <
-#
-#     (F) <version>-?(patch-?[0-9]*|p-?[0-9]+) <
-#
-#     (G) <version>-?.+
-#
-#     (H) <extra>
-#
-#
-#   Notes:
-#
-#     1. Non-numeric component prefixes such as alpha, beta, etc. are
-#        case-insensitive, and equivalent prefixes (Alpha-1 and a01,
-#        say, or pre and rc) will compare equal.
-#
-#     2. A version string - after the stripping of a single leading "v,"
-#        if present - beginning with a separator or non-numeric
-#        character will always compare greater than a similarly stripped
-#        version string beginning with a numeric component, and equal to
-#        every other such version string regardless of any numeric
-#        suffix.
-#
-#     3. A non-numeric component with no numeric suffix will compare
-#        equal to an equivalent non-numeric component with a numeric
-#        suffix comparing equal to 0 numerically.
-#
-#     4. Numeric version components - including any numeric suffix to a
-#        trailing non-numeric component - will always be compared
-#        numerically i.e. without regard to leading zeros.
-#
-#
-# See also to_ups_version() in compat/Compatibility.cmake and
-# check_prod_version() in compat/CheckProdVersion.cmake.
-#
-#######################################################################
 
 include_guard()
 
@@ -124,6 +44,54 @@ include_guard()
 cmake_minimum_required(VERSION 3.15...3.27 FATAL_ERROR)
 
 set(CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION 2.21.00)
+
+#[================================================================[.rst:
+.. command:: cet_compare_versions
+
+   .. code-block:: cmake
+
+      cet_compare_versions(<result-var> <version> <pred> <ref-version>)
+
+   Compare ``<version>`` with ``<ref-version>`` semantically according
+   to predicate ``<pred>``, respecting any trailing non-numeric version
+   components ``<extra>``, and placing the answer in ``<result-var>``.
+
+   Details
+   ^^^^^^^
+
+   ``<pred>`` is valid if there exists a CMake :command:`if()
+   <cmake-ref-current:command:if>` predicate ``VERSION_<pred>``.
+
+   Comparison order for ``(<version>-?)?(<extra-text>(-?<extra-num>)?)?``:
+
+   * ``<version>-?alpha(-?[0-9]+)?`` <
+   * ``<version>-?beta(-?[0-9]+)?`` <
+   * ``<version>-?gamma(-?[0-9]+)?`` <
+   * ``<version>-?(rc|pre)(-?[0-9]+)?`` <
+   * ``<version>-?`` <
+   * ``<version>-?(patch-?[0-9]*|p-?[0-9]+)`` <
+   * ``<version>-?.+`` <
+   * ``<extra>``
+
+   Non-numeric component prefixes such as ``alpha``, ``beta``, etc. are
+   case-insensitive, and equivalent prefixes (``Alpha-1`` and ``a01``,
+   say, or ``pre`` and ``rc``) will compare equal.
+
+   A version string—after the stripping of a single leading ``v`` if
+   present—beginning with a separator or non-numeric character will
+   always compare greater than a similarly stripped version string
+   beginning with a numeric component, and equal to every other such
+   version string regardless of any numeric suffix.
+
+   A non-numeric component with no numeric suffix will compare equal to
+   an equivalent non-numeric component with a numeric suffix comparing
+   equal to 0 numerically.
+
+   Numeric version components—including any numeric suffix to a trailing
+   non-numeric component—will always be compared numerically
+   i.e. without regard to leading zeros.
+
+#]================================================================]
 
 function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
   string(TOUPPER "${_CMPV_PRED}" _CMPV_PRED)
@@ -146,6 +114,24 @@ function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_RE
   endif()
   set(${_CMPV_RESULT_VAR} ${_cmpv_result} PARENT_SCOPE)
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_version_cmp
+
+   .. code-block:: cmake
+
+      cet_compare_versions(<result-var> <version> <ref-version>)
+
+   Low-level "`spaceship operator
+   <https://en.wikipedia.org/wiki/Three-way_comparison#Spaceship_operator>`_"
+   comparison between ``<version>`` and ``<ref-version>``, returning
+   ``-1``, ``0`` or ``1`` in ``<result-var>`` based on whether
+   ``<version>`` is semantically less than, equal to or greater than
+   ``<ref-version>``.
+
+   *cf*  :command:`cet_compare_versions`.
+
+#]================================================================]
 
 function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
   parse_version_string("${_CVC_VERSION}" _cvc_version_info)
@@ -248,6 +234,100 @@ function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
   endif()
   set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
 endfunction()
+
+#[================================================================[.rst:
+.. command:: parse_version_string
+
+   Version parsing and transformation.
+
+   .. parsed-literal::
+
+      parse_version_string([`VERSION`_] <version> [<options>] <var> [<var> ...])
+      parse_version_string(`SEP`_ <output-sep> [VERSION] <version>  [<options>] <var>)
+
+   Common Options
+   ^^^^^^^^^^^^^^
+
+   ``INPUT_PREAMBLE <pre>``
+     ``<pre>`` will be removed from the beginning of ``<version>`` prior
+     to parsing (if present). Default "v."
+
+   ``[VERSION] <version>``
+     The version to be parsed and/or transformed. ``<version>`` may be:
+
+     #. A version string of the form:
+
+        .. parsed-literal::
+
+           [<pre>][<major>[<sep><minor>[<sep><patch>[<sep><tweak>]]]]
+           [<extra-sep>][<extra>]
+
+     #. A semi-colon-separated list of version components.
+
+     #. The name of a CMake variable containing either of the above.
+
+   Signatures
+   ^^^^^^^^^^
+
+   .. signature::
+      parse_version_string(VERSION <version> ...)
+
+      .. parsed-literal::
+
+         parse_version_string(VERSION <version> [<options>] <var> [<var> ...])
+
+      Parse a version string into its component parts to be returned in
+      ``<var>``.
+
+      Details
+      ^^^^^^^
+
+      If there is one ``<var>`` it will contain a list of all parsed
+      components (``<major>``, ``<minor>``, ``<patch>``, ``<tweak>`` and
+      ``<extra>``); for multiple, the components will be mapped to each
+      ``<var>`` with un-placed components being discarded.
+
+      ``<sep>`` may be ``-``, ``_``, or ``.``
+
+      Per CMake convention: ``<major>``, ``<minor>``, ``<patch>``, and
+      ``<tweak>`` must be non-negative integers (with optional leading
+      zeros), so ``<extra>`` starts from the first non-separator,
+      non-numeric character after any numeric version components have
+      been identified.
+
+   .. rst-class:: text-start
+
+   .. signature::
+      parse_version_string(SEP <output-sep> [VERSION] <version> ...)
+
+      .. parsed-literal::
+
+         parse_version_string(SEP <output-sep> [VERSION] <version> [<options>] <var>)
+
+      Transform ``<version>`` into an ``<output-sep>``-delimited version
+      string, returned in ``<var>``.
+
+      Options
+      ^^^^^^^
+
+      ``EXTRA_SEP <output-extra-sep>``
+        ``<extra>``\ —if present—will be separated from the rest of the
+        version string by ``<output-extra-sep>``.
+
+      ``NO_EXTRA``
+        ``<extra>`` will be omitted from ``<var>``; mutually exclusive
+        with ``EXTRA_SEP``.
+
+      ``PREAMBLE <output-preamble>``
+        ``<output-preamble>`` will be prepended to ``<var>``.
+
+      Details
+      ^^^^^^^
+
+      Vacuous intermediate components will be represented by ``0`` in
+      ``<var>``.
+
+#]================================================================]
 
 function (parse_version_string)
   # Argument parsing and validation.
