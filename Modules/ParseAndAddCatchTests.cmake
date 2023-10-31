@@ -1,7 +1,63 @@
 #[================================================================[.rst:
-X
--
+ParseAndAddCatchTests
+---------------------
+
+Define function :command:`ParseAndAddCatchTests` to parse a C++ source
+file for `Catch2 <https://github.com/catchorg/Catch2>`_ tests and
+register them with :command:`add_test()
+<cmake-ref-current:command:add_test>`.
+
+.. note::
+
+   This file differs from `ParseAndAddCatchTests.cmake
+   <https://github.com/catchorg/Catch2/blob/79d39a1954837f234b48e3bc342b7f26e535d8a5/extras/ParseAndAddCatchTests.cmake>`_
+   as bundled with `Catch2 <https://github.com/catchorg/Catch2>`_
+   principally through the addition of options :ref:`TargetsVar
+   <parse_and_add_catch_tests-TargetsVar>` and :ref:`ExtraLabels
+   <parse_and_add_catch_tests-ExtraLabels>`.
+
+.. command:: ParseAndAddCatchTests
+
+   Parse a C++ source file for Catch2 tests and register them with
+   :command:`add_test() <cmake-ref-current:command:add_test>`.
+
+   .. code-block:: cmake
+
+      ParseAndAddCatchTests(<TestTarget> [<options>])
+
+   Options
+   ^^^^^^^
+
+   .. _parse_and_add_catch_tests-TargetsVar:
+
+   ``TargetsVar <var>``
+     Defined targets will be returned in ``<var>``.
+
+   .. _parse_and_add_catch_tests-ExtraLabels:
+
+   ``ExtraLabels <label> ...``
+     Add CMake test labels ``<label> ...`` to each defined test.
+
+   Details
+   ^^^^^^^
+
+   .. deprecated:: 3.23.00
+
+      Instead, use:
+
+      .. code-block:: cmake
+
+         include(Catch)
+         catch_discover_tests(<TestTarget>)
+
+      .. seealso::
+
+         `Catch.cmake
+         <https://github.com/catchorg/Catch2/blob/79d39a1954837f234b48e3bc342b7f26e535d8a5/extras/Catch.cmake>`_
+         as bundled with `Catch2 <https://github.com/catchorg/Catch2>`_.
+
 #]================================================================]
+
 #==================================================================================================#
 #  supported macros                                                                                #
 #    - TEST_CASE,                                                                                  #
