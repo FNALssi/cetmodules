@@ -25,7 +25,7 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-find_package(Smc 6.0.1 REQUIRED EXPORT)
+find_package(Smc 6.0.1 REQUIRED)
 
 function(process_smc TARGET_OR_VAR)
   cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL;NO_INSTALL_SOURCE" "OUTPUT_DIR" "")
