@@ -25,11 +25,6 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-# Note that the required minimum version here is checked against
-# "Implementation-Version," a vendor-supplied key in the
-# META-INF/MANIFEST.MF file inside the JAR file, which is just a zip
-# file. In the case of Smc, this version is 6.0.1 for at least Smc
-# versions 6.1.0 and 6.6.0 that we know of.
 find_package(Smc 6.0.1 REQUIRED EXPORT)
 
 function(process_smc TARGET_OR_VAR)
@@ -43,7 +38,7 @@ function(process_smc TARGET_OR_VAR)
     OUTPUT_VARIABLE SMC_H_OUTPUTS)
   list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*/)?(.*).sm$" "\\2_sm.dot"
     OUTPUT_VARIABLE SMC_DOT_OUTPUTS)
-  set(smc_cmd java -jar "$<TARGET_FILE:Smc::Smc>")
+  set(smc_cmd ${Java_JAVA_EXECUTABLE} -jar "$<TARGET_FILE:Smc::Smc>")
   cet_package_path(pkgpath PATH "${PSMC_OUTPUT_DIR}" BINARY)
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${PSMC_OUTPUT_DIR}")
   foreach (source cpp_out h_out dot_out IN ZIP_LISTS
@@ -51,7 +46,6 @@ function(process_smc TARGET_OR_VAR)
     cmake_path(ABSOLUTE_PATH source OUTPUT_VARIABLE abs_source)
     add_custom_command(OUTPUT "${PSMC_OUTPUT_DIR}/${cpp_out}"
       "${PSMC_OUTPUT_DIR}/${h_out}"
-      COMMAND pwd
       COMMAND ${smc_cmd} -d "${pkgpath}" -c++ "${abs_source}"
       COMMAND perl -wapi~ -e
       "s&(#\\s*include\\s+)<statemap\\.h>&\${1}\"${pkgpath}/statemap.h\"&"
