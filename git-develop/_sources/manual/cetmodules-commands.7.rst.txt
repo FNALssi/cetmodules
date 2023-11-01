@@ -34,10 +34,12 @@ Generation, Installation, and Export
 * :command:`cet_script`
 * :command:`cet_test`
 * :command:`install_pkgmeta`
+* :command:`ParseAndAddCatchTests`
 
 Utility
 =======
 
+* :command:`cet_compare_versions`
 * :command:`cet_exclude_files_from`
 * :command:`cet_filter_subdirs`
 * :command:`cet_find_pkg_config_package`
@@ -50,6 +52,11 @@ Utility
 * :command:`cet_test_assertion`
 * :command:`cet_test_env`
 * :command:`cet_timestamp`
+* :command:`cet_version_cmp`
+* :command:`parse_version_string`
+* :command:`to_cmake_version`
+* :command:`to_dot_version`
+* :command:`to_version_string`
 
 Deprecated
 ==========

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-77a93d6 Reference</title>
+  <title>ParseAndAddCatchTests &mdash; Cetmodules git-develop-ea9334d Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=23603c87"></script>
+    <script src="../_static/documentation_options.js?v=ce834227"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -23,7 +23,7 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="X" href="ParseVersionString.html" />
+    <link rel="next" title="ParseVersionString" href="ParseVersionString.html" />
     <link rel="prev" title="X" href="InstallWP.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="ParseVersionString.html" title="X"
+          <a href="ParseVersionString.html" title="ParseVersionString"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="InstallWP.html" title="X"
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-77a93d6</span>
+    <span class="version_switch">git-develop-ea9334d</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">ParseAndAddCatchTests</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,53 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:ParseAndAddCatchTests"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:ParseAndAddCatchTests"></span><section id="parseandaddcatchtests">
+<h1>ParseAndAddCatchTests<a class="headerlink" href="#parseandaddcatchtests" title="Link to this heading">¶</a></h1>
+<p>Define function <span class="target" id="index-0-command:parseandaddcatchtests"></span><a class="reference internal" href="#command:parseandaddcatchtests" title="parseandaddcatchtests"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">ParseAndAddCatchTests()</span></code></a> to parse a C++ source
+file for <a class="reference external" href="https://github.com/catchorg/Catch2">Catch2</a> tests and
+register them with <span class="target" id="index-0-command:cmake-ref-current:command:add_test"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_test.html#command:add_test" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_test()</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This file differs from <a class="reference external" href="https://github.com/catchorg/Catch2/blob/79d39a1954837f234b48e3bc342b7f26e535d8a5/extras/ParseAndAddCatchTests.cmake">ParseAndAddCatchTests.cmake</a>
+as bundled with <a class="reference external" href="https://github.com/catchorg/Catch2">Catch2</a>
+principally through the addition of options <a class="reference internal" href="#parse-and-add-catch-tests-targetsvar"><span class="std std-ref">TargetsVar</span></a> and <a class="reference internal" href="#parse-and-add-catch-tests-extralabels"><span class="std std-ref">ExtraLabels</span></a>.</p>
+</div>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:parseandaddcatchtests">
+<span class="sig-name descname"><span class="pre">ParseAndAddCatchTests</span></span><a class="headerlink" href="#command:parseandaddcatchtests" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a C++ source file for Catch2 tests and register them with
+<span class="target" id="index-1-command:cmake-ref-current:command:add_test"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/add_test.html#command:add_test" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">add_test()</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">ParseAndAddCatchTests(</span><span class="nv">&lt;TestTarget&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl class="simple" id="parse-and-add-catch-tests-targetsvar">
+<dt><code class="docutils literal notranslate"><span class="pre">TargetsVar</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Defined targets will be returned in <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
+</dd>
+</dl>
+<dl class="simple" id="parse-and-add-catch-tests-extralabels">
+<dt><code class="docutils literal notranslate"><span class="pre">ExtraLabels</span> <span class="pre">&lt;label&gt;</span> <span class="pre">...</span></code></dt><dd><p>Add CMake test labels <code class="docutils literal notranslate"><span class="pre">&lt;label&gt;</span> <span class="pre">...</span></code> to each defined test.</p>
+</dd>
+</dl>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>Instead, use:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">include(</span><span class="nb">Catch</span><span class="nf">)</span>
+<span class="nf">catch_discover_tests(</span><span class="nv">&lt;TestTarget&gt;</span><span class="nf">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://github.com/catchorg/Catch2/blob/79d39a1954837f234b48e3bc342b7f26e535d8a5/extras/Catch.cmake">Catch.cmake</a>
+as bundled with <a class="reference external" href="https://github.com/catchorg/Catch2">Catch2</a>.</p>
+</div>
+</div>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -98,7 +143,7 @@
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="ParseVersionString.html"
-                          title="next chapter">X</a></p>
+                          title="next chapter">ParseVersionString</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -128,7 +173,7 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="ParseVersionString.html" title="X"
+          <a href="ParseVersionString.html" title="ParseVersionString"
              >next</a> |</li>
         <li class="right" >
           <a href="InstallWP.html" title="X"
@@ -144,12 +189,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-77a93d6</span>
+    <span class="version_switch">git-develop-ea9334d</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">ParseAndAddCatchTests</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
