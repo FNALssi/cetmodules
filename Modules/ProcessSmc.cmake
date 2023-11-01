@@ -1,31 +1,58 @@
 #[================================================================[.rst:
-X
--
+ProcessSmc
+----------
+
+Define the function :command:`process_smc` to generate C++ source code
+from an `SMC <https://smc.sourceforge.net/>`_ :file:`.sm` file.
+
 #]================================================================]
-########################################################################
-# process_smc
-#
-# Process state machine files (.sm) into C++ source for inclusion in a
-# library.
-#
-# Usage:
-#
-# process_smc(LIB_SOURCES_VAR [NO_INSTALL] <.sm files>)
-#
-####################################
-# Notes
-#
-# The LIB_SOURCES_VAR argument should be the name of a variable whose
-# contents after calling will be the list of C++ source files generated
-# by the state machine compiler.
-#
-########################################################################
+
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 find_package(Smc 6.0.1 REQUIRED)
+
+#[================================================================[.rst:
+.. command:: process_smc
+
+   Generate C++ source code from an `SMC
+   <https://smc.sourceforge.net/>`_ :file:`.sm` file.
+
+   .. code-block:: cmake
+
+      process_smc(<target-or-var> [<options>])
+
+   .. seealso:: :module:`FindSmc`
+
+   Options
+   ^^^^^^^
+
+   ``NO_INSTALL``
+     Do not install generated files in either the include or source
+     areas of the built package.
+
+   .. versionadded:: 3.23.00
+
+      ``NO_INSTALL_SOURCE``
+        Do not install generated files in the source areas of the built
+        package.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<target-or-var>``
+     If ``<target-or-var>`` is a target, generated sources will be added
+     as ``PRIVATE`` sources via :command:`target_sources()
+     <cmake-ref-current:command:target_sources>`.
+
+     .. deprecated:: 2.10.00
+
+        Otherwise, add the generated sources to the CMake variable
+        ``<target-or-var>`` in the caller's scope.`
+
+#]================================================================]
 
 function(process_smc TARGET_OR_VAR)
   cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL;NO_INSTALL_SOURCE" "OUTPUT_DIR" "")
