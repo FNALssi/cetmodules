@@ -1,212 +1,36 @@
 #[================================================================[.rst:
-X
--
+ProjectVariable
+---------------
+
+Utilities for defining and manipulating project-specific cache
+variables.
+
+Defined functions:
+
+:command:`project_variable`
+  Define a :manual:`project variable <cetmodules-project-variables(7)>`:
+  a project-specific cache variable with optional propagation to
+  dependent packages via :command:`find_package()
+  <cmake-ref-current:command:find_package>`.
+
+:command:`cet_get_pv_property`
+  Get the value of a :manual:`property
+  <cmake-ref-current:manual:cmake-properties(7)>`\ -like attribute
+  attached to a particular :manual:`project variable
+  <cetmodules-project-variables(7)>`.
+
+:command:`cet_set_pv_property`
+  Set or add to a :manual:`property
+  <cmake-ref-current:manual:cmake-properties(7)>`\ -like attribute
+  attached to a particular :manual:`project variable
+  <cetmodules-project-variables(7)>`.
+
+.. seealso::
+
+   :command:`cet_localize_pv`, :command:`cet_localize_pv_all`,
+   :command:`cet_cmake_config`.
+
 #]================================================================]
-########################################################################
-# ProjectVariable.cmake
-#
-#   Utilities for defining and manipulating project-specific cache
-#   variables, with optional propagation to dependent packages via
-#   find_package().
-#
-####################################
-# FUNCTION OVERVIEW
-##################
-#
-# project_variable(<var-name> [<options>] [<initial-value>...])
-#
-#   Define a cached project variable ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>,
-#   extending the functionality of set(... CACHE...). Optionally ensure
-#   that the variable is appropriately defined for dependents via
-#   find_package().
-#
-# cet_set_pv_property([<project-name>] <var-name>
-#                               [APPEND|APPEND_STRING]
-#                               PROPERTY <property> [<value>...])
-#
-#   Set (or add to) the property <property> for project variable
-#   <project-name>_<var-name>. If <project-name> is not specified,
-#   ${CETMODULES_CURRENT_PROJECT_NAME} will be used.
-#
-# cet_get_pv_property([<output-variable>] [PROJECT <project-name>]
-#                               <var-name> PROPERTY <property>)
-#
-#   Get the value of the specified <property> for
-#   <project_name>_<var-name>, storing in <output-variable>.
-#
-####################################
-# FEATURES
-##################
-#
-# * Any project variable may be propagated to dependent packages via the
-#   non-default CONFIG option (see OPTIONS for project_variable(),
-#   below).
-#
-# * The attributes of any project variable are stored in cache also, and
-#   may be interrogated or changed via cet_get_pv_property()
-#   and cet_set_pv_property() respectively.
-#
-# * In addition to the CMake variable types (see
-#   https://cmake.org/cmake/help/latest/prop_cache/TYPE.html or
-#   https://cmake.org/cmake/help/latest/command/set.html#set-cache-entry),
-#   special types PATH_FRAGMENT and FILEPATH_FRAGMENT are available
-#   indicating that they should be considered relative to
-#   ${CMAKE_INSTALL_PREFIX} for the project.
-#
-# * Project variables representing path types will have
-#   ${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX} prepended to their value if:
-#
-#     1. ${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX is set; AND
-#
-#     2. <var-name> is defined as architecture-specific, as defined by
-#        CetModules' defaults and modified by project variables
-#        ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS and
-#        ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS; AND
-#
-#     3. The path is relative.
-#
-# * Order of precedence for the initial value of
-#   ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>:
-#
-#     1. The value of a CMake variable ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name> if it
-#        is defined in the scope in which project_variable() is called
-#        prior to the definition of the project variable. In this case,
-#        the CMake variable is unset as a natural consequence of calling
-#        set(... CACHE...).
-#
-#     2. The value of a CMake variable <var-name> if it is defined in
-#        the current scope prior to the definition of the project
-#        variable.
-#
-#     3. The value of a CMake or cached variable
-#        ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_<var-name>.
-#
-#     4. The value of a CMake or cached variable
-#        ${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT.
-#
-#     5. <initial-value>.
-#
-#     6. <backup-default> (if specified - see OPTIONS for
-#        project_variable()) and <initial-value>... evaluates to FALSE).
-#
-# * All CONFIG project variables whose type matches
-#   (FILE)?PATH(_FRAGMENT)? will be defined in
-#   ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake in such a way as to be correct
-#   regardless of the package's installation location provided they
-#   exist under the project's installation prefix. See
-#   https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#command:configure_package_config_file
-#   for details.
-#
-####################################
-# project_variable(<var-name> [<options>] [<initial-value>...])
-#
-##################
-# OPTIONS
-##################
-#
-#   PUBLIC
-#
-#     Project variables will generally be marked "advanced"—not visible
-#     by default in CMake configuration GUIs or to cmake -N -L in the
-#     absence of the -A option. Specifying the PUBLIC option will negate
-#     this.
-#
-#   BACKUP_DEFAULT <value>...
-#
-#     If provided, and in the event that IF (<initial-value>) evaluates
-#     to FALSE, then this will be the default value of the cached
-#     variable.
-#
-#   CONFIG
-#
-#     This variable will be propagated to dependent packages via
-#     find_package() - in a location-independent way if appropriate to
-#     the variable's TYPE - and as modified by any OMIT... options as
-#     described below.
-#
-#   DOCSTRING <string>
-#
-#     A string describing the variable (defaults to a generic
-#     description).
-#
-#   MISSING_OK
-#
-#     A variable whose TYPE matches (FILE)?PATH(_FRAGMENT)? but whose
-#     value does not represent a valid path in the installation area
-#     will cause an error at find_package() time unless this option is
-#     specified.
-#
-#   NO_WARN_REDUNDANT
-#
-#     Do not warn about redundant options (e.g. if CONFIG is not
-#     specified).
-#
-#   OMIT_IF_EMPTY
-#
-#     If specified, a project variable representing a directory (i.e. whose
-#     TYPE matches PATH(_FRAGMENT)?) will be omitted from
-#     ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake if it contains no entries other than
-#     `.' and ".."
-#
-#   OMIT_IF_MISSING
-#
-#     If specified, a project variable whose TYPE matches
-#     (FILE)?PATH(_FRAGMENT)?  but whose value does not represent an
-#     existing file or directory in the installation area will be
-#     omitted from ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake.
-#
-#   OMIT_IF_NULL
-#
-#     If specified, the definition of a vacuous project variable will be
-#     omitted from ${CETMODULES_CURRENT_PROJECT_NAME}Config.cmake.
-#
-#   TYPE
-#
-#     The type of the cached variable. Custom types PATH_FRAGMENT and
-#     FILEPATH_FRAGMENT are accepted in addition to the values defined
-#     and explained at
-#     
-#
-#     PATH_FRAGMENT and FILEPATH_FRAGMENT are related to their official
-#     partial namesakes in that they are treated as path-style values
-#     for the purposes of handling in the CMake config file, but are
-#     defined as STRING in CMake's cache in order to avoid unwanted
-#     relative-to-absolute conversion for values specified on the
-#     command line.
-#
-#     The default value of TYPE is PATH_FRAGMENT.
-#
-####################################
-# PROPERTIES
-##################
-#
-# These are not properties in the formal CMake sense, but are
-# semantically similar.
-#
-# * CONFIG
-# * MISSING_OK
-# * OMIT_IF_EMPTY
-# * OMIT_IF_MISSING
-# * OMIT_IF_NULL
-#
-#   These boolean flags reflect the settings of the corresponding
-#   options to project_variable().
-#
-# * IS_PATH
-#
-#   This boolean flag indicates whether the variable should be treated
-#   as the location of a file or directory in the filesystem.
-#
-# * ORIGIN
-#
-#   This option indicates the origin of the initial value of the project
-#   variable.
-#
-# * TYPE
-#
-#   This option indicates the type of the project variable as indicated
-#   by the TYPE option to the project_variable() call.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -233,6 +57,42 @@ set(_CPV_FLAGS CONFIG IS_PATH MISSING_OK OMIT_IF_EMPTY OMIT_IF_MISSING
 
 # Option properties.
 set(_CPV_OPTIONS ORIGIN TYPE)
+
+#[================================================================[.rst:
+.. command:: cet_get_pv_property
+
+   Get the value of a :manual:`property
+   <cmake-ref-current:manual:cmake-properties(7)>`\ -like attribute
+   attached to a particular :manual:`project variable
+   <cetmodules-project-variables(7)>`.
+
+   .. code-block:: cmake
+
+      cet_get_pv_property([<out-var>] [PROJECT] <project-name> <var-name> PROPERTY <property>)
+
+   Options
+   ^^^^^^^
+
+   ``[PROJECT] <project-name>``
+     Find project variable ``<var-name>`` in project ``<project-name>``
+     (default :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`). If ``<out-var>`` is specified,
+     the ``PROJECT`` keyword is optional.
+
+   ``PROPERTY <property>``
+     The property-like attribute of project variable ``<var-name>``
+     whose value(s) should be returned in ``<out-var>``.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``[<out-var>]``
+     The variable in which the value(s) of project variable
+     ``<var-name>`` in project ``<project-name>`` shall be returned. If
+     not specified, the property's values shall be returned in a
+     variable in caller's scope whose name is ``<property>``.
+
+#]================================================================]
 
 function(cet_get_pv_property)
   cmake_parse_arguments(PARSE_ARGV 0 GPVP "" "PROJECT" "")
@@ -274,6 +134,48 @@ USAGE: cet_get_pv_property([<output-variable>] [PROJECT <project-name>] <var-nam
   endif()
   set(${OUT_VAR} ${RESULT} PARENT_SCOPE)
 endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_set_pv_property
+
+   Set or append values to a :manual:`property
+   <cmake-ref-current:manual:cmake-properties(7)>`\ -like attribute
+   attached to a particular :manual:`project variable
+   <cetmodules-project-variables(7)>`.
+
+   .. code-block:: cmake
+
+      cet_set_pv_property([<project-name>] <var-name> [APPEND|APPEND_STRING] PROPERTY <property> [<value> ...])
+
+   Options
+   ^^^^^^^
+
+   ``PROPERTY <property>``
+     The property-like attribute of project variable ``<var-name>``
+     whose value(s) should be returned in ``<out-var>``.
+
+   ``APPEND``
+     ``<property>`` shall be treated as a :command:`list
+     <cmake-ref-current:command:list>` for the purposes of appending
+     ``<value> ...``.
+
+   ``APPEND_STRING``
+     ``<property>`` shall be treated as a :command:`string
+     <cmake-ref-current:command:string>` for the purposes of appending
+     ``<value> ...``.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<project-name>``
+     Find project variable ``<var-name>`` in project ``<project-name>``
+     (default :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`).
+
+   ``<value> ...``
+     The item(s) to be set for or appended to ``<property>``.
+
+#]================================================================]
 
 function(cet_set_pv_property)
   list(FIND ARGV "PROPERTY" PROP_IDX)
@@ -332,6 +234,156 @@ function(cet_set_pv_property)
   set_property(CACHE CETMODULES_${VAR_NAME}_PROPERTIES_PROJECT_${PROJ}
     PROPERTY VALUE ${cached_properties})
 endfunction()
+
+#[================================================================[.rst:
+.. command:: project_variable
+
+   Define a project-specific cache variable
+   :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+   <CETMODULES_CURRENT_PROJECT_NAME>`\ ``_<var-name>``, extending the
+   functionality of :command:`set(... CACHE ...)
+   <cmake-ref-current:command:set(cache)>`. Optionally ensure that the
+   variable is appropriately defined for dependents via
+   :command:`find_package() <cmake-ref-current:command:find_package>`.
+
+   .. seealso:: :manual:`cetmodules-project-variables(7)`.
+
+   .. code-block:: cmake
+
+      project_variable(<var-name> [<options>] [<init-val> ...])
+
+   Options
+   ^^^^^^^
+
+   .. _project_variable-BACKUP_DEFAULT:
+
+   ``BACKUP_DEFAULT <default-val> ...``
+     If ``<init-val>`` evaluates to ``FALSE`` then ``<default-val> ...``
+     will be the initial value of the cached variable.
+
+   .. _project_variable-CONFIG:
+
+   ``CONFIG``
+     Add the defined project variable to
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ :file:`Config.cmake` for
+     propagation to dependent packages—in a location-independent way if
+     appropriate to the variable's `TYPE <project_variable-TYPE>`_\ —via
+     :command:`find_package() <cmake-ref-current:command:find_package>`.
+
+   ``DOCSTRING <docstring>``
+     A string describing the variable (defaults to a generic
+     description).
+
+   .. _project_variable-MISSING_OK:
+
+   ``MISSING_OK``
+     A project variable whose `TYPE <project_variable-TYPE>`_ matches
+     ``^(FILE)?PATH(_FRAGMENT)?$`` but whose value does not represent a
+     valid path in the installation area will cause an error at
+     :command:`find_package()
+     <cmake-ref-current:command:find_package>`\ -time unless this option
+     is specified.
+     
+   ``NO_WARN_DUPLICATE``
+     Do not warn about multiple attempts to define the same project
+     variable in the same project.
+
+   ``NO_WARN_REDUNDANT``
+     Do not warn about redundant options (e.g. if ``CONFIG`` is not
+     specified).
+
+   .. _project_variable-OMIT_IF_EMPTY:
+
+   ``OMIT_IF_EMPTY``
+     .. rst-class:: text-start
+
+     If specified, a project variable representing a directory
+     (i.e. whose `TYPE <project_variable-TYPE>`_ matches
+     ``^PATH(_FRAGMENT)?$``) will be omitted from
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ :file:`Config.cmake` if it
+     contains no entries other than :file:`.` and :file:`..`
+
+   .. _project_variable-OMIT_IF_MISSING:
+
+   ``OMIT_IF_MISSING``
+     If specified, a project variable whose `TYPE
+     <project_variable-TYPE>`_ matches ``^(FILE)?PATH(_FRAGMENT)?$`` but
+     whose value does not represent an existing file or directory in the
+     installation area will be omitted from
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ :file:`Config.cmake`.
+
+   .. _project_variable-OMIT_IF_NULL:
+
+   ``OMIT_IF_NULL``
+     If specified, the definition of a vacuous project variable will be
+     omitted from
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ :file:`Config.cmake`.
+
+   ``PUBLIC``
+     Project variables will generally be marked "advanced"—not visible
+     by default in CMake configuration GUIs or to
+     :external+cmake-ref-current:option:`cmake -N <cmake.-N>`
+     :external+cmake-ref-current:option:`-L <cmake.-L[A][H]>` in the
+     absence of the ``-A`` option. Specifying ``PUBLIC`` will negate
+     this.
+     
+     .. seealso::
+
+        :command:`mark_as_advanced() <cmake-ref-current:command:mark_as_advanced>`.
+
+   .. _project_variable-TYPE:
+
+   ``TYPE <type>``
+
+     Define the `project-variables-types`_ type of the project variable
+     (default ``PATH_FRAGMENT``).
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<var-name>``
+     .. rst-class:: text-start
+
+     The name of the cached variable will be
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ ``_<var-name>``
+
+   ``<init-val> ...``
+     The initial value(s) of the cached variable.
+
+   Details
+   ^^^^^^^
+
+   Order of precedence for the initial value of
+   :variable:`!${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>`:
+
+   #. The value of a CMake variable
+      :variable:`!${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>` if it
+      is defined in the current scope (that in which
+      :command:`!project_variable` is called) prior to the definition of
+      the project variable.
+
+   #. The value of a CMake variable ``<var-name>`` if it is defined in
+      the current scope prior to the definition of the project variable.
+
+   #. The value of a CMake or cached variable
+      :variable:`${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}
+      <CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX>`\ ``_<var-name>``.
+
+   #. The value of a CMake or cached variable
+      :variable:`!${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT`.
+
+   #. ``<init-val> ...``.
+
+   #. ``<backup-var> ...`` if specified and ``<init-val> ...`` evaluates
+      to ``FALSE``).
+
+
+#]================================================================]
 
 function(project_variable VAR_NAME)
   cmake_parse_arguments(PARSE_ARGV 1 CPV

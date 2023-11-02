@@ -32,8 +32,8 @@ include(ParseVersionString)
 
    .. rst-class:: text-start
 
-   Generate and install ``<PROJECT-NAME>Config.cmake`` and
-   ``<PROJECT-NAME>ConfigVersion.cmake``.
+   Generate and install :filename:`<PROJECT-NAME>Config.cmake` and
+   :filename:`<PROJECT-NAME>ConfigVersion.cmake`.
 
    .. code-block:: cmake
 
