@@ -35,6 +35,7 @@ Generation, Installation, and Export
 * :command:`cet_test`
 * :command:`install_pkgmeta`
 * :command:`ParseAndAddCatchTests`
+* :command:`process_smc`
 
 Utility
 =======
