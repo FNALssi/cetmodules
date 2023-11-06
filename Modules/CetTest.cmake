@@ -1042,6 +1042,7 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
   _cet_test_pargs(tmp_args ${ARGN})
   separate_arguments(test_args UNIX_COMMAND "${tmp_args}")
   cet_localize_pv(cetmodules LIBEXEC_DIR)
+  _cet_exec_location(TEXEC ${CET_TEST_EXEC})
   add_test(NAME "${TNAME}"
     CONFIGURATIONS ${CET_CONFIGURATIONS}
     COMMAND ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR}
@@ -1050,7 +1051,7 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
     --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR}
     --skip-return-code ${skip_return_code}
     ${CMAKE_COMMAND}
-    -DTEST_EXEC=${CET_TEST_EXEC}
+    -DTEST_EXEC=${TEXEC}
     -DTEST_ARGS=${test_args}
     -DTEST_REF=${OUTPUT_REF}
     ${DEFINE_ERROR_REF}
