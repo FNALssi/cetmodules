@@ -13,8 +13,11 @@ Initialization and Finalization
 Project Variables
 =================
 
-* :command:`cet_localize_pv`
+* :command:`cet_get_pv_property`
 * :command:`cet_localize_pv_all`
+* :command:`cet_localize_pv`
+* :command:`cet_set_pv_property`
+* :command:`project_variable`
 
 Generation, Installation, and Export
 ====================================
