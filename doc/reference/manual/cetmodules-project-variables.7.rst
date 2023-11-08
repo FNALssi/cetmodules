@@ -69,7 +69,7 @@ Properties defined by :command:`project_variable`
 ``ORIGIN``
   The origin of the initial value of the project variable, following the
   `defined order of precedence
-  <project-variable-init-value-precedence>`_ . Valid values are:
+  <project-variable-init-value-precedence>`_. Valid values are:
 
   * The name of the variable from which the initial value was taken.
 
@@ -88,10 +88,12 @@ Project Variables and CMake Config files
 
 Any project variable defined with the ``CONFIG`` attribute will be
 propagated to dependent packages: a suitable definition will be
-generated in :filename:`<PROJECT-NAME>Config.cmake` by the
+generated in :file:`<PROJECT-NAME>Config.cmake` by the
 :command:`cet_cmake_config` function. In the case of project variables
 of type ``(FILE)?PATH(_FRAGMENT)?``, the path will be localized
 appropriately for the package's installation location. Additional
-attributes (`project_variable-MISSING_OK`_,
-`project_variable-OMIT_IF_EMPTY`_, `project_variable-OMIT_IF_MISSING`_,
-`project_variable-OMIT_IF_NULL`_) modify the details of that definition.
+attributes (:ref:`project_variable-MISSING_OK`,
+:ref:`project_variable-OMIT_IF_EMPTY`,
+:ref:`project_variable-OMIT_IF_MISSING`,
+:ref:`project_variable-OMIT_IF_NULL`) modify the details of that
+definition.
