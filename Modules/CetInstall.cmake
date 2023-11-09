@@ -44,98 +44,50 @@ include (ProjectVariable)
    Options
    ^^^^^^^
 
-     .. _p_cet_install-BASENAME_EXCLUDES:
-
-     ``BASENAME_EXCLUDES [[REGEX] <exp>]...``
-       Filenames matching these expressions in any searched subdirectory
-       are excluded from installation; :command:`file(GLOB)
-       <cmake-ref-current:command:file(glob)>` expressions are
-       permitted.
-
-     ``DESTINATION <dest-path>``
-       Installation subdirectory below :variable:`CMAKE_INSTALL_PREFIX
-       <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`
-       (mutually-exclusive with ``DEST_VAR``).
-
-     ``DEST_VAR <dest-var>``
-       The name of a CMake variable containing the installation
-       subdirectory (mutually-exclusive with ``DESTINATION``).
-
-     .. _p_cet_install-EXCLUDES:
-
-     ``EXCLUDES [<exclude-exp>...]``
-       A list of paths to exclude from the list of files that would
-       otherwise be installed. This keyword accepts files only: no
-       wildcards or directories
-
-     .. _p_cet_install-opt-LIST:
-
-     ``LIST [<file>...]``
-       A list of files to install. Mutually-exclusive with any option
-       assuming a generated list via :ref:`p_cet_install-_GLOB`,
-       specifically :ref:`p_cet_install-EXCLUDES`,
-       :ref:`p_cet_install-BASENAME_EXCLUDES`,
-       :ref:`p_cet_install-EXTRAS`, and :ref:`p_cet_install-SUBDIRS`,
-
-     .. _p_cet_install-EXTRAS:
-
-     ``EXTRAS [<extra file>...]``
-       TODO.
-
-     ``PROGRAMS``
-       TODO.
-
-     ``SUBDIRNAME <dest-subdir>``
-       TODO.
-
-     .. _p_cet_install-SUBDIRS:
-
-     ``SUBDIRS [<source-subdir>...]``
-       TODO.
+   .. include:: /opts-inc.rst
 
    .. _p_cet_install-meta-options:
 
    Meta-options
    """"""""""""
 
-     ``_EXTRA_BASENAME_EXCLUDES [<basename-exclude-exp>...]``
-       Additional basename exclusion expressions.
+   ``_EXTRA_BASENAME_EXCLUDES [<basename-exclude-exp> ...]``
+     Additional basename exclusion expressions.
 
-     ``_EXTRA_EXCLUDES [<exclude-exp>...]``
-       Additional full-path exclusion expressions.
+   ``_EXTRA_EXCLUDES [<exclude-exp> ...]``
+     Additional full-path exclusion expressions.
 
-     ``_EXTRA_EXTRAS [<path>...]``
-       Files to install in addition to those found via :command:`GLOB
-       <cmake-ref-current:command:file(glob)>` expressions.
+   ``_EXTRA_EXTRAS [<path>...]``
+     Files to install in addition to those found via :command:`GLOB
+     <cmake-ref-current:command:file(glob)>` expressions.
 
-     .. _p_cet_install-_GLOB:
+   .. _p_cet_install-_GLOB:
 
-     ``_GLOBS [<file(glob)>...]``
-       \ :command:`GLOB <cmake-ref-current:command:file(glob)>`
-       expressions for files to include.
+   ``_GLOBS [<file(glob)>...]``
+     \ :command:`GLOB <cmake-ref-current:command:file(glob)>`
+     expressions for files to include.
 
-     ``_INSTALLED_FILES_VAR <var>``
-       The name of a variable in which to stored the full list of files
-       installed.
+   ``_INSTALLED_FILES_VAR <var>``
+     The name of a variable in which to stored the full list of files
+     installed.
 
-     ``_INSTALL_ONLY``
-       Do not copy files to the build tree.
+   ``_INSTALL_ONLY``
+     Do not copy files to the build tree.
 
-     ``_LIST_ONLY``
-       Disable globbing: enforce explicit lists of files to install via
-       :ref:`LIST <p_cet_install-opt-LIST>`.
+   ``_LIST_ONLY``
+     Disable globbing: enforce explicit lists of files to install via
+     :ref:`LIST <p_cet_install-opt-LIST>`.
 
-     ``_NO_LIST``
-       Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
+   ``_NO_LIST``
+     Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
 
-     ``_SEARCH_BUILD``
-       :command:`GLOB <cmake-ref-current:command:file(glob)>`
-       expressions will be applied to the build tree in addition to the
-       source tree.
+   ``_SEARCH_BUILD``
+     :command:`GLOB <cmake-ref-current:command:file(glob)>` expressions
+     will be applied to the build tree in addition to the source tree.
 
-     ``_SQUASH_SUBDIRS``
-       Subdirectory elements of source files are ignored when
-       calculating the copy/install destination.
+   ``_SQUASH_SUBDIRS``
+     Subdirectory elements of source files are ignored when calculating
+     the copy/install destination.
 
    Details
    ^^^^^^^
@@ -151,6 +103,7 @@ include (ProjectVariable)
       :command:`file(GLOB) <cmake-ref-current:command:file(glob)>` to
       generate targets is not CMake best practice, and may lead to
       hysteresis if looking for generated files in the build tree.
+
 #]============================================================]
 
 # Copy all files (or PROGRAMS) found matching provided glob expressions

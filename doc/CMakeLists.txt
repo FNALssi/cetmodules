@@ -2,6 +2,29 @@ include(CetGenerateSphinxDocs)
 
 find_package(M4 REQUIRED)
 
+function(_generate_cet_install_opts_inc)
+  set(cet_install_opts_dir "${doc_root}/reference/_cet_install_opts")
+
+  add_custom_command(OUTPUT "${doc_root}/reference/opts-inc.rst"
+    COMMAND M4::M4
+    -Dm4src="${doc_root}/reference/_cet_install_opts"
+    "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.rst.m4"
+    > "${doc_root}/reference/opts-inc.rst"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.rst.m4"
+    "${cet_install_opts_dir}/BASENAME_EXCLUDES.rst"
+    "${cet_install_opts_dir}/DESTINATION.rst"
+    "${cet_install_opts_dir}/DEST_VAR.rst"
+    "${cet_install_opts_dir}/EXCLUDES.rst"
+    "${cet_install_opts_dir}/EXTRAS.rst"
+    "${cet_install_opts_dir}/LIST.rst"
+    "${cet_install_opts_dir}/PROGRAMS.rst"
+    "${cet_install_opts_dir}/SUBDIRNAME.rst"
+    "${cet_install_opts_dir}/SUBDIRS.rst"
+    VERBATIM
+    COMMENT "Generating ${doc_root}/reference/opts-inc.rst with m4"
+  )
+endfunction()
+
 function(_generate_reference)
   set(source_root "${CMAKE_CURRENT_BINARY_DIR}/gen/install")
   set(doc_root "${source_root}/doc")
@@ -31,6 +54,8 @@ function(_generate_reference)
     COMMENT "Generating ${doc_root}/reference/index.rst with m4"
   )
 
+  _generate_cet_install_opts_inc()
+
   # Generate documentation for installation with this package.
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-conf.py.in" ref_conf)
   string(CONFIGURE "\
@@ -47,7 +72,9 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
-    DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
+    DEPENDS "${doc_root}/reference/index.rst"
+    "${doc_root}/cetmodules-common.rst"
+    "${doc_root}/reference/opts-inc.rst"
     TARGETS_VAR reference_html_target
   )
 
@@ -101,6 +128,9 @@ function(_publish_to_root)
     VERBATIM
     COMMENT "Generating ${doc_root}/reference/index.rst with m4"
   )
+
+  _generate_cet_install_opts_inc()
+
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/reference-conf.py.in" ref_conf)
   string(CONFIGURE "\
 ${COMMON_CONF}
@@ -126,7 +156,9 @@ ${ref_conf}
     CONF_DIR "${CMAKE_CURRENT_BINARY_DIR}/reference"
     EXTRA_ARGS ${cetmodules_SPHINX_DOC_EXTRA_ARGS}
     html_EXTRA_ARGS ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
-    DEPENDS "${doc_root}/reference/index.rst" "${doc_root}/cetmodules-common.rst"
+    DEPENDS "${doc_root}/reference/index.rst"
+    "${doc_root}/cetmodules-common.rst"
+    "${doc_root}/reference/opts-inc.rst"
     TARGETS_VAR publish_ref_target
   )
   add_custom_command(OUTPUT "${doc_root}/landing/index.rst"
@@ -212,6 +244,7 @@ endfunction()
 
 function(_symlink_reference_to DEST)
   foreach(item IN ITEMS
+      _cet_install_opts
       envvar
       manual
       module
