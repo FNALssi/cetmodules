@@ -249,7 +249,7 @@ CetTest
 #
 # CLEAR
 #   Clear the global test environment (ie anything previously set with
-#    cet_test_env()) before setting <env>.
+#   cet_test_env()) before setting <env>.
 #
 ####################################
 # Notes:
@@ -261,6 +261,35 @@ CetTest
 #   for tests then that will be propagated to tests defined in
 #   subdirectories unless cet_test_env(CLEAR ...) is invoked in that
 #   directory.
+#
+########################################################################
+
+########################################################################
+# cet_test_prepend_env: prepend directories to the specified environment
+#                       variable all tests here specified.
+#
+# Usage: cet_test_prepend_env(<env> [<options] [<dir>+])
+#
+####################################
+# Options:
+#
+# REMOVE_DUPLICATES
+#   Remove any duplicate directory entries that may appear in the
+#   directories specified by the user.  For a given duplicate, only
+#   the first entry will be kept.
+#
+####################################
+# Notes:
+#
+# * <dir> is a directory string or generator expression whose
+# * evaluation will be prepended to the specified environment
+# * variable.  If no <dir> argument is given, then
+# * cet_test_prepend_env() is a NOP.
+#
+# * If cet_test_prepend_env() is called in a directory to set the
+#   environment for tests then that will be propagated to tests
+#   defined in subdirectories unless cet_test_env(CLEAR ...) is
+#   invoked in that directory.
 #
 ########################################################################
 
@@ -1006,6 +1035,41 @@ function(cet_test_env)
     set(CET_TEST_ENV)
   endif()
   list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
+  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
+endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_test_prepend_env
+
+   Prepend to path-like environment variables to the test environment
+   for tests defined in and below the current directory.
+
+   .. code-block:: cmake
+
+      cet_test_prepend_env(<var> [REMOVE_DUPLICATES] <dir> ...)
+
+   Options
+   ^^^^^^^
+
+   ``REMOVE_DUPLICATES``
+     Remove any duplicate directory entries that may appear in the
+     specified directories.  For a given duplicate, only the first
+     entry will be kept.
+
+#]================================================================]
+
+function(cet_test_prepend_env CET_ENV_VAR)
+  cmake_parse_arguments(PARSE_ARGV 1 CET_TEST "REMOVE_DUPLICATES" "" "")
+  if (CET_TEST_REMOVE_DUPLICATES)
+    list(REMOVE_DUPLICATES CET_TEST_UNPARSED_ARGUMENTS)
+  endif()
+  string(REPLACE ";" ":" PREFIX "${CET_TEST_UNPARSED_ARGUMENTS}")
+  if (DEFINED ENV{${CET_ENV_VAR}})
+    set(PATHS "${CET_ENV_VAR}=${PREFIX}:$ENV{${CET_ENV_VAR}}")
+  else()
+    set(PATHS "${CET_ENV_VAR}=${PREFIX}")
+  endif()
+  list(APPEND CET_TEST_ENV "${PATHS}")
   set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
 endfunction()
 
