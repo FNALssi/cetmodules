@@ -735,7 +735,7 @@ endfunction()
      Clear the test environment in the current directory scope prior to
      setting ``<var>=<val>``, including any environment modifications.
 
-     .. seealso:: :command:`cet_prepend_test_environment`,
+     .. seealso:: :command:`cet_test_prepend_env`,
                   :variable:`CET_TEST_ENV_MODIFICATION`.
 
    Details

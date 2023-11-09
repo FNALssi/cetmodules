@@ -64,6 +64,7 @@ Utility
 * :command:`cet_source_file_extensions`
 * :command:`cet_test_assertion`
 * :command:`cet_test_env`
+* :command:`cet_test_prepend_env`
 * :command:`cet_timestamp`
 * :command:`cet_version_cmp`
 * :command:`parse_version_string`
