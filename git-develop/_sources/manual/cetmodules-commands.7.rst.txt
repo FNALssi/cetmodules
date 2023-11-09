@@ -36,7 +36,16 @@ Generation, Installation, and Export
 * :command:`cet_register_export_set`
 * :command:`cet_script`
 * :command:`cet_test`
+* :command:`install_fw`
+* :command:`install_fhicl`
+* :command:`install_gdml`
+* :command:`install_headers`
+* :command:`install_perllib`
 * :command:`install_pkgmeta`
+* :command:`install_python`
+* :command:`install_scripts`
+* :command:`install_source`
+* :command:`install_wp`
 * :command:`ParseAndAddCatchTests`
 * :command:`process_smc`
 

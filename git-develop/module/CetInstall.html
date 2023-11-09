@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetInstall &mdash; Cetmodules git-develop-252dc71 Reference</title>
+  <title>CetInstall &mdash; Cetmodules git-develop-701168f Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=8d7368d2"></script>
+    <script src="../_static/documentation_options.js?v=71eadc27"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-252dc71</span>
+    <span class="version_switch">git-develop-701168f</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -106,9 +106,8 @@ semantics common to that type of file.</p>
 <span id="p-cet-install-options"></span><h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <blockquote>
 <div><dl class="simple" id="p-cet-install-basename-excludes">
-<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[[REGEX]</span> <span class="pre">&lt;exp&gt;]...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
-are excluded from installation; <span class="target" id="index-1-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions are
-permitted.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[REGEX]</span> <span class="pre">&lt;exp&gt;</span> <span class="pre">...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
+are excluded from installation; <span class="target" id="index-1-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions are permitted.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;dest-path&gt;</span></code></dt><dd><p>Installation subdirectory below <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></a>
 (mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">DEST_VAR</span></code>).</p>
@@ -118,45 +117,53 @@ subdirectory (mutually-exclusive with <code class="docutils literal notranslate"
 </dd>
 </dl>
 <dl class="simple" id="p-cet-install-excludes">
-<dt><code class="docutils literal notranslate"><span class="pre">EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>A list of paths to exclude from the list of files that would
+<dt><code class="docutils literal notranslate"><span class="pre">EXCLUDES</span> <span class="pre">&lt;exclude-exp&gt;</span> <span class="pre">...</span></code></dt><dd><p>A list of paths to exclude from the list of files that would
 otherwise be installed. This keyword accepts files only: no
 wildcards or directories</p>
 </dd>
 </dl>
 <dl class="simple" id="p-cet-install-opt-list">
-<dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">[&lt;file&gt;...]</span></code></dt><dd><p>A list of files to install. Mutually-exclusive with any option
+<dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">&lt;file&gt;</span> <span class="pre">...</span></code></dt><dd><p>A list of files to install. Mutually-exclusive with any option
 assuming a generated list via <a class="reference internal" href="#p-cet-install-glob"><span class="std std-ref">_GLOBS [&lt;file(glob)&gt;...]</span></a>,
-specifically <a class="reference internal" href="#p-cet-install-excludes"><span class="std std-ref">EXCLUDES [&lt;exclude-exp&gt;...]</span></a>,
-<a class="reference internal" href="#p-cet-install-basename-excludes"><span class="std std-ref">BASENAME_EXCLUDES [[REGEX] &lt;exp&gt;]...</span></a>,
-<a class="reference internal" href="#p-cet-install-extras"><span class="std std-ref">EXTRAS [&lt;extra file&gt;...]</span></a>, and <a class="reference internal" href="#p-cet-install-subdirs"><span class="std std-ref">SUBDIRS [&lt;source-subdir&gt;...]</span></a>,</p>
+specifically <a class="reference internal" href="#p-cet-install-excludes"><span class="std std-ref">EXCLUDES &lt;exclude-exp&gt; ...</span></a>,
+<a class="reference internal" href="#p-cet-install-basename-excludes"><span class="std std-ref">BASENAME_EXCLUDES [REGEX] &lt;exp&gt; ...</span></a>,
+<a class="reference internal" href="#p-cet-install-extras"><span class="std std-ref">EXTRAS &lt;extra file&gt; ...</span></a>, and <a class="reference internal" href="#p-cet-install-subdirs"><span class="std std-ref">SUBDIRS &lt;source-subdir&gt; ...</span></a>,</p>
 </dd>
 </dl>
-<dl class="simple" id="p-cet-install-extras">
-<dt><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">[&lt;extra</span> <span class="pre">file&gt;...]</span></code></dt><dd><p>TODO.</p>
+<dl id="p-cet-install-extras">
+<dt><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">&lt;extra</span> <span class="pre">file&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specific files to copy/install in addition to those found via
+<span class="target" id="index-2-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>ing—incompatible with <a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST &lt;file&gt; ...</span></a>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></dt><dd><p>TODO.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></dt><dd><p>All files will be treated as executables and their mode will be set
+accordingly upon copy and/or install.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cet_copy"></span><a class="reference internal" href="CetCopy.html#command:cet_copy" title="cet_copy"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_copy()</span></code></a>,
+<a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/install.html#install-programs" title="(in CMake v3.27.7)"><span class="xref std std-ref">install(PROGRAMS
+…)</span></a>, <em class="manpage"><a class="manpage reference external" href="https://man7.org/linux/man-pages/man1/chmod.1.html">chmod(1)</a></em>.</p>
+</div>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></dt><dd><p>TODO.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></dt><dd><p>Add <code class="docutils literal notranslate"><span class="pre">&lt;dest-subdir&gt;</span></code> to the destination path.</p>
 </dd>
 </dl>
 <dl class="simple" id="p-cet-install-subdirs">
-<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRS</span> <span class="pre">[&lt;source-subdir&gt;...]</span></code></dt><dd><p>TODO.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRS</span> <span class="pre">&lt;source-subdir&gt;</span> <span class="pre">...</span></code></dt><dd><p>Install files from the specified <code class="docutils literal notranslate"><span class="pre">&lt;source-subdir&gt;</span> <span class="pre">...</span></code>;
+incompatible with <a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST &lt;file&gt; ...</span></a>.</p>
 </dd>
 </dl>
 </div></blockquote>
 <section id="meta-options">
 <span id="p-cet-install-meta-options"></span><h3>Meta-options<a class="headerlink" href="#meta-options" title="Link to this heading">¶</a></h3>
-<blockquote>
-<div><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_BASENAME_EXCLUDES</span> <span class="pre">[&lt;basename-exclude-exp&gt;...]</span></code></dt><dd><p>Additional basename exclusion expressions.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_BASENAME_EXCLUDES</span> <span class="pre">[&lt;basename-exclude-exp&gt;</span> <span class="pre">...]</span></code></dt><dd><p>Additional basename exclusion expressions.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;...]</span></code></dt><dd><p>Additional full-path exclusion expressions.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXCLUDES</span> <span class="pre">[&lt;exclude-exp&gt;</span> <span class="pre">...]</span></code></dt><dd><p>Additional full-path exclusion expressions.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXTRAS</span> <span class="pre">[&lt;path&gt;...]</span></code></dt><dd><p>Files to install in addition to those found via <span class="target" id="index-2-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a> expressions.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">_EXTRA_EXTRAS</span> <span class="pre">[&lt;path&gt;...]</span></code></dt><dd><p>Files to install in addition to those found via <span class="target" id="index-3-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a> expressions.</p>
 </dd>
 </dl>
 <dl class="simple" id="p-cet-install-glob">
-<dt><code class="docutils literal notranslate"><span class="pre">_GLOBS</span> <span class="pre">[&lt;file(glob)&gt;...]</span></code></dt><dd><p><span class="target" id="index-3-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>
+<dt><code class="docutils literal notranslate"><span class="pre">_GLOBS</span> <span class="pre">[&lt;file(glob)&gt;...]</span></code></dt><dd><p><span class="target" id="index-4-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>
 expressions for files to include.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_INSTALLED_FILES_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>The name of a variable in which to stored the full list of files
@@ -169,15 +176,13 @@ installed.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">_NO_LIST</span></code></dt><dd><p>Disallow the use of <a class="reference internal" href="#p-cet-install-opt-list"><span class="std std-ref">LIST</span></a>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_SEARCH_BUILD</span></code></dt><dd><p><span class="target" id="index-4-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>
-expressions will be applied to the build tree in addition to the
-source tree.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">_SEARCH_BUILD</span></code></dt><dd><p><span class="target" id="index-5-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a> expressions
+will be applied to the build tree in addition to the source tree.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">_SQUASH_SUBDIRS</span></code></dt><dd><p>Subdirectory elements of source files are ignored when
-calculating the copy/install destination.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">_SQUASH_SUBDIRS</span></code></dt><dd><p>Subdirectory elements of source files are ignored when calculating
+the copy/install destination.</p>
 </dd>
 </dl>
-</div></blockquote>
 </section>
 </section>
 <section id="details">
@@ -191,7 +196,7 @@ installation operations for those files.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Although supported for historical reasons, use of
-<span class="target" id="index-5-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> to
+<span class="target" id="index-6-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.7)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> to
 generate targets is not CMake best practice, and may lead to
 hysteresis if looking for generated files in the build tree.</p>
 </div>
@@ -261,7 +266,7 @@ hysteresis if looking for generated files in the build tree.</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-252dc71</span>
+    <span class="version_switch">git-develop-701168f</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

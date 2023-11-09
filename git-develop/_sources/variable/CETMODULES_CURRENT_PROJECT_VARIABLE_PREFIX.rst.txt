@@ -6,7 +6,7 @@ CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX
 
    A variable whose value is generated from the SHA256-hashed value of
    the full physical path to the current project's top level
-   :filename:`CMakeLists.txt`.
+   :file:`CMakeLists.txt`.
 
    Used by ``buildtool`` and other cetbuildtools-compatibility functions
    to set initial values for :manual:`project variables

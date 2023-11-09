@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>cetmodules-project-variables(7) &mdash; Cetmodules git-develop-252dc71 Reference</title>
+  <title>cetmodules-project-variables(7) &mdash; Cetmodules git-develop-701168f Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=8d7368d2"></script>
+    <script src="../_static/documentation_options.js?v=71eadc27"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-252dc71</span>
+    <span class="version_switch">git-develop-701168f</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -131,7 +131,7 @@ specified to <span class="target" id="index-4-command:project_variable"></span><
 or directory in the filesystem.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">ORIGIN</span></code></dt><dd><p>The origin of the initial value of the project variable, following the
-<a class="reference external" href="project-variable-init-value-precedence">defined order of precedence</a> . Valid values are:</p>
+<a class="reference external" href="project-variable-init-value-precedence">defined order of precedence</a>. Valid values are:</p>
 <ul class="simple">
 <li><p>The name of the variable from which the initial value was taken.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&lt;initial-value&gt;</span></code></p></li>
@@ -149,13 +149,15 @@ or directory in the filesystem.</p>
 <h2>Project Variables and CMake Config files<a class="headerlink" href="#project-variables-and-cmake-config-files" title="Link to this heading">¶</a></h2>
 <p>Any project variable defined with the <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code> attribute will be
 propagated to dependent packages: a suitable definition will be
-generated in <a href="#id1"><span class="problematic" id="id2">:filename:`&lt;PROJECT-NAME&gt;Config.cmake`</span></a> by the
+generated in <code class="file docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;Config.cmake</span></code> by the
 <span class="target" id="index-1-command:cet_cmake_config"></span><a class="reference internal" href="../module/CetCMakeConfig.html#command:cet_cmake_config" title="cet_cmake_config"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_cmake_config()</span></code></a> function. In the case of project variables
 of type <code class="docutils literal notranslate"><span class="pre">(FILE)?PATH(_FRAGMENT)?</span></code>, the path will be localized
 appropriately for the package’s installation location. Additional
-attributes (<a href="#id3"><span class="problematic" id="id4">`project_variable-MISSING_OK`_</span></a>,
-<a href="#id5"><span class="problematic" id="id6">`project_variable-OMIT_IF_EMPTY`_</span></a>, <a href="#id7"><span class="problematic" id="id8">`project_variable-OMIT_IF_MISSING`_</span></a>,
-<a href="#id9"><span class="problematic" id="id10">`project_variable-OMIT_IF_NULL`_</span></a>) modify the details of that definition.</p>
+attributes (<a class="reference internal" href="../module/ProjectVariable.html#project-variable-missing-ok"><span class="std std-ref">MISSING_OK</span></a>,
+<a class="reference internal" href="../module/ProjectVariable.html#project-variable-omit-if-empty"><span class="std std-ref">OMIT_IF_EMPTY</span></a>,
+<a class="reference internal" href="../module/ProjectVariable.html#project-variable-omit-if-missing"><span class="std std-ref">OMIT_IF_MISSING</span></a>,
+<a class="reference internal" href="../module/ProjectVariable.html#project-variable-omit-if-null"><span class="std std-ref">OMIT_IF_NULL</span></a>) modify the details of that
+definition.</p>
 </section>
 </section>
 
@@ -236,7 +238,7 @@ attributes (<a href="#id3"><span class="problematic" id="id4">`project_variable-
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-252dc71</span>
+    <span class="version_switch">git-develop-701168f</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
