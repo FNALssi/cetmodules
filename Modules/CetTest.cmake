@@ -8,309 +8,6 @@ CetTest
 
 #]================================================================]
 
-########################################################################
-# cet_test: specify tests in a concise and transparent way (see also
-#           cet_test_env() and cet_test_assertion(), below).
-#
-# Usage: cet_test(target [<options>] [<args>])
-#
-####################################
-# Target category options (specify at most one):
-#
-# COMPILE_ONLY
-#
-#   The test is the act of attempting to build the given sources, not
-#   the execution of the result of the build. Use in conjunction with
-#   TEST_PROPERTIES WILL_FAIL and/or PASS/FAIL_REGULAR_EXPRESSION.
-#
-# HANDBUILT
-#
-#   Do not build the target -- it will be provided.
-#
-# PREBUILT
-#
-#   Do not build the target -- copy in from the source dir (ideal for
-#   e.g. scripts).
-#
-# USE_CATCH_MAIN
-# USE_CATCH2_MAIN
-#
-#   This test will use the Catch test framework
-#   (https://github.com/philsquared/Catch). The specified target will be
-#   built from a precompiled main program to run tests described in the
-#   files specified by SOURCES.
-#
-#   N.B.: if you wish to use the ParseAndAddCatchTests() facility
-#   contributed to the Catch system, you should specify NO_AUTO to avoid
-#   generating a, "standard" test. Note also that you may have your own
-#   test executables using Catch without using USE_CATCH2_MAIN. However,
-#   be aware that the compilation of a Catch main is quite expensive,
-#   and any tests that *do* use this option will all share the same
-#   compiled main.
-#
-#   Note also that client packages are responsible for making sure Catch
-#   is available, such as with:
-#
-#     catch		<version>		-nq-	only_for_build
-#
-#   in product_deps.
-#
-####################################
-# Other options:
-#
-# CONFIGURATIONS <config>+
-#
-#   Configurations (Debug, etc, etc) under which the test shall be
-#   executed.
-#
-# DATAFILES <datafile>+
-#
-#   Input and/or references files to be copied to the test area in the
-#   build tree for use by the test. If there is no path, or a relative
-#   path, the file is assumed to be in or under
-#   ${CMAKE_CURRENT_SOURCE_DIR}.
-#
-# DEPENDENCIES <dep>+
-#
-#   List of top-level dependencies to consider for a PREBUILT
-#   target. Top-level implies a target (not file) created with
-#   ADD_EXECUTABLE, ADD_LIBRARY or ADD_CUSTOM_TARGET.
-#
-# DIRTY_WORKDIR
-#
-#   If set, the working directory will not be cleared prior to execution
-#   of the test.
-#
-# INSTALL_BIN
-#
-#   Install this test's script / exec in the product's binary directory
-#   (ignored for HANDBUILT).
-#
-# INSTALL_EXAMPLE
-#
-#   Install this test and all its data files into the examples area of
-#   the product.
-#
-# INSTALL_SOURCE
-#
-#   Install this test's source in the source area of the product.
-#
-# LIBRARIES <lib>+
-#
-#   Extra libraries with which to link this target.
-#
-# NO_AUTO
-#
-#   Do not add the target to the auto test list. N.B. all options
-#   related to the declaration of tests and setting of properties
-#   thereof will be ignored.
-#
-# OPTIONAL_GROUPS <group>+
-#
-#   Assign this test to one or more named optional groups (a.k.a CMake
-#   test labels). If ctest is executed specifying labels, then matching
-#   tests will be executed.
-#
-# PARG_<label> <opt>[=] <args>+
-#
-#   Specify a permuted argument (multiple permitted with different
-#   <label>). This allows the creation of multiple tests with arguments
-#   from a set of permutations.
-#
-#   Labels must be unique, valid CMake identifiers. Duplicated labels
-#   will cause an error.
-#
-#   If multiple PARG_XXX arguments are specified, then they are combined
-#   linearly, with shorter permutation lists being repeated cyclically.
-#
-#   If the '=' is specified, then the argument lists for successive test
-#   iterations will get <opt>=v1, <opt>=v2, etc., otherwise it will be
-#   <opt> v1, <opt> v2, ...
-#
-#   Target names will have _<num> appended, where num is zero-padded to
-#   give the same number of digits for each target within the set.
-#
-#   Permuted arguments will be placed before any specifed TEST_ARGS in
-#   the order the PARG_<label> arguments were specified to cet_test().
-#
-#   There is no support for non-option argument toggling as yet, but
-#   addition of such support should be straightforward should the use
-#   case arise.
-#
-# REF <ref-file>
-#
-#  The standard output of the test will be captured and compared against
-#   the specified reference file. It is an error to specify this
-#   argument and either the PASS_REGULAR_EXPRESSION or
-#   FAIL_REGULAR_EXPRESSION test properties to the TEST_PROPERTIES
-#   argument: success is the logical AND of the exit code from execution
-#   of the test as originally specified, and the success of the
-#   filtering and subsequent comparison of the output (and optionally,
-#   the error stream). Optionally, a second element may be specified
-#   representing a reference for the error stream; otherwise, standard
-#   error will be ignored.
-#
-#   If REF is specified, then OUTPUT_FILTERS may also be specified
-#   (OUTPUT_FILTER and optionally OUTPUT_FILTER_ARGS will be accepted in
-#   the alternative for historical reasons). OUTPUT_FILTER must be a
-#   program which expects input on STDIN and puts the filtered output on
-#   STDOUT. OUTPUT_FILTERS should be a list of filters expecting input
-#   on STDIN and putting output on STDOUT. If DEFAULT is specified as a
-#   filter, it will be replaced at that point in the list of filters by
-#   appropriate defaults. Examples:
-#
-#     OUTPUT_FILTERS "filterA -x -y \"arg with spaces\"" filterB
-#
-#     OUTPUT_FILTERS filterA DEFAULT filterB
-#
-# REMOVE_ON_FAILURE <file>+
-#
-#   Upon TEST_EXEC failure, these files and/or directories shall be
-#   removed if they exist.
-#
-# REQUIRED_FILES <file>+
-#
-#   These files are required to be present before the test will be
-#   executed. If any are missing, ctest will record NOT RUN for this
-#   test.
-#
-# *SAN_OPTIONS
-#
-#   Option representing the desired value of the corresponding sanitizer
-#   control environment variable for the test.
-#
-# SCOPED
-#
-#   Test (but not script or compiled executable) target names will be
-#   scoped by product name (<prod>:...).
-#
-# SOURCE[S] <source>+
-#
-#   Sources to use to build the target (default is ${target}.cc).
-#
-# TEST_ARGS <arg>+
-#
-#   Any arguments to the test to be run.
-#
-# TEST_EXEC <exec>
-#
-#   The exec to run (if not the target). The HANDBUILT option must be
-#   specified in conjunction with this option.
-#
-# TEST_PROPERTIES <PROP val>+
-#
-#   Properties to be added to the test. See documentation of the cmake
-#   command, "set_tests_properties."
-#
-# TEST_WORKDIR <dir>
-#
-#   Test to execute (and support files to be copied to) <dir>. If not
-#   specified, ${CMAKE_CURRENT_BINARY_DIR}/<target>.d will be created
-#   and used. If relative or not qualified, <dir> is assumed to be
-#   releative to ${CMAKE_CURRENT_BINARY_DIR}.
-#
-# USE_BOOST_UNIT
-#
-#   This test uses the Boost Unit Test Framework.
-#
-####################################
-# Cached variables.
-#
-# CET_DEFINED_TEST_GROUPS
-#   Any test group names CMake sees will be added to this list.
-#
-####################################
-# Notes:
-#
-# * cet_make_exec() and art_make_exec() are more flexible than building
-#   the test exec with cet_test(), and are generally to be preferred
-#   (use the NO_INSTALL option to same as appropriate). Use
-#   cet_test(... HANDBUILT TEST_EXEC ...) to use test execs built this
-#   way.
-#
-# * The CMake properties PASS_REGULAR_EXPRESSION and
-#   FAIL_REGULAR_EXPRESSION are incompatible with the REF option, but we
-#   cannot check for them if you use CMake's add_tests_properties()
-#   rather than cet_test(CET_TEST_PROPERTIES ...).
-#
-# * If you intend to set the property SKIP_RETURN_CODE, you should use
-#   CET_TEST_PROPERTIES to set it rather than add_tests_properties(), as
-#   cet_test() needs to take account of your preference.
-#
-########################################################################
-
-########################################################################
-# cet_test_env: set environment for all tests here specified.
-#
-# Usage: cet_test_env([<options] [<env>])
-#
-####################################
-# Options:
-#
-# CLEAR
-#   Clear the global test environment (ie anything previously set with
-#   cet_test_env()) before setting <env>.
-#
-####################################
-# Notes:
-#
-# * <env> may be omitted. If so and the CLEAR option is not specified,
-#   then cet_test_env() is a NOP.
-#
-# * If cet_test_env() is called in a directory to set the environment
-#   for tests then that will be propagated to tests defined in
-#   subdirectories unless cet_test_env(CLEAR ...) is invoked in that
-#   directory.
-#
-########################################################################
-
-########################################################################
-# cet_test_prepend_env: prepend directories to the specified environment
-#                       variable all tests here specified.
-#
-# Usage: cet_test_prepend_env(<env> [<options] [<dir>+])
-#
-####################################
-# Options:
-#
-# REMOVE_DUPLICATES
-#   Remove any duplicate directory entries that may appear in the
-#   directories specified by the user.  For a given duplicate, only
-#   the first entry will be kept.
-#
-####################################
-# Notes:
-#
-# * <dir> is a directory string or generator expression whose
-# * evaluation will be prepended to the specified environment
-# * variable.  If no <dir> argument is given, then
-# * cet_test_prepend_env() is a NOP.
-#
-# * If cet_test_prepend_env() is called in a directory to set the
-#   environment for tests then that will be propagated to tests
-#   defined in subdirectories unless cet_test_env(CLEAR ...) is
-#   invoked in that directory.
-#
-########################################################################
-
-########################################################################
-# cet_test_assertion: require assertion failure on given condition
-#
-# Usage: cet_test_assertion(CONDITION TARGET...)
-#
-####################################
-# Notes:
-#
-# * CONDITION should be a CMake regex which should have any escaped
-#   items doubly-escaped due to being passed as a string argument
-#   (e.g. "\\\\(" for a literal open-parenthesis, "\\\\." for a literal
-#   period).
-#
-# * TARGET...: the name(s) of the test target(s) as specified to
-#   cet_test() or add_test() -- require at least one.
-#
-########################################################################
-
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
@@ -915,15 +612,11 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
     endforeach()
     foreach (target IN LISTS ALL_TEST_TARGETS)
       if (CET_TEST_ENV)
-        # Set global environment.
-        get_test_property(${target} ENVIRONMENT CET_TEST_ENV_TMP)
-        if (CET_TEST_ENV_TMP)
-          set_tests_properties(${target} PROPERTIES
-            ENVIRONMENT "${CET_TEST_ENV};${CET_TEST_ENV_TMP}")
-        else()
-          set_tests_properties(${target} PROPERTIES
-            ENVIRONMENT "${CET_TEST_ENV}")
-        endif()
+        set_property(TEST ${target} APPEND PROPERTY ENVIRONMENT ${CET_TEST_ENV})
+      endif()
+      if (CET_TEST_ENV_MODIFICATION)
+        set_property(TEST ${target} APPEND PROPERTY
+          ENVIRONMENT_MODIFICATION ${CET_TEST_ENV_MODIFICATION})
       endif()
       if (CET_REF)
         get_test_property(${target} REQUIRED_FILES REQUIRED_FILES_TMP)
@@ -1016,6 +709,8 @@ endfunction()
    Add environment variables to the test environment for tests defined
    in and below the current directory.
 
+   .. seealso:: :variable:`CET_TEST_ENV`.
+
    .. code-block:: cmake
 
       cet_test_env([CLEAR] <var>=<val> ...)
@@ -1024,8 +719,17 @@ endfunction()
    ^^^^^^^
 
    ``CLEAR``
-     Clear the test environment in the current directory scope;
-     otherwise, append.
+     Clear the test environment in the current directory scope prior to
+     setting ``<var>=<val>``, including any environment modifications.
+
+     .. seealso:: :command:`cet_prepend_test_environment`,
+                  :variable:`CET_TEST_ENV_MODIFICATION`.
+
+   Details
+   ^^^^^^^
+
+   If the current test environment already has an entry for ``<var>``,
+   it will be superseded by ``<val>``.
 
 #]================================================================]
 
@@ -1034,6 +738,13 @@ function(cet_test_env)
   if (CET_TEST_CLEAR)
     set(CET_TEST_ENV)
   endif()
+  # Remove existing settings for environment variables.
+  list(TRANSFORM CET_TEST_UNPARSED_ARGUMENTS REPLACE "=.*" ""
+    OUTPUT_VARIABLE env_vars)
+  foreach (ev env_vars)
+    cet_regex_escape("${ev}" ev)
+    list(FILTER CET_TEST_ENV EXCLUDE REGEX "^${ev}=")
+  endforeach()
   list(APPEND CET_TEST_ENV "${CET_TEST_UNPARSED_ARGUMENTS}")
   set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
 endfunction()
@@ -1041,36 +752,41 @@ endfunction()
 #[================================================================[.rst:
 .. command:: cet_test_prepend_env
 
-   Prepend to path-like environment variables to the test environment
+   Prepend to path-like environment variables in the test environment
    for tests defined in and below the current directory.
+
+   .. seealso:: :variable:`CET_TEST_ENV_MODIFICATION`,
+                :prop_test:`cmake-ref-current:prop_test:ENVIRONMENT_MODIFICATION`.
 
    .. code-block:: cmake
 
-      cet_test_prepend_env(<var> [REMOVE_DUPLICATES] <dir> ...)
+      cet_test_prepend_env(<var> [CLEAR] [REMOVE_DUPLICATES] <dir> ...)
 
    Options
    ^^^^^^^
 
+   ``CLEAR``
+     Clear any existing test environment modifications in the current
+     directory scope.
+
    ``REMOVE_DUPLICATES``
-     Remove any duplicate directory entries that may appear in the
-     specified directories.  For a given duplicate, only the first
-     entry will be kept.
+     Remove any duplicate ``<dir> ...``; for a given duplicate, only the
+     first entry will be kept.
 
 #]================================================================]
 
 function(cet_test_prepend_env CET_ENV_VAR)
-  cmake_parse_arguments(PARSE_ARGV 1 CET_TEST "REMOVE_DUPLICATES" "" "")
-  if (CET_TEST_REMOVE_DUPLICATES)
-    list(REMOVE_DUPLICATES CET_TEST_UNPARSED_ARGUMENTS)
+  cmake_parse_arguments(PARSE_ARGV 1 CET_TPE "CLEAR;REMOVE_DUPLICATES" "" "")
+  if (CET_TPE_CLEAR)
+    set(CET_TEST_ENV_MODIFICATION)
   endif()
-  string(REPLACE ";" ":" PREFIX "${CET_TEST_UNPARSED_ARGUMENTS}")
-  if (DEFINED ENV{${CET_ENV_VAR}})
-    set(PATHS "${CET_ENV_VAR}=${PREFIX}:$ENV{${CET_ENV_VAR}}")
-  else()
-    set(PATHS "${CET_ENV_VAR}=${PREFIX}")
+  if (CET_TPE_REMOVE_DUPLICATES)
+    list(REMOVE_DUPLICATES CET_TPE_UNPARSED_ARGUMENTS)
   endif()
-  list(APPEND CET_TEST_ENV "${PATHS}")
-  set(CET_TEST_ENV "${CET_TEST_ENV}" PARENT_SCOPE)
+  string(REPLACE ";" ":" test_env_mod "${CET_TPE_UNPARSED_ARGUMENTS}")
+  list(APPEND CET_TEST_ENV_MODIFICATION
+    "${CET_ENV_VAR}=path_list_prepend:${test_env_mod}")
+  set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}")
 endfunction()
 
 function(_cet_add_ref_test)
