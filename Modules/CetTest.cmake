@@ -612,11 +612,24 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
     endforeach()
     foreach (target IN LISTS ALL_TEST_TARGETS)
       if (CET_TEST_ENV)
-        set_property(TEST ${target} APPEND PROPERTY ENVIRONMENT ${CET_TEST_ENV})
+        get_test_property(${target} ENVIRONMENT CET_TEST_ENV_TMP)
+        if (CET_TEST_ENV_TMP)
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT "${CET_TEST_ENV};${CET_TEST_ENV_TMP}")
+        else()
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT "${CET_TEST_ENV}")
+        endif()
       endif()
       if (CET_TEST_ENV_MODIFICATION)
-        set_property(TEST ${target} APPEND PROPERTY
-          ENVIRONMENT_MODIFICATION ${CET_TEST_ENV_MODIFICATION})
+        get_test_property(${target} ENVIRONMENT_MODIFICATION CET_TEST_ENV_TMP)
+        if (CET_TEST_ENV_TMP)
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT_MODIFICATION "${CET_TEST_ENV_MODIFICATION};${CET_TEST_ENV_TMP}")
+        else()
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT_MODIFICATION "${CET_TEST_ENV_MODIFICATION}")
+        endif()
       endif()
       if (CET_REF)
         get_test_property(${target} REQUIRED_FILES REQUIRED_FILES_TMP)
@@ -786,7 +799,7 @@ function(cet_test_prepend_env CET_ENV_VAR)
   string(REPLACE ";" ":" test_env_mod "${CET_TPE_UNPARSED_ARGUMENTS}")
   list(APPEND CET_TEST_ENV_MODIFICATION
     "${CET_ENV_VAR}=path_list_prepend:${test_env_mod}")
-  set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}")
+  set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}" PARENT_SCOPE)
 endfunction()
 
 function(_cet_add_ref_test)
