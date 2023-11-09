@@ -763,17 +763,17 @@ function(cet_test_env)
 endfunction()
 
 #[================================================================[.rst:
-.. command:: cet_test_prepend_env
+.. command:: cet_test_env_mod
 
-   Prepend to path-like environment variables in the test environment
-   for tests defined in and below the current directory.
+   Add environment modifications to the test environment for tests
+   defined in and below the current directory.
 
    .. seealso:: :variable:`CET_TEST_ENV_MODIFICATION`,
                 :prop_test:`cmake-ref-current:prop_test:ENVIRONMENT_MODIFICATION`.
 
    .. code-block:: cmake
 
-      cet_test_prepend_env(<var> [CLEAR] [REMOVE_DUPLICATES] <dir> ...)
+      cet_test_env_mod(<var> <op> [CLEAR] [REMOVE_DUPLICATES] <dir> ...)
 
    Options
    ^^^^^^^
@@ -788,17 +788,37 @@ endfunction()
 
 #]================================================================]
 
-function(cet_test_prepend_env CET_ENV_VAR)
-  cmake_parse_arguments(PARSE_ARGV 1 CET_TPE "CLEAR;REMOVE_DUPLICATES" "" "")
-  if (CET_TPE_CLEAR)
+function(cet_test_env_mod VAR OP)
+  cmake_parse_arguments(PARSE_ARGV 1 CET_TEM "CLEAR;REMOVE_DUPLICATES" "" "")
+  if (CET_TEM_CLEAR)
     set(CET_TEST_ENV_MODIFICATION)
   endif()
-  if (CET_TPE_REMOVE_DUPLICATES)
-    list(REMOVE_DUPLICATES CET_TPE_UNPARSED_ARGUMENTS)
+  if (CET_TEM_REMOVE_DUPLICATES)
+    list(REMOVE_DUPLICATES CET_TEM_UNPARSED_ARGUMENTS)
   endif()
-  string(REPLACE ";" ":" test_env_mod "${CET_TPE_UNPARSED_ARGUMENTS}")
+  string(REPLACE ";" ":" test_env_mod "${CET_TEM_UNPARSED_ARGUMENTS}")
   list(APPEND CET_TEST_ENV_MODIFICATION
-    "${CET_ENV_VAR}=path_list_prepend:${test_env_mod}")
+    "${VAR}=${OP}:${test_env_mod}")
+  set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}" PARENT_SCOPE)
+endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_test_prepend_env
+
+   Prepend to path-like environment variables in the test environment
+   for tests defined in and below the current directory.
+
+   .. code-block:: cmake
+
+      cet_test_prepend_env(<var> ...)
+
+   Functionally identical to :command:`cet_test_env_mod(<var>
+   path_list_prepend ...)  <cet_test_env_mod>`
+
+#]================================================================]
+
+function(cet_test_prepend_env CET_ENV_VAR)
+  cet_test_env_mod(${CET_ENV_VAR} path_list_prepend ${ARGN})
   set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}" PARENT_SCOPE)
 endfunction()
 
