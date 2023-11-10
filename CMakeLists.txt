@@ -26,7 +26,7 @@
 # * Awareness of multi-project builds.
 #
 ########################################################################
-set(CETMODULES_MIN_CMAKE_VERSION 3.21) # Used in config/cetmodules-cmake-version-check.cmake
+set(CETMODULES_MIN_CMAKE_VERSION 3.22) # Used in config/cetmodules-cmake-version-check.cmake
 
 # Required to keep CMake happy.
 cmake_minimum_required(VERSION ${CETMODULES_MIN_CMAKE_VERSION}...3.27
