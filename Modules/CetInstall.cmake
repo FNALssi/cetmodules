@@ -137,6 +137,7 @@ function(_cet_install CATEGORY)
     list(APPEND multi_arg_options LIST)
   endif()
   if (NOT _I__LIST_ONLY)
+    list(APPEND options GLOB)
     list(APPEND options _SEARCH_BUILD _SQUASH_SUBDIRS)
     list(APPEND multi_arg_options
       _EXTRA_BASENAME_EXCLUDES _EXTRA_EXCLUDES _EXTRA_EXTRAS
