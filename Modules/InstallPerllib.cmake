@@ -1,27 +1,13 @@
 #[================================================================[.rst:
-X
--
+InstallPerllib
+--------------
+
+.. admonition:: art-suite
+   :class: admonition-app
+
+   Install art-suite Perl modules for plugin template generation.
+
 #]================================================================]
-########################################################################
-# install_perllib()
-#
-#   Install perl modules in ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}.
-#
-# Usage: install_perllib([DROP_PREFIX <dropdir>] [SUBDIRNAME <subdir>]
-#                        [BASENAME_EXCLUDES ...] [EXCLUDES ...]
-#                        [EXTRAS ...] [SUBDIRS ...])
-#
-# See CetInstall.cmake for full usage description.
-#
-# Recognized filename extensions: .pm
-#
-# Other recognized filename patterns: *README*
-#
-# If DROP_PREFIX is specified, remove <dropdir> at the beginning of each
-# package subdirectory path before installing into
-# ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}/<subdir>. Otherwise, drop
-# ${${CETMODULES_CURRENT_PROJECT_NAME}_PERLLIB_DIR}.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -31,6 +17,48 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 include(CetInstall)
 include(CetPackagePath)
 include(ProjectVariable)
+
+#[================================================================[.rst:
+.. command:: install_perllib
+
+   .. admonition:: art-suite
+      :class: admonition-app
+
+      Install art-suite Perl modules in
+      :variable:`<PROJECT-NAME>_PERLLIB_DIR` for plugin template
+      generation.
+
+      .. code-block:: cmake
+
+         install_gdml([GLOB] [DROP_PREFIX <dir>] [SUBDIRNAME <subdir>] [<glob-options>])
+
+      .. rst-class:: text-start
+
+      Install recognized files found under
+      :variable:`CMAKE_CURRENT_SOURCE_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` or
+      :variable:`CMAKE_CURRENT_BINARY_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>` in
+      :variable:`<PROJECT-NAME>_PERLLIB_DIR`.
+
+      Recognized files
+        * :file:`*.pm`
+        * :file:`*README*`
+
+   Options
+   ^^^^^^^
+
+   ``DROP_PREFIX <dir>``
+     Remove ``<dir>`` from the beginning of the subdirectory path before
+     installation (default
+     :variable:`${CETMODULES_CURRENT_NAME}_PERLLIB_DIR
+     <PROJECT-NAME>_PERLLIB_DIR`).
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+   .. include:: /_cet_install_opts/glob-opts.rst
+
+#]================================================================]
 
 function(install_perllib)
   project_variable(PERLLIB_DIR perllib CONFIG NO_WARN_DUPLICATE

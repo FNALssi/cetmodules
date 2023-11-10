@@ -3,7 +3,7 @@ InstallFW
 ---------
 
 .. admonition:: HEP
-   .. rst-class:: admonition-app
+   :class: admonition-domain
 
    Define the function :command:`install_fw` to install HEP framework
    data files.
@@ -22,15 +22,21 @@ include(ProjectVariable)
 .. command:: install_fw
 
    .. admonition:: HEP
-      .. rst-class:: admonition-app
+      :class: admonition-app
 
-      Install HEP framework data files.
-
-      .. seealso:: :variable:`<PROJECT-NAME>_FW_DIR`.
+      Install HEP framework data files in
+      :variable:`<PROJECT-NAME>_FW_DIR`.
 
       .. code-block:: cmake
 
-         install_fw()
+         install_fw(LIST <file> ... [SUBDIRNAME <subdir>])
+
+   Options
+   ^^^^^^^
+
+   .. include:: /_cet_install_opts/LIST.rst
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
 
 #]================================================================]
 

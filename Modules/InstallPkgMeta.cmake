@@ -34,7 +34,7 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
    ``INSTALLER_WELCOME <welcome-file>``
      Install the specified ``WELCOME`` file.
 
-   Unrecognized options are passed to :command:`_cet_install`
+   Unrecognized options are passed to :command:`_cet_install`.
 
    Details
    ^^^^^^^
@@ -46,6 +46,8 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
    * ``LICEN[CS]E``, ``LICEN[CS]E.*``
    * ``LICEN[CS]ES``, ``LICEN[CS]ES.*``
    * ``INSTALL*``, ``*README*``
+
+   .. rst-class:: text-start
 
    If not identified specifically by the relevant option, the
    lexically-first identified ``LICENSE``, ``README``, or ``WELCOME``

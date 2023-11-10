@@ -1,35 +1,10 @@
 #[================================================================[.rst:
-X
--
+InstallHeaders
+--------------
+
+Install headers.
+
 #]================================================================]
-########################################################################
-# install_headers()
-#
-#   Install headers scripts under
-#     ${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}[/${CETMODULES_CURRENT_PROJECT_NAME}]
-#
-# Usage: install_headers([USE_(PRODUCT|PROJECT)_NAME]
-#                        [SUBDIRNAME <subdir>] LIST ...)
-#        install_headers([USE_(PRODUCT|PROJECT)_NAME]
-#                        [SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
-#                        [EXCLUDES ...] [EXTRAS ...] [SUBDIRS ...])
-#
-# See CetInstall.cmake for full usage description.
-#
-# Recognized filename extensions:
-#   .h .hh .H .hpp .hxx .icc .tcc
-#
-# The ROOT dictionary header classes.h is usually excluded as a
-# build-only item. If you specifically want it, add it to EXTRAS.
-#
-# USE_PRODUCT_NAME (deprecated) and USE_PROJECT_NAME will append a
-# directory ${CETMODULES_CURRENT_PROJECT_NAME} to
-# ${${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR}/<subdir>. In any case, the current
-# package subdirectory will be appended to the result followed by any
-# SUBDIRS for files found therein.
-#
-# Build directories will be searched for suitable files.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -38,6 +13,83 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetInstall)
 include(CetPackagePath)
+
+#[================================================================[.rst:
+.. command:: install_headers
+
+      Install headers in :variable:`<PROJECT-NAME>_INCLUDE_DIR`.
+
+      .. parsed-literal::
+
+         install_headers(`LIST`_ <file> ... [<common-options>])
+
+      .. parsed-literal::
+
+         install_headers([`GLOB`_] [<common-options>] [<glob-options>])
+
+   .. signature:: install_headers(LIST <file> ... [<options>]
+
+      Install ``<file> ...`` in :variable:`<PROJECT-NAME>_INCLUDE_DIR`.
+
+      .. include:: /_cet_install_opts/LIST.rst
+
+   .. signature:: install_headers(GLOB [<common-options>] [<glob-options>])
+
+      .. rst-class:: text-start
+
+      Install recognized files found under
+      :variable:`CMAKE_CURRENT_SOURCE_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` or
+      :variable:`CMAKE_CURRENT_BINARY_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>` in
+      :variable:`<PROJECT-NAME>_INCLUDE_DIR`.
+
+      Recognized files
+        * :file:`*.h`
+        * :file:`*.hh`
+        * :file:`*.H`
+        * :file:`*.hpp`
+        * :file:`*.hxx`
+        * :file:`*.icc`
+        * :file:`*.tcc`
+
+      .. include:: /_cet_install_opts/glob-note.rst
+
+      .. include:: /_cet_install_opts/BASENAME_EXCLUDES.rst
+
+      .. include:: /_cet_install_opts/EXCLUDES.rst
+
+      .. include:: /_cet_install_opts/EXTRAS.rst
+
+      .. include:: /_cet_install_opts/SQUASH_SUBDIRS.rst
+
+      .. include:: /_cet_install_opts/SUBDIRS.rst
+
+   Common Options
+   ^^^^^^^^^^^^^^
+
+   ``NO_RELATIVE_SUBDIR``
+     Refrain from using the current source directory relative to the
+     top-level project directory as the base destination path.
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+   ``USE_PRODUCT_NAME``
+     .. deprecated:: 2.10.00
+
+   ``USE_PROJECT_NAME``
+     Prepend :variable:`CETMODULES_CURRENT_PROJECT_NAME` to the
+     calculated destination path.
+
+   Variables affecting behavior
+   ----------------------------
+
+   .. admonition:: cetbuildtools
+      :class: admonition-legacy
+
+      * :variable:`ART_MAKE_PREPEND_PRODUCT_NAME`
+
+#]================================================================]
 
 function(install_headers)
   list(REMOVE_ITEM ARGN PROGRAMS) # Not meaningful.
@@ -52,11 +104,11 @@ function(install_headers)
   if (NOT IHDR_NO_RELATIVE_SUBDIR)
     string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${CURRENT_SUBDIR}")
   endif()
-  cet_passthrough(FLAG IN_PLACE KEYWORD _SQUASH_SUBDIRS IHDR_SQUASH_SUBDIRS)
   if ("LIST" IN_LIST IHDR_UNPARSED_ARGUMENTS)
     _cet_install(headers ${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
-      SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY ${IHDR_SQUASH_SUBDIRS})
+      SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY )
   else()
+    cet_passthrough(FLAG IN_PLACE KEYWORD _SQUASH_SUBDIRS IHDR_SQUASH_SUBDIRS)
     _cet_install(headers ${CETMODULES_CURRENT_PROJECT_NAME}_INCLUDE_DIR ${IHDR_UNPARSED_ARGUMENTS}
       SUBDIRNAME ${IHDR_SUBDIRNAME} _INSTALL_ONLY ${IHDR_SQUASH_SUBDIRS}
       _SEARCH_BUILD _EXTRA_BASENAME_EXCLUDES classes.h Linkdef.h
