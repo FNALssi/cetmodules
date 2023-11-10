@@ -789,7 +789,7 @@ endfunction()
 #]================================================================]
 
 function(cet_test_env_mod VAR OP)
-  cmake_parse_arguments(PARSE_ARGV 1 CET_TEM "CLEAR;REMOVE_DUPLICATES" "" "")
+  cmake_parse_arguments(PARSE_ARGV 2 CET_TEM "CLEAR;REMOVE_DUPLICATES" "" "")
   if (CET_TEM_CLEAR)
     set(CET_TEST_ENV_MODIFICATION)
   endif()
