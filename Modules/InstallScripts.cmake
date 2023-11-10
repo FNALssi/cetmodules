@@ -38,7 +38,7 @@ function(install_scripts)
     endif()
     set(IS_DEST_VAR TEST_DIR)
   elseif (NOT DEFINED IS_DEST_VAR)
-    set(IS_DEST_VAR BIN_DIR)
+    set(IS_DEST_VAR SCRIPTS_DIR)
   endif()
   if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
     _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${IS_DEST_VAR}
