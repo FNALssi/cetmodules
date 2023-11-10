@@ -735,7 +735,7 @@ endfunction()
      Clear the test environment in the current directory scope prior to
      setting ``<var>=<val>``, including any environment modifications.
 
-     .. seealso:: :command:`cet_test_prepend_env`,
+     .. seealso:: :command:`cet_test_env_prepend`,
                   :variable:`CET_TEST_ENV_MODIFICATION`.
 
    Details
@@ -803,21 +803,21 @@ function(cet_test_env_mod VAR OP)
 endfunction()
 
 #[================================================================[.rst:
-.. command:: cet_test_prepend_env
+.. command:: cet_test_env_prepend
 
    Prepend to path-like environment variables in the test environment
    for tests defined in and below the current directory.
 
    .. code-block:: cmake
 
-      cet_test_prepend_env(<var> ...)
+      cet_test_env_prepend(<var> ...)
 
    Functionally identical to :command:`cet_test_env_mod(<var>
    path_list_prepend ...)  <cet_test_env_mod>`
 
 #]================================================================]
 
-function(cet_test_prepend_env CET_ENV_VAR)
+function(cet_test_env_prepend CET_ENV_VAR)
   cet_test_env_mod(${CET_ENV_VAR} path_list_prepend ${ARGN})
   set(CET_TEST_ENV_MODIFICATION "${CET_TEST_ENV_MODIFICATION}" PARENT_SCOPE)
 endfunction()

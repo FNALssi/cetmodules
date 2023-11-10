@@ -6,5 +6,5 @@ A directory-scope variable containing an initial value of the
 property for tests defined by :command:`cet_test`. Modify with
 :command:`cet_test_env`.
 
-.. seealso:: :command:`cet_test_prepend_env`,
+.. seealso:: :command:`cet_test_env_prepend`,
              :variable:`CET_TEST_ENV_MODIFICATION`.
