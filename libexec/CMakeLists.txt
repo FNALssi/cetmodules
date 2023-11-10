@@ -34,7 +34,6 @@ set(private_programs
   cet_exec_test
   cet_lock
   checkClassVersion
-  filter-output
   filter-program-options
   fix-man-dirs
   remove_deleted_header_refs)
@@ -50,6 +49,8 @@ set(legacy_private_files pass fail)
 
 cet_script(${private_programs} ${legacy_private_programs}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
+
+install(FILES filter-output DESTINATION ${cetmodules_LIBEXEC_DIR})
 
 install(FILES ${private_files} ${legacy_private_files}
   DESTINATION ${cetmodules_LIBEXEC_DIR})
