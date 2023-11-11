@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>X &mdash; Cetmodules git-develop-701168f Reference</title>
+  <title>InstallPython &mdash; Cetmodules git-develop-6150e18 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=71eadc27"></script>
+    <script src="../_static/documentation_options.js?v=6c2aaa87"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -23,7 +23,7 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="X" href="InstallScripts.html" />
+    <link rel="next" title="InstallScripts" href="InstallScripts.html" />
     <link rel="prev" title="InstallPkgMeta" href="InstallPkgMeta.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="InstallScripts.html" title="X"
+          <a href="InstallScripts.html" title="InstallScripts"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="InstallPkgMeta.html" title="InstallPkgMeta"
@@ -55,12 +55,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-701168f</span>
+    <span class="version_switch">git-develop-6150e18</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">InstallPython</a></li> 
       </ul>
     </div>
 
@@ -79,8 +79,119 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:InstallPython"></span><section id="x">
-<h1>X<a class="headerlink" href="#x" title="Link to this heading">¶</a></h1>
+  <span class="target" id="module:InstallPython"></span><section id="installpython">
+<h1>InstallPython<a class="headerlink" href="#installpython" title="Link to this heading">¶</a></h1>
+<p>Define function <span class="target" id="index-0-command:install_python"></span><a class="reference internal" href="#command:install_python" title="install_python"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_python()</span></code></a> to (optionally generate and)
+invoke a Python <code class="docutils literal notranslate"><span class="pre">distutils</span></code> <code class="file docutils literal notranslate"><span class="pre">setup.py</span></code> script.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:install_python">
+<span class="sig-name descname"><span class="pre">install_python</span></span><a class="headerlink" href="#command:install_python" title="Link to this definition">¶</a></dt>
+<dd><p>Invoke Python <code class="docutils literal notranslate"><span class="pre">distutils</span></code> functionality to install Python files.</p>
+<pre class="literal-block">install_python(<a class="reference internal" href="#setup-py">SETUP_PY</a> &lt;setup.py&gt; [NO_INSTALL])
+install_python([<a class="reference internal" href="#generate-setup-py">GENERATE_SETUP_PY</a>] [NO_INSTALL] [&lt;gen-options&gt;])</pre>
+<dl class="cmake signature">
+<dt class="sig sig-object cmake" id="setup-py">
+<span class="code cmake highlight sig-name descname"><span class="nf"><span class="pre">install_python(</span></span><span class="no"><span class="pre">SETUP_PY</span></span><span class="w"> </span><span class="nv"><span class="pre">&lt;setup.py&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">[</span></span><span class="no"><span class="pre">NO_INSTALL</span></span><span class="p"><span class="pre">]</span></span><span class="nf"><span class="pre">)</span></span></span><a class="headerlink" href="#setup-py" title="Link to this definition">¶</a></dt>
+<dd><p>Invoke <code class="docutils literal notranslate"><span class="pre">&lt;setup.py&gt;</span></code> to build and install Python package files.</p>
+</dd></dl>
+
+<dl class="cmake signature">
+<dt class="sig sig-object cmake" id="generate-setup-py">
+<span class="code cmake highlight sig-name descname"><span class="nf"><span class="pre">install_python(</span></span><span class="no"><span class="pre">GENERATE_SETUP_PY</span></span><span class="w"> </span><span class="p"><span class="pre">[</span></span><span class="no"><span class="pre">NO_INSTALL</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">[</span></span><span class="nv"><span class="pre">&lt;gen-options&gt;</span></span><span class="p"><span class="pre">]</span></span><span class="nf"><span class="pre">)</span></span></span><a class="headerlink" href="#generate-setup-py" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file with information provided by
+<code class="docutils literal notranslate"><span class="pre">&lt;gen-options&gt;</span></code>:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">DATA_FILES</span> <span class="pre">DIR</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">&lt;file&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;</span> <span class="pre">...`</span> <span class="pre">for</span> <span class="pre">inclusion</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">package</span> <span class="pre">in</span>
+<span class="pre">non-package</span> <span class="pre">subdirectory</span> <span class="pre">``&lt;dir&gt;</span></code>.</p>
+</dd>
+</dl>
+<dl id="install-python-modules-opt">
+<dt><code class="docutils literal notranslate"><span class="pre">MODULES</span> <span class="pre">&lt;module&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify single Python files for use as modules (with
+import). They will be installed in <code class="docutils literal notranslate"><span class="pre">lib/</span></code></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NAME</span> <span class="pre">&lt;name&gt;</span></code></dt><dd><p>The name of the Python package to be installed (default
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_NAME</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PACKAGES</span> <span class="pre">&lt;package&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify packages to be installed under <code class="docutils literal notranslate"><span class="pre">lib/</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">pkg1.pkg2</span></code> installed in <code class="file docutils literal notranslate"><span class="pre">pkg1/pkg2</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PACKAGE_DATA</span>&#160; <span class="pre">{</span> <span class="pre">ROOT</span> <span class="pre">|</span> <span class="pre">PKG</span> <span class="pre">&lt;pkg&gt;</span> <span class="pre">}</span> <span class="pre">&lt;file&gt;</span> <span class="pre">...</span></code></dt><dd><p>Install non-Python <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;</span> <span class="pre">...</span></code> in the top level package
+(<code class="docutils literal notranslate"><span class="pre">ROOT</span></code>) or with package <code class="docutils literal notranslate"><span class="pre">&lt;pkg&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SCRIPTS</span> <span class="pre">&lt;script&gt;</span> <span class="pre">...</span></code></dt><dd><p>Install executable Python script <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span> <span class="pre">...</span></code> in <code class="docutils literal notranslate"><span class="pre">bin/</span></code></p>
+<p>If required, the same file may be both a script and a module.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#install-python-modules-opt"><span class="std std-ref">MODULES &lt;module&gt; ...</span></a></p>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SETUP_ARGS</span> <span class="pre">&lt;arg&gt;</span> <span class="pre">...</span></code></dt><dd><p>Pass <code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span> <span class="pre">...</span></code> to the <code class="docutils literal notranslate"><span class="pre">distutils</span></code> <code class="docutils literal notranslate"><span class="pre">setup()</span></code> command, if
+required.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SETUP_PREAMBLE</span> <span class="pre">&lt;preamble&gt;</span></code></dt><dd><p>Place <code class="docutils literal notranslate"><span class="pre">&lt;preamble&gt;</span></code> at the beginning of the generated
+<code class="file docutils literal notranslate"><span class="pre">setup.py</span></code> file prior to the invocation of <code class="docutils literal notranslate"><span class="pre">setup()</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">VERSION</span> <span class="pre">&lt;version&gt;</span></code></dt><dd><p>Specify the package version (default
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_VERSION"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_VERSION.html#variable:CETMODULES_CURRENT_PROJECT_VERSION" title="CETMODULES_CURRENT_PROJECT_VERSION"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_VERSION</span></code></a>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
+<p>For a directory containing the following files:</p>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">README.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">test.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">test2.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">test3.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/README-pkg1.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/__init__.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/bill.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/pkg2/README-pkg2.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/pkg2/__init__.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">pkg1/pkg2/fred.py</span></code></p></li>
+</ul>
+<p>The command:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">install_python(</span><span class="no">SCRIPTS</span><span class="w"> </span><span class="nb">test.py</span><span class="w"> </span><span class="nb">test2.py</span><span class="w"> </span><span class="nb">test3.py</span>
+<span class="w">               </span><span class="no">MODULES</span><span class="w"> </span><span class="nb">test2</span>
+<span class="w">               </span><span class="no">PACKAGES</span><span class="w"> </span><span class="nb">pkg1</span><span class="w"> </span><span class="nb">pkg1.pkg2</span>
+<span class="w">               </span><span class="no">PACKAGE_DATA</span><span class="w"> </span><span class="no">ROOT</span><span class="w"> </span><span class="nb">README.txt</span><span class="w"> </span><span class="no">PKG</span><span class="w"> </span><span class="nb">pkg1</span><span class="w"> </span><span class="nb">README-pkg1.txt</span>
+<span class="w">               </span><span class="no">DATA_FILES</span>
+<span class="w">               </span><span class="no">DIR</span><span class="w"> </span><span class="nb">doc</span><span class="w"> </span><span class="nb">README.txt</span><span class="w"> </span><span class="na">pkg1/README-pkg1.txt</span><span class="w"> </span><span class="na">pkg1/pkg2/README-pkg2.txt</span>
+<span class="w">               </span><span class="no">DIR</span><span class="w"> </span><span class="nb">etc</span><span class="w"> </span><span class="nb">README.txt</span><span class="w"> </span><span class="na">pkg1/README-pkg1.txt</span><span class="w"> </span><span class="na">pkg1/pkg2/README-pkg2.txt</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>will produce the following directory structure under
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_BINARY_DIR.html#variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR" title="CETMODULES_CURRENT_PROJECT_BINARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_BINARY_DIR</span></code></a>:</p>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">bin/test.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">bin/test2.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">bin/test3.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">doc/README.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">doc/README-pkg1.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">doc/README-pkg2.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">etc/README.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">etc/README-pkg1.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">etc/README-pkg2.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/art-1.09.02-py2.7.egg-info</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/__init__.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/__init__.pyc</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/bill.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/bill.pyc</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/pkg2/__init__.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/pkg2/__init__.pyc</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/pkg2/fred.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/pkg2/fred.pyc</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/pkg1/README-pkg1.txt</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/test2.py</span></code></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">lib/test2.pyc</span></code></p></li>
+</ul>
+<p>After install, the same files will be visible under the corresponding
+directory in the installed product.</p>
+</section>
+</dd></dl>
+
 </section>
 
 
@@ -98,7 +209,7 @@
   <div>
     <h4>Next topic</h4>
     <p class="topless"><a href="InstallScripts.html"
-                          title="next chapter">X</a></p>
+                          title="next chapter">InstallScripts</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -128,7 +239,7 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="InstallScripts.html" title="X"
+          <a href="InstallScripts.html" title="InstallScripts"
              >next</a> |</li>
         <li class="right" >
           <a href="InstallPkgMeta.html" title="InstallPkgMeta"
@@ -144,12 +255,12 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-701168f</span>
+    <span class="version_switch">git-develop-6150e18</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">X</a></li> 
+        <li class="nav-item nav-item-this"><a href="">InstallPython</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

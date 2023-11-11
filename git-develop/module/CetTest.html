@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetTest &mdash; Cetmodules git-develop-701168f Reference</title>
+  <title>CetTest &mdash; Cetmodules git-develop-6150e18 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=71eadc27"></script>
+    <script src="../_static/documentation_options.js?v=6c2aaa87"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-701168f</span>
+    <span class="version_switch">git-develop-6150e18</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -349,17 +349,69 @@ or <code class="docutils literal notranslate"><span class="pre">Assertion</span>
 <span class="sig-name descname"><span class="pre">cet_test_env</span></span><a class="headerlink" href="#command:cet_test_env" title="Link to this definition">¶</a></dt>
 <dd><p>Add environment variables to the test environment for tests defined
 in and below the current directory.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-variable:CET_TEST_ENV"></span><a class="reference internal" href="../variable/CET_TEST_ENV.html#variable:CET_TEST_ENV" title="CET_TEST_ENV"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CET_TEST_ENV</span></code></a>.</p>
+</div>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_test_env(</span><span class="p">[</span><span class="no">CLEAR</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;var&gt;</span><span class="p">=</span><span class="nv">&lt;val&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
 </pre></div>
 </div>
 <section id="id2">
 <h2>Options<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">CLEAR</span></code></dt><dd><p>Clear the test environment in the current directory scope;
-otherwise, append.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">CLEAR</span></code></dt><dd><p>Clear the test environment in the current directory scope prior to
+setting <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;=&lt;val&gt;</span></code>, including any environment modifications.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cet_test_env_prepend"></span><a class="reference internal" href="#command:cet_test_env_prepend" title="cet_test_env_prepend"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_test_env_prepend()</span></code></a>,
+<span class="target" id="index-0-variable:CET_TEST_ENV_MODIFICATION"></span><a class="reference internal" href="../variable/CET_TEST_ENV_MODIFICATION.html#variable:CET_TEST_ENV_MODIFICATION" title="CET_TEST_ENV_MODIFICATION"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CET_TEST_ENV_MODIFICATION</span></code></a>.</p>
+</div>
 </dd>
 </dl>
 </section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p>If the current test environment already has an entry for <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>,
+it will be superseded by <code class="docutils literal notranslate"><span class="pre">&lt;val&gt;</span></code>.</p>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_test_env_mod">
+<span class="sig-name descname"><span class="pre">cet_test_env_mod</span></span><a class="headerlink" href="#command:cet_test_env_mod" title="Link to this definition">¶</a></dt>
+<dd><p>Add environment modifications to the test environment for tests
+defined in and below the current directory.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-1-variable:CET_TEST_ENV_MODIFICATION"></span><a class="reference internal" href="../variable/CET_TEST_ENV_MODIFICATION.html#variable:CET_TEST_ENV_MODIFICATION" title="CET_TEST_ENV_MODIFICATION"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CET_TEST_ENV_MODIFICATION</span></code></a>,
+<span class="target" id="index-0-prop_test:cmake-ref-current:prop_test:ENVIRONMENT_MODIFICATION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_test/ENVIRONMENT_MODIFICATION.html#prop_test:ENVIRONMENT_MODIFICATION" title="(in CMake v3.27.7)"><code class="docutils literal notranslate"><span class="pre">prop_test:ENVIRONMENT_MODIFICATION</span></code></a>.</p>
+</div>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_test_env_mod(</span><span class="nv">&lt;var&gt;</span><span class="w"> </span><span class="nv">&lt;op&gt;</span><span class="w"> </span><span class="p">[</span><span class="no">CLEAR</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">REMOVE_DUPLICATES</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;dir&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="id3">
+<h2>Options<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">CLEAR</span></code></dt><dd><p>Clear any existing test environment modifications in the current
+directory scope.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">REMOVE_DUPLICATES</span></code></dt><dd><p>Remove any duplicate <code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code>; for a given duplicate, only the
+first entry will be kept.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_test_env_prepend">
+<span class="sig-name descname"><span class="pre">cet_test_env_prepend</span></span><a class="headerlink" href="#command:cet_test_env_prepend" title="Link to this definition">¶</a></dt>
+<dd><p>Prepend to path-like environment variables in the test environment
+for tests defined in and below the current directory.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_test_env_prepend(</span><span class="nv">&lt;var&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>Functionally identical to <span class="target" id="index-0-command:cet_test_env_mod"></span><a class="reference internal" href="#command:cet_test_env_mod" title="cet_test_env_mod"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_test_env_mod(&lt;var&gt;</span>
+<span class="pre">path_list_prepend</span> <span class="pre">...)</span></code></a></p>
 </dd></dl>
 
 </section>
@@ -425,7 +477,7 @@ otherwise, append.</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-701168f</span>
+    <span class="version_switch">git-develop-6150e18</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
