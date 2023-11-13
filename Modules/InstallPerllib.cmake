@@ -51,8 +51,7 @@ include(ProjectVariable)
    ``DROP_PREFIX <dir>``
      Remove ``<dir>`` from the beginning of the subdirectory path before
      installation (default
-     :variable:`${CETMODULES_CURRENT_NAME}_PERLLIB_DIR
-     <PROJECT-NAME>_PERLLIB_DIR`).
+     :variable:`<PROJECT-NAME>_PERLLIB_DIR`).
 
    .. include:: /_cet_install_opts/SUBDIRNAME.rst
 
