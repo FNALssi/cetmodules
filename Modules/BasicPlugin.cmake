@@ -341,6 +341,50 @@ Need ${BASE}(), ${BASE}_plugin() or dependencies in \${${BASE}_LIBRARIES}, or us
   endif()
 endmacro()
 
+function(cet_collect_plugin_builders DEST_SUBDIR)
+  cmake_parse_arguments(PARSE_ARGV 1 _ccpb "NOP" "" "LIST")
+  list(POP_FRONT _ccpb_UNPARSED_ARGUMENTS NAME_WE)
+  if ("${NAME_WE}" STREQUAL "")
+    if (NOT "${_ccpb_LIST}" STREQUAL "")
+      message(FATAL_ERROR "wrapper filepath required when LIST is specified")
+    endif()
+    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
+  endif()
+  if ("${_ccpb_LIST}" STREQUAL "")
+    set(_ccpb_LIST "${CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
+    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
+    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
+  endif()
+  list(SORT _ccpb_LIST)
+  list(TRANSFORM _ccpb_LIST
+    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
+  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    "\
+include_guard()
+
+${_ccpb_includes_content}
+\
+")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+endfunction()
+
+function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
+  cet_write_plugin_builder(${ARGV} INSTALL_BUILDER)
+  if (NOT DEFINED
+      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      CACHE INTERNAL
+      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  endif()
+  set_property(CACHE
+    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    APPEND PROPERTY VALUE "${TYPE}")
+endfunction()
+
 # This macro will generate a CMake builder function for plugins of type
 # (e.g. inheriting from) TYPE.
 function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
@@ -383,48 +427,4 @@ endmacro()
       "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
       DESTINATION "${DEST_SUBDIR}")
   endif()
-endfunction()
-
-function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
-  cet_write_plugin_builder(${ARGV} INSTALL_BUILDER)
-  if (NOT DEFINED
-      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-      CACHE INTERNAL
-      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
-  endif()
-  set_property(CACHE
-    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-    APPEND PROPERTY VALUE "${TYPE}")
-endfunction()
-
-function(cet_collect_plugin_builders DEST_SUBDIR)
-  cmake_parse_arguments(PARSE_ARGV 1 _ccpb "NOP" "" "LIST")
-  list(POP_FRONT _ccpb_UNPARSED_ARGUMENTS NAME_WE)
-  if ("${NAME_WE}" STREQUAL "")
-    if (NOT "${_ccpb_LIST}" STREQUAL "")
-      message(FATAL_ERROR "wrapper filepath required when LIST is specified")
-    endif()
-    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
-  endif()
-  if ("${_ccpb_LIST}" STREQUAL "")
-    set(_ccpb_LIST "${CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
-    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
-    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
-  endif()
-  list(SORT _ccpb_LIST)
-  list(TRANSFORM _ccpb_LIST
-    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
-  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
-  file(WRITE
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
-    "\
-include_guard()
-
-${_ccpb_includes_content}
-\
-")
-  install(FILES
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
-    DESTINATION "${DEST_SUBDIR}")
 endfunction()
