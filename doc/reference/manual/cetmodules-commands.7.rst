@@ -24,6 +24,7 @@ Generation, Installation, and Export
 
 * :command:`basic_plugin`
 * :command:`build_dictionary`
+* :command:`cet_build_plugin`
 * :command:`cet_copy`
 * :command:`cet_rootcint`
 * :command:`check_class_version`
@@ -52,11 +53,13 @@ Generation, Installation, and Export
 Utility
 =======
 
+* :command:`cet_collect_plugin_builders`
 * :command:`cet_compare_versions`
 * :command:`cet_exclude_files_from`
 * :command:`cet_filter_subdirs`
 * :command:`cet_find_pkg_config_package`
 * :command:`cet_installed_path`
+* :command:`cet_make_plugin_builder`
 * :command:`cet_package_path`
 * :command:`cet_passthrough`
 * :command:`cet_real_path`
@@ -68,6 +71,7 @@ Utility
 * :command:`cet_test_env_prepend`
 * :command:`cet_timestamp`
 * :command:`cet_version_cmp`
+* :command:`cet_write_plugin_builder`
 * :command:`parse_version_string`
 * :command:`to_cmake_version`
 * :command:`to_dot_version`
