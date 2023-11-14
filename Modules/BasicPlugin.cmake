@@ -319,7 +319,7 @@ macro(cet_build_plugin NAME BASE)
   if ("${BASE}" STREQUAL "")
     message(SEND_ERROR "vacuous BASE argument to cet_build_plugin()")
   else()
-    foreach (_cbp_command IN ITEMS ${BASE} ${BASE}_plugin LISTS ${BASE}_builder)
+    foreach (_cbp_command IN ITEMS ${${BASE}_builder} ${BASE} ${BASE}_plugin)
       list(POP_FRONT _cbp_command _cbp_cmd_name)
       if (COMMAND ${_cbp_cmd_name})
         list(PREPEND _cbp_cmd_names ${_cbp_cmd_name}) # Handle recursion.
