@@ -337,11 +337,12 @@ endfunction()
    \ :command:`!cet_build_plugin` attempts to locate a command to invoke
    to build a plugin ``<name>`` of type ``<base>``.
 
-   If there exists a CMake variable :variable:`!<base>_builder`, the
-   first element of its value will be searched for as a command to
-   invoke, and any further elements will be prepended to ``<arg>
-   ...``. Otherwise, a command ``<base>`` or ``<base>_plugin`` will be
-   invoked if found.
+   If there exists a CMake variable :variable:`!<unscoped-base>_builder`
+   (where ``<unscoped-base>`` is ``<base>`` after stripping any
+   namespace prefix (``*::``), the first element of its value will be
+   searched for as a command to invoke, and any further elements will be
+   prepended to ``<arg> ...``. Otherwise, a command ``<base>`` or
+   ``<base>_plugin`` will be invoked if found.
 
    If a suitable command :command:`!<cmd>` is found, it shall be
    invoked:
@@ -364,7 +365,8 @@ macro(cet_build_plugin NAME BASE)
   if ("${BASE}" STREQUAL "")
     message(SEND_ERROR "vacuous BASE argument to cet_build_plugin()")
   else()
-    foreach (_cbp_command IN ITEMS ${${BASE}_builder} ${BASE} ${BASE}_plugin)
+    string(REGEX REPLACE "^.*::" "" base_varstem "${BASE}")
+    foreach (_cbp_command IN ITEMS "${${base_varstem}_builder}" "${BASE}" "${BASE}_plugin")
       list(POP_FRONT _cbp_command _cbp_cmd_name)
       if (COMMAND ${_cbp_cmd_name})
         list(PREPEND _cbp_cmd_names ${_cbp_cmd_name}) # Handle recursion.
