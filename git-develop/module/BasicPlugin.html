@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>BasicPlugin &mdash; Cetmodules git-develop-a32ba78 Reference</title>
+  <title>BasicPlugin &mdash; Cetmodules git-develop-fe50a6a Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=574e5101"></script>
+    <script src="../_static/documentation_options.js?v=0767e75f"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a32ba78</span>
+    <span class="version_switch">git-develop-fe50a6a</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -81,8 +81,14 @@
             
   <span class="target" id="module:BasicPlugin"></span><section id="basicplugin">
 <h1>BasicPlugin<a class="headerlink" href="#basicplugin" title="Link to this heading">¶</a></h1>
-<p>Module defining the function <span class="target" id="index-0-command:basic_plugin"></span><a class="reference internal" href="#command:basic_plugin" title="basic_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">basic_plugin()</span></code></a> to generate a
-generic plugin module.</p>
+<p>Module defining commands to facilitate the building of plugins:</p>
+<ul class="simple">
+<li><p><span class="target" id="index-0-command:basic_plugin"></span><a class="reference internal" href="#command:basic_plugin" title="basic_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">basic_plugin()</span></code></a></p></li>
+<li><p><span class="target" id="index-0-command:cet_build_plugin"></span><a class="reference internal" href="#command:cet_build_plugin" title="cet_build_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_build_plugin()</span></code></a></p></li>
+<li><p><span class="target" id="index-0-command:cet_collect_plugin_builders"></span><a class="reference internal" href="#command:cet_collect_plugin_builders" title="cet_collect_plugin_builders"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_collect_plugin_builders()</span></code></a></p></li>
+<li><p><span class="target" id="index-0-command:cet_make_plugin_builder"></span><a class="reference internal" href="#command:cet_make_plugin_builder" title="cet_make_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_plugin_builder()</span></code></a></p></li>
+<li><p><span class="target" id="index-0-command:cet_write_plugin_builder"></span><a class="reference internal" href="#command:cet_write_plugin_builder" title="cet_write_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_write_plugin_builder()</span></code></a></p></li>
+</ul>
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:basic_plugin">
 <span class="sig-name descname"><span class="pre">basic_plugin</span></span><a class="headerlink" href="#command:basic_plugin" title="Link to this definition">¶</a></dt>
@@ -176,8 +182,7 @@ target in <code class="docutils literal notranslate"><span class="pre">&lt;var&g
 <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:SOVERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/SOVERSION.html#prop_tgt:SOVERSION" title="(in CMake v3.27.7)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">SOVERSION</span></code></a>
 property).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The plugin uses <a href="#id1"><span class="problematic" id="id2">`Boost unit test
-functions&lt;https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html&gt;`_</span></a>
+<dt><code class="docutils literal notranslate"><span class="pre">USE_BOOST_UNIT</span></code></dt><dd><p>The plugin uses <a class="reference external" href="https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html">Boost unit test functions</a>
 and should be compiled and linked accordingly.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code></dt><dd><div class="versionadded">
@@ -222,6 +227,137 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
 <p><span class="target" id="index-0-command:cet_make_library"></span><a class="reference internal" href="CetMakeLibrary.html#command:cet_make_library" title="cet_make_library"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_library()</span></code></a></p>
 </div>
 </section>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_build_plugin">
+<span class="sig-name descname"><span class="pre">cet_build_plugin</span></span><a class="headerlink" href="#command:cet_build_plugin" title="Link to this definition">¶</a></dt>
+<dd><p>Build a plugin of a specific type.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_build_plugin(</span><span class="nv">&lt;name&gt;</span><span class="w"> </span><span class="nv">&lt;base&gt;</span><span class="w"> </span><span class="nv">&lt;arg&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">¶</a></h2>
+<p><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_build_plugin()</span></code> attempts to locate a command to invoke
+to build a plugin <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> of type <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code>.</p>
+<p>If there exists a CMake variable <code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;unscoped-base&gt;_builder</span></code>
+(where <code class="docutils literal notranslate"><span class="pre">&lt;unscoped-base&gt;</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> after stripping any
+namespace prefix (<code class="docutils literal notranslate"><span class="pre">*::</span></code>), the first element of its value will be
+searched for as a command to invoke, and any further elements will be
+prepended to <code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span> <span class="pre">...</span></code>. Otherwise, a command <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&lt;base&gt;_plugin</span></code> will be invoked if found.</p>
+<p>If a suitable command <code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">&lt;cmd&gt;()</span></code> is found, it shall be
+invoked:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nv">&lt;cmd&gt;</span><span class="nf">(</span><span class="nv">&lt;name&gt;</span><span class="w"> </span><span class="nv">&lt;args&gt;</span><span class="nf">)</span>
+</pre></div>
+</div>
+<p>If no suitable command is found but there exists a CMake variable
+<code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;base&gt;_LIBRARIES</span></code>, the following command shall be
+invoked:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">basic_plugin(</span><span class="nv">&lt;name&gt;</span><span class="w"> </span><span class="nv">&lt;base&gt;</span><span class="w"> </span><span class="no">LIBRARIES</span><span class="w"> </span><span class="o">${</span><span class="nt">&lt;base&gt;_LIBRARIES</span><span class="o">}</span><span class="w"> </span><span class="nv">&lt;arg&gt;</span><span class="w"> </span><span class="p">...</span><span class="nf">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_collect_plugin_builders">
+<span class="sig-name descname"><span class="pre">cet_collect_plugin_builders</span></span><a class="headerlink" href="#command:cet_collect_plugin_builders" title="Link to this definition">¶</a></dt>
+<dd><p>Generate and install a CMake wrapper file to include plugin builders.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_collect_plugin_builders(</span><span class="nv">&lt;dest-subdir&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;name&gt;</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="id1">
+<h2>Options<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<dl class="simple" id="cet-collect-plugin-builders-opt-list">
+<dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">&lt;type&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify explicit builders to include; <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> is required.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h2>Non-option arguments<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;dest-subdir&gt;</span></code></dt><dd><p>Destination for the generated CMake file.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code></dt><dd><p>The basename (without extension) of the generated CMake
+file. Required if <a class="reference internal" href="#cet-collect-plugin-builders-opt-list"><span class="std std-ref">LIST &lt;type&gt; ...</span></a> is
+present; otherwise defaults to
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CETMODULES_CURRENT_PROJECT_NAME}</span></code></a><code class="file docutils literal notranslate"><span class="pre">PluginBuilders</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h2>Details<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>Generate a CMake file <span class="target" id="index-0-variable:cmake-ref-current:variable:PROJECT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/PROJECT_BINARY_DIR.html#variable:PROJECT_BINARY_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${PROJECT_BINARY_DIR}</span></code></a><code class="file docutils literal notranslate"><span class="pre">/&lt;dest-subdir&gt;/&lt;name&gt;.cmake</span></code> which includes generated plugin
+builders <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;</span> <span class="pre">...</span></code> specified by
+<a class="reference internal" href="#cet-collect-plugin-builders-opt-list"><span class="std std-ref">LIST &lt;type&gt; ...</span></a> if present; otherwise all
+those generated by <span class="target" id="index-1-command:cet_make_plugin_builder"></span><a class="reference internal" href="#command:cet_make_plugin_builder" title="cet_make_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_make_plugin_builder()</span></code></a> since
+<span class="target" id="index-1-command:cet_collect_plugin_builders"></span><a class="reference internal" href="#command:cet_collect_plugin_builders" title="cet_collect_plugin_builders"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_collect_plugin_builders()</span></code></a> was called last.</p>
+</section>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_make_plugin_builder">
+<span class="sig-name descname"><span class="pre">cet_make_plugin_builder</span></span><a class="headerlink" href="#command:cet_make_plugin_builder" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a plugin builder function using
+<span class="target" id="index-1-command:cet_write_plugin_builder"></span><a class="reference internal" href="#command:cet_write_plugin_builder" title="cet_write_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_write_plugin_builder()</span></code></a> and register it for collection by
+<span class="target" id="index-2-command:cet_collect_plugin_builders"></span><a class="reference internal" href="#command:cet_collect_plugin_builders" title="cet_collect_plugin_builders"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_collect_plugin_builders()</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_make_plugin_builder(</span><span class="nv">&lt;type&gt;</span><span class="w"> </span><span class="nv">&lt;base&gt;</span><span class="w"> </span><span class="nv">&lt;dest-subdir&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;args&gt;</span><span class="nf">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-2-command:cet_write_plugin_builder"></span><a class="reference internal" href="#command:cet_write_plugin_builder" title="cet_write_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_write_plugin_builder()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_write_plugin_builder">
+<span class="sig-name descname"><span class="pre">cet_write_plugin_builder</span></span><a class="headerlink" href="#command:cet_write_plugin_builder" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a plugin builder function using
+<span class="target" id="index-3-command:cet_write_plugin_builder"></span><a class="reference internal" href="#command:cet_write_plugin_builder" title="cet_write_plugin_builder"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_write_plugin_builder()</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_write_plugin_builder(</span><span class="nv">&lt;type&gt;</span><span class="w"> </span><span class="nv">&lt;base&gt;</span><span class="w"> </span><span class="nv">&lt;dest-subdir&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;args&gt;</span><span class="nf">)</span>
+</pre></div>
+</div>
+<section id="id4">
+<h2>Options<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">INSTALL_BUILDER</span></code></dt><dd><p>The generated file shall be installed in
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CMAKE_INSTALL_PREFIX}</span></code></a><code class="file docutils literal notranslate"><span class="pre">/&lt;dest-subdir&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SUFFIX</span> <span class="pre">&lt;suffix&gt;</span></code></dt><dd><div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-1-command:basic_plugin"></span><a class="reference internal" href="#command:basic_plugin" title="basic_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">basic_plugin()</span></code></a>.</p>
+</div>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h2>Details<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<p>Generate a file <span class="target" id="index-1-variable:cmake-ref-current:variable:PROJECT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/PROJECT_BINARY_DIR.html#variable:PROJECT_BINARY_DIR" title="(in CMake v3.27.7)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${PROJECT_BINARY_DIR}</span></code></a><code class="file docutils literal notranslate"><span class="pre">/&lt;dest-subdir&gt;/&lt;type&gt;.cmake</span></code> defining a function:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">macro(</span><span class="nv">&lt;type&gt;</span><span class="w"> </span><span class="no">NAME</span><span class="nf">)</span>
+<span class="w">  </span><span class="nv">&lt;func&gt;</span><span class="nf">(</span><span class="o">${</span><span class="nt">NAME</span><span class="o">}</span><span class="w"> </span><span class="nv">&lt;base-ish&gt;</span><span class="w"> </span><span class="o">${</span><span class="nt">ARGN</span><span class="o">}</span><span class="w"> </span><span class="nv">&lt;args&gt;</span><span class="nf">)</span>
+<span class="nf">endmacro()</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>If <code class="docutils literal notranslate"><span class="pre">&lt;type&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> are the same:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;func&gt;</span></code> is <span class="target" id="index-2-command:basic_plugin"></span><a class="reference internal" href="#command:basic_plugin" title="basic_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">basic_plugin()</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;base-ish&gt;</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code> if specified, or <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> after
+stripping any namespace prefix (<code class="docutils literal notranslate"><span class="pre">*::</span></code>).</p></li>
+</ul>
+</dd>
+<dt>Otherwise:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;func&gt;</span></code> is <span class="target" id="index-1-command:cet_build_plugin"></span><a class="reference internal" href="#command:cet_build_plugin" title="cet_build_plugin"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_build_plugin()</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;base-ish&gt;</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;suffix&gt;</span></code> if specified, or <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </dd></dl>
 
@@ -288,7 +424,7 @@ separated by <code class="docutils literal notranslate"><span class="pre">_</spa
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-a32ba78</span>
+    <span class="version_switch">git-develop-fe50a6a</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
