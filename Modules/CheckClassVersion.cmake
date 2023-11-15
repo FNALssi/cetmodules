@@ -136,8 +136,8 @@ function(check_class_version)
     endif()
   endforeach()
   if (TARGET ${dictname}_dict)
-    list(APPEND CMD_ENV "LD_LIBRARY_PATH=$<GENEX_EVAL:$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>>")
-    list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<GENEX_EVAL:$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>>")
+    list(APPEND CMD_ENV "LD_LIBRARY_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>")
+    list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>")
   endif()
   # Add the check to the end of the dictionary building step.
   add_custom_command(OUTPUT ${dictname}_dict_checked
