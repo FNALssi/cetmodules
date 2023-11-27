@@ -135,6 +135,17 @@ function(check_class_version)
       list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
     endif()
   endforeach()
+  if (TARGET ${dictname}_dict)
+    set(LD_PATH_FOR_DICT "$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>")
+    if (APPLE)
+      set(DY DY)
+    else()
+      set(DY)
+    endif()
+    string(JOIN ":" LD_PATH_FOR_DICT "${LD_PATH_FOR_DICT}" $ENV{${DY}LD_LIBRARY_PATH})
+    list(APPEND CMD_ENV "${DY}LD_LIBRARY_PATH=${LD_PATH_FOR_DICT}")
+    list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>")
+  endif()
   # Add the check to the end of the dictionary building step.
   add_custom_command(OUTPUT ${dictname}_dict_checked
     COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
