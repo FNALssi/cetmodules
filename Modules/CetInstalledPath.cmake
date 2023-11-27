@@ -26,9 +26,9 @@ include(CetRegexEscape)
    Options
    ^^^^^^^
 
-   ``BASE_SUBDIR <dir>``
-     ``<out-var>`` will be calculated relative to ``<dir>`` (which must
-     itself be relative to the project source directory).
+   ``BASE_SUBDIR <rel-base-dir>``
+     Specify ``<rel-base-dir>`` as the location of the installed file
+     relative to `<rel-dir>` or the content of |pv| ``<project-var>``.
 
    ``NOP``
      Option / argument disambiguator; no other function.
@@ -63,7 +63,7 @@ function(cet_installed_path OUT_VAR)
   elseif (NOT (CIP_RELATIVE OR CIP_RELATIVE_VAR))
     message(FATAL_ERROR "one of RELATIVE or RELATIVE_VAR are required")
   endif()
-  cet_package_path(pkg_path PATH "${PATH}" BASE_SUBDIR ${CIP_BASE_SUBDIR})
+  cet_package_path(pkg_path PATH "${PATH}")
   if (NOT pkg_path)
     set(pkg_path "${PATH}")
   endif()
@@ -80,8 +80,8 @@ function(cet_installed_path OUT_VAR)
     string(REGEX REPLACE "^(${e_relvar}/+)?(.+)$" "\\2" result "${pkg_path}")
   endif()
   if (result)
-    set(${OUT_VAR} "${result}" PARENT_SCOPE)
+    set(${OUT_VAR} "${result}/${CIP_BASE_SUBDIR}" PARENT_SCOPE)
   else()
-    set(${OUT_VAR} "${PATH}" PARENT_SCOPE)
+    set(${OUT_VAR} "${PATH}/${CIP_BASE_SUBDIR}" PARENT_SCOPE)
   endif()
 endfunction()
