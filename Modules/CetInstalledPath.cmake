@@ -21,7 +21,7 @@ include(CetRegexEscape)
 
    .. parsed-literal::
 
-      cet_installed_path(<out-var> <path> { RELATIVE <dir> | RELATIVE_VAR <var> } [<options>])
+      cet_installed_path(<out-var> <path> { RELATIVE <rel-dir> | RELATIVE_VAR <project-var> } [<options>])
 
    Options
    ^^^^^^^
@@ -33,12 +33,11 @@ include(CetRegexEscape)
    ``NOP``
      Option / argument disambiguator; no other function.
 
-   ``RELATIVE <dir>``
-     Relative path ``<dir>`` will be removed from the front of the
+   ``RELATIVE <rel-dir>``
+     Relative path ``<rel-dir>`` will be removed from the front of the
      calculated path if present.
 
    ``RELATIVE_VAR <project-var>``
-
      The relative path represented by the value of the project variable
      ``<PROJECT-NAME>_<project-var>`` will be removed from the front of
      the calculated path if present, accounting for
