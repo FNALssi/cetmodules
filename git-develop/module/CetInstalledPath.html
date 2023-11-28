@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetInstalledPath &mdash; Cetmodules git-develop-edc0b1dd Reference</title>
+  <title>CetInstalledPath &mdash; Cetmodules git-develop-dd3fcb22 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=69c2d5a6" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=993efd76"></script>
+    <script src="../_static/documentation_options.js?v=0b4d2631"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-edc0b1dd</span>
+    <span class="version_switch">git-develop-dd3fcb22</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -87,28 +87,26 @@ installation path.</p>
 <dt class="sig sig-object cmake" id="command:cet_installed_path">
 <span class="sig-name descname"><span class="pre">cet_installed_path</span></span><a class="headerlink" href="#command:cet_installed_path" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate a path to a file or directory <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> as-installed.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cet_installed_path(&lt;out-var&gt; &lt;path&gt; { RELATIVE &lt;dir&gt; | RELATIVE_VAR &lt;var&gt; } [&lt;options&gt;])
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cet_installed_path(&lt;out-var&gt; &lt;path&gt; { RELATIVE &lt;rel-dir&gt; | RELATIVE_VAR &lt;project-var&gt; } [&lt;options&gt;])
 </pre></div>
 </div>
 <section id="options">
 <h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">BASE_SUBDIR</span> <span class="pre">&lt;dir&gt;</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code> will be calculated relative to <code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;</span></code> (which must
-itself be relative to the project source directory).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">BASE_SUBDIR</span> <span class="pre">&lt;rel-base-dir&gt;</span></code></dt><dd><p>Specify <code class="docutils literal notranslate"><span class="pre">&lt;rel-base-dir&gt;</span></code> as the location of the installed file
+relative to <cite>&lt;rel-dir&gt;</cite> or the content of <span class="target" id="index-1-module:ProjectVariable"></span><a class="reference internal" href="ProjectVariable.html#module:ProjectVariable" title="ProjectVariable"><code class="xref cmake cmake-module docutils literal notranslate"><span class="pre">project</span> <span class="pre">variable</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;project-var&gt;</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">RELATIVE</span> <span class="pre">&lt;dir&gt;</span></code></dt><dd><p>Relative path <code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;</span></code> will be removed from the front of the
+<dt><code class="docutils literal notranslate"><span class="pre">RELATIVE</span> <span class="pre">&lt;rel-dir&gt;</span></code></dt><dd><p>Relative path <code class="docutils literal notranslate"><span class="pre">&lt;rel-dir&gt;</span></code> will be removed from the front of the
 calculated path if present.</p>
 </dd>
-</dl>
-<p><code class="docutils literal notranslate"><span class="pre">RELATIVE_VAR</span> <span class="pre">&lt;project-var&gt;</span></code></p>
-<blockquote>
-<div><p>The relative path represented by the value of the project variable
+<dt><code class="docutils literal notranslate"><span class="pre">RELATIVE_VAR</span> <span class="pre">&lt;project-var&gt;</span></code></dt><dd><p>The relative path represented by the value of the project variable
 <code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_&lt;project-var&gt;</span></code> will be removed from the front of
 the calculated path if present, accounting for
 <span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_EXEC_PREFIX"></span><a class="reference internal" href="../variable/PROJECT-NAME_EXEC_PREFIX.html#variable:&lt;PROJECT-NAME&gt;_EXEC_PREFIX" title="&lt;PROJECT-NAME&gt;_EXEC_PREFIX"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_EXEC_PREFIX</span></code></a> where appropriate.</p>
-</div></blockquote>
+</dd>
+</dl>
 </section>
 <section id="non-option-arguments">
 <h2>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h2>
@@ -185,7 +183,7 @@ should be calculated.</p>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-edc0b1dd</span>
+    <span class="version_switch">git-develop-dd3fcb22</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
