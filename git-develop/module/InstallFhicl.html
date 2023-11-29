@@ -116,8 +116,8 @@ specifically <a class="reference internal" href="CetInstall.html#p-cet-install-e
 <dt class="sig sig-object cmake" id="glob">
 <span class="code cmake highlight sig-name descname"><span class="nf"><span class="pre">install_fhicl(</span></span><span class="no"><span class="pre">GLOB</span></span><span class="w"> </span><span class="p"><span class="pre">[</span></span><span class="no"><span class="pre">SUBDIRNAME</span></span><span class="nbsp"> </span><span class="nv"><span class="pre">&lt;subdir&gt;</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">[</span></span><span class="nv"><span class="pre">&lt;glob-options&gt;</span></span><span class="p"><span class="pre">]</span></span><span class="nf"><span class="pre">)</span></span></span><a class="headerlink" href="#glob" title="Link to this definition">¶</a></dt>
 <dd><p class="text-start">Install recognized files found under
-<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.8)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> or
-<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.8)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a> in
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> or
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a> in
 <span class="target" id="index-2-variable:&lt;PROJECT-NAME&gt;_FHICL_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_FHICL_DIR.html#variable:&lt;PROJECT-NAME&gt;_FHICL_DIR" title="&lt;PROJECT-NAME&gt;_FHICL_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_FHICL_DIR</span></code></a>.</p>
 <dl class="simple">
 <dt>Recognized files</dt><dd><ul class="simple">
@@ -129,7 +129,7 @@ specifically <a class="reference internal" href="CetInstall.html#p-cet-install-e
 <div><blockquote>
 <div><div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The use of <span class="target" id="index-0-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.8)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions in
+<p>The use of <span class="target" id="index-0-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions in
 CMake build/install lists is discouraged due to its tendency to
 create hysteresis.</p>
 </div>
@@ -137,7 +137,7 @@ create hysteresis.</p>
 <blockquote>
 <div><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">BASENAME_EXCLUDES</span> <span class="pre">[[REGEX]</span> <span class="pre">&lt;exp&gt;]</span> <span class="pre">...</span></code></dt><dd><p>Filenames matching these expressions in any searched subdirectory
-are excluded from installation; <span class="target" id="index-1-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.8)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions are permitted.</p>
+are excluded from installation; <span class="target" id="index-1-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">file(GLOB)</span></code></a> expressions are permitted.</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -152,7 +152,7 @@ wildcards or directories</p>
 <blockquote>
 <div><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">EXTRAS</span> <span class="pre">[&lt;extra</span> <span class="pre">file&gt;</span> <span class="pre">...]</span></code></dt><dd><p>Specific files to copy/install in addition to those found via
-<span class="target" id="index-2-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.8)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>ing—incompatible with <a class="reference internal" href="CetInstall.html#p-cet-install-opt-list"><span class="std std-ref">LIST &lt;file&gt; ...</span></a>.</p>
+<span class="target" id="index-2-command:cmake-ref-current:command:file"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/file.html#glob" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">GLOB</span></code></a>ing—incompatible with <a class="reference internal" href="CetInstall.html#p-cet-install-opt-list"><span class="std std-ref">LIST &lt;file&gt; ...</span></a>.</p>
 </dd>
 </dl>
 </div></blockquote>
