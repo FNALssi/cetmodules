@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 CetGenerateSphinxDocs
-=====================
+---------------------
 #]================================================================]
 include_guard(GLOBAL)
 
@@ -10,6 +10,8 @@ if (NOT cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
 endif()
 
 cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
+
+set(_CGSD_VDATA_VERSION 1)
 
 function(cet_generate_sphinx_docs)
   if (NOT BUILD_DOCS) # Disabled.
@@ -28,8 +30,8 @@ function(cet_generate_sphinx_docs)
   # Parse arguments.
   set(flags NITPICKY NOP NO_ALL NO_COLOR NO_CONF NO_DELETE_OUTPUT_DIR NO_INSTALL QUIET VERBOSE)
   set(one_arg_opts CONF_DIR SOURCE_DIR SWITCH_VERSION TARGET_STEM TARGETS_VAR VERBOSITY VERSION_DATA_VAR)
-  set(options EXTRA_ARGS OUTPUT_FORMATS)
-  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
+  set(options DEPENDS EXTRA_ARGS OUTPUT_FORMATS)
+  set(pf_keywords ALL COLOR DELETE_OUTPUT_DIR DEPENDS EXTRA_ARGS INSTALL NITPICKY OUTPUT_DIR QUIET VERBOSE VERBOSITY)
   string(REPLACE ";" "|" pf_kw_re "(${pf_keywords})")
   list(TRANSFORM ARGV REPLACE "(^|_)NO_" "\\1" OUTPUT_VARIABLE fmt_args)
   list(FILTER fmt_args INCLUDE REGEX "^(.+)_${pf_kw_re}$")
@@ -40,7 +42,7 @@ function(cet_generate_sphinx_docs)
       ${fmt}_NO_ALL ${fmt}_NO_COLOR ${fmt}_NO_DELETE_OUTPUT_DIR ${fmt}_NO_INSTALL ${fmt}_NO_NITPICKY
       ${fmt}_NO_QUIET ${fmt}_NO_VERBOSE ${fmt}_QUIET ${fmt}_VERBOSE)
     list(APPEND one_arg_opts ${fmt}_OUTPUT_DIR ${fmt}_VERBOSITY)
-    list(APPEND options ${fmt}_EXTRA_ARGS)
+    list(APPEND options ${fmt}_DEPENDS ${fmt}_EXTRA_ARGS)
   endforeach()
   cmake_parse_arguments(PARSE_ARGV 0 CGS
     "${flags}" "${one_arg_opts}" "${options}")
@@ -53,6 +55,9 @@ function(cet_generate_sphinx_docs)
 endfunction()
 
 function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
+  if (NOT IS_ABSOLUTE "${PUBLISH_ROOT}")
+    message(FATAL_ERROR "PUBLISH_ROOT must be absolute (${PUBLISH_ROOT})")
+  endif()
   if ("PUBLISH_OLD_RELEASE" IN_LIST ARGN)
     set(CPS_PUBLISH_OLD_RELEASE TRUE)
     list(TRANSFORM ARGN REPLACE "^PUBLISH_OLD_RELEASE$" "NOP")
@@ -73,12 +78,38 @@ function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
   endif()
   set(PUBLISH_ARGS EXTRA_ARGS -A versionswitch=1)
 
-  _cps_process_version_data()
-
-  if (_cps_is_numeric AND NOT _cps_is_latest)
-    # We're publishing outdated documentation: label it as such.
-    list(APPEND PUBLISH_ARGS -A outdated=1)
+  # Determine output location.
+  if (_cps_is_numeric)
+    set(_cps_output_dir "${PUBLISH_ROOT}/v${PUBLISH_VERSION}")
+    if (_cps_is_numeric AND NOT CPS_PUBLISH_OLD_RELEASE
+        AND EXISTS "${_cps_output_dir}_static/documentation_options.js")
+      # We've already published documentation for this version: is
+      # ours for an earlier release?
+      file(READ "${_cps_output_dir}_static/documentation_options.js"
+        doc_data) # Read the info for the generated documentation.
+      # Extract the documentation release:
+      if (doc_data MATCHES "\n[ \t]*VERSION[ \t\n]*:[ \t\n]*'([^']*)'")
+        set(found_release "${CMAKE_MATCH_1}")
+        cet_compare_versions(found_newer "${found_release}"
+          VERSION_GREATER "${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}")
+        if (found_newer)
+          # Skip publication of documentation for an older release.
+          message(NOTICE "\
+found already-published ${CETMODULES_CURRENT_PROJECT_NAME} \
+documentation for newer release of version ${PUBLISH_VERSION} \
+(${found_release} > ${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}): will not overwrite (set \
+use PUBLISH_OLD_RELEASE flag to force)\
+")
+          return()
+        endif()
+      endif()
+    endif()
+  else()
+    set(_cps_output_dir "${PUBLISH_ROOT}/${PUBLISH_VERSION}")
   endif()
+  cmake_path(GET _cps_output_dir FILENAME _cps_proj_dir)
+
+  _cps_process_version_data()
 
   set(target_stem publish_${CETMODULES_CURRENT_PROJECT_NAME}_${PUBLISH_VERSION})
   list(APPEND PUBLISH_ARGS NOP NO_INSTALL
@@ -207,6 +238,11 @@ macro(_cgs_generate_targets)
       set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${output_dir}")
     endif()
     set(cache_dir "${CMAKE_CURRENT_BINARY_DIR}/.doctrees-${target}")
+    if (CGS_NO_CONF)
+      set(depends_conf)
+    else()
+      set(depends_conf "${CGS_CONF_DIR}/conf.py")
+    endif()
     foreach (tlabel "" -force)
       set(cmd_args${tlabel} ${extra_args${tlabel}} ${cmd_args})
       add_custom_target(${target}${tlabel} ${all${tlabel}}
@@ -215,6 +251,7 @@ macro(_cgs_generate_targets)
         -DCMD_ARGS="${cmd_args${tlabel}};-d;${cache_dir}"
         ${extra_defines}
         -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CetCmdWrapper.cmake"
+        DEPENDS ${CGS_DEPENDS} ${CGS_${fmt}_DEPENDS} ${depends_conf}
         COMMAND_EXPAND_LISTS
         COMMENT "Building ${fmt} documentation for ${target} with sphinx-build"
         JOB_POOL sphinx_doc)
@@ -329,76 +366,104 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
 endmacro()
 
 macro(_cps_process_version_data)
-  if (NOT IS_ABSOLUTE "${PUBLISH_ROOT}")
-    message(FATAL_ERROR "PUBLISH_ROOT must be absolute (${PUBLISH_ROOT})")
+  if (PUBLISH_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?")
+    set(_cps_is_numeric TRUE)
   endif()
   unset(VERSION_DATA)
   if (EXISTS "${PUBLISH_ROOT}/versions.json")
     file(READ "${PUBLISH_ROOT}/versions.json" VERSION_DATA)
   endif()
-  if (NOT VERSION_DATA)
-    set(VERSION_DATA "{}")
+  string(JSON _cps_vdata_version ERROR_VARIABLE json_error
+    GET "${VERSION_DATA}" "vdata-version")
+  if (json_error)
+    set(_cps_vdata_version 0)
   endif()
-  if (PUBLISH_VERSION MATCHES "^[0-9]+(\\.[0-9]+)$")
-    set(_cps_is_numeric TRUE)
-  endif()
+  foreach (v RANGE ${_cps_vdata_version} ${_CGSD_VDATA_VERSION})
+    cmake_language(CALL _cps_read_version_data_${v})
+  endforeach()
   # How many versions are currently defined?
-  string(JSON n_versions LENGTH "${VERSION_DATA}")
+  string(JSON n_versions LENGTH "${VERSION_DATA}" "version-entries")
   set(_cps_is_latest ${_cps_is_numeric})
   # Analyze them.
+  set(numeric_versions)
+  set(named_versions)
   if (n_versions GREATER 0)
     math(EXPR last_idx "${n_versions} - 1")
     foreach (idx RANGE ${last_idx})
-      string(JSON version MEMBER "${VERSION_DATA}" ${idx})
+      string(JSON version MEMBER "${VERSION_DATA}" "version-entries" ${idx})
       if (version STREQUAL "latest")
         set(have_latest TRUE)
-        continue()
       elseif (PUBLISH_VERSION STREQUAL version)
         set(have_version TRUE)
       endif()
-      if (_cps_is_latest AND version MATCHES "^v([0-9]+(.[0-9]+)?)")
-        # Are we still the latest version?
-        cet_compare_versions(_cps_is_latest ${PUBLISH_VERSION} VERSION_GREATER_EQUAL ${version})
+      if (version MATCHES "^[0-9]+(.[0-9]+)?")
+        if (_cps_is_latest)
+          # Are we still the latest version?
+          cet_compare_versions(_cps_is_latest ${PUBLISH_VERSION} VERSION_GREATER_EQUAL ${version})
+        endif()
+        list(APPEND numeric_versions ${version})
+      else()
+        list(APPEND named_versions ${version})
       endif()
     endforeach()
   endif()
-  if (_cps_is_numeric)
-    set(_cps_output_dir "${PUBLISH_ROOT}/v${PUBLISH_VERSION}")
-    if (_cps_is_numeric AND NOT CPS_PUBLISH_OLD_RELEASE
-        AND EXISTS "${_cps_output_dir}_static/documentation_options.js")
-      # We've already published documentation for this version: is
-      # ours for an earlier release?
-      file(READ "${_cps_output_dir}_static/documentation_options.js"
-        doc_data) # Read the info for the generated documentation.
-      # Extract the documentation release:
-      if (doc_data MATCHES "\n[ \t]*VERSION[ \t\n]*:[ \t\n]*'([^']*)'")
-        set(found_release "${CMAKE_MATCH_1}")
-        cet_compare_versions(found_newer "${found_release}"
-          VERSION_GREATER "${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}")
-        if (found_newer)
-          # Skip publication of documentation for an older release.
-          message(NOTICE "\
-found already-published ${CETMODULES_CURRENT_PROJECT_NAME} \
-documentation for newer release of version ${PUBLISH_VERSION} \
-(${found_release} > ${${CETMODULES_CURRENT_PROJECT_NAME}_CURRENT_PROJECT_VERSION}): will not overwrite (set \
-use PUBLISH_OLD_RELEASE flag to force)\
-")
-          return()
-        endif()
-      endif()
-    endif()
-  else()
-    set(_cps_output_dir "${PUBLISH_ROOT}/${PUBLISH_VERSION}")
-  endif()
-  cmake_path(GET _cps_output_dir FILENAME _cps_proj_dir)
   # Ensure we have a line for this version in versions data.
-  string(JSON VERSION_DATA SET "${VERSION_DATA}" "${_cps_proj_dir}"
-    "\"${PUBLISH_VERSION}\"")
-  if (_cps_is_latest)
-    # Ensure we a line for "latest" in versions data.
-    string(JSON VERSION_DATA SET "${VERSION_DATA}"
-      "latest" "\"latest release\"")
+  if (NOT have_version)
+    string(JSON VERSION_DATA SET "${VERSION_DATA}" "version-entries" "${PUBLISH_VERSION}"
+      "{ \"display-name\": \"${_cps_proj_dir}\", \"description\": \"${PUBLISH_VERSION}\" }")
+    if (_cps_is_numeric)
+      list(APPEND numeric_versions ${PUBLISH_VERSION})
+    else()
+      list(APPEND named_versions ${PUBLISH_VERSION})
+    endif()
   endif()
+  if (_cps_is_latest AND NOT have_latest)
+    # Ensure we a line for "latest" in versions data.
+    string(JSON VERSION_DATA SET "${VERSION_DATA}" "version-entries" "latest"
+      "{ \"display-name\": \"latest release\", \"description\": \"latest\" }")
+    list(APPEND named_versions latest)
+  endif()
+  # Write out the desired order of versions.
+  list(SORT named_versions COMPARE STRING CASE INSENSITIVE)
+  list(SORT numeric_versions COMPARE NATURAL CASE INSENSITIVE ORDER DESCENDING)
+  if (numeric_versions)
+    list(GET numeric_versions 0 latest_numeric)
+    string(JSON VERSION_DATA SET "${VERSION_DATA}" "latest-version" "\"${latest_numeric}\"")
+  else()
+    string(JSON VERSION_DATA ERROR_VARIABLE json_error REMOVE "${VERSION_DATA}" "latest-version")
+  endif()
+  string(JSON VERSION_DATA SET "${VERSION_DATA}" "ordered-versions" "[]")
+  set(idx 0)
+  foreach (version IN LISTS named_versions numeric_versions)
+    string(JSON VERSION_DATA SET "${VERSION_DATA}" "ordered-versions" ${idx} "\"${version}\"")
+    math(EXPR idx "${idx} + 1")
+  endforeach()
   # Write out the versions data as (possibly) amended by us.
   file(WRITE "${PUBLISH_ROOT}/versions.json" "${VERSION_DATA}\n")
 endmacro()
+
+function(_cps_read_version_data_1)
+endfunction()
+
+function(_cps_read_version_data_0)
+  set(vdata_new "{}")
+  string(JSON vdata_new SET "${vdata_new}" "vdata-version" 1)
+  string(JSON vdata_new SET "${vdata_new}" "version-entries" "{}")
+  string(JSON n_versions ERROR_VARIABLE json_error LENGTH "${VERSION_DATA}")
+  if (n_versions)
+    math(EXPR last_idx "${n_versions} - 1")
+    foreach (idx RANGE ${last_idx})
+      string(JSON version MEMBER "${VERSION_DATA}" ${idx})
+      set(display_name "${version}")
+      string(JSON description GET "${VERSION_DATA}" "${display_name}")
+      if (version MATCHES "^v([0-9]+(.[0-9]+)?)")
+        string(JSON version GET "${VERSION_DATA}" "${display_name}")
+      endif()
+      set(vdata "{ \"display-name\": \"${display_name}\", \"description\": \"${description}\" }")
+      string(JSON vdata_new SET "${vdata_new}" "version-entries" "${version}" "${vdata}")
+    endforeach()
+  endif()
+  message(STATUS "VDATA_VERSION 0: ${VERSION_DATA}")
+  message(STATUS "VDATA_VERSION 1: ${vdata_new}")
+  set(VERSION_DATA "${vdata_new}" PARENT_SCOPE)
+endfunction()

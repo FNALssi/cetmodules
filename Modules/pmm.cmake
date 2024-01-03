@@ -1,3 +1,8 @@
+#[================================================================[.rst:
+X
+-
+#]================================================================]
+
 include(${CMAKE_CURRENT_LIST_DIR}/private/pmm.cmake)
 if (CETMODULES_CURRENT_PROJECT_NAME
     AND NOT CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})

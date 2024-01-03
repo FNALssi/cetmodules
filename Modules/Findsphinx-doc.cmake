@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 X
-=
+-
 #]================================================================]
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 get_property(_find_sphinx_python3 TARGET Python3::Interpreter

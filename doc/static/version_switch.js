@@ -1,9 +1,11 @@
 (async function() {
   'use strict';
 
+  const content_root = document.documentElement.dataset.content_root;
+
   async function getVersions() {
     try {
-      let res = await fetch(DOCUMENTATION_OPTIONS.URL_ROOT + '../versions.json');
+      let res = await fetch(content_root + '../versions.json');
       return await res.json();
     }
     catch(error) {
@@ -13,12 +15,16 @@
 
   var all_versions = await getVersions();
 
+  function is_numeric_version(version) {
+    return /^v?[0-9]+(?:\.[0-9]+)?/.test(version);
+  }
+
   function build_select(current_version, current_release) {
     let buf = ['<select>'];
-
-    $.each(all_versions, function(version, title) {
-      buf.push('<option value="' + version + '"');
-      if (version == current_version) {
+    all_versions['ordered-versions'].forEach(function(version) {
+      var title = all_versions['version-entries'][version]['display-name'];
+      buf.push('<option value="' + title + '"');
+      if (title == current_version) {
         buf.push(' selected="selected">');
         if (version[0] == 'v') {
           buf.push(current_release);
@@ -39,7 +45,7 @@
     let file = document.location.pathname.substring(document.location.pathname.lastIndexOf('/') + 1);
     let path = document.location.pathname.substring(0, document.location.pathname.lastIndexOf('/' + file));
     let parts = path.split(/\//);
-    $.each(DOCUMENTATION_OPTIONS.URL_ROOT.split(/\//), function() {
+    $.each(content_root.split(/\//), function() {
       if (this === '..')
         parts.pop();
     });
@@ -51,7 +57,7 @@
   }
 
   function switch_to_version(new_version) {
-    return DOCUMENTATION_OPTIONS.URL_ROOT + '../' + new_version + getRelativePath();
+    return content_root + '../' + new_version + getRelativePath();
   }
 
   function on_switch() {
@@ -65,7 +71,7 @@
            window.location.href = new_url;
         },
         error: function() {
-          window.location.href = DOCUMENTATION_OPTIONS.URL_ROOT + '../' + selected;
+          window.location.href = content_root + '../' + selected;
         }
       });
     }
@@ -76,6 +82,16 @@
     let url_base = getDocumentBasePath();
     let version = url_base.substring(url_base.lastIndexOf('/') + 1);
     let select = build_select(version, release);
+
+    var latest_version = all_versions['latest-version'] || null;
+    // Only show "outdated-version" blocks if they're applicable.
+    if (!is_numeric_version(version) ||
+        (latest_version &&
+         version == all_versions['version-entries'][latest_version]['display-name'])) {
+      $.each(document.getElementsByClassName('outdated'), function() {
+        this.style.display = 'none';
+      });
+    }
     $('.version_switch_note').html('Or, select a version from the drop-down menu above.');
     $('.version_switch').html(select);
     $('.version_switch select').bind('change', on_switch);

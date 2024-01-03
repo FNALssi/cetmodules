@@ -1,12 +1,12 @@
 #[================================================================[.rst:
 CetInstall
-==========
+----------
 
 This module defines an implementation of a generic file / installation
 function with the following features:
 
-* Identify files to install and/or exclude by :ref:`file(GLOB)
-  <cmake-ref-current:glob>`, or by list.
+* Identify files to install and/or exclude by :command:`file(GLOB)
+  <cmake-ref-current:command:file(glob)>`, or by list.
 
 * Install contents of specific subdirectories:
   a) to their correct relative place in the install hierarchy; or
@@ -15,10 +15,9 @@ function with the following features:
 * Optionally, copy files for use in the build tree in addition to
   installing them.
 
-:command:`_cet_install` is a "toolkit" function, intended to facilitate
-         the generation of :command:`!install_X()` functions with
-         particular default or enforced characteristics for files of a
-         particular type.
+\ :command:`_cet_install` is a "toolkit" function, intended to
+facilitate the generation of ``install_X()`` functions with particular
+default or enforced characteristics for files of a particular type.
 
 #]================================================================]
 # Avoid unwanted repeat inclusion.
@@ -27,7 +26,7 @@ include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include (CetCopy)
-include (CetExclude)
+include (private/CetExclude)
 include (ProjectVariable)
 
 #[============================================================[.rst:
@@ -36,115 +35,77 @@ include (ProjectVariable)
    Install files of a particular type or category with installation
    semantics common to that type of file.
 
-   **Synopsis:**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        _cet_install(<category> [<meta-options>...] [<options>...])
+      _cet_install(<category> [<meta-options>...] [<options>...])
 
    .. _p_cet_install-options:
 
-   **Options:**
-     .. _p_cet_install-BASENAME_EXCLUDES:
+   Options
+   ^^^^^^^
 
-     ``BASENAME_EXCLUDES [[REGEX] <exp>]...``
-       Filenames matching these expressions in any searched subdirectory
-       are excluded from installation; :ref:`file(GLOB)
-       <cmake-ref-current:glob>` expressions are permitted.
-
-     ``DESTINATION <dest-path>``
-       Installation subdirectory below :variable:`CMAKE_INSTALL_PREFIX
-       <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`
-       (mutually-exclusive with ``DEST_VAR``).
-
-     ``DEST_VAR <dest-var>``
-       The name of a CMake variable containing the installation
-       subdirectory (mutually-exclusive with ``DESTINATION``).
-
-     .. _p_cet_install-EXCLUDES:
-
-     ``EXCLUDES [<exclude-exp>...]``
-       A list of paths to exclude from the list of files that would
-       otherwise be installed. This keyword accepts files only: no
-       wildcards or directories
-
-     .. _p_cet_install-opt-LIST:
-
-     ``LIST [<file>...]``
-       A list of files to install. Mutually-exclusive with any option
-       assuming a generated list via `p_cet_install-_GLOB`_,
-       specifically `p_cet_install-EXCLUDES`_,
-       `p_cet_install-BASENAME_EXCLUDES`_, `p_cet_install-EXTRAS`_,
-       `p_cet_install-SUBDIRS`_,
-
-     .. _p_cet_install-EXTRAS:
-
-     ``EXTRAS [<extra file>...]``
-
-     ``PROGRAMS``
-
-     ``SUBDIRNAME <dest-subdir>``
-
-     .. _p_cet_install-SUBDIRS:
-
-     ``SUBDIRS [<source-subdir>...]``
+   .. include:: /opts-inc.rst
 
    .. _p_cet_install-meta-options:
 
-   **Meta-options:**
-     ``_EXTRA_BASENAME_EXCLUDES [<basename-exclude-exp>...]``
-       Additional basename exclusion expressions.
+   Meta-options
+   """"""""""""
 
-     ``_EXTRA_EXCLUDES [<exclude-exp>...]``
-       Additional full-path exclusion expressions.
+   ``_EXTRA_BASENAME_EXCLUDES [<basename-exclude-exp> ...]``
+     Additional basename exclusion expressions.
 
-     ``_EXTRA_EXTRAS [<path>...]``
-       Files to install in addition to those found via :ref:`GLOB
-       <cmake-ref-current:glob>` expressions.
+   ``_EXTRA_EXCLUDES [<exclude-exp> ...]``
+     Additional full-path exclusion expressions.
 
-     .. _p_cet_install-_GLOB:
+   ``_EXTRA_EXTRAS [<path>...]``
+     Files to install in addition to those found via :command:`GLOB
+     <cmake-ref-current:command:file(glob)>` expressions.
 
-     ``_GLOBS [<glob>...]``
-       :ref:`GLOB <cmake-ref-current:glob>` expressions for files to
-       include.
+   .. _p_cet_install-_GLOB:
 
-     ``_INSTALLED_FILES_VAR <var>``
-       The name of a variable in which to stored the full list of files
-       installed.
+   ``_GLOBS [<file(glob)>...]``
+     \ :command:`GLOB <cmake-ref-current:command:file(glob)>`
+     expressions for files to include.
 
-     ``_INSTALL_ONLY``
-       Do not copy files to the build tree.
+   ``_INSTALLED_FILES_VAR <var>``
+     The name of a variable in which to stored the full list of files
+     installed.
 
-     ``_LIST_ONLY``
-       Disable globbing: enforce explicit lists of files to install via
-       :ref:`LIST <p_cet_install-opt-LIST>`.
+   ``_INSTALL_ONLY``
+     Do not copy files to the build tree.
 
-     ``_NO_LIST``
-       Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
+   ``_LIST_ONLY``
+     Disable globbing: enforce explicit lists of files to install via
+     :ref:`LIST <p_cet_install-opt-LIST>`.
 
-     ``_SEARCH_BUILD``
-       :ref:`GLOB <cmake-ref-current:glob>` expressions will be applied
-       to the build tree in addition to the source tree.
+   ``_NO_LIST``
+     Disallow the use of :ref:`LIST <p_cet_install-opt-LIST>`.
 
-     ``_SQUASH_SUBDIRS``
-       Subdirectory elements of source files are ignored when
-       calculating the copy/install destination.
+   ``_SEARCH_BUILD``
+     :command:`GLOB <cmake-ref-current:command:file(glob)>` expressions
+     will be applied to the build tree in addition to the source tree.
 
-Details
--------
+   ``_SQUASH_SUBDIRS``
+     Subdirectory elements of source files are ignored when calculating
+     the copy/install destination.
 
-\ :ref:`Meta-options <p_cet_install-meta-options>` to
-:command:`!cet_install` are distinguished by a leading underscore
-and are intended for use by wrapper functions specific to a particular
-category of file (*e.g.* license and README files, geometry data,
-configuration files, *etc*.) to enforce common behavior for all
-installation operations for those files.
+   Details
+   ^^^^^^^
 
-.. note:: Although supported for historical reasons, use of
-  :ref:`file(GLOB) <cmake-ref-current:glob>` to generate targets is not
-  CMake best practice, and may lead to hysteresis if looking for
-  generated files in the build tree.
+   \ :ref:`Meta-options <p_cet_install-meta-options>` to
+   :command:`!cet_install` are distinguished by a leading underscore and
+   are intended for use by wrapper functions specific to a particular
+   category of file (e.g. license and README files, geometry data,
+   configuration files, *etc*.) to enforce common behavior for all
+   installation operations for those files.
+
+   .. note:: Although supported for historical reasons, use of
+      :command:`file(GLOB) <cmake-ref-current:command:file(glob)>` to
+      generate targets is not CMake best practice, and may lead to
+      hysteresis if looking for generated files in the build tree.
 
 #]============================================================]
+
 # Copy all files (or PROGRAMS) found matching provided glob expressions
 # to location indicated by DEST_VAR. Optionally (as indicated by
 # _SEARCH_BUILD) use ${CMAKE_CURRENT_BINARY_DIR} as a relative base in
@@ -176,6 +137,7 @@ function(_cet_install CATEGORY)
     list(APPEND multi_arg_options LIST)
   endif()
   if (NOT _I__LIST_ONLY)
+    list(APPEND options GLOB)
     list(APPEND options _SEARCH_BUILD _SQUASH_SUBDIRS)
     list(APPEND multi_arg_options
       _EXTRA_BASENAME_EXCLUDES _EXTRA_EXCLUDES _EXTRA_EXTRAS

@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 CetCMakeEnv
-===========
+-----------
 
 This module defines the principal bootstrap function
 :command:`cet_cmake_env` defining the cetmodules build environment for
@@ -67,37 +67,45 @@ define_property(TARGET PROPERTY CET_EXEC_LOCATION
 
    Set up the cetmodules build environment for the current project.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_cmake_env([NO_INSTALL_PKGMETA])
+      cet_cmake_env([NO_INSTALL_PKGMETA])
 
-   **Options**
-     ``NO_INSTALL_PKGMETA``
+   Options
+   ^^^^^^^
 
-       Under normal circumstances, :command:`!cet_cmake_env` will call
-       :command:`install_pkgmeta` to automatically find ``LICENSE`` and
-       ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
-       if you wish to call :command:`install_pkgmeta` yourself (or not
-       at all).
+   ``NO_INSTALL_PKGMETA``
+     Under normal circumstances, :command:`!cet_cmake_env` will call
+     :command:`install_pkgmeta` to automatically find ``LICENSE`` and
+     ``README`` files and install them. Specify ``NO_INSTALL_PKGMETA``
+     if you wish to call :command:`install_pkgmeta` yourself (or not
+     at all).
 
-  .. note::
+   Notes
+   ^^^^^
 
-     Prior to calling :command:`cet_cmake_env`:
+   .. note::
 
-     * The current project must have been initialized via
-       :command:`project() <cmake-ref-current:command:project>`
+      Prior to calling :command:`cet_cmake_env`:
 
-     * Any initial or override values for
-       :manual:`project variables <cetmodules-project-variables(7)>` should be set.
+      * The current project must have been initialized via
+        :command:`project() <cmake-ref-current:command:project>`
 
-  **Variables controlling behavior**
-    * :variable:`WANT_UPS`
-    * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
-    * :variable:`BUILD_STATIC_LIBS`
-    * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
+      * Any initial or override values for
+        :manual:`project variables <cetmodules-project-variables(7)>` should be set.
+
+   .. seealso:: :command:`cet_finalize`
+
+   Variables affecting behavior
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   * :variable:`WANT_UPS`
+   * :variable:`BUILD_SHARED_LIBS <cmake-ref-current:variable:BUILD_SHARED_LIBS>`
+   * :variable:`BUILD_STATIC_LIBS`
+   * :variable:`CMAKE_INSTALL_RPATH_USE_LINK_PATH <cmake-ref-current:variable:CMAKE_INSTALL_RPATH_USE_LINK_PATH>`
 
 #]================================================================]
+
 macro(cet_cmake_env)
   # project() must have been called first.
   if (NOT CMAKE_PROJECT_NAME)

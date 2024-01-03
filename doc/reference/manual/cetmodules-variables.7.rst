@@ -7,11 +7,13 @@ cetmodules-variables(7)
 
    .. contents::
 
-Variables that Change Behavior
-==============================
+Variables Affecting Behavior
+============================
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
    /variable/BUILD_STATIC_LIBS
+   /variable/PROJECT-NAME_*
    /variable/WANT_UPS

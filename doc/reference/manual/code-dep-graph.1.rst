@@ -13,14 +13,17 @@ Usage
 Options
 -------
 
-  -D
+  .. option:: -D
+
      Show external dependencies also. Specify twice to include external
      dependencies that would usually be ignored (like sys/).
 
-  -h
+  .. option:: -h
+
      This help.
 
-  -v
+  .. option:: -v
+
      Verbose output.
 
 Post-processing

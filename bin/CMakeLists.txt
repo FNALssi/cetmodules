@@ -3,6 +3,7 @@
 ##################
 
 set(public_programs
+  filter-output
   format-code
   intersphinx-refs
   make_bash_completions)

@@ -1,39 +1,61 @@
 #[================================================================[.rst:
-X
-=
+ProcessSmc
+----------
+
+Define the function :command:`process_smc` to generate C++ source code
+from an `SMC <https://smc.sourceforge.net/>`_ :file:`.sm` file.
+
 #]================================================================]
-########################################################################
-# process_smc
-#
-# Process state machine files (.sm) into C++ source for inclusion in a
-# library.
-#
-# Usage:
-#
-# process_smc(LIB_SOURCES_VAR [NO_INSTALL] <.sm files>)
-#
-####################################
-# Notes
-#
-# The LIB_SOURCES_VAR argument should be the name of a variable whose
-# contents after calling will be the list of C++ source files generated
-# by the state machine compiler.
-#
-########################################################################
+
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-# Note that the required minimum version here is checked against
-# "Implementation-Version," a vendor-supplied key in the
-# META-INF/MANIFEST.MF file inside the JAR file, which is just a zip
-# file. In the case of Smc, this version is 6.0.1 for at least Smc
-# versions 6.1.0 and 6.6.0 that we know of.
-find_package(Smc 6.0.1 REQUIRED EXPORT)
+find_package(Smc 6.0.1 REQUIRED)
+
+#[================================================================[.rst:
+.. command:: process_smc
+
+   Generate C++ source code from an `SMC
+   <https://smc.sourceforge.net/>`_ :file:`.sm` file.
+
+   .. code-block:: cmake
+
+      process_smc(<target-or-var> [<options>])
+
+   .. seealso:: :module:`FindSmc`
+
+   Options
+   ^^^^^^^
+
+   ``NO_INSTALL``
+     Do not install generated files in either the include or source
+     areas of the built package.
+
+   .. versionadded:: 3.23.00
+
+      ``NO_INSTALL_SOURCE``
+        Do not install generated files in the source areas of the built
+        package.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<target-or-var>``
+     If ``<target-or-var>`` is a target, generated sources will be added
+     as ``PRIVATE`` sources via :command:`target_sources()
+     <cmake-ref-current:command:target_sources>`.
+
+     .. deprecated:: 2.10.00
+
+        Otherwise, add the generated sources to the CMake variable
+        ``<target-or-var>`` in the caller's scope.`
+
+#]================================================================]
 
 function(process_smc TARGET_OR_VAR)
-  cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL" "OUTPUT_DIR" "")
+  cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL;NO_INSTALL_SOURCE" "OUTPUT_DIR" "")
   if (NOT PSMC_OUTPUT_DIR)
     set(PSMC_OUTPUT_DIR .)
   endif()
@@ -43,7 +65,7 @@ function(process_smc TARGET_OR_VAR)
     OUTPUT_VARIABLE SMC_H_OUTPUTS)
   list(TRANSFORM PSMC_UNPARSED_ARGUMENTS REPLACE "^(.*/)?(.*).sm$" "\\2_sm.dot"
     OUTPUT_VARIABLE SMC_DOT_OUTPUTS)
-  set(smc_cmd java -jar "$<TARGET_FILE:Smc::Smc>")
+  set(smc_cmd ${Java_JAVA_EXECUTABLE} -jar "$<TARGET_FILE:Smc::Smc>")
   cet_package_path(pkgpath PATH "${PSMC_OUTPUT_DIR}" BINARY)
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${PSMC_OUTPUT_DIR}")
   foreach (source cpp_out h_out dot_out IN ZIP_LISTS
@@ -51,7 +73,6 @@ function(process_smc TARGET_OR_VAR)
     cmake_path(ABSOLUTE_PATH source OUTPUT_VARIABLE abs_source)
     add_custom_command(OUTPUT "${PSMC_OUTPUT_DIR}/${cpp_out}"
       "${PSMC_OUTPUT_DIR}/${h_out}"
-      COMMAND pwd
       COMMAND ${smc_cmd} -d "${pkgpath}" -c++ "${abs_source}"
       COMMAND perl -wapi~ -e
       "s&(#\\s*include\\s+)<statemap\\.h>&\${1}\"${pkgpath}/statemap.h\"&"
@@ -78,7 +99,9 @@ function(process_smc TARGET_OR_VAR)
     list(TRANSFORM SMC_H_OUTPUTS PREPEND "${PROJECT_BINARY_DIR}/${pkgpath}/")
     list(TRANSFORM SMC_CPP_OUTPUTS PREPEND "${PROJECT_BINARY_DIR}/${pkgpath}/")
     install_headers(LIST ${SMC_H_OUTPUTS})
-    install_source(LIST ${SMC_H_OUTPUTS} ${SMC_CPP_OUTPUTS})
+    if (NOT PSMC_NO_INSTALL_SOURCE)
+      install_source(LIST ${SMC_H_OUTPUTS} ${SMC_CPP_OUTPUTS})
+    endif()
   endif()
   set_source_files_properties(${SMC_CPP_OUTPUTS}
     PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter"

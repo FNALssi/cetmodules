@@ -1,7 +1,11 @@
 #[================================================================[.rst:
-X
-=
+CetMakeLibrary
+--------------
+
+Module defining the function :command`cet_make_library` to generate
+libraries and plugins.
 #]================================================================]
+
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
@@ -12,6 +16,204 @@ include(CetCMakeUtils)
 include(CetRegexEscape)
 
 set(_cet_make_library_usage "")
+
+#[================================================================[.rst:
+.. command:: cet_make_library
+
+   Create a library.
+
+   .. parsed-literal::
+
+      cet_make_library([:ref:`\<name-options> <cet_make_library_name_options>`] [:ref:`\<type-options> <cet_make_library_type_options>`]
+                       [:ref:`\<library-options> <cet_make_library_options>`] [:ref:`\<target-options> <cet_make_library_target_options>`] [:ref:`\<miscellaneous-options> <cet_make_library_misc_options>`])
+
+   Options
+   ^^^^^^^
+
+   .. _cet_make_library_name_options:
+
+   Name Options
+   """"""""""""
+
+   ``BASENAME_ONLY``
+     Calculate the name of the library based only on the basename of
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
+     mutually-exclusive with ``LIBRARY_NAME``.
+
+   ``LIBRARY_NAME <name>``
+     .. rst-class:: text-start
+
+     Specify the library name as ``name``. If this option is not
+     provided the library's name will be calculated from the relative
+     path of :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect
+     to :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to
+     possible modification by ``USE_PROJECT_NAME`` (replacing
+     path-separators with ``_``). ``LIBRARY_NAME`` is mutually-exclusive
+     with ``BASENAME_ONLY``.
+
+   ``LIBRARY_NAME_VAR <var>``
+     Return the calculated/modified library name in the variable
+     ``<var>``.
+
+   ``USE_PROJECT_NAME``
+     Modify the provided or calculated library name by prepending
+     :variable:`CETMODULES_CURRENT_PROJECT_NAME` and a separating ``_``.
+
+   .. _cet_make_library_type_options:
+
+   Type Options
+   """"""""""""
+
+   ``INTERFACE, MODULE, OBJECT, SHARED, STATIC``
+     Make a CMake library of the specified type(s). An ``INTERFACE``
+     library is incompatible with every other library type, and the
+     ``SHARED`` and ``MODULE`` Library types are mutually incompatible.
+
+     .. seealso:: :external+cmake-ref-current:ref:`interface libraries`,
+                  :external+cmake-ref-current:ref:`object libraries`,
+                  :external+cmake-ref-current:ref:`normal libraries`
+
+   ``NO_OBJECT``
+     Disable the automatic addition and use of an ``OBJECT`` library
+     where it would otherwise be appropriate (e.g. ``STATIC`` and
+     ``SHARED`` are both specified).
+
+   ``WITH_STATIC_LIBRARY``
+     .. deprecated:: 3.23.00
+        use ``STATIC`` instead.
+
+   .. _cet_make_library_options:
+
+   Library Options
+   """""""""""""""
+
+   ``INSTALLED_PATH_BASE <base>``
+     Specify the path to the installation directory for ``SOURCE``
+     headers relative to |pv|
+     :variable:`<PROJECT-NAME>_INCLUDE_DIR`. Only valid for
+     ``INTERFACE``-type libraries.
+
+   ``LIBRARIES <library-specification> ...``
+     Library dependencies (passed to :command:`target_link_libraries()
+     <cmake-ref-current:command:target_link_libraries>`).
+
+   ``LOCAL_INCLUDE_DIRS <dir> ...``
+     Specify local include directories.
+
+   ``NO_SOURCE``
+     Indicate that no sources are specified at this time. Add them later
+     with :command:`target_sources()
+     <cmake-ref-current:command:target_sources>`. Mutually-exclusive
+     with ``SOURCE <source> ...``.
+
+   ``SOURCE <source> ...``
+     Source files for inclusion in the library. Mutually-exclusive with
+     ``NO_SOURCE``.
+
+   ``SOVERSION <api-version>``
+     Specify the :prop_tgt:`API version
+     <cmake-ref-current:prop_tgt:SOVERSION>` of the library.
+
+   ``STRIP_LIBS``
+     After the library is built, symbols will be stripped using
+     :manpage:`strip(1)`.
+
+   ``USE_BOOST_UNIT``
+     The library uses `Boost unit test functions
+     <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
+
+   ``VERSION [<build-version>]``
+     Specify the :prop_tgt:`build version
+     <cmake-ref-current:prop_tgt:VERSION>` of the library. If the
+     ``<build-version>`` is missing, use
+     :variable:`CETMODULES_CURRENT_PROJECT_VERSION`.
+
+   .. _cet_make_library_target_options:
+
+   Target Options
+   """"""""""""""
+
+   ``ALIAS <alias-target> ...``
+     Add ``<alias-target> ...`` as aliases for the primary library
+     target. If ``<alias-target>`` is scoped (contains ``::``) the alias
+     will be defined as a non-exported (build-time only) target exactly
+     as specified. Otherwise it will be scoped according to
+     ``EXPORT_SET`` if specified, or the default namespace defined by
+     :command:`cet_register_export_set` if not.
+
+     .. seealso:: :external+cmake-ref-current:ref:`alias targets`
+
+   ``EXCLUDE_FROM_ALL``
+     Set the :prop_tgt:`EXCLUDE_FROM_ALL
+     <cmake-ref-current:prop_tgt:EXCLUDE_FROM_ALL>` property on all
+     targets.
+
+   ``EXPORT_SET <export-set>``
+     The library will be exported as part of the specified
+     :external+cmake-ref-current:ref:`export set <install(export)>`.
+
+   ``HEADERS_TARGET``
+     Define an ``INTERFACE`` target
+     ``<CETMODULES_CURRENT_PROJECT_NAME>_headers`` embodying the
+     locations of include directories for the package.
+
+   ``HEADERS_TARGET_ONLY``
+     Define _only_ the target
+     ``<CETMODULES_CURRENT_PROJECT_NAME>_headers`` (implies
+     ``HEADERS_TARGET``).
+
+   ``NO_EXPORT``
+     Targets will not be exported or installed.
+
+   ``TARGET_NAME <target-name>``
+     Specify the primary target name independently of the library
+     name. If ``<target-name>`` is the special keyword, ``BASENAME``
+     then the target will be set to the basename of
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
+
+   .. _cet_make_library_misc_options:
+
+   Miscellaneous Options
+   """""""""""""""""""""
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
+
+   Details
+   ^^^^^^^
+
+   ``cet_make_library()`` is a "one-stop shop" for creating, installing,
+   and exporting libraries:
+
+   * Library file and target names may be calculated or
+     specified—independently or otherwise as desired.
+
+   * Alias targets can be created and exported along with their target
+     libraries.
+
+   * Library build and API versions may be specified.
+
+   * Libraries may be stripped of symbols afer building.
+
+   * ``cet_make_library()`` does all the bookkeeping necessary to ensure
+     that necessary dependencies are found when the installed package is
+     used downstream via :command:`find_package()
+     <cmake-ref-current:command:find_package>`
+
+   .. seealso:: :command:`add_library() <cmake-ref-current:command:add_library>`,
+                :command:`target_sources() <cmake-ref-current:command:target_sources>`,
+                :command:`target_include_directories() <cmake-ref-current:command:target_include_directories>`,
+                :command:`target_link_libraries() <cmake-ref-current:command:target_link_libraries>`,
+                :command:`install() <cmake-ref-current:command:install>`,
+                :command:`cet_cmake_config`,
+                :command:`cet_make_alias`,
+                :command:`cet_register_export_set`
+
+#]================================================================]
 
 function(cet_make_library)
   # Two-phase parsing to avoid confusion with e.g. INTERFACE in
@@ -119,8 +321,12 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   list(LENGTH lib_types num_libtypes)
   if (CML_INSTALLED_PATH_BASE AND NOT CML2_INTERFACE)
     message(FATAL_ERROR "INSTALLED_PATH_BASE valid only for INTERFACE library types")
-  elseif (CML2_INTERFACE AND num_libtypes GREATER 1)
-    message(FATAL_ERROR "INTERFACE library is incompatible with any other library type: build separately")
+  elseif (CML2_INTERFACE)
+    if (num_libtypes GREATER 1)
+      message(FATAL_ERROR "INTERFACE library is incompatible with any other library type: build separately")
+    elseif (CML_STRIP_LIBS)
+      message(FATAL_ERROR "STRIP_LIBS option is incompatible with INTERFACE library")
+    endif()
   elseif (CML_SHARED AND CML_MODULE)
     message(FATAL_ERROR "SHARED and MODULE libraries are mutually exclusive")
   elseif (NOT CML_NO_OBJECT AND
@@ -298,7 +504,9 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     endif()
     # Deal with aliases to primary target.
     foreach (alias IN LISTS CML_ALIAS extra_alias)
-      if (CML_NO_INSTALL OR CML_NO_EXPORT)
+      if (alias MATCHES "::")
+        add_library(${alias} ALIAS ${CML_TARGET_NAME})
+      elseif (CML_NO_INSTALL OR CML_NO_EXPORT)
         add_library(${namespace}::${alias} ALIAS ${CML_TARGET_NAME})
       else()
         cet_make_alias(NAME ${alias} EXPORT_SET ${CML_EXPORT_SET}

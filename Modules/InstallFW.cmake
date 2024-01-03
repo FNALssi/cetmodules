@@ -1,16 +1,14 @@
 #[================================================================[.rst:
-X
-=
+InstallFW
+---------
+
+.. admonition:: HEP
+   :class: admonition-domain
+
+   Define the function :command:`install_fw` to install HEP framework
+   data files.
+
 #]================================================================]
-########################################################################
-# install_fw()
-#
-#   Install FW data in ${${CETMODULES_CURRENT_PROJECT_NAME}_FW_DIR}/<subdir>
-#
-# Usage: install_wp([SUBDIRNAME <subdir>] LIST ...)
-#
-# See CetInstall.cmake for full usage description.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -19,6 +17,28 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetInstall)
 include(ProjectVariable)
+
+#[================================================================[.rst:
+.. command:: install_fw
+
+   .. admonition:: HEP
+      :class: admonition-app
+
+      Install HEP framework data files in
+      :variable:`<PROJECT-NAME>_FW_DIR`.
+
+      .. code-block:: cmake
+
+         install_fw(LIST <file> ... [SUBDIRNAME <subdir>])
+
+   Options
+   ^^^^^^^
+
+   .. include:: /_cet_install_opts/LIST.rst
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+#]================================================================]
 
 function(install_fw)
   project_variable(FW_DIR CONFIG NO_WARN_DUPLICATE

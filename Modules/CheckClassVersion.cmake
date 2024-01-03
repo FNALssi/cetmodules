@@ -1,7 +1,15 @@
 #[================================================================[.rst:
-X
-=
+CheckClassVersion
+-----------------
+
+.. admonition:: ROOT
+   :class: admonition-app
+
+   Module defining the function :command:`check_class_version` to check
+   ROOT dictionary object versions and checksums.
+
 #]================================================================]
+
 include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
@@ -31,6 +39,52 @@ function(_verify_pyroot)
   endif()
 endfunction()
 
+#[================================================================[.rst:
+.. command:: check_class_version
+
+   .. admonition:: ROOT
+      :class: admonition-app
+
+      Check ROOT dictionary object versions and checksums.
+
+   .. seealso:: :manual:`checkClassVersion(1)`
+
+   .. code-block:: cmake
+
+      check_class_version([<options>])
+
+   Options
+   ^^^^^^^
+
+   ``CLASSES_DEF_XML <xml-file>``
+     Specify the selection XML file describing the classes to be
+     checked.
+
+   ``ENVIRONMENT <env>...``
+     Inject ``<env>`` into the environment of the invocation of
+     :manual:`checkClassVersion(1)`; ``<env>`` should be in the form
+     ``<var>=<val>``
+
+   ``(NO_)?RECURSIVE``
+     Enable/disable recursive dictionary checks.
+
+   ``REQUIRED_DICTIONARIES <dict>...``
+     .. deprecated:: 3.23.00 remove.
+
+   ``UPDATE_IN_PLACE``
+     Update the selection XML file in place and exit with non-zero
+     status.
+
+  Notes
+  ^^^^^
+
+  .. note::
+
+     In general ``check_class_version()`` should be invoked via
+     :command:`build_dictionary` rather than standalone.
+
+#]================================================================]
+
 function(check_class_version)
   _verify_pyroot()
   if (NOT $CACHE{_CheckClassVersion_ENABLED})
@@ -40,17 +94,20 @@ function(check_class_version)
     "UPDATE_IN_PLACE;RECURSIVE;NO_RECURSIVE"
     "CLASSES_DEF_XML"
     "ENVIRONMENT;LIBRARIES;REQUIRED_DICTIONARIES")
-  IF(CCV_LIBRARIES)
+  if (CCV_LIBRARIES)
     MESSAGE(FATAL_ERROR "LIBRARIES option not supported at this time: "
       "ensure your library is linked to any necessary libraries not already pulled in by ART.")
-  ENDIF()
+  endif()
+  if (CCV_REQUIRED_DICTIONARIES)
+    warn_deprecated("REQUIRED_DICTIONARIES" SINCE 3.23.00 " - remove")
+  endif()
   if (CCV_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "Unparsed arguments: ${CCV_UNPARSED_ARGUMENTS}")
   endif()
-  IF(CCV_UPDATE_IN_PLACE)
+  if(CCV_UPDATE_IN_PLACE)
     SET(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "-G")
-  ENDIF()
-  if(CCV_RECURSIVE)
+  endif()
+  if (CCV_RECURSIVE)
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--recursive")
   elsif (CCV_NO_RECURSIVE)
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--no-recursive")
@@ -78,6 +135,17 @@ function(check_class_version)
       list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
     endif()
   endforeach()
+  if (TARGET ${dictname}_dict)
+    set(LD_PATH_FOR_DICT "$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>")
+    if (APPLE)
+      set(DY DY)
+    else()
+      set(DY)
+    endif()
+    string(JOIN ":" LD_PATH_FOR_DICT "${LD_PATH_FOR_DICT}" $ENV{${DY}LD_LIBRARY_PATH})
+    list(APPEND CMD_ENV "${DY}LD_LIBRARY_PATH=${LD_PATH_FOR_DICT}")
+    list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>")
+  endif()
   # Add the check to the end of the dictionary building step.
   add_custom_command(OUTPUT ${dictname}_dict_checked
     COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
@@ -93,7 +161,4 @@ function(check_class_version)
   # All checkClassVersion invocations must wait until after *all*
   # dictionaries have been built.
   add_dependencies(checkClassVersion_${dictname} BuildDictionary_AllDicts)
-  if (CCV_REQUIRED_DICTIONARIES)
-    add_dependencies(${dictname}_dict ${CCV_REQUIRED_DICTIONARIES})
-  endif()
 endfunction()

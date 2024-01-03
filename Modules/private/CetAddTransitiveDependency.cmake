@@ -1,3 +1,8 @@
+#[================================================================[.rst:
+X
+-
+#]================================================================]
+
 include_guard()
 
 # Add a find_dependency() call to the appropriate tracking variable.

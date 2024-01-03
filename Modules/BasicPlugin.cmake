@@ -1,9 +1,14 @@
 #[================================================================[.rst:
 BasicPlugin
-===========
+-----------
 
-Module defining the function :command:`basic_plugin` to generate a generic
-plugin module.
+Module defining commands to facilitate the building of plugins:
+
+* :command:`basic_plugin`
+* :command:`cet_build_plugin`
+* :command:`cet_collect_plugin_builders`
+* :command:`cet_make_plugin_builder`
+* :command:`cet_write_plugin_builder`
 
 #]================================================================]
 
@@ -17,7 +22,7 @@ include(CetProcessLiblist)
 include(CetRegexEscape)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL
-  USE_BOOST_UNIT USE_PRODUCT_NAME VERSION)
+  USE_BOOST_UNIT USE_PROJECT_NAME USE_PRODUCT_NAME VERSION)
 set(cet_bp_one_arg_opts EXPORT_SET IMPL_TARGET_VAR SOVERSION)
 set(cet_bp_list_options ALIAS IMPL_SOURCE LIBRARIES LOCAL_INCLUDE_DIRS
   REG_SOURCE SOURCE)
@@ -26,137 +31,163 @@ cet_regex_escape(${cet_bp_flags} ${cet_bp_one_arg_opts} ${cet_bp_list_options} V
 string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
 
 #[================================================================[.rst:
+.. |ODR| replace:: :abbr:`ODR (One Definition Rule)`
+
 .. command:: basic_plugin
 
    Create a plugin library, with or without a separate registration
-   library to avoid One Definition Rule (ODR) violations.
+   library to avoid |ODR| violations.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        basic_plugin(<name> <suffix> [<options>])
+      basic_plugin(<name> <suffix> [<options>])
 
-   **Source specification options**
-     ``IMPL_SOURCE <implementation-source>...`` Specify source to
-       compile into the plugin's interface implementation library, if
-       appropriate. The implementation should *not* invoke any
-       registration definition macros or the ODR will be violated.
+   Options
+   ^^^^^^^
 
-     ``REG_SOURCE <registration-source>...``
-       Specify source to compile into the plugin registration library,
-       intended only for runtime injection (via *e.g.* ``dlopen()``)
-       into an executable, and not for dynamic linking.
+   Source specification options
+   """"""""""""""""""""""""""""
 
-     .. note::
+   ``IMPL_SOURCE <implementation-source>...``
+     Specify source to compile into the plugin's interface
+     implementation library, if appropriate. The implementation should
+     *not* invoke any registration definition macros or the |ODR| will
+     be violated.
 
-        * If ``REG_SOURCE`` is omitted, we look for ``<name>_<suffix>.cc``
+   ``REG_SOURCE <registration-source>...``
+     Specify source to compile into the plugin registration library,
+     intended only for runtime injection (via e.g. :manpage:`dlopen(3)`)
+     into an executable, and not for dynamic linking.
 
-        * If ``IMPL_SOURCE`` is omitted, we look for ``<name>.cc``
+   .. note::
 
-   **Dependency specification options**
-     ``LIBRARIES [INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG] <library-dependency>...``
+      * If ``REG_SOURCE`` is omitted, we look for ``<name>_<suffix>.cc``
 
-       Specify targets and/or libraries upon which the implementation
-       (``INTERFACE``, ``PUBLIC``, ``PRIVATE``), or registration
-       (``REG``) libraries should depend. If implementation and
-       registration share a dependency not inherited by public callers
-       of the implementation, specify the library as both ``PRIVATE``
-       and ``REG``.
+      * If ``IMPL_SOURCE`` is omitted, we look for ``<name>.cc``
 
-     .. note::
+   Dependency specification options
+   """"""""""""""""""""""""""""""""
 
-        * The registration library has an automatic dependence on the
-          implementation library (if present).
+   ``LIBRARIES [CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]
+   <library-dependency>...``
+     Specify targets and/or libraries upon which the implementation
+     (``INTERFACE``, ``PUBLIC``, ``PRIVATE``), or registration (``REG``)
+     libraries should depend. If implementation and registration share a
+     dependency not inherited by public callers of the implementation,
+     specify the library twice with one mention prefaced with
+     ``PRIVATE`` and the other with ``REG``.
 
-        * If ``PUBLIC`` or ``INTERFACE`` dependencies are specified and
-          there is no implementation source, then the plugin will be
-          built as a shared library rather than as a module, and all
-          responsibility for ODR violations rests with the plugin
-          builder.
+   .. note::
 
-        * An additional dependency designation, ``CONDITIONAL``, is
-          accepted and is intended for use by intermediate functions
-          adding dependencies to a library. ``CONDITIONAL`` is identical
-          to ``PUBLIC`` without making a statement about the shared or
-          module nature of the combined implementation/registration
-          library or the presence of a public (non-plugin) calling
-          interface.
+      * The registration library has an automatic dependence on the
+        implementation library (if present).
 
-   **Other options**
-     ``ALIAS <alias>...``
-       Create the specified CMake alias targets to the implementation
-       library.
+      * If ``PUBLIC`` or ``INTERFACE`` dependencies are specified and
+        there is no implementation source, then the plugin will be built
+        as a shared library rather than as a module, and all
+        responsibility for |ODR| violations rests with the plugin
+        builder.
 
-     ``ALLOW_UNDERSCORES``
-       Normally, neither ``<name>`` nor ``<suffix>`` may contain
-       underscores in order to avoid possible ambiguities. Allow them
-       with this option at your own risk.
+      * An additional dependency designation, ``CONDITIONAL``, is
+        accepted and is intended for use by intermediate CMake functions
+        that add dependencies to a library. ``CONDITIONAL`` is identical
+        to ``PUBLIC`` without making a statement about the shared or
+        module nature of the combined implementation/registration
+        library or the presence of a public (non-plugin) calling
+        interface.
 
-     ``BASENAME_ONLY``
-       Do not add the relative path (directories delimited by ``_``) to
-       the front of the plugin library name.
+   Other options
+   """""""""""""
 
-     ``EXPORT_SET <export-name>``
-       Add the library to the ``<export-name>`` export set.
+   ``ALIAS <alias>...``
+     Create the specified CMake alias targets to the implementation
+     library.
 
-     ``LOCAL_INCLUDE_DIRS <dir>...``
-       Headers may be found in ``<dir>``... at build time.
+   ``ALLOW_UNDERSCORES``
+     Normally, neither ``<name>`` nor ``<suffix>`` may contain
+     underscores in order to avoid possible ambiguities. Allow them with
+     this option at your own risk.
 
-     ``NOP``
-       Option / argument disambiguator; no other function.
+   ``BASENAME_ONLY``
+     Do not add the relative path (directories delimited by ``_``) to
+     the front of the plugin library name.
 
-     ``NO_EXPORT``
-       Do not export this plugin.
+   ``EXPORT_SET <export-name>``
+     Add the library to the ``<export-name>`` export set.
 
-     ``NO_INSTALL``
-       Do not install the generated library or libraries.
+   ``IMPL_TARGET_VAR <var>``
+     Return the—possibly calculated—name of the implementation library
+     target in ``<var>``.
 
-     ``SOVERSION <version>``
-       The library's compatibility version (*cf*
-       :prop_tgt:`SOVERSION`).
+   ``LOCAL_INCLUDE_DIRS <dir>...``
+     Headers may be found in ``<dir>``... at build time.
 
-     ``USE_BOOST_UNIT``
-       The plugin uses Boost unit test functions and should be compiled
-       and linked accordingly.
+   ``NOP``
+     Option / argument disambiguator; no other function.
 
-     ``USE_PACKAGE_NAME``
-       The package name will be prepended to the plugin library name,
-       separated by ``_``
+   ``NO_EXPORT``
+     Do not export this plugin.
 
-     ``VERSION``
-       The library's build version will be set to
-       :variable:`CETMODULES_CURRENT_PROJECT_NAME` (*cf* :prop_tgt:`VERSION`).
+   ``NO_INSTALL``
+     Do not install the generated library or libraries.
 
-   **Deprecated options**
-     ``SOURCE <source>...``
-       Specify sources to compile into the plugin.
+   ``SOVERSION <version>``
+     The library's compatibility version (*cf* CMake
+     :prop_tgt:`SOVERSION <cmake-ref-current:prop_tgt:SOVERSION>`
+     property).
 
-      .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
-         ``LIBRARIES REG`` instead.
+   ``USE_BOOST_UNIT``
+     The plugin uses `Boost unit test functions
+     <https://www.boost.org/doc/libs/release/libs/test/doc/html/index.html>`_
+     and should be compiled and linked accordingly.
 
-     ``USE_PRODUCT_NAME``
-       .. deprecated:: 2.0 use ``USE_PACKAGE_NAME`` instead.
+   ``USE_PROJECT_NAME``
+     .. versionadded:: 3.23.00
 
-   **Non-option arguments**
-     ``<name>``
-       The name stem for the library to be generated.
+     The project name will be prepended to the plugin library name,
+     separated by ``_``
 
-     ``<suffix>``
-       The category of plugin to be generated.
+   ``VERSION``
+     The library's build version will be set to
+     :variable:`CETMODULES_CURRENT_PROJECT_VERSION` (*cf* CMake
+     :prop_tgt:`VERSION <cmake-ref-current:prop_tgt:VERSION>` property).
+
+   Deprecated options
+   """"""""""""""""""
+
+   ``SOURCE <source>...``
+     Specify sources to compile into the plugin.
+
+    .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
+       ``LIBRARIES REG`` instead.
+
+   ``USE_PRODUCT_NAME``
+     .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
+
+   Non-option arguments
+   """"""""""""""""""""
+
+   ``<name>``
+     The name stem for the library to be generated.
+
+   ``<suffix>``
+     The category of plugin to be generated.
 
    .. seealso:: :command:`cet_make_library`
 
 #]================================================================]
+
 function(basic_plugin NAME SUFFIX)
   cmake_parse_arguments(PARSE_ARGV 2 BP
     "${cet_bp_flags}" "${cet_bp_one_arg_opts}" "${cet_bp_list_options}")
   if (BP_UNPARSED_ARGUMENTS)
-    warn_deprecated("use of non-option arguments (${BP_UNPARSED_ARGUMENTS})"
+    warn_deprecated("use of extra non-option arguments (${BP_UNPARSED_ARGUMENTS})"
       NEW "LIBRARIES")
     list(APPEND BP_LIBRARIES NOP ${BP_UNPARSED_ARGUMENTS})
   endif()
-  if (BP_BASENAME_ONLY AND BP_USE_PRODUCT_NAME)
-    message(FATAL_ERROR "BASENAME_ONLY AND USE_PRODUCT_NAME are mutually exclusive")
+  if (BP_USE_PRODUCT_NAME)
+    warn_deprecated(NEW "USE_PROJECT_NAME")
+    set(BP_USE_PROJECT_NAME TRUE)
   endif()
   if (BP_BASENAME_ONLY)
     set(plugin_stem "${NAME}")
@@ -171,10 +202,10 @@ function(basic_plugin NAME SUFFIX)
       endif()
     endif()
     string(REPLACE "/" "_" plugin_stem "${CURRENT_SUBDIR}")
-    if (BP_USE_PRODUCT_NAME)
-      string(JOIN "_" plugin_stem "${CETMODULES_CURRENT_PROJECT_NAME}" "${plugin_stem}")
-    endif()
     string(JOIN "_" plugin_stem  "${plugin_stem}" "${NAME}")
+  endif()
+  if (BP_USE_PROJECT_NAME)
+    string(JOIN "_" plugin_stem "${CETMODULES_CURRENT_PROJECT_NAME}" "${plugin_stem}")
   endif()
   if (BP_SOURCE)
     warn_deprecated("SOURCE" NEW "IMPL_SOURCE, REG_SOURCE and LIBRARIES REG")
@@ -191,8 +222,7 @@ function(basic_plugin NAME SUFFIX)
   foreach (kw IN ITEMS EXPORT_SET LOCAL_INCLUDE_DIRS SOVERSION)
     cet_passthrough(APPEND BP_${kw} cml_common_args)
   endforeach()
-  foreach (kw IN ITEMS BASENAME_ONLY NO_INSTALL
-      USE_PRODUCT_NAME VERSION)
+  foreach (kw IN ITEMS NO_INSTALL VERSION)
     cet_passthrough(FLAG APPEND BP_${kw} cml_common_args)
   endforeach()
   # These items are only for the implementation library.
@@ -292,11 +322,51 @@ function(basic_plugin NAME SUFFIX)
   endif()
 endfunction()
 
+#[================================================================[.rst:
+.. command:: cet_build_plugin
+
+   Build a plugin of a specific type.
+
+   .. code-block:: cmake
+
+      cet_build_plugin(<name> <base> <arg> ...)
+
+   Details
+   ^^^^^^^
+
+   \ :command:`!cet_build_plugin` attempts to locate a command to invoke
+   to build a plugin ``<name>`` of type ``<base>``.
+
+   If there exists a CMake variable :variable:`!<unscoped-base>_builder`
+   (where ``<unscoped-base>`` is ``<base>`` after stripping any
+   namespace prefix (``*::``), the first element of its value will be
+   searched for as a command to invoke, and any further elements will be
+   prepended to ``<arg> ...``. Otherwise, a command ``<base>`` or
+   ``<base>_plugin`` will be invoked if found.
+
+   If a suitable command :command:`!<cmd>` is found, it shall be
+   invoked:
+
+   .. code-block:: cmake
+
+      <cmd>(<name> <args>)
+
+   If no suitable command is found but there exists a CMake variable
+   :variable:`!<base>_LIBRARIES`, the following command shall be
+   invoked:
+
+   .. code-block:: cmake
+
+      basic_plugin(<name> <base> LIBRARIES ${<base>_LIBRARIES} <arg> ...)
+
+#]================================================================]
+
 macro(cet_build_plugin NAME BASE)
   if ("${BASE}" STREQUAL "")
     message(SEND_ERROR "vacuous BASE argument to cet_build_plugin()")
   else()
-    foreach (_cbp_command IN ITEMS ${BASE} ${BASE}_plugin LISTS ${BASE}_builder)
+    string(REGEX REPLACE "^.*::" "" base_varstem "${BASE}")
+    foreach (_cbp_command IN ITEMS "${${base_varstem}_builder}" "${BASE}" "${BASE}_plugin")
       list(POP_FRONT _cbp_command _cbp_cmd_name)
       if (COMMAND ${_cbp_cmd_name})
         list(PREPEND _cbp_cmd_names ${_cbp_cmd_name}) # Handle recursion.
@@ -317,6 +387,160 @@ Need ${BASE}(), ${BASE}_plugin() or dependencies in \${${BASE}_LIBRARIES}, or us
     endif()
   endif()
 endmacro()
+
+#[================================================================[.rst:
+.. command:: cet_collect_plugin_builders
+
+   Generate and install a CMake wrapper file to include plugin builders.
+
+   .. code-block:: cmake
+
+      cet_collect_plugin_builders(<dest-subdir> [<name>] [<options>])
+
+   Options
+   ^^^^^^^
+
+   .. _cet_collect_plugin_builders-opt-LIST:
+
+   ``LIST <type> ...``
+     Specify explicit builders to include; ``<name>`` is required.
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<dest-subdir>``
+     Destination for the generated CMake file.
+
+   ``<name>``
+     The basename (without extension) of the generated CMake
+     file. Required if :ref:`cet_collect_plugin_builders-opt-LIST` is
+     present; otherwise defaults to
+     :variable:`${CETMODULES_CURRENT_PROJECT_NAME}
+     <CETMODULES_CURRENT_PROJECT_NAME>`\ :file:`PluginBuilders`.
+
+   Details
+   ^^^^^^^
+
+   Generate a CMake file :variable:`${PROJECT_BINARY_DIR}
+   <cmake-ref-current:variable:PROJECT_BINARY_DIR>`\
+   :file:`/<dest-subdir>/<name>.cmake` which includes generated plugin
+   builders ``<type> ...`` specified by
+   :ref:`cet_collect_plugin_builders-opt-LIST` if present; otherwise all
+   those generated by :command:`cet_make_plugin_builder` since
+   :command:`cet_collect_plugin_builders` was called last.
+
+#]================================================================]
+
+function(cet_collect_plugin_builders DEST_SUBDIR)
+  cmake_parse_arguments(PARSE_ARGV 1 _ccpb "NOP" "" "LIST")
+  list(POP_FRONT _ccpb_UNPARSED_ARGUMENTS NAME_WE)
+  if ("${NAME_WE}" STREQUAL "")
+    if (NOT "${_ccpb_LIST}" STREQUAL "")
+      message(FATAL_ERROR "wrapper filepath required when LIST is specified")
+    endif()
+    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
+  endif()
+  if ("${_ccpb_LIST}" STREQUAL "")
+    set(_ccpb_LIST "${CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
+    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
+    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
+  endif()
+  list(SORT _ccpb_LIST)
+  list(TRANSFORM _ccpb_LIST
+    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
+  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
+  file(WRITE
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    "\
+include_guard()
+
+${_ccpb_includes_content}
+\
+")
+  install(FILES
+    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
+    DESTINATION "${DEST_SUBDIR}")
+endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_make_plugin_builder
+
+   Generate a plugin builder function using
+   :command:`cet_write_plugin_builder` and register it for collection by
+   :command:`cet_collect_plugin_builders`.
+
+   ..  code-block:: cmake
+
+       cet_make_plugin_builder(<type> <base> <dest-subdir> [<options>] <args>)
+
+   .. seealso:: :command:`cet_write_plugin_builder`
+
+#]================================================================]
+
+function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
+  cet_write_plugin_builder(${ARGV} INSTALL_BUILDER)
+  if (NOT DEFINED
+      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      CACHE INTERNAL
+      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  endif()
+  set_property(CACHE
+    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+    APPEND PROPERTY VALUE "${TYPE}")
+endfunction()
+
+#[================================================================[.rst:
+.. command:: cet_write_plugin_builder
+
+   Generate a plugin builder function using
+   :command:`cet_write_plugin_builder`.
+
+   ..  code-block:: cmake
+
+       cet_write_plugin_builder(<type> <base> <dest-subdir> [<options>] <args>)
+
+   Options
+   ^^^^^^^
+
+   ``INSTALL_BUILDER``
+     The generated file shall be installed in
+     :variable:`${CMAKE_INSTALL_PREFIX}
+     <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`\
+     :file:`/<dest-subdir>`.
+
+   ``NOP``
+     Option / argument disambiguator; no other function.
+
+   ``SUFFIX <suffix>``
+     .. seealso:: :command:`basic_plugin`.
+
+   Details
+   ^^^^^^^
+
+   Generate a file :variable:`${PROJECT_BINARY_DIR}
+   <cmake-ref-current:variable:PROJECT_BINARY_DIR>`\
+   :file:`/<dest-subdir>/<type>.cmake` defining a function:
+
+   .. code-block:: cmake
+
+      macro(<type> NAME)
+        <func>(${NAME} <base-ish> ${ARGN} <args>)
+      endmacro()
+
+   If ``<type>`` and ``<base>`` are the same:
+     * ``<func>`` is :command:`basic_plugin`
+     * ``<base-ish>`` is ``<suffix>`` if specified, or ``<base>`` after
+       stripping any namespace prefix (``*::``).
+
+   Otherwise:
+     * ``<func>`` is :command:`cet_build_plugin`
+     * ``<base-ish>`` is ``<suffix>`` if specified, or ``<base>``.
+
+#]================================================================]
 
 # This macro will generate a CMake builder function for plugins of type
 # (e.g. inheriting from) TYPE.
@@ -360,48 +584,4 @@ endmacro()
       "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
       DESTINATION "${DEST_SUBDIR}")
   endif()
-endfunction()
-
-function(cet_make_plugin_builder TYPE BASE DEST_SUBDIR)
-  cet_write_plugin_builder(${ARGV} INSTALL_BUILDER)
-  if (NOT DEFINED
-      CACHE{CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-    set(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-      CACHE INTERNAL
-      "CMake modules defining plugin builders for project ${CETMODULES_CURRENT_PROJECT_NAME}")
-  endif()
-  set_property(CACHE
-    CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-    APPEND PROPERTY VALUE "${TYPE}")
-endfunction()
-
-function(cet_collect_plugin_builders DEST_SUBDIR)
-  cmake_parse_arguments(PARSE_ARGV 1 _ccpb "NOP" "" "LIST")
-  list(POP_FRONT _ccpb_UNPARSED_ARGUMENTS NAME_WE)
-  if ("${NAME_WE}" STREQUAL "")
-    if (NOT "${_ccpb_LIST}" STREQUAL "")
-      message(FATAL_ERROR "wrapper filepath required when LIST is specified")
-    endif()
-    set(NAME_WE ${CETMODULES_CURRENT_PROJECT_NAME}PluginBuilders)
-  endif()
-  if ("${_ccpb_LIST}" STREQUAL "")
-    set(_ccpb_LIST "${CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
-    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} PARENT_SCOPE)
-    unset(CETMODULES_PLUGIN_BUILDERS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} CACHE)
-  endif()
-  list(SORT _ccpb_LIST)
-  list(TRANSFORM _ccpb_LIST
-    REPLACE "^(.+)$" "include(\\1)" OUTPUT_VARIABLE _ccpb_includes)
-  list(JOIN _ccpb_includes "\n" _ccpb_includes_content)
-  file(WRITE
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
-    "\
-include_guard()
-
-${_ccpb_includes_content}
-\
-")
-  install(FILES
-    "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${NAME_WE}.cmake"
-    DESTINATION "${DEST_SUBDIR}")
 endfunction()

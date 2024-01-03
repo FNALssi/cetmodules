@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 X
-=
+-
 #]================================================================]
 ########################################################################
 # Compatibility functions and macros to aid migration from
@@ -28,6 +28,8 @@ function(warn_deprecated OLD)
   endif()
   if (NOT DEFINED WD_SINCE OR "SINCE" IN_LIST WD_KEYWORDS_MISSING_VALUES)
     set(WD_SINCE "cetmodules 2.10")
+  elseif (WD_SINCE MATCHES "^((v|[Vv]ersion)[ 	]+)?[0-9][^ 	]*$")
+    set(WD_SINCE "cetmodules ${WD_SINCE}")
   endif()
   if (NOT "${WD_SINCE}" STREQUAL "")
     string(PREPEND WD_SINCE " since ")

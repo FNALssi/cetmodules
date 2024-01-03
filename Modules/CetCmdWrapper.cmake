@@ -1,10 +1,40 @@
 #[================================================================[.rst:
-X
-=
+CetCmdWrapper
+-------------
+
+Invoke an external command with optional completion timestamp and/or
+deletion of specified outputs on command error.
+
+Synopsis
+^^^^^^^^
+
+.. parsed-literal::
+
+  :variable:`${CMAKE_COMMAND}
+  <cmake-ref-current:variable:CMAKE_COMMAND>` -DCMD=<cmd> \
+  -DCMD_(ARGS|DONE_STAMP|DELETE_ON_FAILURE)=<val>...
+  -P<path-to-CetCmdWrapper.cmake>
+
+Variables affecting Behavior
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``CMD``
+  The command to be invoked.
+
+``CMD_ARGS``
+  A semicolon-separated list of arguments to be passed to the command.
+
+``CMD_DONE_STAMP``
+  A file to be touched in the event of a successful (zero exit status)
+  execution of the command.
+
+``CMD_DELETE_ON_FAILURE``
+  The specified semicolon-separated list of paths will be recursively
+  deleted upon non-zero exit from the command.
+
 #]================================================================]
 cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
-set(idx 1)
 if (NOT CMD)
   message(FATAL_ERROR "vacuous command")
 endif()

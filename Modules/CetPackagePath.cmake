@@ -1,33 +1,86 @@
 #[================================================================[.rst:
-X
-=
+CetPackagePath
+--------------
+
+Defines the function :command:`cet_package_path` to calculate a path
+relative to a project's top level directory.
+
 #]================================================================]
-########################################################################
-# cet_package_path(VAR [PATH <path>] [BASE_SUBDIR <base_subdir>]
-#                  [MUST_EXIST] [SOURCE] [BINARY])
-#
-# Calculate the path to PATH relative to
-# ${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/${BASE_SUBDIR} (SOURCE) or
-# ${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/${BASE_SUBDIR} (BINARY) and save the result in
-# VAR.
-#
-# BASE_SUBDIR (if specified) must not be *relative*, not absolute.
-#
-# If PATH is not specified, we default to ${CMAKE_CURRENT_SOURCE_DIR}
-# (SOURCE) or ${CMAKE_CURRENT_BINARY_DIR} (BINARY). If <path> is
-# relative, we treat it as relative to these defaults as appropriate.
-#
-# If neither SOURCE nor BINARY is specified or both are specified, we
-# check relative to ${CETMODULES_CURRENT_PROJECT_SOURCE_DIR} first, and then to
-# ${CETMODULES_CURRENT_PROJECT_BINARY_DIR}. If we cannot calculate a valid relative path,
-# VAR will be empty. If MUST_EXIST is specified and the calculated path
-# does not exist in the filesystem, VAR will be set to NOTFOUND.
-########################################################################
 
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+
+#[================================================================[.rst:
+.. command:: cet_package_path
+
+   Calculate a path relative to the top-level directory of a project.
+
+   .. code-block:: cmake
+
+      cet_package_path(<out-var> [<option>] ...)
+
+   Options
+   ^^^^^^^
+
+   ``BASE_SUBDIR <base-subdir>``
+     Calculate the path relative to ``<proj-top>/<base-subdir>``;
+     ``<base-subdir>`` must be a relative path.
+
+   ``BINARY``
+     Look for the path in the project's build tree (default: both source
+     and build trees).
+
+   ``FOUND_VAR <var>``
+     Return an indication of the path's location: ``SOURCE`` (found in
+     the project's source tree), ``BINARY`` (found in the project's
+     binary tree) or ``NOTFOUND``.
+
+   ``HUMAN_READABLE``
+     ``<out-var>`` will contain a human-readable represtation of the
+     calculated relative path.
+
+   ``MUST_EXIST``
+     If the path does not exist ``<out-var>`` will be set to
+     ``NOTFOUND``.
+
+   ``PATH <path>``
+     The path for which the relative location should be calculated. If
+     not specified, default to the current source or binary directory,
+     as appropriate. ``<path>`` may be an absolute or relative path.
+
+   ``SOURCE``
+     Look for the path in the project's source tree (default: both
+     source and build trees).
+
+   ``SUBDIR <source-subdir>``
+     .. deprecated:: 2.10.00 use ``PATH <source-subdir> SOURCE``
+
+   ``TOP_PROJECT``
+     Use the top-level—as opposed to the current—project in order to
+     calculate the relative path.
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<out-var>``
+     The name of a variable in which to return the calculated path.
+
+   Details
+   ^^^^^^^
+
+   .. rst-class:: text-start
+
+   Calculate the path to ``<path>`` (or
+   ``CMAKE_CURRENT_(SOURCE|BINARY)_DIR``) relative to
+   ``(PROJECT|CMAKE)_(SOURCE|BINARY)_DIR[/<base-subdir>]`` and save the
+   result in ``<out-var>``.
+
+   Specifying both ``SOURCE`` and ``BINARY`` is equivalent to specifying
+   neither.
+
+#]================================================================]
 
 function(cet_package_path RESULT_VAR)
   cmake_parse_arguments(PARSE_ARGV 1 CPP "BINARY;HUMAN_READABLE;MUST_EXIST;SOURCE;TOP_PROJECT"

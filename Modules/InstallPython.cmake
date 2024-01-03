@@ -1,149 +1,134 @@
 #[================================================================[.rst:
-X
-=
+InstallPython
+-------------
+
+Define function :command:`install_python` to (optionally generate and)
+invoke a Python ``distutils`` :file:`setup.py` script.
+
 #]================================================================]
-########################################################################
-# install_python
-#
-# CMake function to integrate with python distutils functionlity.
-#
-# Usage: install_python([NO_INSTALL] SETUP_PY <setup.py>)
-#
-#        install_python([NO_INSTALL] <OPTIONS>)
-#
-# In the first usage mode, the specified user-provided setup.py file
-# will be invoked to build and install the files at the right
-# time. Apart from the optional NO_INSTALL, other options and arguments
-# are not permitted.
-#
-# In the second usage mode, the user specifies different components of
-# the python package they wish to construct. Valid arguments to specify
-# these components are: NAME VERSION SETUP_ARGS SETUP_PREAMBLE SCRIPTS
-# MODULES PACKAGES PACKGE_DATA DATA_FILES. A setup.py file is
-# constructed to build and install the specified components. The
-# optional NO_INSTALL is also honored in this usage.
-#
-#####################################
-# OPTIONS
-#
-# SETUP_PREAMBLE <preamble>
-#
-# If specified, <preamble> is placed at the beginning of the generated
-# setup.py file, prior to the invocation of the setup() function. If not
-# specified, a basic import command will prepare for the invocation of
-# setup().
-#
-# NAME <name>
-#
-# If specified, the name of the python package (defaults to the product
-# name).
-#
-# VERSION <version>
-#
-# If specified, the version of the python package (defaults to the
-# product version).
-#
-# SCRIPTS <script>+
-#
-# Specify executable python scripts to be installed in bin/. The same
-# file may be specified as both a module and a script.
-# 
-# MODULES <module>+
-#
-# Specify single python files for use as modules (with import). They
-# will be installed in lib/.
-#
-# PACKAGES <package>+
-#
-# Specify packages. They will be installed under lib, with pkg1.pkg2
-# installed as pkg1/pkg2.
-#
-# PACKAGE_DATA
-#
-# Specify non-python files for inclusion in a python package. If
-# specified, this argument has sub-arguments:
-#
-#   ROOT <file>+
-#
-#   PKG <pkg-name> <file>+
-#
-# The former specifies non-python files for inclusion in the "root"
-# (top-level) package; the latter lists files for inclusion in the
-# specified package.
-#
-# DATA_FILES
-#
-# Specify files for inclusion in the package in particular non-package
-# subdirectories. If specified, this argument should be presented in the
-# format:
-#
-#   DIR <dir> <files>+
-#
-# SETUP_ARGS <arg>+
-#
-# Further arguments to the distutils setup() command, if required.
-#
-####################################
-# EXAMPLES
-#
-# For a directory containing the following files:
-#
-#   README.txt
-#   test.py
-#   test2.py
-#   test3.py
-#   pkg1/README-pkg1.txt
-#   pkg1/__init__.py
-#   pkg1/bill.py
-#   pkg1/pkg2/README-pkg2.txt
-#   pkg1/pkg2/__init__.py
-#   pkg1/pkg2/fred.py
-#
-# use (e.g.):
-#
-# install_python(SCRIPTS test.py test2.py test3.py
-#    MODULES test2
-#    PACKAGES pkg1 pkg1.pkg2
-#    PACKAGE_DATA ROOT README.txt PKG pkg1 README-pkg1.txt
-#    DATA_FILES
-#    DIR doc README.txt pkg1/README-pkg1.txt pkg1/pkg2/README-pkg2.txt
-#    DIR etc README.txt pkg1/README-pkg1.txt pkg1/pkg2/README-pkg2.txt
-#    )
-#
-# For the following effects:
-#
-# After build, the following files will be placed under ${CETPKG_BUILD}:
-#    bin/test.py
-#    bin/test2.py
-#    bin/test3.py
-#    doc/README.txt
-#    doc/README-pkg1.txt
-#    doc/README-pkg2.txt
-#    etc/README.txt
-#    etc/README-pkg1.txt
-#    etc/README-pkg2.txt
-#    lib/art-1.09.02-py2.7.egg-info
-#    lib/pkg1/__init__.py
-#    lib/pkg1/__init__.pyc
-#    lib/pkg1/bill.py
-#    lib/pkg1/bill.pyc
-#    lib/pkg1/pkg2/__init__.py
-#    lib/pkg1/pkg2/__init__.pyc
-#    lib/pkg1/pkg2/fred.py
-#    lib/pkg1/pkg2/fred.pyc
-#    lib/pkg1/README-pkg1.txt
-#    lib/test2.py
-#    lib/test2.pyc
-#
-# After install, the same files will be visible under the corresponding
-# directory in the installed product.
-#
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+
+#[================================================================[.rst:
+.. command:: install_python
+
+   Invoke Python ``distutils`` functionality to install Python files.
+
+   .. parsed-literal::
+
+      install_python(`SETUP_PY`_ <setup.py> [NO_INSTALL])
+      install_python([`GENERATE_SETUP_PY`_] [NO_INSTALL] [<gen-options>])
+
+   .. signature:: install_python(SETUP_PY <setup.py> [NO_INSTALL])
+
+      Invoke ``<setup.py>`` to build and install Python package files.
+
+   .. signature:: install_python(GENERATE_SETUP_PY [NO_INSTALL] [<gen-options>])
+
+      Generate a ``setup.py`` file with information provided by
+      ``<gen-options>``:
+
+      ``DATA_FILES DIR <dir> <file> ...``
+        Specify ``<file> ...` for inclusion in the package in
+        non-package subdirectory ``<dir>``.
+
+      .. _install_python-MODULES-opt:
+
+      ``MODULES <module> ...``
+        Specify single Python files for use as modules (with
+        import). They will be installed in ``lib/``
+
+      ``NAME <name>``
+        The name of the Python package to be installed (default
+        :variable:`CETMODULES_CURRENT_PROJECT_NAME`).
+
+      ``PACKAGES <package> ...``
+        Specify packages to be installed under ``lib/``, with
+        ``pkg1.pkg2`` installed in :file:`pkg1/pkg2`.
+
+      ``PACKAGE_DATA  { ROOT | PKG <pkg> } <file> ...``
+        Install non-Python ``<file> ...`` in the top level package
+        (``ROOT``) or with package ``<pkg>``.
+
+      ``SCRIPTS <script> ...``
+        Install executable Python script ``<script> ...`` in ``bin/``
+
+        If required, the same file may be both a script and a module.
+
+        .. seealso:: :ref:`install_python-MODULES-opt`
+
+      ``SETUP_ARGS <arg> ...``
+        Pass ``<arg> ...`` to the ``distutils`` ``setup()`` command, if
+        required.
+
+      ``SETUP_PREAMBLE <preamble>``
+        Place ``<preamble>`` at the beginning of the generated
+        :file:`setup.py` file prior to the invocation of ``setup()``.
+
+      ``VERSION <version>``
+        Specify the package version (default
+        :variable:`CETMODULES_CURRENT_PROJECT_VERSION`).
+
+   Example
+   ^^^^^^^
+
+   For a directory containing the following files:
+
+   * :file:`README.txt`
+   * :file:`test.py`
+   * :file:`test2.py`
+   * :file:`test3.py`
+   * :file:`pkg1/README-pkg1.txt`
+   * :file:`pkg1/__init__.py`
+   * :file:`pkg1/bill.py`
+   * :file:`pkg1/pkg2/README-pkg2.txt`
+   * :file:`pkg1/pkg2/__init__.py`
+   * :file:`pkg1/pkg2/fred.py`
+
+   The command:
+
+   .. code-block:: cmake
+
+      install_python(SCRIPTS test.py test2.py test3.py
+                     MODULES test2
+                     PACKAGES pkg1 pkg1.pkg2
+                     PACKAGE_DATA ROOT README.txt PKG pkg1 README-pkg1.txt
+                     DATA_FILES
+                     DIR doc README.txt pkg1/README-pkg1.txt pkg1/pkg2/README-pkg2.txt
+                     DIR etc README.txt pkg1/README-pkg1.txt pkg1/pkg2/README-pkg2.txt)
+
+   will produce the following directory structure under
+   :variable:`CETMODULES_CURRENT_PROJECT_BINARY_DIR`:
+
+   * :file:`bin/test.py`
+   * :file:`bin/test2.py`
+   * :file:`bin/test3.py`
+   * :file:`doc/README.txt`
+   * :file:`doc/README-pkg1.txt`
+   * :file:`doc/README-pkg2.txt`
+   * :file:`etc/README.txt`
+   * :file:`etc/README-pkg1.txt`
+   * :file:`etc/README-pkg2.txt`
+   * :file:`lib/art-1.09.02-py2.7.egg-info`
+   * :file:`lib/pkg1/__init__.py`
+   * :file:`lib/pkg1/__init__.pyc`
+   * :file:`lib/pkg1/bill.py`
+   * :file:`lib/pkg1/bill.pyc`
+   * :file:`lib/pkg1/pkg2/__init__.py`
+   * :file:`lib/pkg1/pkg2/__init__.pyc`
+   * :file:`lib/pkg1/pkg2/fred.py`
+   * :file:`lib/pkg1/pkg2/fred.pyc`
+   * :file:`lib/pkg1/README-pkg1.txt`
+   * :file:`lib/test2.py`
+   * :file:`lib/test2.pyc`
+
+   After install, the same files will be visible under the corresponding
+   directory in the installed product.
+
+#]================================================================]
 
 function(install_python)
   set(setup_arg_indent "        ")

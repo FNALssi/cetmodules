@@ -1,32 +1,70 @@
 #[================================================================[.rst:
-X
-=
+InstallScripts
+--------------
+
+Install scripts.
+
 #]================================================================]
-########################################################################
-# install_scripts()
-#
-# Install scripts in ${${CETMODULES_CURRENT_PROJECT_NAME}_SCRIPTS_DIR} or
-# ${${CETMODULES_CURRENT_PROJECT_NAME}_TEST_DIR} (if marked AS_TEST).
-#
-# Usage: install_scripts([SUBDIRNAME <subdir>] [AS_TEST] LIST ...)
-#        install_scripts([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
-#          [EXCLUDES ...] [EXTRAS ...] [SUBDIRS ...]
-#          [AS_TEST])
-#
-# See CetInstall.cmake for full usage description.
-#
-# Recognized filename extensions: 
-#   .sh .py .pl .rb (and .cfg when AS_TEST is specified)
-#
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-include(CetExclude)
+include(private/CetExclude)
 include(ProjectVariable)
+
+#[================================================================[.rst:
+.. command:: install_scripts
+
+   Install scripts in :variable:`<PROJECT-NAME>_SCRIPTS_DIR` or
+   :variable:`<PROJECT-NAME>_TEST_DIR` (with ``AS_TEST``).
+
+   .. parsed-literal::
+
+      install_scripts(`LIST`_ <file> ... [<common-options>])
+
+   .. parsed-literal::
+
+      install_scripts([`GLOB`_] [<common-options>] [<glob-options>])
+
+   .. signature:: install_scripts(LIST <file> ... [<options>]
+
+      Install ``<file> ...`` in :variable:`<PROJECT-NAME>_SCRIPTS_DIR`
+      or :variable:`<PROJECT-NAME>_TEST_DIR` (with ``AS_TEST``).
+
+      .. include:: /_cet_install_opts/LIST.rst
+
+   .. signature:: install_scripts(GLOB [<common-options>] [<glob-options>])
+
+      .. rst-class:: text-start
+
+      Install recognized files found under
+      :variable:`CMAKE_CURRENT_SOURCE_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` or
+      :variable:`CMAKE_CURRENT_BINARY_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>` in
+      :variable:`<PROJECT-NAME>_INCLUDE_DIR`.
+
+      Recognized files
+        * :file:`*.cfg` (``AS_TEST`` only)
+        * :file:`*.pl`
+        * :file:`*.py`
+        * :file:`*.rb`
+        * :file:`*.sh`
+
+      .. include:: /_cet_install_opts/glob-opts.rst
+
+   Common Options
+   ^^^^^^^^^^^^^^
+
+   ``AS_TEST``
+     Install scripts in :variable:`<PROJECT-NAME>_TEST_DIR` (default
+     :variable:`<PROJECT-NAME>_SCRIPTS_DIR`).
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+#]================================================================]
 
 function(install_scripts)
   cmake_parse_arguments(PARSE_ARGV 0 IS "AS_TEST" "DEST_VAR" "")
@@ -38,7 +76,7 @@ function(install_scripts)
     endif()
     set(IS_DEST_VAR TEST_DIR)
   elseif (NOT DEFINED IS_DEST_VAR)
-    set(IS_DEST_VAR BIN_DIR)
+    set(IS_DEST_VAR SCRIPTS_DIR)
   endif()
   if ("LIST" IN_LIST IS_UNPARSED_ARGUMENTS)
     _cet_install(scripts ${CETMODULES_CURRENT_PROJECT_NAME}_${IS_DEST_VAR}

@@ -1,26 +1,66 @@
 #[================================================================[.rst:
-X
-=
+InstallFhicl
+------------
+
+.. admonition:: art-suite
+   :class: admonition-app
+
+   Define the function :command:`install_fhicl` to install FHiCL
+   configuration files.
+
 #]================================================================]
-########################################################################
-# install_fhicl()
-#
-#   Install fhicl scripts in ${${CETMODULES_CURRENT_PROJECT_NAME}_FHICL_DIR}
-#
-# Usage: install_fhicl([SUBDIRNAME <subdir>] LIST ...)
-#        install_fhicl([SUBDIRNAME <subdir>] [BASENAME_EXCLUDES ...]
-#          [EXCLUDES ...] [EXTRAS ...] [SUBDIRS ...])
-#
-# See CetInstall.cmake for full usage description.
-#
-# Recognized filename extensions: .fcl
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
 
 include (CetInstall)
 include (ProjectVariable)
+
+#[================================================================[.rst:
+.. command:: install_fhicl
+
+   .. admonition:: HEP
+      :class: admonition-app
+
+      Install FHiCL configuration files in
+      :variable:`<PROJECT-NAME>_FHICL_DIR`.
+
+      .. parsed-literal::
+
+         install_fhicl(`LIST`_ <file> ... [SUBDIRNAME <subdir>])
+
+      .. parsed-literal::
+
+         install_fhicl([`GLOB`_] [SUBDIRNAME <subdir>] [<glob-options>])
+
+   .. signature:: install_fhicl(LIST <file> ... [SUBDIRNAME <subdir>])
+
+      Install ``<file> ...`` in :variable:`<PROJECT-NAME>_FHICL_DIR`.
+
+      .. include:: /_cet_install_opts/LIST.rst
+
+   .. signature:: install_fhicl(GLOB [SUBDIRNAME <subdir>] [<glob-options>])
+
+      .. rst-class:: text-start
+
+      Install recognized files found under
+      :variable:`CMAKE_CURRENT_SOURCE_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` or
+      :variable:`CMAKE_CURRENT_BINARY_DIR
+      <cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR>` in
+      :variable:`<PROJECT-NAME>_FHICL_DIR`.
+
+      Recognized files
+        * :file:`*.fcl`
+
+      .. include:: /_cet_install_opts/glob-opts.rst
+
+   Common Options
+   ^^^^^^^^^^^^^^
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+#]================================================================]
 
 function(install_fhicl)
   project_variable(FHICL_DIR "fcl" CONFIG NO_WARN_DUPLICATE

@@ -1,12 +1,59 @@
 #[================================================================[.rst:
-X
-=
+CetFindPkgConfigPackage
+-----------------------
+
+Define the function :command:`cet_find_pkg_config_package` for use in
+:external+cmake-ref-current:ref:`CMake Find modules <find modules>`.
+
 #]================================================================]
 include_guard()
 
 cmake_minimum_required(VERSION 2.8.12...3.27 FATAL_ERROR)
 
 include(FindPackageHandleStandardArgs)
+
+#[================================================================[.rst:
+.. command:: cet_find_pkg_config_package
+
+   Find a package using :manpage:`pkg-config(1)`.
+
+   .. rst-class:: text-start
+
+   .. seealso::
+
+      :command:`pkg_search_module() <cmake-ref-current:command:pkg_search_module>`,
+      :command:`find_package_handle_standard_args() <cmake-ref-current:command:find_package_handle_standard_args>`,
+      :command:`find_package() <cmake-ref-current:command:find_package>`.
+
+   .. code-block:: cmake
+
+      cet_find_pkg_config_package([NAMESPACE <ns>] <module> ...)
+
+   Options
+   ^^^^^^^
+
+   ``NAMESPACE <ns>``
+     Targets for found modules will be prefaced by ``<ns>:``
+
+   Non-option arguments
+   ^^^^^^^^^^^^^^^^^^^^
+
+   ``<module>`` ...
+     The ``pkg-config`` module(s) to find.
+
+   Details
+   ^^^^^^^
+
+   ``cet_find_pkg_config_package()`` is intended for use only in the
+   context of a :command:`find_package()
+   <cmake-ref-current:command:find_package>` call, and as such should be
+   invoked within a :external+cmake-ref-current:ref:`CMake Find module
+   <find modules>`. ``cet_find_pkg_config_package()`` honors variables
+   defined by and for the duration of a :command:`find_package()
+   <cmake-ref-current:command:find_package>` call such as
+   ``CMAKE_FIND_PACKAGE_NAME``, or ``<package-name>_FIND_VERSION``.
+
+#]================================================================]
 
 macro(cet_find_pkg_config_package)
   cmake_parse_arguments(_cet_find_pkg_config_pkg "" "NAMESPACE" "" ${ARGN})

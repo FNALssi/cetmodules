@@ -8,15 +8,17 @@ buildtool(1)
 Synopsis
 ========
 
-:program:`buildtool`\ [:ref:`mode-option ... <buildtool-mode-options>`\|\
-:ref:`combo-option ... <buildtool-combo-options>`\ ] [:ref:`misc-options
-<buildtool-misc-options>`\ ] [``--`` [:ref:`CMake build options
-<buildtool-cmake-build-options>`\ ] [``--`` :ref:`generator options
-<buildtool-generator-options>`\ ]]
+.. parsed-literal::
 
-:program:`buildtool`\  :option:`--help`\|\ :option:`-h`
+   :program:`buildtool` [:ref:`mode-option <buildtool-mode-options>`\|\
+   :ref:`combo-option <buildtool-combo-options>` ...] [:ref:`misc-options
+   <buildtool-misc-options>`]
+   [``--`` [:ref:`CMake build options <buildtool-cmake-build-options>`]\
+   [``--`` :ref:`generator options <buildtool-generator-options>`]]
 
-:program:`buildtool`\  :option:`--usage`
+   :program:`buildtool`\  :option:`--help`\|\ :option:`-h`
+
+   :program:`buildtool`\  :option:`--usage`
 
 :ref:`Exclusive mode options <buildtool-mode-options>`: :option:`-A`\|\
 :option:`--all` :option:`-C`\|\ :option:`--cmake-only` :option:`--info`
@@ -36,24 +38,25 @@ Synopsis
    | :option:`--cmake-trace`
    | :option:`--cmake-trace-expand`
    | :option:`-D <-D\<CMake-definition>>`\ ``<CMake-definition>``
-   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``\ ] ...
+   | :option:`--deleted-header[s]` ``<header>``\ [, ``<header>``] ...
    | :option:`-E`\|\ :option:`--export-compile-commands`
    | :option:`-f`\|\ :option:`--force-top`
    | :option:`-G <-G\<CMake-generator-string>>`\ ``<CMake-generator-string>``\|\ :option:`--generator` ``<make|ninja>``\ [:\ ``<secondary-generator>``]
-   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``\ ] ...\ ]\ ]
+   | :option:`-g` ``<dot-file>``\|\ :option:`--graphviz`\ =\ ``<dot-file>`` [:option:`--gfilt`\ [=\ ``<gfilt-opt>``\ [,\ ``<gfilt-opt>``] ...]]
    | :option:`-I`\|\ :option:`--install-prefix` ``<ups-top-dir>``
+   | :option:`--iwyu`\ [=\ ``<iwyu-prog>``]
    | :option:`-j` ``#``
    | :option:`--L` ``<label-regex>``
    | :option:`--LE` ``<label-regex>``
-   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``\ ]|\ :option:`--log-file`\ [=\ ``<log-file>``\ ]
+   | :option:`-l`\|\ :option:`--log`\ [=\ ``<log-file>``]|\ :option:`--log-file`\ [=\ ``<log-file>``]
    | :option:`--no-pc`\|\ :option:`--no-preset-configure`
    | :option:`--pc`\|\ :option:`--preset-configure` ``<preset-name>``
    | :option:`-q`\|\ :option:`--quiet`
    | :option:`-s`\|\ :option:`--subdir`
    | :option:`--tee`
-   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``\ ] ...
+   | :option:`--test-labels`\|\ :option:`--labels`\|\ :option:`--test-groups`\|\ :option:`--groups` ``<group>``\ [``<;|,><group>``] ...
    | :option:`-v`\|\ :option:`--verbose`
-   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``\ ] ...
+   | :option:`-X <-X\<c|b|t|i|p>>`\ ``<c|b|t|i|p> <arg>``\ [,\ ``<arg>``] ...
 
 Description
 ===========
@@ -62,18 +65,18 @@ Despite the bewildering array of available options, :program:`buildtool`
 is intended to simplify the task of building and debugging code,
 producing packages for use with `UPS
 <https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation>`_.
-:abbr:`UPS` is a **deprecated** domain-specific tool, so if your package
-is not already reliant on :abbr:`UPS`, you are _strongly_ encouraged not
+|UPS| is a **deprecated** domain-specific tool, so if your package
+is not already reliant on |UPS|, you are _strongly_ encouraged not
 to start. Instead you should use `CMake <https://cmake.org>`_ directly
 and/or your favorite IDE or other build manager such as `GNU Make
 <https://www.gnu.org/software/make/>`_ or `ninja
 <https://ninja-build.org/>`_.
 
-.. note:: If your package _does_ rely on :abbr:`UPS` currently, you are
+.. note:: If your package _does_ rely on |UPS| currently, you are
    encouraged to investigate :manual:`migrate(1)` to facilitate evolving
    your package and its dependencies to be buildable via more general
    means such as `Spack <https://spack.readthedocs.io/en/latest/>`_,
-   while still being buildable with and for the :abbr:`UPS` environment.
+   while still being buildable with and for the |UPS| environment.
 
 The process of producing a software package from its source consists of
 multiple steps:
@@ -84,13 +87,12 @@ multiple steps:
 * Installation
 * Packaging
 
-:program:`buildtool` assumes one is using `CMake <https://cmake.org>`_
-and the macros and functions defined within Cetmodules inside a
-:abbr:`UPS` environment to produce a :abbr:`UPS` package. This in turn
-implies the existence of files :file:`ups/{product}.table`
-:file:`ups/product_deps`, and :file:`ups/setup_for_development`, the
-latter of which has already been sourced prior to invoking
-:program:`buildtool`.
+\ :program:`buildtool` assumes one is using `CMake <https://cmake.org>`_
+and the macros and functions defined within Cetmodules inside a |UPS|
+environment to produce a |UPS| package. This in turn implies the
+existence of files :file:`ups/{product}.table` :file:`ups/product_deps`,
+and :file:`ups/setup_for_development`, the latter of which has already
+been sourced prior to invoking :program:`buildtool`.
 
 Options
 =======
@@ -197,7 +199,9 @@ Miscellaneous options
    --trace, --trace-expand <cmake-ref-current:cmake options>`,
    respectively) to the command-line options for the configure stage.
 
-   .. seealso:: :option:`-Xc <-X<c|b|t|i|p>>`.
+   .. deprecated:: 2.15.00
+      use :option:`-Xc <-X<c|b|t|i|p>>` with the corresponding native
+      CMake option.
 
 .. option:: -D<CMake-definition>
 
@@ -214,7 +218,7 @@ Miscellaneous options
 .. option:: -E, --export-compile-commands
 
    Equivalent to :option:`-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
-   <-D\<CMake-definition>>`. Useful for (e.g.)  :program:`clang-tidy`.
+   <-D\<CMake-definition>>`. Useful for (e.g.) :program:`clang-tidy`.
 
 .. option:: -f, --force-top
 
@@ -299,10 +303,16 @@ Miscellaneous options
 
 .. option:: -I <ups-top-dir>, --install-prefix <ups-top-dir>
 
-   Specify the location of the private (or public) :abbr:`UPS` products
+   Specify the location of the private (or public) |UPS| products
    area into which to install the package if install is
    requested. Overrides the :envvar:`CETPKG_INSTALL` environment
    variable and anything already known to CMake.
+
+.. option:: --iwyu[=<iwyu-prog>]
+
+   .. versionadded:: 3.19.00
+   Specify the location of the `include-what-you-use
+   <https://include-what-you-use.org/>`_ program (:program:`iwyu`).
 
 .. option:: -j <#>
 
@@ -329,12 +339,14 @@ Miscellaneous options
 
 .. option:: --no-pc, --no-preset-configure
 
+   .. versionadded:: 3.08.00
    Do not use a predefined CMake configure preset.
 
    .. seealso:: :option:`--pc`
 
 .. option:: --pc <preset-name>, --preset-configure <preset-name>
 
+   .. versionadded:: 3.06.00
    Use the named `CMake configure preset
    <https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset>`_
    instead of CMake definitions genereated from
@@ -383,6 +395,7 @@ Miscellaneous options
 
 .. option:: -X<c|b|t|i|p> <arg>[,<arg>]+[,--,<non-option-arg>[,<non-option-arg>]+]
 
+   .. versionadded:: 2.15.00
    E\ ``X``\ tra arguments to be passed to the ``C``\ onfigure, ``b``\
    uild, ``t``\ est, ``i``\ nstall, or ``p``\ ackage stages. ``<arg>``\
    s will be added at the end of option arguments, while
@@ -404,7 +417,7 @@ Generator options
 -----------------
 
 Any options or arguments specified after a second instance of ``--``
-will be passed to the configured generator (*e.g.* "UNIX Makefiles" or
+will be passed to the configured generator (e.g. "UNIX Makefiles" or
 "Ninja") for the build stage only.
 
 Examples
@@ -425,7 +438,7 @@ As above, but copying output to screen:
 
 The need for the :option:`-I` option may be removed by defining
 :envvar:`CETPKG_INSTALL`; the explicit parallelism may be similarly
-avoided by defining (*e.g.*) :envvar:`CETPKG_J=16 <CETPKG_J>`.
+avoided by defining (e.g.) :envvar:`CETPKG_J=16 <CETPKG_J>`.
 
 To build only a particular target within a subdirectory:
 
@@ -477,5 +490,5 @@ Optional
 
    The default level of parallelism for all appropriate steps; may be
    overridden by ::option::`-j`. If not specified, the default level of
-   parallelism is controlled by the generator (*e.g.* ``UNIX Makefiles``
+   parallelism is controlled by the generator (e.g. ``UNIX Makefiles``
    *vs* ``Ninja``).

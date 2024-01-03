@@ -1,6 +1,6 @@
 #[================================================================[.rst:
 CetSetVersionFromFile
-=====================
+---------------------
 
 #]================================================================]
 include_guard()
@@ -12,12 +12,13 @@ cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
    Set the version of the specified or current project from a file.
 
-   **Synopsis**
-     .. code-block:: cmake
+   .. code-block:: cmake
 
-        cet_set_version_from_file([<options>]...)
+      cet_set_version_from_file([<options>]...)
 
-   **Options**
+   Options
+   ^^^^^^^
+
      ``EXTENDED_VERSION_SEMANTICS``
        Place code in CMake Config files to handle non-numeric version
        components.

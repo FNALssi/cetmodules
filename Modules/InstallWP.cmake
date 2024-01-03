@@ -1,16 +1,14 @@
 #[================================================================[.rst:
-X
-=
+InstallWP
+---------
+
+.. admonition:: HEP
+   :class: admonition-domain
+
+   Define the function :command:`install_wp` to install HEP framework
+   "WP" data files.
+
 #]================================================================]
-########################################################################
-# install_wp()
-#
-#   Install WP data in ${${CETMODULES_CURRENT_PROJECT_NAME}_WP_DIR}/<subdir>
-#
-# Usage: install_wp([SUBDIRNAME <subdir>] LIST ...)
-#
-# See CetInstall.cmake for full usage description.
-########################################################################
 
 # Avoid unwanted repeat inclusion.
 include_guard()
@@ -19,6 +17,28 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetInstall)
 include(ProjectVariable)
+
+#[================================================================[.rst:
+.. command:: install_wp
+
+   .. admonition:: HEP
+      :class: admonition-app
+
+      Install HEP framework "WP" data files in
+      :variable:`<PROJECT-NAME>_WP_DIR`.
+
+      .. code-block:: cmake
+
+         install_wp(LIST <file> ... [SUBDIRNAME <subdir>])
+
+   Options
+   ^^^^^^^
+
+   .. include:: /_cet_install_opts/LIST.rst
+
+   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+
+#]================================================================]
 
 function(install_wp)
   project_variable(WP_DIR CONFIG NO_WARN_DUPLICATE
