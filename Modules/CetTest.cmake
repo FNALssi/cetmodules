@@ -76,6 +76,40 @@ define_property(TEST PROPERTY KEYWORDS
 
       Configure a test to compile and link—but not run—an executable.
 
+      .. note::
+
+         * In the event of a configuration failure of the generated
+           project, the test will be marked by :manual:`!ctest(1)` as
+           "skipped" rather than failed.
+
+         * The test compilation is implemented as a separate
+           configuration/build of a generated, dedicated project as part
+           of the test run by :manual:`ctest(1)
+           <cmake-ref-current:manual:ctest(1)>`.
+
+         * The project invoking ``COMPILE_ONLY`` tests is located by the
+           generated project with :command:`find_package()
+           <cmake-ref-current:command:find_package>`: the project must
+           therefore be capable of being used in this way without being
+           installed. :command:`cet_cmake_config` generates suitable
+           configuration for use from within the build tree, but any
+           path variables defined therein must resolve without requiring
+           the package be installed.
+
+         * If compilation failure is required for test success, the test
+           designer is responsible for preventing unwanted test success
+           due to compilation failure for reasons other than those
+           expected.
+
+      .. rst-class:: text-start
+
+         .. seealso::
+
+            :prop_test:`WILL_FAIL <cmake-ref-current:prop_test:WILL_FAIL>`,
+            :prop_test:`PASS_REGULAR_EXPRESSION <cmake-ref-current:prop_test:PASS_REGULAR_EXPRESSION>`,
+            :prop_test:`FAIL_REGULAR_EXPRESSION <cmake-ref-current:prop_test:FAIL_REGULAR_EXPRESSION>`,
+            :prop_test:`SKIP_REGULAR_EXPRESSION <cmake-ref-current:prop_test:SKIP_REGULAR_EXPRESSION>`.
+
    .. signature::
       cet_test(PREBUILT <target> [...])
 
@@ -437,29 +471,12 @@ TEST_WORKDIR")
     endif()
     cet_passthrough(FLAG IN_PLACE CET_USE_BOOST_UNIT)
     cet_passthrough(FLAG IN_PLACE CET_USE_CATCH2_MAIN)
-    if (CET_COMPILE_ONLY) # Test for compilation only (or failure thereof).
-      list(APPEND exec_extra_args EXCLUDE_FROM_ALL)
+    if (NOT CET_COMPILE_ONLY)
+      cet_make_exec(NAME ${CET_TARGET}
+        ${exec_extra_args}
+        ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
+        SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES})
     endif()
-    cet_make_exec(NAME ${CET_TARGET}
-      ${exec_extra_args}
-      ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
-      SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES})
-  endif()
-  if (CET_TEST_EXEC)
-    if (NOT CET_HANDBUILT)
-      message(FATAL_ERROR "cet_test: target ${CET_TARGET} cannot specify "
-        "TEST_EXEC without HANDBUILT")
-    endif()
-  elseif(CET_COMPILE_ONLY)
-    set(CET_TEST_EXEC ${CMAKE_COMMAND})
-    set(CET_TEST_ARGS
-      --build ${CMAKE_BINARY_DIR}
-      --target ${CET_TARGET}
-      --config $<CONFIGURATION>)
-    set(CET_DIRTY_WORKDIR TRUE)
-    set(CET_TEST_WORKDIR "${CMAKE_BINARY_DIR}")
-  else()
-    set(CET_TEST_EXEC ${CET_TARGET})
   endif()
 
   if (NOT CET_NO_AUTO)
@@ -493,6 +510,58 @@ TEST_WORKDIR")
     file(MAKE_DIRECTORY "${CET_TEST_WORKDIR}")
     cet_passthrough(FLAG IN_PLACE KEYWORD --dirty-workdir CET_DIRTY_WORKDIR)
 
+    # Determine the skip return code
+    list(FIND CET_TEST_PROPERTIES SKIP_RETURN_CODE skip_return_code_idx)
+    if (skip_return_code_idx GREATER -1)
+      math(EXPR skip_return_code_idx "${skip_return_code_idx} + 1")
+      list(GET CET_TEST_PROPERTIES ${skip_return_code_idx} skip_return_code)
+    else()
+      set(skip_return_code 247)
+      list(APPEND CET_TEST_PROPERTIES SKIP_RETURN_CODE ${skip_return_code})
+    endif()
+
+    # Deal with test parameters based on mode.
+    if (CET_TEST_EXEC)
+      if (NOT CET_HANDBUILT)
+        message(FATAL_ERROR "cet_test: target ${CET_TARGET} cannot specify "
+          "TEST_EXEC without HANDBUILT")
+      endif()
+    elseif (CET_COMPILE_ONLY)
+      if (NTESTS GREATER 1)
+        message(FATAL_ERROR "cet_test: COMPILE_ONLY is incompatible with parameterized tests (NTESTS = ${NTESTS})")
+      endif()
+      get_property(CETMODULES_COMPILE_ONLY_TEST_ENABLED_LANGUAGES
+        GLOBAL PROPERTY ENABLED_LANGUAGES)
+      set(CETMODULES_COMPILE_ONLY_TEST_COMPILE_COMMANDS "\
+cet_make_exec(NAME ${CET_TARGET}
+  ${exec_extra_args}
+  ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
+  SOURCE ${CET_SOURCE} LIBRARIES ${CET_LIBRARIES}
+)\
+")
+      cet_localize_pv(cetmodules ETC_DIR)
+      file(MAKE_DIRECTORY "${CET_TARGET}-src")
+      configure_file(${cetmodules_ETC_DIR}/CompileOnlyTest.cmake.in
+        ${CET_TARGET}-src/CMakeLists.txt
+        @ONLY)
+      configure_file(${cetmodules_ETC_DIR}/CompileOnlyTest.in
+        ${CET_TARGET}-src/${CET_TARGET}
+        FILE_PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+      )
+      list(APPEND CET_DATAFILES
+        ${CET_SOURCE}
+        ${CMAKE_CURRENT_BINARY_DIR}/${CET_TARGET}-src/CMakeLists.txt
+      )
+      set(CET_TEST_EXEC
+        ${CMAKE_CURRENT_BINARY_DIR}/${CET_TARGET}-src/${CET_TARGET})
+      set(CET_TEST_ARGS --config $<CONFIG>)
+    else()
+      set(CET_TEST_EXEC ${CET_TARGET})
+    endif()
+
     # Deal with specified data files.
     if (DEFINED CET_DATAFILES)
       list(REMOVE_DUPLICATES CET_DATAFILES)
@@ -520,14 +589,6 @@ TEST_WORKDIR")
     endif()
     _update_defined_test_groups(${CET_OPTIONAL_GROUPS})
 
-    list(FIND CET_TEST_PROPERTIES SKIP_RETURN_CODE skip_return_code)
-    if (skip_return_code GREATER -1)
-      math(EXPR skip_return_code "${skip_return_code} + 1")
-      list(GET CET_TEST_PROPERTIES ${skip_return_code} skip_return_code)
-    else()
-      set(skip_return_code 247)
-      list(APPEND CET_TEST_PROPERTIES SKIP_RETURN_CODE ${skip_return_code})
-    endif()
     if (CET_REF)
       if ("PASS_REGULAR_EXPRESSION" IN_LIST CET_TEST_PROPERTIES OR
           "FAIL_REGULAR_EXPRESSION" IN_LIST CET_TEST_PROPERTIES)
@@ -592,10 +653,6 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
           PROPERTY FIXTURES_REQUIRED "${fixture_name}")
       endforeach()
     endif()
-    if (CET_COMPILE_ONLY)
-      set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
-        RESOURCE_LOCK cet_test_compile_only)
-    endif()
     if (CETB_SANITIZER_PRELOADS)
       set_property(TEST ${ALL_TEST_TARGETS} APPEND PROPERTY
         ENVIRONMENT "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
@@ -644,7 +701,7 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
         endif()
       endif()
     endforeach()
-  else(NOT CET_NO_AUTO)
+  else (NOT CET_NO_AUTO)
     if (CET_CONFIGURATIONS OR CET_DATAFILES OR CET_DIRTY_WORKDIR OR CET_NO_OPTIONAL_GROUPS OR
         CET_OPTIONAL_GROUPS OR CET_OUTPUT_FILTER OR CET_OUTPUT_FILTERS OR
         CET_OUTPUT_FILTER_ARGS OR CET_REF OR CET_REQUIRED_FILES OR
@@ -653,7 +710,8 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
       message(FATAL_ERROR "The following arguments are not meaningful in the presence of NO_AUTO:
 CONFIGURATIONS DATAFILES DIRTY_WORKDIR NO_OPTIONAL_GROUPS_OPTIONAL_GROUPS OUTPUT_FILTER OUTPUT_FILTERS OUTPUT_FILTER_ARGS PARG_<label> REF REQUIRED_FILES SCOPED TEST_ARGS TEST_PROPERTIES TEST_WORKDIR")
     endif()
-  endif(NOT CET_NO_AUTO)
+  endif (NOT CET_NO_AUTO)
+
   if (CET_INSTALL_BIN AND CET_HANDBUILT)
     message(WARNING "INSTALL_BIN option ignored for HANDBUILT tests.")
   endif()
