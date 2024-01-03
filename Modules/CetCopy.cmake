@@ -29,7 +29,7 @@ include(CetPackagePath)
       cet_copy(<sources>... DESTINATION <dir> :ref:`common options <cet_copy-common-options>`)
 
    .. versionchanged:: 3.23.00
-                     
+
       Use of :ref:`single-source options
       <cet_copy-single-source-options>` for multiple sources is an
       error.

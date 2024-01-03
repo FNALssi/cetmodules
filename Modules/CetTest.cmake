@@ -142,7 +142,7 @@ define_property(TEST PROPERTY KEYWORDS
      :command:`add_library() <cmake-ref-current:command:add_library>` or
      :command:`add_custom_target()
      <cmake-ref-current:command:add_custom_target>`.
-     
+
      .. seealso::
 
         :command:`add_dependencies()

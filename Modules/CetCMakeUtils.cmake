@@ -58,7 +58,7 @@ include(CetRegexEscape)
      case, ``<out-var>`` is required and ``IN_PLACE`` is not permitted.
 
    Non-option arguments
-   ^^^^^^^^^^^^^^^^^^^^  
+   ^^^^^^^^^^^^^^^^^^^^
 
    ``<in-var>``
      The name of a variable holding the values to be passed

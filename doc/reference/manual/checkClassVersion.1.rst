@@ -35,7 +35,7 @@ Options
 
    Specify the selection XML file describing the classes to be checked
    (default :file:`./classes_def.xml`).
-   
+
 .. option:: -g, --generate_new
 
    Generate a new selection XML file instead of flagging checksum errors

@@ -284,7 +284,7 @@ endfunction()
      :command:`find_package()
      <cmake-ref-current:command:find_package>`\ -time unless this option
      is specified.
-     
+
    ``NO_WARN_DUPLICATE``
      Do not warn about multiple attempts to define the same project
      variable in the same project.
@@ -330,7 +330,7 @@ endfunction()
      :external+cmake-ref-current:option:`-L <cmake.-L[A][H]>` in the
      absence of the ``-A`` option. Specifying ``PUBLIC`` will negate
      this.
-     
+
      .. seealso::
 
         :command:`mark_as_advanced() <cmake-ref-current:command:mark_as_advanced>`.

@@ -39,7 +39,7 @@ function(_cet_convert_target_arg ARG RESULT_VAR)
       set(tmp "${${${ARG}_UC}}")
       if ("${tmp}" STREQUAL "" OR
           "${tmp}" STREQUAL "${ARG}" OR
-          "${tmp}" STREQUAL "${${ARG}_UC}") 
+          "${tmp}" STREQUAL "${${ARG}_UC}")
         #prevent cycles
         set(${RESULT_VAR} "${tmp}" PARENT_SCOPE)
         return()

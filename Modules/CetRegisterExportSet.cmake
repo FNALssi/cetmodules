@@ -31,7 +31,7 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
      Return the namespace in ``<var>``.
 
    ``NO_REDEFINE``
-     Do not attempt to redefine the export set if it exists already.     
+     Do not attempt to redefine the export set if it exists already.
 
    ``SET_DEFAULT``
      Set the default export set to be used by Cetmodules build commands

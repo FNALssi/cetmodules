@@ -50,8 +50,6 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
      not specified, default to the current source or binary directory,
      as appropriate. ``<path>`` may be an absolute or relative path.
 
-
-
    ``SOURCE``
      Look for the path in the project's source tree (default: both
      source and build trees).
@@ -78,7 +76,7 @@ cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
    ``CMAKE_CURRENT_(SOURCE|BINARY)_DIR``) relative to
    ``(PROJECT|CMAKE)_(SOURCE|BINARY)_DIR[/<base-subdir>]`` and save the
    result in ``<out-var>``.
-   
+
    Specifying both ``SOURCE`` and ``BINARY`` is equivalent to specifying
    neither.
 

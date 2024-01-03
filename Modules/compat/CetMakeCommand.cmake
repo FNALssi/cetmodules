@@ -146,7 +146,7 @@ function(_cet_maybe_make_library)
     # Deal with LIB_XXX.
     foreach (kw IN ITEMS INTERFACE MODULE OBJECT SHARED STATIC)
       cet_passthrough(FLAG APPEND KEYWORD ${kw} CM_LIB_${kw} cml_args)
-    endforeach() 
+    endforeach()
     cet_passthrough(APPEND KEYWORD ALIAS CM_LIB_ALIAS cml_args)
     # Generate the library.
     cet_make_library(${CM_LIBRARY_NAME} ${CM_EXPORT_SET} ${CM_EXCLUDE_FROM_ALL}
