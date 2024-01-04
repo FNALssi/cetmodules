@@ -81,7 +81,6 @@ Compatibility
    targets in dependency lists. These can be enabled on a per-package
    basis by adding ``-D{project}_OLD_STYLE_CONFIG_VARS:BOOL=YES`` to
    your CMake configuration command-line options.
-   
 
 Reference Documentation
 =======================

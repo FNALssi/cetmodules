@@ -1,0 +1,60 @@
+   .. _p_cet_install-BASENAME_EXCLUDES:
+
+   ``BASENAME_EXCLUDES [REGEX] <exp> ...``
+     Filenames matching these expressions in any searched subdirectory
+     are excluded from installation; :command:`file(GLOB)
+     <cmake-ref-current:command:file(glob)>` expressions are permitted.
+
+   ``DESTINATION <dest-path>``
+     Installation subdirectory below :variable:`CMAKE_INSTALL_PREFIX
+     <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`
+     (mutually-exclusive with ``DEST_VAR``).
+
+   ``DEST_VAR <dest-var>``
+     The name of a CMake variable containing the installation
+     subdirectory (mutually-exclusive with ``DESTINATION``).
+
+   .. _p_cet_install-EXCLUDES:
+
+   ``EXCLUDES <exclude-exp> ...``
+     A list of paths to exclude from the list of files that would
+     otherwise be installed. This keyword accepts files only: no
+     wildcards or directories
+
+   .. _p_cet_install-opt-LIST:
+
+   ``LIST <file> ...``
+     A list of files to install. Mutually-exclusive with any option
+     assuming a generated list via :ref:`p_cet_install-_GLOB`,
+     specifically :ref:`p_cet_install-EXCLUDES`,
+     :ref:`p_cet_install-BASENAME_EXCLUDES`,
+     :ref:`p_cet_install-EXTRAS`, and :ref:`p_cet_install-SUBDIRS`,
+
+
+   .. _p_cet_install-EXTRAS:
+
+   ``EXTRAS <extra file> ...``
+     Specific files to copy/install in addition to those found via
+     :command:`GLOB <cmake-ref-current:command:file(glob)>`\
+     ing—incompatible with :ref:`p_cet_install-opt-LIST`.
+
+
+   ``PROGRAMS``
+     All files will be treated as executables and their mode will be set
+     accordingly upon copy and/or install.
+
+     .. seealso:: :command:`cet_copy`,
+                  :external+cmake-ref-current:ref:`install(PROGRAMS
+                  ...)  <install(programs)>`, :manpage:`chmod(1)`.
+
+
+   ``SUBDIRNAME <dest-subdir>``
+     Add ``<dest-subdir>`` to the destination path.
+
+
+   .. _p_cet_install-SUBDIRS:
+
+   ``SUBDIRS <source-subdir> ...``
+     Install files from the specified ``<source-subdir> ...``;
+     incompatible with :ref:`p_cet_install-opt-LIST`.
+

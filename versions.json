@@ -1,9 +1,10 @@
 {
-  "latest-version" : "3.22",
+  "latest-version" : "3.23",
   "ordered-versions" : 
   [
     "git-develop",
     "latest",
+    "3.23",
     "3.22",
     "3.21",
     "3.20",
@@ -43,6 +44,11 @@
     {
       "description" : "3.22",
       "display-name" : "v3.22"
+    },
+    "3.23" : 
+    {
+      "description" : "3.23",
+      "display-name" : "v3.23"
     },
     "git-develop" : 
     {

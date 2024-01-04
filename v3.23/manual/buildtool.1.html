@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>buildtool(1) &mdash; Cetmodules 3.23.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=eb75f0bc"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="code-dep-graph(1)" href="code-dep-graph.1.html" />
+    <link rel="prev" title="Reference Documentation" href="../index.html" />
+  
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Reference Documentation"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">buildtool(1)</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../latest/manual/buildtool.1.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="manual:buildtool(1)"></span><section id="buildtool-1">
+<h1>buildtool(1)<a class="headerlink" href="#buildtool-1" title="Link to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Link to this heading">¶</a></h2>
+<pre class="literal-block"><strong class="program">buildtool</strong> [<a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">mode-option</span></a>|<a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">combo-option</span></a> ...] [<a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">misc-options</span></a>]
+[<code class="docutils literal notranslate"><span class="pre">--</span></code> [<a class="reference internal" href="#buildtool-cmake-build-options"><span class="std std-ref">CMake build options</span></a>][<code class="docutils literal notranslate"><span class="pre">--</span></code> <a class="reference internal" href="#buildtool-generator-options"><span class="std std-ref">generator options</span></a>]]
+
+<strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">--help</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-h"><code class="xref std std-option docutils literal notranslate"><span class="pre">-h</span></code></a>
+
+<strong class="program">buildtool</strong> <a class="reference internal" href="#cmdoption-buildtool-usage"><code class="xref std std-option docutils literal notranslate"><span class="pre">--usage</span></code></a></pre>
+<p><a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">Exclusive mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">-A</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">--all</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">-C</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-only</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--info</span></code></a></p>
+<p><a class="reference internal" href="#buildtool-mode-options"><span class="std std-ref">Other mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">-b</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">--build</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">-i</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-p</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">--package</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--sc</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--short-circuit</span></code></a>
+<a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">-t</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test</span></code></a></p>
+<p><a class="reference internal" href="#buildtool-combo-options"><span class="std std-ref">Combo mode options</span></a>: <a class="reference internal" href="#cmdoption-buildtool-R"><code class="xref std std-option docutils literal notranslate"><span class="pre">-R</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-R"><code class="xref std std-option docutils literal notranslate"><span class="pre">--release</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-T"><code class="xref std std-option docutils literal notranslate"><span class="pre">-T</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-T"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-all</span></code></a></p>
+<dl>
+<dt><a class="reference internal" href="#buildtool-misc-options"><span class="std std-ref">Miscellaneous options</span></a>:</dt><dd><div class="line-block">
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-c"><code class="xref std std-option docutils literal notranslate"><span class="pre">-c</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-c"><code class="xref std std-option docutils literal notranslate"><span class="pre">--clean</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-clean-logs"><code class="xref std std-option docutils literal notranslate"><span class="pre">--clean-logs</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-cmake-debug"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-debug</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-cmake-debug"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-trace</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-cmake-debug"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-trace-expand</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-D-CMake-definition"><code class="xref std std-option docutils literal notranslate"><span class="pre">-D</span></code></a><code class="docutils literal notranslate"><span class="pre">&lt;CMake-definition&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-deleted-header-s"><code class="xref std std-option docutils literal notranslate"><span class="pre">--deleted-header[s]</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;header&gt;</span></code>[, <code class="docutils literal notranslate"><span class="pre">&lt;header&gt;</span></code>] …</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-E"><code class="xref std std-option docutils literal notranslate"><span class="pre">-E</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-E"><code class="xref std std-option docutils literal notranslate"><span class="pre">--export-compile-commands</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-f"><code class="xref std std-option docutils literal notranslate"><span class="pre">-f</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-f"><code class="xref std std-option docutils literal notranslate"><span class="pre">--force-top</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-G-CMake-generator-string"><code class="xref std std-option docutils literal notranslate"><span class="pre">-G</span></code></a><code class="docutils literal notranslate"><span class="pre">&lt;CMake-generator-string&gt;</span></code>|<a class="reference internal" href="#cmdoption-buildtool-generator"><code class="xref std std-option docutils literal notranslate"><span class="pre">--generator</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;make|ninja&gt;</span></code>[:<code class="docutils literal notranslate"><span class="pre">&lt;secondary-generator&gt;</span></code>]</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-g"><code class="xref std std-option docutils literal notranslate"><span class="pre">-g</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;dot-file&gt;</span></code>|<a class="reference internal" href="#cmdoption-buildtool-g"><code class="xref std std-option docutils literal notranslate"><span class="pre">--graphviz</span></code></a>=<code class="docutils literal notranslate"><span class="pre">&lt;dot-file&gt;</span></code> [<a class="reference internal" href="#cmdoption-buildtool-gfilt"><code class="xref std std-option docutils literal notranslate"><span class="pre">--gfilt</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;gfilt-opt&gt;</span></code>[,<code class="docutils literal notranslate"><span class="pre">&lt;gfilt-opt&gt;</span></code>] …]]</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">-I</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install-prefix</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;ups-top-dir&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-iwyu"><code class="xref std std-option docutils literal notranslate"><span class="pre">--iwyu</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;iwyu-prog&gt;</span></code>]</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-j"><code class="xref std std-option docutils literal notranslate"><span class="pre">-j</span></code></a> <code class="docutils literal notranslate"><span class="pre">#</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--L</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;label-regex&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--LE</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;label-regex&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">-l</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--log</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;log-file&gt;</span></code>]|<a class="reference internal" href="#cmdoption-buildtool-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--log-file</span></code></a>[=<code class="docutils literal notranslate"><span class="pre">&lt;log-file&gt;</span></code>]</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-no-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-pc</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-no-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-preset-configure</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pc</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--preset-configure</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;preset-name&gt;</span></code></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-q"><code class="xref std std-option docutils literal notranslate"><span class="pre">-q</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-q"><code class="xref std std-option docutils literal notranslate"><span class="pre">--quiet</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-s"><code class="xref std std-option docutils literal notranslate"><span class="pre">-s</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-s"><code class="xref std std-option docutils literal notranslate"><span class="pre">--subdir</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-tee"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tee</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-labels</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--labels</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-groups</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--groups</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;group&gt;</span></code>[<code class="docutils literal notranslate"><span class="pre">&lt;;|,&gt;&lt;group&gt;</span></code>] …</div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-v"><code class="xref std std-option docutils literal notranslate"><span class="pre">-v</span></code></a>|<a class="reference internal" href="#cmdoption-buildtool-v"><code class="xref std std-option docutils literal notranslate"><span class="pre">--verbose</span></code></a></div>
+<div class="line"><a class="reference internal" href="#cmdoption-buildtool-X-c-b-t-i-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-X</span></code></a><code class="docutils literal notranslate"><span class="pre">&lt;c|b|t|i|p&gt;</span> <span class="pre">&lt;arg&gt;</span></code>[,<code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span></code>] …</div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p>Despite the bewildering array of available options, <strong class="program">buildtool</strong>
+is intended to simplify the task of building and debugging code,
+producing packages for use with <a class="reference external" href="https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Documentation">UPS</a>.
+<abbr title="Unix™ Product System">UPS</abbr> is a <strong>deprecated</strong> domain-specific tool, so if your package
+is not already reliant on <abbr title="Unix™ Product System">UPS</abbr>, you are _strongly_ encouraged not
+to start. Instead you should use <a class="reference external" href="https://cmake.org">CMake</a> directly
+and/or your favorite IDE or other build manager such as <a class="reference external" href="https://www.gnu.org/software/make/">GNU Make</a> or <a class="reference external" href="https://ninja-build.org/">ninja</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If your package _does_ rely on <abbr title="Unix™ Product System">UPS</abbr> currently, you are
+encouraged to investigate <span class="target" id="index-0-manual:migrate(1)"></span><a class="reference internal" href="migrate.1.html#manual:migrate(1)" title="migrate(1)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">migrate(1)</span></code></a> to facilitate evolving
+your package and its dependencies to be buildable via more general
+means such as <a class="reference external" href="https://spack.readthedocs.io/en/latest/">Spack</a>,
+while still being buildable with and for the <abbr title="Unix™ Product System">UPS</abbr> environment.</p>
+</div>
+<p>The process of producing a software package from its source consists of
+multiple steps:</p>
+<ul class="simple">
+<li><p>Configuration</p></li>
+<li><p>Build</p></li>
+<li><p>Test</p></li>
+<li><p>Installation</p></li>
+<li><p>Packaging</p></li>
+</ul>
+<p><strong class="program">buildtool</strong> assumes one is using <a class="reference external" href="https://cmake.org">CMake</a>
+and the macros and functions defined within Cetmodules inside a <abbr title="Unix™ Product System">UPS</abbr>
+environment to produce a <abbr title="Unix™ Product System">UPS</abbr> package. This in turn implies the
+existence of files <code class="file docutils literal notranslate"><span class="pre">ups/</span><em><span class="pre">product</span></em><span class="pre">.table</span></code> <code class="file docutils literal notranslate"><span class="pre">ups/product_deps</span></code>,
+and <code class="file docutils literal notranslate"><span class="pre">ups/setup_for_development</span></code>, the latter of which has already
+been sourced prior to invoking <strong class="program">buildtool</strong>.</p>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<section id="modes">
+<span id="buildtool-mode-options"></span><h3>Modes<a class="headerlink" href="#modes" title="Link to this heading">¶</a></h3>
+<p>If any of <a class="reference internal" href="#cmdoption-buildtool-info"><code class="xref std std-option docutils literal notranslate"><span class="pre">--info</span></code></a>, <a class="reference internal" href="#cmdoption-buildtool-C"><code class="xref std std-option docutils literal notranslate"><span class="pre">--cmake-only</span></code></a>, or <a class="reference internal" href="#cmdoption-buildtool-A"><code class="xref std std-option docutils literal notranslate"><span class="pre">--all</span></code></a>
+are set, they override all other mode options.</p>
+<p>If any of the other options are selected, they will be executed in their
+natural order <em>after</em> the CMake stage (which is always executed in the
+<span class="target" id="index-0-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a> directory) unless <a class="reference internal" href="#cmdoption-buildtool-sc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--short-circuit</span></code></a> is
+used.</p>
+<section id="exclusive-mode-options">
+<h4>Exclusive mode options<a class="headerlink" href="#exclusive-mode-options" title="Link to this heading">¶</a></h4>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-A">
+<span id="cmdoption-buildtool-all"></span><span class="sig-name descname"><span class="pre">-A</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--all</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-A" title="Link to this definition">¶</a></dt>
+<dd><p>Execute all stages.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-C">
+<span id="cmdoption-buildtool-cmake-only"></span><span class="sig-name descname"><span class="pre">-C</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cmake-only</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-C" title="Link to this definition">¶</a></dt>
+<dd><p>Execute <em>only</em> the CMake stage.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-info">
+<span class="sig-name descname"><span class="pre">--info</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-info" title="Link to this definition">¶</a></dt>
+<dd><p>If already configured (CMake has been run at least once since the
+last clean), give some basic information about the package, then
+exit.</p>
+</dd></dl>
+
+</section>
+<section id="other-mode-options">
+<h4>Other mode options<a class="headerlink" href="#other-mode-options" title="Link to this heading">¶</a></h4>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-b">
+<span id="cmdoption-buildtool-build"></span><span class="sig-name descname"><span class="pre">-b</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--build</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-b" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the build stage from the current directory. This is default
+if no other mode option is specified.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>implies execution of the configuration step unless combined
+with :option:<code class="docutils literal notranslate"><span class="pre">--short-circuit</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-i">
+<span id="cmdoption-buildtool-install"></span><span class="sig-name descname"><span class="pre">-i</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--install</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-i" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the install stage from <span class="target" id="index-1-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a>. CMake’s
+generated build procedure will ensure that all build targets are up
+to date, so an accompanying explicit <a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">--build</span></code></a> option is
+unnecessary.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-p">
+<span id="cmdoption-buildtool-package"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--package</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-p" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the package stage from CETPKG_BUILD to create a binary
+installation archive. As for <a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install</span></code></a>, CMake’s generated
+build procedure will ensure that all build targets are up to date so
+an accompanying explicit <a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">--build</span></code></a> option is
+unnecessary. Note that <a class="reference internal" href="#cmdoption-buildtool-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">--package</span></code></a> does <em>not</em> imply
+<a class="reference internal" href="#cmdoption-buildtool-i"><code class="xref std std-option docutils literal notranslate"><span class="pre">--install</span></code></a>: the two operations are independent.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-sc">
+<span id="cmdoption-buildtool-short-circuit"></span><span class="sig-name descname"><span class="pre">--sc</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--short-circuit</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-sc" title="Link to this definition">¶</a></dt>
+<dd><p>Execute only the specified stages and not those that might be
+implied.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-t">
+<span id="cmdoption-buildtool-test"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--test</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-t" title="Link to this definition">¶</a></dt>
+<dd><p>Execute configured tests with <strong class="program">ctest</strong> from the current
+directory. Implies <a class="reference internal" href="#cmdoption-buildtool-b"><code class="xref std std-option docutils literal notranslate"><span class="pre">--build</span></code></a>.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="combo-options">
+<span id="buildtool-combo-options"></span><h3>Combo options<a class="headerlink" href="#combo-options" title="Link to this heading">¶</a></h3>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-R">
+<span id="cmdoption-buildtool-release"></span><span class="sig-name descname"><span class="pre">-R</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--release</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-R" title="Link to this definition">¶</a></dt>
+<dd><p>Equivalent to <a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">-t</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-labels=RELEASE</span></code></a>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-T">
+<span id="cmdoption-buildtool-test-all"></span><span class="sig-name descname"><span class="pre">-T</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--test-all</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-T" title="Link to this definition">¶</a></dt>
+<dd><p>Equivalent to <a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">-t</span></code></a> <a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-labels=ALL</span></code></a>.</p>
+</dd></dl>
+
+</section>
+<section id="miscellaneous-options">
+<span id="buildtool-misc-options"></span><h3>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Link to this heading">¶</a></h3>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-c">
+<span id="cmdoption-buildtool-clean"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--clean</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-c" title="Link to this definition">¶</a></dt>
+<dd><p>Remove CMake-generated files and caches and other build products.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-clean-logs">
+<span class="sig-name descname"><span class="pre">--clean-logs</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-clean-logs" title="Link to this definition">¶</a></dt>
+<dd><p>Remove <code class="file docutils literal notranslate"><span class="pre">.log</span></code> files in the <span class="target" id="index-2-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a> top
+directory.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-cmake-debug">
+<span id="cmdoption-buildtool-cmake-trace"></span><span id="cmdoption-buildtool-cmake-trace-expand"></span><span class="sig-name descname"><span class="pre">--cmake-debug</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cmake-trace</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--cmake-trace-expand</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-cmake-debug" title="Link to this definition">¶</a></dt>
+<dd><p>Add the corresponding CMake debug option (<a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake.1.html#cmake-options" title="(in CMake v3.27.9)"><span class="xref std std-ref">–debug-output,
+–trace, –trace-expand</span></a>,
+respectively) to the command-line options for the configure stage.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 2.15.00: </span>use <a class="reference internal" href="#cmdoption-buildtool-X-c-b-t-i-p"><code class="xref std std-option docutils literal notranslate"><span class="pre">-Xc</span></code></a> with the corresponding native
+CMake option.</p>
+</div>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-D-CMake-definition">
+<span class="sig-name descname"><span class="pre">-D&lt;CMake-definition&gt;</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-D-CMake-definition" title="Link to this definition">¶</a></dt>
+<dd><p>Pass definitions to the invocation of the CMake stage. A warning
+shall be issued if this option is specified but the CMake stage is
+not to be executed.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-deleted-header-s">
+<span class="sig-name descname"><span class="pre">--deleted-header[s]</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;header&gt;[,&lt;header&gt;]</span> <span class="pre">...</span></span><a class="headerlink" href="#cmdoption-buildtool-deleted-header-s" title="Link to this definition">¶</a></dt>
+<dd><p>Indicate that named headers have been removed from the source, to
+allow removal and regeneration of dependency files containing
+references to same.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-E">
+<span id="cmdoption-buildtool-export-compile-commands"></span><span class="sig-name descname"><span class="pre">-E</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--export-compile-commands</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-E" title="Link to this definition">¶</a></dt>
+<dd><p>Equivalent to <a class="reference internal" href="#cmdoption-buildtool-D-CMake-definition"><code class="xref std std-option docutils literal notranslate"><span class="pre">-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON</span></code></a>. Useful for (e.g.) <strong class="program">clang-tidy</strong>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-f">
+<span id="cmdoption-buildtool-force-top"></span><span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--force-top</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-f" title="Link to this definition">¶</a></dt>
+<dd><p>Force build and test stages (if applicable) to be executed from the
+top level <span class="target" id="index-3-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a> area. Otherwise these stages will
+execute within the context of the user’s current directory at
+invocation if it is below
+<span class="target" id="index-4-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a>. <a class="reference internal" href="#cmdoption-buildtool-f"><code class="xref std std-option docutils literal notranslate"><span class="pre">--force-top</span></code></a> is incompatible with
+<a class="reference internal" href="#cmdoption-buildtool-s"><code class="xref std std-option docutils literal notranslate"><span class="pre">--subdir</span></code></a>. In any event, any relative or unqualified log
+file will be output relative to the user’s current directory at the
+time buildtool was invoked.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-G-CMake-generator-string">
+<span class="sig-name descname"><span class="pre">-G&lt;CMake-generator-string&gt;</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-G-CMake-generator-string" title="Link to this definition">¶</a></dt>
+<dd><p>Pass the specified CMake generator string through to CMake. Note
+that, at this time, only the “Unix Makefiles” and “Ninja” generators
+are supported by buildtool. Any secondary generator specification is
+passed through unexamined.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-g">
+<span id="cmdoption-buildtool-graphviz"></span><span class="sig-name descname"><span class="pre">-g</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;dot-file&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--graphviz</span></span><span class="sig-prename descclassname"><span class="pre">=&lt;dot-file&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-g" title="Link to this definition">¶</a></dt>
+<dd><p>Ask CMake to produce a code dependency graph in <a class="reference external" href="https://graphviz.org/">Graphviz</a> (<code class="file docutils literal notranslate"><span class="pre">.dot</span></code>) format.</p>
+<p>Note that CMake can only tell you about the dependencies about which
+it knows. Libraries must have their dependencies resolved at library
+production time (NO_UNDEFINED) in order for the information to be
+complete.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-gfilt">
+<span class="sig-name descname"><span class="pre">--gfilt</span></span><span class="sig-prename descclassname"><span class="pre">[=&lt;gfilt-opt&gt;[,&lt;gfilt-opt&gt;]</span> <span class="pre">...]</span></span><a class="headerlink" href="#cmdoption-buildtool-gfilt" title="Link to this definition">¶</a></dt>
+<dd><p>Filter the graphviz output from CMake through
+:program:cmake-graphviz-filt, with the following options:</p>
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]exes</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>With or without executables shown (default without).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]dicts</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>With or without dictionary and map libraries (default without).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]extlibs</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>With or without external library dependencies shown (default
+without).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]short-libnames</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>Any fully-specified library pathnames are shortened to their
+basenames (default long).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]test-tree</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>With or without libraries and executabless from the test directory
+hierarchy (default without).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std">
+<span class="sig-name descname"><span class="pre">[no-]tred</span></span><span class="sig-prename descclassname"></span></dt>
+<dd><p>With or without transitive dependency reduction (default with).</p>
+</dd></dl>
+
+<p>Multiple options should be comma-separated. Note that all of these
+options may be specified in <code class="file docutils literal notranslate"><span class="pre">~/.cgfrc</span></code> for the same effect
+(command-line overrides).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-generator">
+<span class="sig-name descname"><span class="pre">--generator</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;generator&gt;[:&lt;secondary-generator&gt;]</span></span><a class="headerlink" href="#cmdoption-buildtool-generator" title="Link to this definition">¶</a></dt>
+<dd><p>User-friendly way to specify the generator. Currently supported
+values are “make” and “ninja” (default make). If
+&lt;secondary-generator&gt; (e.g. CodeBlocks) is specified it will be
+passed through as-is.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-h">
+<span id="cmdoption-buildtool-help"></span><span class="sig-name descname"><span class="pre">-h</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--help</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-h" title="Link to this definition">¶</a></dt>
+<dd><p>Long-form help.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-I">
+<span id="cmdoption-buildtool-install-prefix"></span><span class="sig-name descname"><span class="pre">-I</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ups-top-dir&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--install-prefix</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ups-top-dir&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-I" title="Link to this definition">¶</a></dt>
+<dd><p>Specify the location of the private (or public) <abbr title="Unix™ Product System">UPS</abbr> products
+area into which to install the package if install is
+requested. Overrides the <span class="target" id="index-0-envvar:CETPKG_INSTALL"></span><a class="reference internal" href="#envvar:CETPKG_INSTALL" title="CETPKG_INSTALL"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_INSTALL</span></code></a> environment
+variable and anything already known to CMake.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-iwyu">
+<span class="sig-name descname"><span class="pre">--iwyu</span></span><span class="sig-prename descclassname"><span class="pre">[=&lt;iwyu-prog&gt;]</span></span><a class="headerlink" href="#cmdoption-buildtool-iwyu" title="Link to this definition">¶</a></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.19.00.</span></p>
+</div>
+<p>Specify the location of the <a class="reference external" href="https://include-what-you-use.org/">include-what-you-use</a> program (<strong class="program">iwyu</strong>).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-j">
+<span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;#&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-j" title="Link to this definition">¶</a></dt>
+<dd><p>Specify the level of parallelism for stages for which it is
+appropriate (overrides <span class="target" id="index-0-envvar:CETPKG_J"></span><a class="reference internal" href="#envvar:CETPKG_J" title="CETPKG_J"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_J</span></code></a> if specified).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-L">
+<span id="cmdoption-buildtool-LE"></span><span class="sig-name descname"><span class="pre">--L</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;label-regex&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--LE</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;label-regex&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-L" title="Link to this definition">¶</a></dt>
+<dd><p>Per <strong class="program">ctest</strong>, include (<a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--L</span></code></a>) or exclude
+(<a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--LE</span></code></a>) labels by CMake regular expression. Both options are
+mutually exclusive with <a class="reference internal" href="#cmdoption-buildtool-test-labels"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-labels</span></code></a>, <a class="reference internal" href="#cmdoption-buildtool-T"><code class="xref std std-option docutils literal notranslate"><span class="pre">-T</span></code></a>, and
+<a class="reference internal" href="#cmdoption-buildtool-R"><code class="xref std std-option docutils literal notranslate"><span class="pre">-R</span></code></a>, but not with each other. Specifying one of these
+options implies <a class="reference internal" href="#cmdoption-buildtool-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">-t</span></code></a>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-l">
+<span id="cmdoption-buildtool-log"></span><span id="cmdoption-buildtool-log-file"></span><span class="sig-name descname"><span class="pre">-l</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--log</span></span><span class="sig-prename descclassname"><span class="pre">[=&lt;log-dir-or-filepath&gt;]</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--log-file</span></span><span class="sig-prename descclassname"><span class="pre">[=&lt;log-dir-or-filepath&gt;]</span></span><a class="headerlink" href="#cmdoption-buildtool-l" title="Link to this definition">¶</a></dt>
+<dd><p>All build output is redirected to the specified log-file, or one with
+a default name if no other is specified. Unless <a class="reference internal" href="#cmdoption-buildtool-q"><code class="xref std std-option docutils literal notranslate"><span class="pre">--quiet</span></code></a> is
+also specified, stage information will still be printed to the
+screen—though see <a class="reference internal" href="#cmdoption-buildtool-tee"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tee</span></code></a> below. Note that the short
+variant does not accept an argument: a log filename will be
+generated. The long forms should use <code class="docutils literal notranslate"><span class="pre">=</span></code> to separate the option
+from their argument.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-no-pc">
+<span id="cmdoption-buildtool-no-preset-configure"></span><span class="sig-name descname"><span class="pre">--no-pc</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-preset-configure</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-no-pc" title="Link to this definition">¶</a></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.08.00.</span></p>
+</div>
+<p>Do not use a predefined CMake configure preset.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#cmdoption-buildtool-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--pc</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-pc">
+<span id="cmdoption-buildtool-preset-configure"></span><span class="sig-name descname"><span class="pre">--pc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;preset-name&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--preset-configure</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;preset-name&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-pc" title="Link to this definition">¶</a></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 3.06.00.</span></p>
+</div>
+<p>Use the named <a class="reference external" href="https://cmake.org/cmake/help/v3.22/manual/cmake-presets.7.html#configure-preset">CMake configure preset</a>
+instead of CMake definitions genereated from
+<code class="file docutils literal notranslate"><span class="pre">ups/product_deps</span></code>. Absent this option or <a class="reference internal" href="#cmdoption-buildtool-no-pc"><code class="xref std std-option docutils literal notranslate"><span class="pre">--no-pc</span></code></a>,
+the preset <code class="docutils literal notranslate"><span class="pre">for_UPS</span></code> will be used if defined in
+<span class="target" id="index-0-envvar:CETPKG_SOURCE"></span><a class="reference internal" href="#envvar:CETPKG_SOURCE" title="CETPKG_SOURCE"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_SOURCE</span></code></a>/<code class="file docutils literal notranslate"><span class="pre">CMakePresets.json</span></code>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-q">
+<span id="cmdoption-buildtool-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-q" title="Link to this definition">¶</a></dt>
+<dd><p>Suppress all non-error output to the screen (but see <a class="reference internal" href="#cmdoption-buildtool-tee"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tee</span></code></a>
+below). A log file will still be written as normal if so specified.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-s">
+<span id="cmdoption-buildtool-subdir"></span><span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;subdir&gt;</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--subdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;subdir&gt;</span></span><a class="headerlink" href="#cmdoption-buildtool-s" title="Link to this definition">¶</a></dt>
+<dd><p>Execute build and install stages from the context of <code class="docutils literal notranslate"><span class="pre">&lt;subdir&gt;</span></code>,
+which will be interpreted relative to
+<span class="target" id="index-5-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a>. Incompatible with
+<a class="reference internal" href="#cmdoption-buildtool-f"><code class="xref std std-option docutils literal notranslate"><span class="pre">--force-top</span></code></a>. <code class="docutils literal notranslate"><span class="pre">&lt;subdir&gt;</span></code> will be used in preference to the
+current user directory, even if the latter is a subdirectory of
+<span class="target" id="index-6-envvar:CETPKG_BUILD"></span><a class="reference internal" href="#envvar:CETPKG_BUILD" title="CETPKG_BUILD"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_BUILD</span></code></a>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-tee">
+<span class="sig-name descname"><span class="pre">--tee</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-tee" title="Link to this definition">¶</a></dt>
+<dd><p>Write to a log file (either as specified by <a class="reference internal" href="#cmdoption-buildtool-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--log</span></code></a> or the
+default), but copy output to the screen also: <a class="reference internal" href="#cmdoption-buildtool-q"><code class="xref std std-option docutils literal notranslate"><span class="pre">--quiet</span></code></a> is
+overridden by this option.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-test-labels">
+<span id="cmdoption-buildtool-labels"></span><span id="cmdoption-buildtool-test-groups"></span><span id="cmdoption-buildtool-groups"></span><span class="sig-name descname"><span class="pre">--test-labels</span></span><span class="sig-prename descclassname"><span class="pre">=&lt;group&gt;[&lt;;|,&gt;&lt;group&gt;]...</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--labels</span></span><span class="sig-prename descclassname"><span class="pre">=&lt;group&gt;[&lt;;|,&gt;&lt;group&gt;]...</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--test-groups</span></span><span class="sig-prename descclassname"><span class="pre">=&lt;group&gt;[&lt;;|,&gt;&lt;group&gt;]...</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--groups</span></span><span class="sig-prename descclassname"><span class="pre">=&lt;group&gt;[&lt;;|,&gt;&lt;group&gt;]...</span></span><a class="headerlink" href="#cmdoption-buildtool-test-labels" title="Link to this definition">¶</a></dt>
+<dd><p>Specify optional CMake test labels to execute. Test selection is done
+at <strong class="program">ctest</strong> invocation time. If this option is activated but
+tests are not to be run, a warning shall be issued. If no labels are
+selected, then <code class="docutils literal notranslate"><span class="pre">DEFAULT</span></code> is selected. A value of <code class="docutils literal notranslate"><span class="pre">ALL</span></code> is
+substituted with all known test labels. A leading <code class="docutils literal notranslate"><span class="pre">-</span></code> for a label
+will lead to its explicit exclusion. See also <a class="reference internal" href="#cmdoption-buildtool-T"><code class="xref std std-option docutils literal notranslate"><span class="pre">--test-all</span></code></a>,
+and <a class="reference internal" href="#cmdoption-buildtool-R"><code class="xref std std-option docutils literal notranslate"><span class="pre">--release</span></code></a>. Mutually-exclusive with <a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--L</span></code></a> and
+<a class="reference internal" href="#cmdoption-buildtool-L"><code class="xref std std-option docutils literal notranslate"><span class="pre">--LE</span></code></a>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-usage">
+<span class="sig-name descname"><span class="pre">--usage</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-usage" title="Link to this definition">¶</a></dt>
+<dd><p>Short help.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-v">
+<span id="cmdoption-buildtool-verbose"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--verbose</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-buildtool-v" title="Link to this definition">¶</a></dt>
+<dd><p>Extra information about the commands being executed at each step.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-buildtool-X-c-b-t-i-p">
+<span class="sig-name descname"><span class="pre">-X&lt;c|b|t|i|p&gt;</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;arg&gt;[,&lt;arg&gt;]+[,--,&lt;non-option-arg&gt;[,&lt;non-option-arg&gt;]+]</span></span><a class="headerlink" href="#cmdoption-buildtool-X-c-b-t-i-p" title="Link to this definition">¶</a></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 2.15.00.</span></p>
+</div>
+<p>E<code class="docutils literal notranslate"><span class="pre">X</span></code>tra arguments to be passed to the <code class="docutils literal notranslate"><span class="pre">C</span></code>onfigure, <code class="docutils literal notranslate"><span class="pre">b</span></code>uild, <code class="docutils literal notranslate"><span class="pre">t</span></code>est, <code class="docutils literal notranslate"><span class="pre">i</span></code>nstall, or <code class="docutils literal notranslate"><span class="pre">p</span></code>ackage stages. <code class="docutils literal notranslate"><span class="pre">&lt;arg&gt;</span></code>s will be added at the end of option arguments, while
+<code class="docutils literal notranslate"><span class="pre">&lt;non-option-arg&gt;</span></code>s will be added at the end of non-option
+arguments.</p>
+</dd></dl>
+
+</section>
+<section id="cmake-build-options">
+<span id="buildtool-cmake-build-options"></span><h3>CMake build options<a class="headerlink" href="#cmake-build-options" title="Link to this heading">¶</a></h3>
+<p>Any options or arguments specified after a single instance of <code class="docutils literal notranslate"><span class="pre">--</span></code> (or
+between two instances of same) will be passed to all stages invoked with
+<code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code>: the build, install and package stages.</p>
+</section>
+<section id="generator-options">
+<span id="buildtool-generator-options"></span><h3>Generator options<a class="headerlink" href="#generator-options" title="Link to this heading">¶</a></h3>
+<p>Any options or arguments specified after a second instance of <code class="docutils literal notranslate"><span class="pre">--</span></code>
+will be passed to the configured generator (e.g. “UNIX Makefiles” or
+“Ninja”) for the build stage only.</p>
+</section>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>Build, test, install and create a package tarball from scratch with
+output to a default-named log file, using parallelism:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">buildtool -A -c -l -I &lt;install-dir&gt; -j16</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>As above, but copying output to screen:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">buildtool -A -c -l --tee -I &lt;install-dir&gt; -j16</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The need for the <a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">-I</span></code></a> option may be removed by defining
+<span class="target" id="index-1-envvar:CETPKG_INSTALL"></span><a class="reference internal" href="#envvar:CETPKG_INSTALL" title="CETPKG_INSTALL"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_INSTALL</span></code></a>; the explicit parallelism may be similarly
+avoided by defining (e.g.) <span class="target" id="index-1-envvar:CETPKG_J"></span><a class="reference internal" href="#envvar:CETPKG_J" title="CETPKG_J"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">CETPKG_J=16</span></code></a>.</p>
+<p>To build only a particular target within a subdirectory:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">buildtool --subdir art/Framework/IO/Root -- RootOutput_source.o</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To build and test only:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">buildtool -t -j16</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To install and package only:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">buildtool -i -p -j16</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="environment">
+<h2>Environment<a class="headerlink" href="#environment" title="Link to this heading">¶</a></h2>
+<section id="required">
+<h3>Required<a class="headerlink" href="#required" title="Link to this heading">¶</a></h3>
+<dl class="cmake envvar">
+<dt class="sig sig-object cmake" id="envvar:CETPKG_BUILD">
+<span class="sig-name descname"><span class="pre">CETPKG_BUILD</span></span><a class="headerlink" href="#envvar:CETPKG_BUILD" title="Link to this definition">¶</a></dt>
+<dd><p>The path to the build area. Set by sourcing
+<span class="target" id="index-0-manual:setup_for_development(7)"></span><a class="reference internal" href="setup_for_development.7.html#manual:setup_for_development(7)" title="setup_for_development(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">ups/setup_for_development</span></code></a>.</p>
+</dd></dl>
+
+<dl class="cmake envvar">
+<dt class="sig sig-object cmake" id="envvar:CETPKG_SOURCE">
+<span class="sig-name descname"><span class="pre">CETPKG_SOURCE</span></span><a class="headerlink" href="#envvar:CETPKG_SOURCE" title="Link to this definition">¶</a></dt>
+<dd><p>The path to the source (<em>i.e.</em> the top-level
+<code class="file docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>). Set by sourcing
+<span class="target" id="index-1-manual:setup_for_development(7)"></span><a class="reference internal" href="setup_for_development.7.html#manual:setup_for_development(7)" title="setup_for_development(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">ups/setup_for_development</span></code></a>.</p>
+</dd></dl>
+
+</section>
+<section id="optional">
+<h3>Optional<a class="headerlink" href="#optional" title="Link to this heading">¶</a></h3>
+<dl class="cmake envvar">
+<dt class="sig sig-object cmake" id="envvar:CETPKG_INSTALL">
+<span class="sig-name descname"><span class="pre">CETPKG_INSTALL</span></span><a class="headerlink" href="#envvar:CETPKG_INSTALL" title="Link to this definition">¶</a></dt>
+<dd><p>The installation area (must be a properly-initialized unified-UPS top
+level directory for the installed products to be usable by UPS). May
+be overridden by <a class="reference internal" href="#cmdoption-buildtool-I"><code class="xref std std-option docutils literal notranslate"><span class="pre">-I</span></code></a>, but takes precedence over
+<span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_INSTALL_PREFIX"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_INSTALL_PREFIX.html#variable:CMAKE_INSTALL_PREFIX" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code></a>.</p>
+</dd></dl>
+
+<dl class="cmake envvar">
+<dt class="sig sig-object cmake" id="envvar:CETPKG_J">
+<span class="sig-name descname"><span class="pre">CETPKG_J</span></span><a class="headerlink" href="#envvar:CETPKG_J" title="Link to this definition">¶</a></dt>
+<dd><p>The default level of parallelism for all appropriate steps; may be
+overridden by ::option::<cite>-j</cite>. If not specified, the default level of
+parallelism is controlled by the generator (e.g. <code class="docutils literal notranslate"><span class="pre">UNIX</span> <span class="pre">Makefiles</span></code>
+<em>vs</em> <code class="docutils literal notranslate"><span class="pre">Ninja</span></code>).</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">buildtool(1)</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#options">Options</a><ul>
+<li><a class="reference internal" href="#modes">Modes</a><ul>
+<li><a class="reference internal" href="#exclusive-mode-options">Exclusive mode options</a></li>
+<li><a class="reference internal" href="#other-mode-options">Other mode options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#combo-options">Combo options</a></li>
+<li><a class="reference internal" href="#miscellaneous-options">Miscellaneous options</a></li>
+<li><a class="reference internal" href="#cmake-build-options">CMake build options</a></li>
+<li><a class="reference internal" href="#generator-options">Generator options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#environment">Environment</a><ul>
+<li><a class="reference internal" href="#required">Required</a></li>
+<li><a class="reference internal" href="#optional">Optional</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../index.html"
+                          title="previous chapter">Reference Documentation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="code-dep-graph.1.html"
+                          title="next chapter">code-dep-graph(1)</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/buildtool.1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="code-dep-graph.1.html" title="code-dep-graph(1)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Reference Documentation"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+        <li class="nav-item nav-item-this"><a href="">buildtool(1)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2024, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

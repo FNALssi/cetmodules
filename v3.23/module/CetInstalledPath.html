@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>CetInstalledPath &mdash; Cetmodules 3.23.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=eb75f0bc"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CetMake" href="CetMake.html" />
+    <link rel="prev" title="CetInstall" href="CetInstall.html" />
+  
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CetMake.html" title="CetMake"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CetInstall.html" title="CetInstall"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetInstalledPath</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../latest/module/CetInstalledPath.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module:CetInstalledPath"></span><section id="cetinstalledpath">
+<h1>CetInstalledPath<a class="headerlink" href="#cetinstalledpath" title="Link to this heading">¶</a></h1>
+<p>Define the function <span class="target" id="index-0-command:cet_installed_path"></span><a class="reference internal" href="#command:cet_installed_path" title="cet_installed_path"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_installed_path()</span></code></a> to calculate an
+installation path.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_installed_path">
+<span class="sig-name descname"><span class="pre">cet_installed_path</span></span><a class="headerlink" href="#command:cet_installed_path" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate a path to a file or directory <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> as-installed.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cet_installed_path(&lt;out-var&gt; &lt;path&gt; { RELATIVE &lt;rel-dir&gt; | RELATIVE_VAR &lt;project-var&gt; } [&lt;options&gt;])
+</pre></div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">BASE_SUBDIR</span> <span class="pre">&lt;rel-base-dir&gt;</span></code></dt><dd><p>Specify <code class="docutils literal notranslate"><span class="pre">&lt;rel-base-dir&gt;</span></code> as the location of the installed file
+relative to <cite>&lt;rel-dir&gt;</cite> or the content of <span class="target" id="index-1-module:ProjectVariable"></span><a class="reference internal" href="ProjectVariable.html#module:ProjectVariable" title="ProjectVariable"><code class="xref cmake cmake-module docutils literal notranslate"><span class="pre">project</span> <span class="pre">variable</span></code></a> <code class="docutils literal notranslate"><span class="pre">&lt;project-var&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NOP</span></code></dt><dd><p>Option / argument disambiguator; no other function.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">RELATIVE</span> <span class="pre">&lt;rel-dir&gt;</span></code></dt><dd><p>Relative path <code class="docutils literal notranslate"><span class="pre">&lt;rel-dir&gt;</span></code> will be removed from the front of the
+calculated path if present.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">RELATIVE_VAR</span> <span class="pre">&lt;project-var&gt;</span></code></dt><dd><p>The relative path represented by the value of the project variable
+<code class="docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_&lt;project-var&gt;</span></code> will be removed from the front of
+the calculated path if present, accounting for
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_EXEC_PREFIX"></span><a class="reference internal" href="../variable/PROJECT-NAME_EXEC_PREFIX.html#variable:&lt;PROJECT-NAME&gt;_EXEC_PREFIX" title="&lt;PROJECT-NAME&gt;_EXEC_PREFIX"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_EXEC_PREFIX</span></code></a> where appropriate.</p>
+</dd>
+</dl>
+</section>
+<section id="non-option-arguments">
+<h2>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code></dt><dd><p>The calculated path shall be returned in <code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code></dt><dd><p>The path to the file or directory for which the installation path
+should be calculated.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="CetInstall.html"
+                          title="previous chapter">CetInstall</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="CetMake.html"
+                          title="next chapter">CetMake</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/module/CetInstalledPath.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CetMake.html" title="CetMake"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CetInstall.html" title="CetInstall"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetInstalledPath</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2024, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

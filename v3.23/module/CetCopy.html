@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>CetCopy &mdash; Cetmodules 3.23.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=eb75f0bc"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="&lt;no title&gt;" href="CetExclude.html" />
+    <link rel="prev" title="CetCmdWrapper" href="CetCmdWrapper.html" />
+  
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CetExclude.html" title="&lt;no title&gt;"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CetCmdWrapper.html" title="CetCmdWrapper"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetCopy</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../latest/module/CetCopy.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module:CetCopy"></span><section id="cetcopy">
+<h1>CetCopy<a class="headerlink" href="#cetcopy" title="Link to this heading">¶</a></h1>
+<p>Module defining the function <span class="target" id="index-0-command:cet_copy"></span><a class="reference internal" href="#command:cet_copy" title="cet_copy"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_copy()</span></code></a> to copy a file or files
+to a destination directory as part of the build.</p>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:cet_copy">
+<span class="sig-name descname"><span class="pre">cet_copy</span></span><a class="headerlink" href="#command:cet_copy" title="Link to this definition">¶</a></dt>
+<dd><p>Copy one or more files as part of the build process (defining a
+target).</p>
+<pre class="literal-block">cet_copy(&lt;source&gt; DESTINATION &lt;dir&gt; <a class="reference internal" href="#cet-copy-common-options"><span class="std std-ref">common options</span></a> <a class="reference internal" href="#cet-copy-single-source-options"><span class="std std-ref">single-source options</span></a>)
+
+cet_copy(&lt;sources&gt;... DESTINATION &lt;dir&gt; <a class="reference internal" href="#cet-copy-common-options"><span class="std std-ref">common options</span></a>)</pre>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 3.23.00: </span>Use of <a class="reference internal" href="#cet-copy-single-source-options"><span class="std std-ref">single-source options</span></a> for multiple sources is an
+error.</p>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">DESTINATION</span> <span class="pre">&lt;directory&gt;</span></code></dt><dd><p>The destination directory. If relative, the destination shall be
+calculated relative to <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a></p>
+</dd>
+</dl>
+<section id="common-options">
+<span id="cet-copy-common-options"></span><h3>Common options<a class="headerlink" href="#common-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">DEPENDENCIES</span> <span class="pre">&lt;dep&gt;...</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">&lt;dep&gt;</span></code> changes, <code class="docutils literal notranslate"><span class="pre">&lt;sources&gt;</span></code> shall be considered out-of-date
+(<code class="docutils literal notranslate"><span class="pre">&lt;source&gt;</span></code> is always a dependency of its corresponding copy
+command).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NO_ALL</span></code></dt><dd><p>Do not add the generated target as a dependency of the <code class="docutils literal notranslate"><span class="pre">all</span></code>
+target.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROGRAMS</span></code></dt><dd><p>Copied files should be made executable at their destination.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">WORKING_DIRECTORY</span> <span class="pre">&lt;dir&gt;</span></code></dt><dd><p>Specify the working directory for the copy command (default
+<span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_CURRENT_BINARY_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_BINARY_DIR.html#variable:CMAKE_CURRENT_BINARY_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_BINARY_DIR</span></code></a>).</p>
+</dd>
+</dl>
+</section>
+<section id="single-source-options">
+<span id="cet-copy-single-source-options"></span><h3>Single-source options<a class="headerlink" href="#single-source-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NAME</span> <span class="pre">&lt;name&gt;</span></code></dt><dd><p>New name for the file in its final destination.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">NAME_AS_TARGET</span></code></dt><dd><p>If specified, the target name will be the basename of the
+destination file; otherwise it will be formed by calculating the
+destination path relative to
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_BINARY_DIR.html#variable:CETMODULES_CURRENT_PROJECT_BINARY_DIR" title="CETMODULES_CURRENT_PROJECT_BINARY_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_BINARY_DIR</span></code></a> and replacing
+path separators with <code class="docutils literal notranslate"><span class="pre">_</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TARGET_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return the calculated target name as <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="CetCmdWrapper.html"
+                          title="previous chapter">CetCmdWrapper</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="CetExclude.html"
+                          title="next chapter">&lt;no title&gt;</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/module/CetCopy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CetExclude.html" title="&lt;no title&gt;"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CetCmdWrapper.html" title="CetCmdWrapper"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CetCopy</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2024, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

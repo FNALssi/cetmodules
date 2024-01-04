@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>FindM4 &mdash; Cetmodules 3.23.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cetmodules.css?v=cb7d28bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=eb75f0bc"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="X" href="FindSmc.html" />
+    <link rel="prev" title="FindGeant4" href="FindGeant4.html" />
+  
+  <script type="text/javascript" src="../../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="FindSmc.html" title="X"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="FindGeant4.html" title="FindGeant4"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FindM4</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../../latest/module/find/FindM4.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module:FindM4"></span><section id="findm4">
+<h1>FindM4<a class="headerlink" href="#findm4" title="Link to this heading">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 3.23.00.</span></p>
+</div>
+<p>The module defines the following variables:</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">M4_EXECUTABLE</span></code></dt><dd><p>Path to M4 command-line client.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">M4_FOUND</span></code>, <code class="docutils literal notranslate"><span class="pre">M4_FOUND</span></code></dt><dd><p>True if the M4 command-line client was found.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">M4_IS_GNU</span></code></dt><dd><p>True if the m4 found is GNU m4.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">M4_POSIX_OPT</span></code></dt><dd><p>If applicable, this is set to the option used to require POSIX
+behavior. if <code class="docutils literal notranslate"><span class="pre">M4_IS_GNU</span></code> is true, this should be <code class="docutils literal notranslate"><span class="pre">-G</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">M4_VERSION_STRING</span></code></dt><dd><p>The version of M4 found.</p>
+<p>The module defines the following <code class="docutils literal notranslate"><span class="pre">IMPORTED</span></code> targets (when
+<span class="target" id="index-0-prop_gbl:cmake-ref-current:prop_gbl:CMAKE_ROLE"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_gbl/CMAKE_ROLE.html#prop_gbl:CMAKE_ROLE" title="(in CMake v3.27.9)"><code class="xref cmake cmake-prop_gbl docutils literal notranslate"><span class="pre">CMAKE_ROLE</span></code></a> is
+<code class="docutils literal notranslate"><span class="pre">PROJECT</span></code>):</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">M4::M4</span></code></dt><dd><p>Executable of the M4 command-line client.</p>
+</dd>
+</dl>
+<p>Example usage:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">find_package(</span><span class="no">M4</span><span class="nf">)</span>
+<span class="nf">if(</span><span class="no">M4_FOUND</span><span class="nf">)</span>
+<span class="w">  </span><span class="nf">message(</span><span class="s">&quot;M4 found: ${M4_EXECUTABLE}&quot;</span><span class="nf">)</span>
+<span class="nf">endif()</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="FindGeant4.html"
+                          title="previous chapter">FindGeant4</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="FindSmc.html"
+                          title="next chapter">X</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/find/FindM4.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="FindSmc.html" title="X"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="FindGeant4.html" title="FindGeant4"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FindM4</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2024, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

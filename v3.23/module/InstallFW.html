@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <title>InstallFW &mdash; Cetmodules 3.23.01 Reference</title>
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
+    <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=eb75f0bc"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    
+    <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="InstallFhicl" href="InstallFhicl.html" />
+    <link rel="prev" title="CetTest" href="CetTest.html" />
+  
+  <script type="text/javascript" src="../../_static/version_switch.js"></script>
+  
+ 
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="InstallFhicl.html" title="InstallFhicl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CetTest.html" title="CetTest"
+             accesskey="P">previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">InstallFW</a></li> 
+      </ul>
+    </div>
+
+    <div class="outdated">
+      This documents an old version of Cetmodules.
+      <a href="../../latest/module/InstallFW.html">
+        Click here to see the latest release.
+      </a>
+      <span class="version_switch_note"></span>
+    </div>
+
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module:InstallFW"></span><section id="installfw">
+<h1>InstallFW<a class="headerlink" href="#installfw" title="Link to this heading">¶</a></h1>
+<div class="admonition-domain admonition">
+<p class="admonition-title">HEP</p>
+<p>Define the function <span class="target" id="index-0-command:install_fw"></span><a class="reference internal" href="#command:install_fw" title="install_fw"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">install_fw()</span></code></a> to install HEP framework
+data files.</p>
+</div>
+<dl class="cmake command">
+<dt class="sig sig-object cmake" id="command:install_fw">
+<span class="sig-name descname"><span class="pre">install_fw</span></span><a class="headerlink" href="#command:install_fw" title="Link to this definition">¶</a></dt>
+<dd><div class="admonition-app admonition">
+<p class="admonition-title">HEP</p>
+<p>Install HEP framework data files in
+<span class="target" id="index-0-variable:&lt;PROJECT-NAME&gt;_FW_DIR"></span><a class="reference internal" href="../variable/PROJECT-NAME_FW_DIR.html#variable:&lt;PROJECT-NAME&gt;_FW_DIR" title="&lt;PROJECT-NAME&gt;_FW_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">&lt;PROJECT-NAME&gt;_FW_DIR</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">install_fw(</span><span class="no">LIST</span><span class="w"> </span><span class="nv">&lt;file&gt;</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">[</span><span class="no">SUBDIRNAME</span><span class="w"> </span><span class="nv">&lt;subdir&gt;</span><span class="p">]</span><span class="nf">)</span>
+</pre></div>
+</div>
+</div>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">LIST</span> <span class="pre">[&lt;file&gt;</span> <span class="pre">...]</span></code></dt><dd><p>A list of files to install. Mutually-exclusive with any option
+assuming a generated list via <a class="reference internal" href="CetInstall.html#p-cet-install-glob"><span class="std std-ref">_GLOBS [&lt;file(glob)&gt;...]</span></a>,
+specifically <a class="reference internal" href="CetInstall.html#p-cet-install-excludes"><span class="std std-ref">EXCLUDES &lt;exclude-exp&gt; ...</span></a>,
+<a class="reference internal" href="CetInstall.html#p-cet-install-basename-excludes"><span class="std std-ref">BASENAME_EXCLUDES [REGEX] &lt;exp&gt; ...</span></a>,
+<a class="reference internal" href="CetInstall.html#p-cet-install-extras"><span class="std std-ref">EXTRAS &lt;extra file&gt; ...</span></a>, and <a class="reference internal" href="CetInstall.html#p-cet-install-subdirs"><span class="std std-ref">SUBDIRS &lt;source-subdir&gt; ...</span></a>,</p>
+</dd>
+</dl>
+</div></blockquote>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">SUBDIRNAME</span> <span class="pre">&lt;dest-subdir&gt;</span></code></dt><dd><p>Add <code class="docutils literal notranslate"><span class="pre">&lt;dest-subdir&gt;</span></code> to the destination path.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="CetTest.html"
+                          title="previous chapter">CetTest</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="InstallFhicl.html"
+                          title="next chapter">InstallFhicl</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/module/InstallFW.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="InstallFhicl.html" title="InstallFhicl"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CetTest.html" title="CetTest"
+             >previous</a> |</li>
+  <li>
+    <a href="https://github.com/FNALssi/cetmodules">
+      <img src="../_static/cetmodules.png" alt=""
+           style="vertical-align: middle; margin-top: -2px" />
+      Cetmodules
+    </a> &#187;
+  </li>
+  <li>
+    <a href="../../">Cetmodules Documentation</a> &#187;
+  </li>
+  <li>
+    <span class="version_switch">3.23.01</span>
+    <a href="../index.html">Reference</a> &#187;
+  </li>
+
+          <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">InstallFW</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010--2024, Fermi Research Alliance, LLC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>
