@@ -540,7 +540,6 @@ cet_make_exec(NAME ${CET_TARGET}
 )\
 ")
       cet_localize_pv(cetmodules ETC_DIR)
-      file(MAKE_DIRECTORY "${CET_TARGET}-src")
       configure_file(${cetmodules_ETC_DIR}/CompileOnlyTest.cmake.in
         ${CET_TARGET}-src/CMakeLists.txt
         @ONLY)

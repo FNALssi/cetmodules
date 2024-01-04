@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@ FATAL_ERROR)
+cmake_minimum_required(VERSION @cetmodules_MIN_CMAKE_VERSION@...@CMAKE_VERSION@ FATAL_ERROR)
 
 find_package(cetmodules @cetmodules_VERSION@ REQUIRED)
 project(@CETMODULES_CURRENT_PROJECT_NAME@_COMPILE_ONLY_TEST

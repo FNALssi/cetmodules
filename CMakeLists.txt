@@ -26,10 +26,14 @@
 # * Awareness of multi-project builds.
 #
 ########################################################################
-set(CETMODULES_MIN_CMAKE_VERSION 3.22) # Used in config/cetmodules-cmake-version-check.cmake
+
+# This variable is required in the cmake_minimum_required() call below,
+# and is also used as the initial value of the corresponding project
+# variable MIN_CMAKE_VERSION defined below.
+set(cetmodules_MIN_CMAKE_VERSION 3.22)
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION ${CETMODULES_MIN_CMAKE_VERSION}...3.27
+cmake_minimum_required(VERSION ${cetmodules_MIN_CMAKE_VERSION}...3.27
   FATAL_ERROR)
 
 ####################################
@@ -53,6 +57,13 @@ cet_cmake_env()
 
 project_variable(MIN_CETBUILDTOOLS_VERSION 8.04.00 TYPE STRING CONFIG
   DOCSTRING "Minimum version of cetbuildtools compatible with this version---${cetmodules_VERSION}---of cetmodules")
+
+# cetmodules_MIN_CMAKE_VERSION is used in this project to generate
+# etc/cmake_required_version.txt, and by cet_test() in this and other
+# projects to generate CMakeLists.txt files required for COMPILE_ONLY
+# tests (see Modules/CetTest.cmake).
+project_variable(MIN_CMAKE_VERSION TYPE STRING CONFIG
+  DOCSTRING "Minimum version of CMake compatible with this version---${cetmodules_VERSION}---of cetmodules")
 
 # Make sure downstream packages can find our modules.
 cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
