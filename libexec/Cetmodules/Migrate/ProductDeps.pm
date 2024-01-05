@@ -364,8 +364,7 @@ sub _write_qualifier_table {
   $ntabs->{ $headers->[-1] } = 0; # No padding at end of table.
   $fh->print(trim_lines(map { _pad_to($ntabs->{$_}, $_); } @{$headers}),
     "\n");
-  grep {
-    my $qualifier = $_;
+  foreach my $qualifier (sort keys %{ $qualifier_table->{qualifier} }) {
     $fh->print(
       trim_lines(
         map {
@@ -374,7 +373,7 @@ sub _write_qualifier_table {
         } @{$headers}
       ),
       "\n");
-  } sort keys %{ $qualifier_table->{qualifier} };
+  }
   $fh->print("end_qualifier_list\n");
   return;
 } ## end sub _write_qualifier_table

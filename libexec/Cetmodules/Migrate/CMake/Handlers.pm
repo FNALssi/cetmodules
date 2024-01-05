@@ -1128,13 +1128,16 @@ sub tbb_offload {
 # Remove problematic and unnecessary install path fragments.
 sub _ah_fix_install_paths {
   my ($cmd_info, $arg_idx_idx) = @_;
-  grep {
-    if (my @separated = $cmd_info->arg_at($_)) {
+  my $changed;
+  foreach my $idx (@{$arg_idx_idx}) {
+    if (my @separated = $cmd_info->arg_at($idx)) {
       $separated[(scalar @separated > 1) ? 1 : 0] =~
         s&\$\{product\}/+\$\{version\}/*&&gmsx
-        and $cmd_info->replace_arg_at($_, join(q(), @separated));
+        and $cmd_info->replace_arg_at($idx, join(q(), @separated))
+        and $changed = 1;
     } ## end if (my @separated = $cmd_info...)
-  } @{$arg_idx_idx} and tag_changed($cmd_info, <<'EOF');
+  }
+  $changed and tag_changed($cmd_info, <<'EOF');
 ${product}/+${version}/* -> ""
 EOF
   return;

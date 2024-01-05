@@ -237,9 +237,10 @@ sub process_cmake_file {
       cmake_file_in    => $cmake_file_in,
       pending_comments => {} };
   $cmake_file_out and $cmake_file_data->{cmake_file_out} = $cmake_file_out;
-  grep {
-    m&_handler\z&msx and $cmake_file_data->{$_} = delete $options->{$_};
-  } keys %{$options};
+  foreach my $option_key (keys %{$options}) {
+    $option_key =~ m&_handler\z&msx and
+      $cmake_file_data->{$option_key} = delete $options->{$option_key};
+  }
   $cmake_file_data->{cmd_handler_regex} = join(q(|),
     map { quotemeta(sprintf('%s', $_)); }
       keys %{ $cmake_file_data->{cmd_handlers} });
