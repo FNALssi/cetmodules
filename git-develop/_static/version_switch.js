@@ -18,7 +18,7 @@
   function is_numeric_version(version) {
     return /^v?[0-9]+(?:\.[0-9]+)?/.test(version);
   }
-  
+
   function build_select(current_version, current_release) {
     let buf = ['<select>'];
     all_versions['ordered-versions'].forEach(function(version) {
@@ -88,7 +88,7 @@
     if (!is_numeric_version(version) ||
         (latest_version &&
          version == all_versions['version-entries'][latest_version]['display-name'])) {
-      $.each(document.getElementsByClassName('outdated'), function() { 
+      $.each(document.getElementsByClassName('outdated'), function() {
         this.style.display = 'none';
       });
     }
