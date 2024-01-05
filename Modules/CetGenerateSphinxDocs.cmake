@@ -78,6 +78,10 @@ function(cet_publish_sphinx_html PUBLISH_ROOT PUBLISH_VERSION)
   endif()
   set(PUBLISH_ARGS EXTRA_ARGS -A versionswitch=1)
 
+  if (PUBLISH_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?")
+    set(_cps_is_numeric TRUE)
+  endif()
+
   # Determine output location.
   if (_cps_is_numeric)
     set(_cps_output_dir "${PUBLISH_ROOT}/v${PUBLISH_VERSION}")
@@ -366,9 +370,6 @@ ${CETMODULES_CURRENT_PROJECT_NAME}")
 endmacro()
 
 macro(_cps_process_version_data)
-  if (PUBLISH_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?")
-    set(_cps_is_numeric TRUE)
-  endif()
   unset(VERSION_DATA)
   if (EXISTS "${PUBLISH_ROOT}/versions.json")
     file(READ "${PUBLISH_ROOT}/versions.json" VERSION_DATA)
