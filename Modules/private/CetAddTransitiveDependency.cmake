@@ -20,6 +20,18 @@ function(_cet_add_transitive_dependency SOURCE_CALL FIRST_ARG)
     set(cache_var CETMODULES_FIND_DEPS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
     unset(docstring_extra)
   endif()
+  if (NOT DEFINED CACHE{CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
+    set(CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      "${DEP}" CACHE INTERNAL
+      "Transitive dependency project names for ${CETMODULES_CURRENT_PROJECT_NAME}")
+  else()
+    get_property(tdeps CACHE CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      PROPERTY VALUE)
+    list(APPEND tdeps "${DEP}")
+    list(REMOVE_DUPLICATES tdeps)
+    set_property(CACHE CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      PROPERTY VALUE "${tdeps}")
+  endif()
   # Set up the beginning of the call.
   string(TOLOWER "${SOURCE_CALL}" TRANSITIVE_CALL)
   if (TRANSITIVE_CALL STREQUAL "find_package")
