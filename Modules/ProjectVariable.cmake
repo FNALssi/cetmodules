@@ -339,7 +339,7 @@ endfunction()
 
    ``TYPE <type>``
 
-     Define the `project-variables-types`_ type of the project variable
+     Define the :ref:`project-variables-types` type of the project variable
      (default ``PATH_FRAGMENT``).
 
    Non-option arguments
@@ -370,11 +370,17 @@ endfunction()
    #. The value of a CMake variable ``<var-name>`` if it is defined in
       the current scope prior to the definition of the project variable.
 
-   #. The value of a CMake or cached variable
+   #.
+      .. rst-class:: text-start
+
+      The value of a CMake or cached variable
       :variable:`${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}
       <CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX>`\ ``_<var-name>``.
 
-   #. The value of a CMake or cached variable
+   #.
+      .. rst-class:: text-start
+
+      The value of a CMake or cached variable
       :variable:`!${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT`.
 
    #. ``<init-val> ...``.
