@@ -561,7 +561,7 @@ endfunction()
 
 #]================================================================]
 function(cet_localize_pv_all PROJECT)
-  cet_localize_pv(PROJECT ALL)
+  cet_localize_pv(${PROJECT} ALL ${ARGN})
 endfunction()
 
 #[================================================================[.rst:
