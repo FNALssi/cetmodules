@@ -489,8 +489,25 @@ endfunction()
 
    .. code-block:: cmake
 
-      cet_localize_pv(<project> [<project-var-name>])
-      cet_localize_pv(<project> ALL)
+      cet_localize_pv(<project> [<options>] ALL|[<project-var-name>...])
+
+   .. rst-class:: text-start
+
+   .. seealso:: :command:`cet_localize_pv_all`,
+                :manual:`cetmodules-project-variables(7)`,
+                :command:`project_variable`.
+
+   Options
+   ^^^^^^^
+
+   ``NO_CHECK_VALIDITY``
+     Do not report an error if a project variable does not exist or does
+     not represent a path or path fragment (ignored for ``ALL``).
+
+   ``TRY_BINARY``
+     Try to resolve a path with respect to the binary rather than the
+     source tree (default for ``FILEPATH`` and ``FILEPATH_FRAGMENT``
+     :ref:`project-variables-types`).
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
@@ -498,25 +515,30 @@ endfunction()
    ``<project>``
      The name of a CMake project in the current source tree.
 
-   ``<project-var-name>``
-     The name of a project variable (without a ``<project>_`` prefix).
+   ``ALL|<project-var-name>...``
+     The name of one or more project variables (without a ``<project>_``
+     prefix).
 
 #]================================================================]
 function(cet_localize_pv PROJECT)
   if (NOT ${PROJECT}_IN_TREE)
     return() # Nothing to do.
   endif()
-  if (ARGN STREQUAL "ALL")
+  cmake_parse_arguments(PARSE_ARGV 1 CLPV "NO_CHECK_VALIDITY;TRY_BINARY" "" "")
+  set(check_pv_validity)
+  if (CLPV_UNPARSED_ARGUMENTS STREQUAL "ALL")
     set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
-    set(check_pv_validity)
   else()
-    set(var_list ARGN)
-    set(check_pv_validity TRUE)
+    set(var_list CLPV_UNPARSED_ARGUMENTS)
+    if (NOT CLPV_NO_CHECK_VALIDITY)
+      set(check_pv_validity TRUE)
+    endif()
   endif()
   foreach (var IN LISTS ${var_list})
-    if (check_pv_validity AND NOT
-        var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
-      message(SEND_ERROR "cannot localize unknown project variable ${var} for project ${PROJECT}")
+    if (NOT var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
+      if (check_pv_validity)
+        message(SEND_ERROR "cannot localize unknown project variable ${var} for project ${PROJECT}")
+      endif()
       continue()
     endif()
     set(result)
@@ -530,7 +552,7 @@ function(cet_localize_pv PROJECT)
     if (CMAKE_MATCH_1)
       set(try_binary TRUE)
     else()
-      set(try_binary)
+      set(try_binary ${CLPV_TRY_BINARY})
     endif()
     foreach (item IN LISTS ${PROJECT}_${var})
       set(item_result)
@@ -552,15 +574,22 @@ endfunction()
 #[================================================================[.rst:
 .. command:: cet_localize_pv_all
 
-   Equivalent to :command:`cet_localize_pv(\<project> ALL)
+   Equivalent to :command:`cet_localize_pv(\<project> [TRY_BINARY] ALL)
    <cet_localize_pv>`.
 
    .. code-block:: cmake
 
-      cet_localize_pv_all(<project>)
+      cet_localize_pv_all(<project> [TRY_BINARY])
+
+   .. seealso:: :command:`cet_localize_pv`.
 
 #]================================================================]
+
 function(cet_localize_pv_all PROJECT)
+  if (ARGN AND NOT ARGN STREQUAL "TRY_BINARY")
+    message(WARNING "unrecognized extra arguments ${ARGN}")
+    set(ARGN)
+  endif()
   cet_localize_pv(${PROJECT} ALL ${ARGN})
 endfunction()
 
