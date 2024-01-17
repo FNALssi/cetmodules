@@ -110,11 +110,12 @@ macro(find_package PKG)
   math(EXPR _fp_finding_${PKG} "${_fp_finding_${PKG}} + 1")
   if (_fp_finding_${PKG} EQUAL 1)
     # Handle nested calls (e.g. FindXXXX.cmake -> XXXConfig.cmake...)
-    if ((_fp_INTERFACE OR _fp_PUBLIC OR _fp_EXPORT) AND NOT
-        (_fp_BUILD_ONLY OR _fp_PRIVATE))
-      set(_fp_${PKG}_REQUIRED_BY ${_fp_REQUIRED_BY})
-      set(_fp_${PKG}_transitive_args ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS})
+    if (_fp_BUILD_ONLY OR _fp_PRIVATE OR
+        NOT (_fp_INTERFACE OR _fp_PUBLIC OR _fp_EXPORT))
+      set(_fp_NO_EXPORT TRUE)
     endif()
+    set(_fp_${PKG}_REQUIRED_BY ${_fp_REQUIRED_BY})
+    set(_fp_${PKG}_transitive_args ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS})
   endif()
   if (${PKG}_IN_TREE) # Package we need is being built with us.
     if (NOT CMAKE_DISABLE_FIND_PACKAGE_${PKG} OR
@@ -215,6 +216,7 @@ macro(_cet_fp_reset_variables)
     unset(_fp_${_fp_keyword})
   endforeach()
   unset(_fp_keyword)
+  unset(_fp_NO_EXPORT)
 endmacro()
 
 function(_cet_fp_check_find_package_needed PKG RESULT_VAR)

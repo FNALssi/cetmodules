@@ -5,7 +5,7 @@ X
 
 include_guard()
 
-# Add a find_dependency() call to the appropriate tracking variable.
+# Keep track of transitive dependencies.
 function(_cet_add_transitive_dependency SOURCE_CALL FIRST_ARG)
   # Deal with optional leading COMPONENT <component> ourselves, as with
   # cmake_parse_arguments() we'd have to worry about what we might have
@@ -31,6 +31,10 @@ function(_cet_add_transitive_dependency SOURCE_CALL FIRST_ARG)
     list(REMOVE_DUPLICATES tdeps)
     set_property(CACHE CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
       PROPERTY VALUE "${tdeps}")
+  endif()
+  if (_fp_NO_EXPORT) # May be set by overridden find_package()
+    # Don't need to add any find_dependency() calls.
+    return()
   endif()
   # Set up the beginning of the call.
   string(TOLOWER "${SOURCE_CALL}" TRANSITIVE_CALL)
