@@ -500,14 +500,29 @@ endfunction()
    Options
    ^^^^^^^
 
+   ``BINARY``
+     Unconditionally resolve non-absolute paths with respect to the
+     binary tree (mutually exclusive with ``SOURCE`` and
+     ``TRY_BINARY``).
+
    ``NO_CHECK_VALIDITY``
      Do not report an error if a project variable does not exist or does
      not represent a path or path fragment (ignored for ``ALL``).
 
+   ``SOURCE``
+     Unconditionally resolve non-absolute paths with respect to the
+     source tree (mutually exclusive with ``BINARY`` and
+     ``TRY_BINARY``).
+
    ``TRY_BINARY``
-     Try to resolve a path with respect to the binary rather than the
-     source tree (default for ``FILEPATH`` and ``FILEPATH_FRAGMENT``
-     :ref:`project-variables-types`).
+     Try to resolve a non-absolute path with respect to the binary
+     rather than the source tree (default for ``FILEPATH`` and
+     ``FILEPATH_FRAGMENT`` :ref:`project-variables-types`). If the path
+     does not resolve to an existing or :prop_sf:`GENERATED
+     <cmake-ref-current:prop_sf:GENERATED>` :manual:`CMake source file
+     <cmake-ref-current:manual:cmake-properties(7)>`, it will be
+     resolved with respect to the source tree. This option is mutually
+     exclusive with ``BINARY`` and ``SOURCE``.
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
@@ -524,7 +539,7 @@ function(cet_localize_pv PROJECT)
   if (NOT ${PROJECT}_IN_TREE)
     return() # Nothing to do.
   endif()
-  cmake_parse_arguments(PARSE_ARGV 1 CLPV "NO_CHECK_VALIDITY;TRY_BINARY" "" "")
+  cmake_parse_arguments(PARSE_ARGV 1 CLPV "BINARY;NO_CHECK_VALIDITY;SOURCE;TRY_BINARY" "" "")
   set(check_pv_validity)
   if (CLPV_UNPARSED_ARGUMENTS STREQUAL "ALL")
     set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
@@ -533,6 +548,15 @@ function(cet_localize_pv PROJECT)
     if (NOT CLPV_NO_CHECK_VALIDITY)
       set(check_pv_validity TRUE)
     endif()
+  endif()
+  set(n_exc)
+  foreach (opt IN ITEMS BINARY SOURCE TRY_BINARY)
+    if (CLPV_${opt})
+      math(n_exc EXPR "${n_exc} + 1")
+    endif()
+  endforeach()
+  if (n_exc GREATER 1)
+    message(FATAL_ERROR "options BINARY, SOURCE and TRY_BINARY are mutually exclusive")
   endif()
   foreach (var IN LISTS ${var_list})
     if (NOT var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
@@ -549,19 +573,20 @@ function(cet_localize_pv PROJECT)
       endif()
       continue()
     endif()
-    if (CMAKE_MATCH_1)
+    if (CMAKE_MATCH_1 AND NOT CLPV_SOURCE)
       set(try_binary TRUE)
     else()
       set(try_binary ${CLPV_TRY_BINARY})
     endif()
-    foreach (item IN LISTS ${PROJECT}_${var})
+    foreach (item IN ITEMS $CACHE{${PROJECT}_${var}})
       set(item_result)
       set(generated)
-      if (try_binary)
+      if (CLPV_BINARY OR (try_binary AND NOT CLPV_SOURCE))
         get_filename_component(item_result "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
         get_property(generated SOURCE "${item_result}" PROPERTY GENERATED)
       endif()
-      if (NOT (item_result AND (EXISTS "${item_result}" OR generated)))
+      if (NOT CLPV_BINARY AND (CLPV_SOURCE OR NOT
+            (item_result AND (EXISTS "${item_result}" OR generated))))
         get_filename_component(item_result "${${PROJECT}_${var}}"
           ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
       endif()
@@ -574,19 +599,19 @@ endfunction()
 #[================================================================[.rst:
 .. command:: cet_localize_pv_all
 
-   Equivalent to :command:`cet_localize_pv(\<project> [TRY_BINARY] ALL)
+   Equivalent to :command:`cet_localize_pv(\<project> [BINARY|SOURCE|TRY_BINARY] ALL)
    <cet_localize_pv>`.
 
    .. code-block:: cmake
 
-      cet_localize_pv_all(<project> [TRY_BINARY])
+      cet_localize_pv_all(<project> [BINARY|SOURCE|TRY_BINARY])
 
    .. seealso:: :command:`cet_localize_pv`.
 
 #]================================================================]
 
 function(cet_localize_pv_all PROJECT)
-  if (ARGN AND NOT ARGN STREQUAL "TRY_BINARY")
+  if (ARGN AND NOT ARGN MATCHES "^(BINARY|SOURCE|TRY_BINARY)$")
     message(WARNING "unrecognized extra arguments ${ARGN}")
     set(ARGN)
   endif()
