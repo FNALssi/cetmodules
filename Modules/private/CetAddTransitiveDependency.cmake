@@ -32,7 +32,7 @@ function(_cet_add_transitive_dependency SOURCE_CALL FIRST_ARG)
     set_property(CACHE CETMODULES_FIND_DEPS_PNAMES_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
       PROPERTY VALUE "${tdeps}")
   endif()
-  if (_fp_NO_EXPORT) # May be set by overridden find_package()
+  if (_fp_NO_EXPORT_${DEP}) # May be set by overridden find_package()
     # Don't need to add any find_dependency() calls.
     return()
   endif()
