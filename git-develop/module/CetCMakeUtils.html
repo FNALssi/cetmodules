@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetCMakeUtils &mdash; Cetmodules git-develop-b82d46f1 Reference</title>
+  <title>CetCMakeUtils &mdash; Cetmodules git-develop-02e5dec0 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=fc610b43"></script>
+    <script src="../_static/documentation_options.js?v=384f3a83"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-b82d46f1</span>
+    <span class="version_switch">git-develop-02e5dec0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -369,16 +369,34 @@ headers to be found.</p>
 <span class="sig-name descname"><span class="pre">cet_localize_pv</span></span><a class="headerlink" href="#command:cet_localize_pv" title="Link to this definition">¶</a></dt>
 <dd><p>Ensure that specified path-type <span class="target" id="index-0-manual:cetmodules-project-variables(7)"></span><a class="reference internal" href="../manual/cetmodules-project-variables.7.html#manual:cetmodules-project-variables(7)" title="cetmodules-project-variables(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">project</span> <span class="pre">variables</span></code></a> are absolute in the current
 directory scope for in-tree project <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;</span></code>.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;project-var-name&gt;</span><span class="p">]</span><span class="nf">)</span>
-<span class="nf">cet_localize_pv(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="no">ALL</span><span class="nf">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="w"> </span><span class="no">ALL</span><span class="p">|[</span><span class="nv">&lt;project-var-name&gt;...</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
+<div class="text-start admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-0-command:cet_localize_pv_all"></span><a class="reference internal" href="#command:cet_localize_pv_all" title="cet_localize_pv_all"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv_all()</span></code></a>,
+<span class="target" id="index-1-manual:cetmodules-project-variables(7)"></span><a class="reference internal" href="../manual/cetmodules-project-variables.7.html#manual:cetmodules-project-variables(7)" title="cetmodules-project-variables(7)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">cetmodules-project-variables(7)</span></code></a>,
+<span class="target" id="index-0-command:project_variable"></span><a class="reference internal" href="ProjectVariable.html#command:project_variable" title="project_variable"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">project_variable()</span></code></a>.</p>
+</div>
 <section id="id11">
-<h2>Non-option arguments<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
+<h2>Options<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">NO_CHECK_VALIDITY</span></code></dt><dd><p>Do not report an error if a project variable does not exist or does
+not represent a path or path fragment (ignored for <code class="docutils literal notranslate"><span class="pre">ALL</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TRY_BINARY</span></code></dt><dd><p>Try to resolve a path with respect to the binary rather than the
+source tree (default for <code class="docutils literal notranslate"><span class="pre">FILEPATH</span></code> and <code class="docutils literal notranslate"><span class="pre">FILEPATH_FRAGMENT</span></code>
+<a class="reference internal" href="../manual/cetmodules-project-variables.7.html#project-variables-types"><span class="std std-ref">Project Variable Type</span></a>).</p>
+</dd>
+</dl>
+</section>
+<section id="id12">
+<h2>Non-option arguments<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;project&gt;</span></code></dt><dd><p>The name of a CMake project in the current source tree.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">&lt;project-var-name&gt;</span></code></dt><dd><p>The name of a project variable (without a <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;_</span></code> prefix).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">ALL|&lt;project-var-name&gt;...</span></code></dt><dd><p>The name of one or more project variables (without a <code class="docutils literal notranslate"><span class="pre">&lt;project&gt;_</span></code>
+prefix).</p>
 </dd>
 </dl>
 </section>
@@ -387,9 +405,13 @@ directory scope for in-tree project <code class="docutils literal notranslate"><
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:cet_localize_pv_all">
 <span class="sig-name descname"><span class="pre">cet_localize_pv_all</span></span><a class="headerlink" href="#command:cet_localize_pv_all" title="Link to this definition">¶</a></dt>
-<dd><p>Equivalent to <span class="target" id="index-0-command:cet_localize_pv"></span><a class="reference internal" href="#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv(&lt;project&gt;</span> <span class="pre">ALL)</span></code></a>.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv_all(</span><span class="nv">&lt;project&gt;</span><span class="nf">)</span>
+<dd><p>Equivalent to <span class="target" id="index-0-command:cet_localize_pv"></span><a class="reference internal" href="#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv(&lt;project&gt;</span> <span class="pre">[TRY_BINARY]</span> <span class="pre">ALL)</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv_all(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="p">[</span><span class="no">TRY_BINARY</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="target" id="index-1-command:cet_localize_pv"></span><a class="reference internal" href="#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv()</span></code></a>.</p>
 </div>
 </dd></dl>
 
@@ -402,8 +424,8 @@ packages via <span class="target" id="index-1-command:cmake-ref-current:command:
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_cmake_module_directories(</span><span class="p">[</span><span class="no">NO_CONFIG</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">NO_LOCAL</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">PROJECT</span><span class="w"> </span><span class="nv">&lt;project&gt;</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;dir&gt;...</span><span class="nf">)</span>
 </pre></div>
 </div>
-<section id="id12">
-<h2>Options<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
+<section id="id13">
+<h2>Options<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h2>
 <dl>
 <dt><code class="docutils literal notranslate"><span class="pre">BINARY</span></code></dt><dd><p>Also add the corresponding directories in the project build tree to
 <span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_MODULE_PATH"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_MODULE_PATH.html#variable:CMAKE_MODULE_PATH" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_MODULE_PATH</span></code></a> in the current
@@ -428,8 +450,8 @@ not specifed, <code class="docutils literal notranslate"><span class="pre">&lt;p
 </dd>
 </dl>
 </section>
-<section id="id13">
-<h2>Non-option arguments<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h2>
+<section id="id14">
+<h2>Non-option arguments<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;dir&gt;...</span></code></dt><dd><p>Directories containing CMake modules.</p>
 </dd>
@@ -471,8 +493,8 @@ arguments; no other effect.</p>
 </dd>
 </dl>
 </div></blockquote>
-<section id="id14">
-<h2>Non-option arguments<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h2>
+<section id="id15">
+<h2>Non-option arguments<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h2>
 <dl>
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;target&gt;...</span></code></dt><dd><p>Targets to be aliased.</p>
 <div class="admonition seealso">
@@ -482,8 +504,8 @@ arguments; no other effect.</p>
 </dd>
 </dl>
 </section>
-<section id="id15">
-<h2>Notes<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h2>
+<section id="id16">
+<h2>Notes<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If no <code class="docutils literal notranslate"><span class="pre">&lt;export-set&gt;</span></code> is specified, the default export set
@@ -532,8 +554,8 @@ correct one here.</p>
 </dd>
 </dl>
 </div></blockquote>
-<section id="id16">
-<h2>Notes<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
+<section id="id17">
+<h2>Notes<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><span class="target" id="index-5-command:cet_register_export_set"></span><a class="reference internal" href="CetRegisterExportSet.html#command:cet_register_export_set" title="cet_register_export_set"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_register_export_set()</span></code></a>,
@@ -550,8 +572,8 @@ of real paths via <span class="target" id="index-0-command:cmake-ref-current:com
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_real_path(</span><span class="nv">&lt;out-var&gt;</span><span class="w"> </span><span class="p">[</span><span class="no">LIST</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;path&gt;...</span><span class="nf">)</span>
 </pre></div>
 </div>
-<section id="id17">
-<h2>Options<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
+<section id="id18">
+<h2>Options<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">LIST</span></code></dt><dd><p>Results will be returned in <code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code> as a “;”-separated CMake
 list rather than the default “:”-separated <span class="target" id="index-1-envvar:PATH"></span><a class="reference internal" href="../envvar/PATH.html#envvar:PATH" title="PATH"><code class="xref cmake cmake-envvar docutils literal notranslate"><span class="pre">PATH</span></code></a>-like
@@ -559,8 +581,8 @@ string.</p>
 </dd>
 </dl>
 </section>
-<section id="id18">
-<h2>Non-option arguments<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
+<section id="id19">
+<h2>Non-option arguments<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;out-var&gt;</span></code></dt><dd><p>Variable to hold the results.</p>
 </dd>
@@ -577,16 +599,16 @@ string.</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_filter_subdirs(</span><span class="p">[</span><span class="no">EXCLUDE</span><span class="w"> </span><span class="nv">&lt;subdir&gt;...</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">INCLUDE</span><span class="w"> </span><span class="nv">&lt;subdir&gt;...</span><span class="p">]</span><span class="w"> </span><span class="nv">&lt;path&gt;...</span><span class="nf">)</span>
 </pre></div>
 </div>
-<section id="id19">
-<h2>Options<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h2>
+<section id="id20">
+<h2>Options<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">(EXCLUDE|INCLUDE)</span> <span class="pre">&lt;root&gt;...</span></code></dt><dd><p>Exclude or select <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;</span></code> based on whether it is a subdirectory
 of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</span></code> after accounting for symbolic links.</p>
 </dd>
 </dl>
 </section>
-<section id="id20">
-<h2>Non-option arguments<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h2>
+<section id="id21">
+<h2>Non-option arguments<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">&lt;path&gt;...</span></code></dt><dd><p>Candidate paths to be filtered.</p>
 </dd>
@@ -657,7 +679,7 @@ of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</sp
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-b82d46f1</span>
+    <span class="version_switch">git-develop-02e5dec0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
