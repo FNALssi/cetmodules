@@ -80,7 +80,7 @@ Misc options: [-D<CMake-definition>]+
 Options suffixed with '+' are repeatable and cumulative. If a
 non-repeatable option is specified multiple times, last invocation wins.
 
-The -G and --generator options are mutually-exclusive, and may be specified at most once.
+The -G and --generator options are mutually exclusive, and may be specified at most once.
 
 Required environment: CETPKG_BUILD CETPKG_SOURCE
 Optional environment: CETPKG_INSTALL CETPKG_J
@@ -368,7 +368,7 @@ MISC. OPTIONS.
   run, a warning shall be issued. If no labels are selected, then
   DEFAULT is selected. A value of ALL is substituted with all known test
   labels. A leading \`-' for a label will lead to its explicit
-  exclusion. See also -T, -R options. Mutually-exclusive with --L and
+  exclusion. See also -T, -R options. Mutually exclusive with --L and
   --LE options.
 
 --usage
@@ -1082,7 +1082,7 @@ fi
 
 (( ${#test_labels[@]} )) && \
   { [ -n "$l_regex" ] || [ -n "$le_regex" ]; } && \
-  fatal_error "--LE and --L are mutually-exclusive with -T, -R, and --test-labels and synonyms"
+  fatal_error "--LE and --L are mutually exclusive with -T, -R, and --test-labels and synonyms"
 ##################
 
 ##################

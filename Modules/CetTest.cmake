@@ -234,13 +234,13 @@ define_property(TEST PROPERTY KEYWORDS
 
    ``OUTPUT_FILTER <filter>``
      Specify a single filter for test output. Specify arguments to same
-     with ``OUTPUT_FILTER_ARGS``. Mutually-exclusive with
+     with ``OUTPUT_FILTER_ARGS``. Mutually exclusive with
      ``OUTPUT_FILTERS``.
 
    ``OUTPUT_FILTERS "<filter [<filter-args>]>" ...``
      Specify one or more filters to apply sequentially to test
      output. Each specified filter with its arguments must be quoted as
-     a single shell "word." Mutually-exclusive with ``OUTPUT_FILTER``
+     a single shell "word." Mutually exclusive with ``OUTPUT_FILTER``
      and ``OUTPUT_FILTER_ARGS``.
 
      .. note::
@@ -255,7 +255,7 @@ define_property(TEST PROPERTY KEYWORDS
 
    ``OUTPUT_FILTER_ARGS <arg> ...``
      Specify arguments to ``<filter>`` as specified by
-     ``OUTPUT_FILTER``. Mutually-exclusive with ``OUTPUT_FILTERS``.
+     ``OUTPUT_FILTER``. Mutually exclusive with ``OUTPUT_FILTERS``.
 
    ``PARG_<label> <opt>[=] <opt-val> ...``
      Specify a parameter axis ``<label>`` with values to configure a

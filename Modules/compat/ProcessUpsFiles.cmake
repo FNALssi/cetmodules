@@ -291,7 +291,7 @@ function(_table_var_clause LABEL OUT_VAR)
     "BASE_INDENT;IF_TEST;INDENT;PVAR"
     "ELSE_IMPL;VAL")
   if (_TVC_PVAR AND _TVC_VAL)
-    message(FATAL_ERROR "INTERNAL: PVAR and VAL are mutually-exclusive in _table_var_clause()")
+    message(FATAL_ERROR "INTERNAL: PVAR and VAL are mutually exclusive in _table_var_clause()")
   endif()
   if (_TVC_PVAR)
     string(TOLOWER "${_TVC_UNPARSED_ARGUMENTS}" reverse)

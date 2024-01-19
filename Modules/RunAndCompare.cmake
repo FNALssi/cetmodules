@@ -32,7 +32,7 @@ X
 #   Filter program arguments.
 # OUTPUT_FILTERS
 #   A list of filters with arguments, quoted as appropriate
-#   (mutually-exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
+#   (mutually exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
 #   DEFAULT to specify the default filter(s) somewhere in the chain.
 ########################################################################
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
