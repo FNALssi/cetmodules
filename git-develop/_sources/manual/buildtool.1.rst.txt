@@ -382,7 +382,7 @@ Miscellaneous options
    selected, then ``DEFAULT`` is selected. A value of ``ALL`` is
    substituted with all known test labels. A leading ``-`` for a label
    will lead to its explicit exclusion. See also :option:`--test-all`,
-   and :option:`--release`. Mutually-exclusive with :option:`--L` and
+   and :option:`--release`. Mutually exclusive with :option:`--L` and
    :option:`--LE`.
 
 .. option:: --usage

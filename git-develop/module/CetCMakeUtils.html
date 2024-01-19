@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetCMakeUtils &mdash; Cetmodules git-develop-02e5dec0 Reference</title>
+  <title>CetCMakeUtils &mdash; Cetmodules git-develop-80e2a3a0 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=384f3a83"></script>
+    <script src="../_static/documentation_options.js?v=d1ed3a1c"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-02e5dec0</span>
+    <span class="version_switch">git-develop-80e2a3a0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -381,12 +381,23 @@ directory scope for in-tree project <code class="docutils literal notranslate"><
 <section id="id11">
 <h2>Options<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
 <dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">BINARY</span></code></dt><dd><p>Unconditionally resolve non-absolute paths with respect to the
+binary tree (mutually exclusive with <code class="docutils literal notranslate"><span class="pre">SOURCE</span></code> and
+<code class="docutils literal notranslate"><span class="pre">TRY_BINARY</span></code>).</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NO_CHECK_VALIDITY</span></code></dt><dd><p>Do not report an error if a project variable does not exist or does
 not represent a path or path fragment (ignored for <code class="docutils literal notranslate"><span class="pre">ALL</span></code>).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">TRY_BINARY</span></code></dt><dd><p>Try to resolve a path with respect to the binary rather than the
-source tree (default for <code class="docutils literal notranslate"><span class="pre">FILEPATH</span></code> and <code class="docutils literal notranslate"><span class="pre">FILEPATH_FRAGMENT</span></code>
-<a class="reference internal" href="../manual/cetmodules-project-variables.7.html#project-variables-types"><span class="std std-ref">Project Variable Type</span></a>).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span></code></dt><dd><p>Unconditionally resolve non-absolute paths with respect to the
+source tree (mutually exclusive with <code class="docutils literal notranslate"><span class="pre">BINARY</span></code> and
+<code class="docutils literal notranslate"><span class="pre">TRY_BINARY</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TRY_BINARY</span></code></dt><dd><p>Try to resolve a non-absolute path with respect to the binary
+rather than the source tree (default for <code class="docutils literal notranslate"><span class="pre">FILEPATH</span></code> and
+<code class="docutils literal notranslate"><span class="pre">FILEPATH_FRAGMENT</span></code> <a class="reference internal" href="../manual/cetmodules-project-variables.7.html#project-variables-types"><span class="std std-ref">Project Variable Type</span></a>). If the path
+does not resolve to an existing or <span class="target" id="index-0-prop_sf:cmake-ref-current:prop_sf:GENERATED"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_sf/GENERATED.html#prop_sf:GENERATED" title="(in CMake v3.27.9)"><code class="xref cmake cmake-prop_sf docutils literal notranslate"><span class="pre">GENERATED</span></code></a> <span class="target" id="index-0-manual:cmake-ref-current:manual:cmake-properties(7)"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/manual/cmake-properties.7.html#manual:cmake-properties(7)" title="(in CMake v3.27.9)"><code class="xref cmake cmake-manual docutils literal notranslate"><span class="pre">CMake</span> <span class="pre">source</span> <span class="pre">file</span></code></a>, it will be
+resolved with respect to the source tree. This option is mutually
+exclusive with <code class="docutils literal notranslate"><span class="pre">BINARY</span></code> and <code class="docutils literal notranslate"><span class="pre">SOURCE</span></code>.</p>
 </dd>
 </dl>
 </section>
@@ -405,8 +416,8 @@ prefix).</p>
 <dl class="cmake command">
 <dt class="sig sig-object cmake" id="command:cet_localize_pv_all">
 <span class="sig-name descname"><span class="pre">cet_localize_pv_all</span></span><a class="headerlink" href="#command:cet_localize_pv_all" title="Link to this definition">¶</a></dt>
-<dd><p>Equivalent to <span class="target" id="index-0-command:cet_localize_pv"></span><a class="reference internal" href="#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv(&lt;project&gt;</span> <span class="pre">[TRY_BINARY]</span> <span class="pre">ALL)</span></code></a>.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv_all(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="p">[</span><span class="no">TRY_BINARY</span><span class="p">]</span><span class="nf">)</span>
+<dd><p>Equivalent to <span class="target" id="index-0-command:cet_localize_pv"></span><a class="reference internal" href="#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv(&lt;project&gt;</span> <span class="pre">[BINARY|SOURCE|TRY_BINARY]</span> <span class="pre">ALL)</span></code></a>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_localize_pv_all(</span><span class="nv">&lt;project&gt;</span><span class="w"> </span><span class="p">[</span><span class="no">BINARY</span><span class="p">|</span><span class="no">SOURCE</span><span class="p">|</span><span class="no">TRY_BINARY</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
 <div class="admonition seealso">
@@ -679,7 +690,7 @@ of <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;</sp
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-02e5dec0</span>
+    <span class="version_switch">git-develop-80e2a3a0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 

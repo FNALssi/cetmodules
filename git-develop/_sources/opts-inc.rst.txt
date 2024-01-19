@@ -8,11 +8,11 @@
    ``DESTINATION <dest-path>``
      Installation subdirectory below :variable:`CMAKE_INSTALL_PREFIX
      <cmake-ref-current:variable:CMAKE_INSTALL_PREFIX>`
-     (mutually-exclusive with ``DEST_VAR``).
+     (mutually exclusive with ``DEST_VAR``).
 
    ``DEST_VAR <dest-var>``
      The name of a CMake variable containing the installation
-     subdirectory (mutually-exclusive with ``DESTINATION``).
+     subdirectory (mutually exclusive with ``DESTINATION``).
 
    .. _p_cet_install-EXCLUDES:
 
@@ -24,7 +24,7 @@
    .. _p_cet_install-opt-LIST:
 
    ``LIST <file> ...``
-     A list of files to install. Mutually-exclusive with any option
+     A list of files to install. Mutually exclusive with any option
      assuming a generated list via :ref:`p_cet_install-_GLOB`,
      specifically :ref:`p_cet_install-EXCLUDES`,
      :ref:`p_cet_install-BASENAME_EXCLUDES`,

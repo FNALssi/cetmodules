@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>CetMakeLibrary &mdash; Cetmodules git-develop-02e5dec0 Reference</title>
+  <title>CetMakeLibrary &mdash; Cetmodules git-develop-80e2a3a0 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=384f3a83"></script>
+    <script src="../_static/documentation_options.js?v=d1ed3a1c"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-02e5dec0</span>
+    <span class="version_switch">git-develop-80e2a3a0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -96,14 +96,14 @@ libraries and plugins.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code></dt><dd><p>Calculate the name of the library based only on the basename of
 <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a>;
-mutually-exclusive with <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code>.</p>
+mutually exclusive with <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span> <span class="pre">&lt;name&gt;</span></code></dt><dd><p class="text-start">Specify the library name as <code class="docutils literal notranslate"><span class="pre">name</span></code>. If this option is not
 provided the library’s name will be calculated from the relative
 path of <span class="target" id="index-1-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a> with respect
 to <span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_SOURCE_DIR.html#variable:CETMODULES_CURRENT_PROJECT_SOURCE_DIR" title="CETMODULES_CURRENT_PROJECT_SOURCE_DIR"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CETMODULES_CURRENT_PROJECT_SOURCE_DIR</span></code></a> subject to
 possible modification by <code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code> (replacing
-path-separators with <code class="docutils literal notranslate"><span class="pre">_</span></code>). <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code> is mutually-exclusive
+path-separators with <code class="docutils literal notranslate"><span class="pre">_</span></code>). <code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME</span></code> is mutually exclusive
 with <code class="docutils literal notranslate"><span class="pre">BASENAME_ONLY</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">LIBRARY_NAME_VAR</span> <span class="pre">&lt;var&gt;</span></code></dt><dd><p>Return the calculated/modified library name in the variable
@@ -150,10 +150,10 @@ headers relative to <span class="target" id="index-1-module:ProjectVariable"></s
 <dt><code class="docutils literal notranslate"><span class="pre">LOCAL_INCLUDE_DIRS</span> <span class="pre">&lt;dir&gt;</span> <span class="pre">...</span></code></dt><dd><p>Specify local include directories.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code></dt><dd><p>Indicate that no sources are specified at this time. Add them later
-with <span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_sources()</span></code></a>. Mutually-exclusive
+with <span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_sources()</span></code></a>. Mutually exclusive
 with <code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></dt><dd><p>Source files for inclusion in the library. Mutually-exclusive with
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;source&gt;</span> <span class="pre">...</span></code></dt><dd><p>Source files for inclusion in the library. Mutually exclusive with
 <code class="docutils literal notranslate"><span class="pre">NO_SOURCE</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">SOVERSION</span> <span class="pre">&lt;api-version&gt;</span></code></dt><dd><p>Specify the <span class="target" id="index-0-prop_tgt:cmake-ref-current:prop_tgt:SOVERSION"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/prop_tgt/SOVERSION.html#prop_tgt:SOVERSION" title="(in CMake v3.27.9)"><code class="xref cmake cmake-prop_tgt docutils literal notranslate"><span class="pre">API</span> <span class="pre">version</span></code></a> of the library.</p>
@@ -307,7 +307,7 @@ used downstream via <span class="target" id="index-0-command:cmake-ref-current:c
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-02e5dec0</span>
+    <span class="version_switch">git-develop-80e2a3a0</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
