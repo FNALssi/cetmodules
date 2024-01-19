@@ -70,6 +70,7 @@ Utility
 * :command:`cet_test_env_mod`
 * :command:`cet_test_env_prepend`
 * :command:`cet_timestamp`
+* :command:`cet_transitive_paths`
 * :command:`cet_version_cmp`
 * :command:`cet_write_plugin_builder`
 * :command:`parse_version_string`

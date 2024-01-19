@@ -27,7 +27,8 @@ include_guard()
 
       cet_transitive_paths(<path-name> [<project-variable localization options>] [IN_TREE] [PROJECT <project-name>])
 
-   .. seealso:: :command:`cet_localize_pv`.
+   .. seealso:: :command:`cet_localize_pv`
+
    Options
    ^^^^^^^
 
@@ -52,36 +53,32 @@ include_guard()
 #]================================================================]
 
 function(cet_transitive_paths PATH)
-  cmake_parse_arguments(PARSE_ARGV 1 CTP "IN_TREE;BINARY;SOURCE;TRY_BINARY" "PROJECT" "")
-  cet_passthrough(FLAG APPEND CTP_BINARY clpv_args)
-  cet_passthrough(FLAG APPEND CTP_SOURCE clpv_args)
-  cet_passthrough(FLAG APPEND CTP_TRY_BINARY clpv_args)
+  cmake_parse_arguments(PARSE_ARGV 1 CTP "IN_TREE" "PROJECT" "")
 
   set(PKG ${CETMODULES_CURRENT_PROJECT_NAME})
   if (CTP_PROJECT)
     set(PKG ${CTP_PROJECT})
   endif()
 
-  _cet_transitive_project_names(${PKG} PNAMES_RESULT CTP_IN_TREE)
+  _cet_transitive_project_names(${PKG} PNAMES_RESULT)
   foreach(DEP IN LISTS PNAMES_RESULT)
     if (DEFINED CACHE{CETMODULES_${PATH}_PROPERTIES_PROJECT_${DEP}})
-      cet_localize_pv(${DEP} ${PATH} ${clpv_args})
+      cet_localize_pv(${DEP} ${PATH} ${CTP_UNPARSED_ARGUMENTS})
     endif()
     list(APPEND TRANSITIVE_PATHS_TMP ${${DEP}_${PATH}})
   endforeach()
   set(TRANSITIVE_PATHS_WITH_${PATH} ${TRANSITIVE_PATHS_TMP} PARENT_SCOPE)
-
 endfunction()
 
 function(_cet_transitive_project_names PKG RESULT_LIST)
   set(RESULT_LIST_TMP ${${RESULT_LIST}})
   foreach(DEP IN LISTS CETMODULES_FIND_DEPS_PNAMES_PROJECT_${PKG})
     if (PKG STREQUAL DEP OR
-        (ARGN STREQUAL "IN_TREE" AND NOT ${DEP}_IN_TREE))
+        (CTP_IN_TREE AND NOT ${DEP}_IN_TREE))
       continue()
     endif()
     if (NOT "${DEP}" IN_LIST RESULT_LIST_TMP)
-      _cet_transitive_project_names("${DEP}" RESULT_LIST_TMP ${ARGN})
+      _cet_transitive_project_names("${DEP}" RESULT_LIST_TMP)
     endif()
   endforeach()
   list(PREPEND RESULT_LIST_TMP ${PKG})
