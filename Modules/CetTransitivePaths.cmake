@@ -27,6 +27,7 @@ include_guard()
 
       cet_transitive_paths(<path-name> [<project-variable localization options>] [IN_TREE] [PROJECT <project-name>])
 
+   .. seealso:: :command:`cet_localize_pv`.
    Options
    ^^^^^^^
 
