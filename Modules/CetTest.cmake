@@ -21,6 +21,8 @@ include(CetMake)
 include(CetPackagePath)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
+# Need to specify transitive BINARY_DIR paths for COMPILE_ONLY tests
+include(CetTransitivePaths)
 
 ##################
 # Programs and Modules
@@ -688,8 +690,8 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
         endif()
       endif()
       if (CET_COMPILE_ONLY)
-        _transitive_binary_directories(${CETMODULES_CURRENT_PROJECT_NAME})
-        list(JOIN TRANSITIVE_BINARY_DIRS ":" DIRS_FOR_PREFIX_PATH)
+        cet_transitive_paths(BINARY_DIR IN_TREE)
+        list(JOIN TRANSITIVE_PATHS_WITH_BINARY_DIR ":" DIRS_FOR_PREFIX_PATH)
         set(TEST_CMAKE_PREFIX_PATH "CMAKE_PREFIX_PATH=path_list_prepend:${DIRS_FOR_PREFIX_PATH}")
         get_test_property(${target} ENVIRONMENT_MODIFICATION CET_TEST_ENV_TMP)
         if (CET_TEST_ENV_TMP)
@@ -1099,16 +1101,4 @@ function(_update_defined_test_groups)
     CACHE STRING "List of defined test groups."
     FORCE
     )
-endfunction()
-
-function(_transitive_binary_directories PKG)
-  set(TRANSITIVE_BINARY_DIRS_TMP ${${PKG}_BINARY_DIR})
-  foreach(DEP IN LISTS CETMODULES_FIND_DEPS_PNAMES_PROJECT_${PKG})
-    if (${DEP}_IN_TREE)
-      _transitive_binary_directories(${DEP})
-      list(APPEND TRANSITIVE_BINARY_DIRS_TMP ${TRANSITIVE_BINARY_DIRS})
-    endif()
-  endforeach()
-  list(REMOVE_DUPLICATES TRANSITIVE_BINARY_DIRS_TMP)
-  set(TRANSITIVE_BINARY_DIRS ${TRANSITIVE_BINARY_DIRS_TMP} PARENT_SCOPE)
 endfunction()
