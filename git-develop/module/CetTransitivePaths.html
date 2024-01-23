@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>ProcessSmc &mdash; Cetmodules git-develop-638ab148 Reference</title>
+  <title>CetTransitivePaths &mdash; Cetmodules git-develop-638ab148 Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
@@ -23,8 +23,8 @@
     <link rel="icon" href="../_static/cetmodules-favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ProjectVariable" href="ProjectVariable.html" />
-    <link rel="prev" title="ParseVersionString" href="ParseVersionString.html" />
+    <link rel="next" title="InstallFW" href="InstallFW.html" />
+    <link rel="prev" title="CetTest" href="CetTest.html" />
   
   <script type="text/javascript" src="../../_static/version_switch.js"></script>
   
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="ProjectVariable.html" title="ProjectVariable"
+          <a href="InstallFW.html" title="InstallFW"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ParseVersionString.html" title="ParseVersionString"
+          <a href="CetTest.html" title="CetTest"
              accesskey="P">previous</a> |</li>
   <li>
     <a href="https://github.com/FNALssi/cetmodules">
@@ -60,13 +60,13 @@
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" accesskey="U">cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">ProcessSmc</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetTransitivePaths</a></li> 
       </ul>
     </div>
 
     <div class="outdated">
       This documents an old version of Cetmodules.
-      <a href="../../latest/module/ProcessSmc.html">
+      <a href="../../latest/module/CetTransitivePaths.html">
         Click here to see the latest release.
       </a>
       <span class="version_switch_note"></span>
@@ -79,46 +79,46 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <span class="target" id="module:ProcessSmc"></span><section id="processsmc">
-<h1>ProcessSmc<a class="headerlink" href="#processsmc" title="Link to this heading">¶</a></h1>
-<p>Define the function <span class="target" id="index-0-command:process_smc"></span><a class="reference internal" href="#command:process_smc" title="process_smc"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">process_smc()</span></code></a> to generate C++ source code
-from an <a class="reference external" href="https://smc.sourceforge.net/">SMC</a> <code class="file docutils literal notranslate"><span class="pre">.sm</span></code> file.</p>
+  <span class="target" id="module:CetTransitivePaths"></span><section id="cettransitivepaths">
+<h1>CetTransitivePaths<a class="headerlink" href="#cettransitivepaths" title="Link to this heading">¶</a></h1>
+<p>Defines the function <a href="#id1"><span class="problematic" id="id2">:commmand:`cet_transitive_paths`</span></a>.</p>
 <dl class="cmake command">
-<dt class="sig sig-object cmake" id="command:process_smc">
-<span class="sig-name descname"><span class="pre">process_smc</span></span><a class="headerlink" href="#command:process_smc" title="Link to this definition">¶</a></dt>
-<dd><p>Generate C++ source code from an <a class="reference external" href="https://smc.sourceforge.net/">SMC</a> <code class="file docutils literal notranslate"><span class="pre">.sm</span></code> file.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">process_smc(</span><span class="nv">&lt;target-or-var&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
+<dt class="sig sig-object cmake" id="command:cet_transitive_paths">
+<span class="sig-name descname"><span class="pre">cet_transitive_paths</span></span><a class="headerlink" href="#command:cet_transitive_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of path values for all transitive dependencies of the
+given project name.  For a given path name, the dependency tree of
+the given project is searched according to the dependencies
+specified via <code class="docutils literal notranslate"><span class="pre">find_package</span></code>.</p>
+<p>For example, if the path name <code class="docutils literal notranslate"><span class="pre">&quot;MY_PATH&quot;</span></code> is supplied, the
+function will traverse the dependency structure and collect all
+values of the path name <code class="docutils literal notranslate"><span class="pre">&quot;&lt;project-or-dependency</span> <span class="pre">name&gt;_MY_PATH&quot;</span></code>.
+The result can be accessed via the variable
+<code class="docutils literal notranslate"><span class="pre">&quot;TRANSITIVE_PATHS_WITH_MY_PATH&quot;</span></code>.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">cet_transitive_paths(</span><span class="nv">&lt;path-name&gt;</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;project-variable localization options&gt;</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">IN_TREE</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="no">PROJECT</span><span class="w"> </span><span class="nv">&lt;project-name&gt;</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><span class="target" id="index-0-module:FindSmc"></span><a class="reference internal" href="find/FindSmc.html#module:FindSmc" title="FindSmc"><code class="xref cmake cmake-module docutils literal notranslate"><span class="pre">FindSmc</span></code></a></p>
+<p><span class="target" id="index-0-command:cet_localize_pv"></span><a class="reference internal" href="CetCMakeUtils.html#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv()</span></code></a></p>
 </div>
 <section id="options">
 <h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL</span></code></dt><dd><p>Do not install generated files in either the include or source
-areas of the built package.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">[PROJECT]</span> <span class="pre">&lt;project-name&gt;</span></code></dt><dd><p>The top-level project from which the transitive dependency
+traversal occurs.  (default
+<span class="target" id="index-0-variable:CETMODULES_CURRENT_PROJECT_NAME"></span><a class="reference internal" href="../variable/CETMODULES_CURRENT_PROJECT_NAME.html#variable:CETMODULES_CURRENT_PROJECT_NAME" title="CETMODULES_CURRENT_PROJECT_NAME"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CETMODULES_CURRENT_PROJECT_NAME}</span></code></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[IN_TREE]</span></code></dt><dd><p>Include paths only from projects that are included in the build tree.</p>
 </dd>
 </dl>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 3.23.00: </span></p>
-<dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">NO_INSTALL_SOURCE</span></code></dt><dd><p>Do not install generated files in the source areas of the built
-package.</p>
-</dd>
-</dl>
-</div>
 </section>
 <section id="non-option-arguments">
 <h2>Non-option arguments<a class="headerlink" href="#non-option-arguments" title="Link to this heading">¶</a></h2>
-<dl>
-<dt><code class="docutils literal notranslate"><span class="pre">&lt;target-or-var&gt;</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">&lt;target-or-var&gt;</span></code> is a target, generated sources will be added
-as <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code> sources via <span class="target" id="index-0-command:cmake-ref-current:command:target_sources"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/command/target_sources.html#command:target_sources" title="(in CMake v3.27.9)"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">target_sources()</span></code></a>.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 2.10.00: </span>Otherwise, add the generated sources to the CMake variable
-<code class="docutils literal notranslate"><span class="pre">&lt;target-or-var&gt;</span></code> in the caller’s scope.`</p>
-</div>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&lt;path-name&gt;</span></code></dt><dd><p>The name of the path that serves as the suffix for the top-level
+project and all transitive dependencies.  The path name can be a
+Cetmodules project variable, in which case the options to
+<span class="target" id="index-1-command:cet_localize_pv"></span><a class="reference internal" href="CetCMakeUtils.html#command:cet_localize_pv" title="cet_localize_pv"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_localize_pv()</span></code></a> may also be provided.</p>
 </dd>
 </dl>
 </section>
@@ -135,18 +135,18 @@ as <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></
         <div class="sphinxsidebarwrapper">
   <div>
     <h4>Previous topic</h4>
-    <p class="topless"><a href="ParseVersionString.html"
-                          title="previous chapter">ParseVersionString</a></p>
+    <p class="topless"><a href="CetTest.html"
+                          title="previous chapter">CetTest</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="ProjectVariable.html"
-                          title="next chapter">ProjectVariable</a></p>
+    <p class="topless"><a href="InstallFW.html"
+                          title="next chapter">InstallFW</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/module/ProcessSmc.rst.txt"
+      <li><a href="../_sources/module/CetTransitivePaths.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -171,10 +171,10 @@ as <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="ProjectVariable.html" title="ProjectVariable"
+          <a href="InstallFW.html" title="InstallFW"
              >next</a> |</li>
         <li class="right" >
-          <a href="ParseVersionString.html" title="ParseVersionString"
+          <a href="CetTest.html" title="CetTest"
              >previous</a> |</li>
   <li>
     <a href="https://github.com/FNALssi/cetmodules">
@@ -192,7 +192,7 @@ as <code class="docutils literal notranslate"><span class="pre">PRIVATE</span></
   </li>
 
           <li class="nav-item nav-item-1"><a href="../manual/cetmodules-modules.7.html" >cetmodules-modules(7)</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">ProcessSmc</a></li> 
+        <li class="nav-item nav-item-this"><a href="">CetTransitivePaths</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
