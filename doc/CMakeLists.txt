@@ -212,8 +212,9 @@ function(_set_version_release)
     if (${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_VERSION_BRANCH)
       set(current_branch "${${CETMODULES_CURRENT_PROJECT_NAME}_SPHINX_DOC_PUBLISH_VERSION_BRANCH}")
     else()
+      find_package(Git 2.22.0 REQUIRED)
       # Try to get the current branch for the version.
-      execute_process(COMMAND git branch --show-current
+      execute_process(COMMAND Git::Git branch --show-current
         COMMAND_ERROR_IS_FATAL ANY
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         OUTPUT_VARIABLE current_branch
