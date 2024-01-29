@@ -38,7 +38,7 @@ mark_as_advanced(WANT_UPS)
 # What kind of things can we build?
 option(BUILD_SHARED_LIBS "Build shared libraries (all projects)." ON)
 option(BUILD_STATIC_LIBS "Build static libraries (all projects)." OFF)
-option(BUILD_DOCS "Build documentation (all_projects)." ON)
+option(BUILD_DOCS "Build documentation (all_projects)." OFF)
 
 # RPATH management.
 option(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
