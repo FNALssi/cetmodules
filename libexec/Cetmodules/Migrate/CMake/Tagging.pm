@@ -93,10 +93,10 @@ sub ignored {
 sub report_removed {
   my ($cmake_file, $msg, @args) = @_;
   defined $msg or $msg = q();
-  map {
+  foreach my $arg (@args) {
     info("command removed from $cmake_file:$_->{start_line}$msg:\n",
-      reconstitute_code($_));
-  } @args;
+      reconstitute_code($arg));
+  }
   return;
 } ## end sub report_removed
 

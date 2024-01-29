@@ -4,8 +4,6 @@ import os
 import re
 import sys
 
-# -- Project information -----------------------------------------------------
-
 source_suffix = '.rst'
 master_doc = 'index'
 pygments_style = 'sphinxcontrib.moderncmakedomain.colors.CMakeTemplateStyle'
@@ -14,14 +12,12 @@ highlight_language = 'none'
 
 project = '@PROJ_NAME@'
 copyright_start = '@PROJ_COPYRIGHT_START@'
-copyright_current = datetime.date.today().year
+copyright_current = str(datetime.date.today().year)
 copyright = '{0}, @PROJ_COPYRIGHT_OWNER@'.format\
             (copyright_current if
              not copyright_start or copyright_start == copyright_current else
-             '{0}--{1}'.format(copyright_start, copyright_current))
+             '{0}–{1}'.format(copyright_start, copyright_current))
 author = '@PROJ_AUTHORS@'.replace(';', ', ') or None
-
-# -- General configuration ---------------------------------------------------
 
 # Diagnostic options.
 suppress_warnings = '@PROJ_SUPPRESS_WARNINGS@'.split(';') or None
@@ -52,8 +48,6 @@ exclude_patterns = []
 # Other common options.
 smartquotes = True
 smartquotes_action = 'qDe' # quotes, en- and em-dashes, and ellipses.
-
-# -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -96,7 +90,7 @@ html_static_path = [
 
 # Included at the beginning of every ReST document.
 rst_prolog = """
-.. |CMAKE_MIN_VERSION| replace:: @CETMODULES_MIN_CMAKE_VERSION@
+.. |CMAKE_MIN_VERSION| replace:: @cetmodules_MIN_CMAKE_VERSION@
 .. include:: /../cetmodules-common.rst
 """
 

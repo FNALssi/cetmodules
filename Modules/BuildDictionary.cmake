@@ -336,7 +336,7 @@ function(build_dictionary)
 endfunction()
 
 function(_generate_dictionary)
-  cmake_parse_arguments(PARSE_ARGV 2 GD "" "AUX_OUTPUT_VAR" "")
+  cmake_parse_arguments(PARSE_ARGV 0 GD "" "AUX_OUTPUT_VAR" "")
   set(generate_dictionary_usage "_generate_dictionary( [DICT_FUNCTIONS] [dictionary_name] )")
   # Add target-specific include directories and compile definitions,
   # accounting safely for generator expressions.

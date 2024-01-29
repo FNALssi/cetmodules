@@ -363,7 +363,7 @@ function (parse_version_string)
       unset(PVS_EXTRA_VAR)
     endif()
   elseif (PVS_NO_EXTRA AND PVS_EXTRA_SEP)
-    message(FATAL_ERROR "NO_EXTRA and EXTRA_SEP are mutually-exclusive")
+    message(FATAL_ERROR "NO_EXTRA and EXTRA_SEP are mutually exclusive")
   endif()
   # Initialize intermediate variables.
   unset(_pvs_extra)

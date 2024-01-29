@@ -21,6 +21,8 @@ include(CetMake)
 include(CetPackagePath)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
+# Need to specify transitive BINARY_DIR paths for COMPILE_ONLY tests
+include(CetTransitivePaths)
 
 ##################
 # Programs and Modules
@@ -234,13 +236,13 @@ define_property(TEST PROPERTY KEYWORDS
 
    ``OUTPUT_FILTER <filter>``
      Specify a single filter for test output. Specify arguments to same
-     with ``OUTPUT_FILTER_ARGS``. Mutually-exclusive with
+     with ``OUTPUT_FILTER_ARGS``. Mutually exclusive with
      ``OUTPUT_FILTERS``.
 
    ``OUTPUT_FILTERS "<filter [<filter-args>]>" ...``
      Specify one or more filters to apply sequentially to test
      output. Each specified filter with its arguments must be quoted as
-     a single shell "word." Mutually-exclusive with ``OUTPUT_FILTER``
+     a single shell "word." Mutually exclusive with ``OUTPUT_FILTER``
      and ``OUTPUT_FILTER_ARGS``.
 
      .. note::
@@ -255,7 +257,7 @@ define_property(TEST PROPERTY KEYWORDS
 
    ``OUTPUT_FILTER_ARGS <arg> ...``
      Specify arguments to ``<filter>`` as specified by
-     ``OUTPUT_FILTER``. Mutually-exclusive with ``OUTPUT_FILTERS``.
+     ``OUTPUT_FILTER``. Mutually exclusive with ``OUTPUT_FILTERS``.
 
    ``PARG_<label> <opt>[=] <opt-val> ...``
      Specify a parameter axis ``<label>`` with values to configure a
@@ -685,6 +687,19 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
         else()
           set_tests_properties(${target} PROPERTIES
             ENVIRONMENT_MODIFICATION "${CET_TEST_ENV_MODIFICATION}")
+        endif()
+      endif()
+      if (CET_COMPILE_ONLY)
+        cet_transitive_paths(BINARY_DIR IN_TREE)
+        list(JOIN TRANSITIVE_PATHS_WITH_BINARY_DIR ":" DIRS_FOR_PREFIX_PATH)
+        set(TEST_CMAKE_PREFIX_PATH "CMAKE_PREFIX_PATH=path_list_prepend:${DIRS_FOR_PREFIX_PATH}")
+        get_test_property(${target} ENVIRONMENT_MODIFICATION CET_TEST_ENV_TMP)
+        if (CET_TEST_ENV_TMP)
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT_MODIFICATION "${TEST_CMAKE_PREFIX_PATH};${CET_TEST_ENV_TMP}")
+        else()
+          set_tests_properties(${target} PROPERTIES
+            ENVIRONMENT_MODIFICATION "${TEST_CMAKE_PREFIX_PATH}")
         endif()
       endif()
       if (CET_REF)

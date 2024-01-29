@@ -39,7 +39,7 @@ set(_cet_make_library_usage "")
      Calculate the name of the library based only on the basename of
      :variable:`CMAKE_CURRENT_SOURCE_DIR
      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
-     mutually-exclusive with ``LIBRARY_NAME``.
+     mutually exclusive with ``LIBRARY_NAME``.
 
    ``LIBRARY_NAME <name>``
      .. rst-class:: text-start
@@ -50,7 +50,7 @@ set(_cet_make_library_usage "")
      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect
      to :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to
      possible modification by ``USE_PROJECT_NAME`` (replacing
-     path-separators with ``_``). ``LIBRARY_NAME`` is mutually-exclusive
+     path-separators with ``_``). ``LIBRARY_NAME`` is mutually exclusive
      with ``BASENAME_ONLY``.
 
    ``LIBRARY_NAME_VAR <var>``
@@ -105,11 +105,11 @@ set(_cet_make_library_usage "")
    ``NO_SOURCE``
      Indicate that no sources are specified at this time. Add them later
      with :command:`target_sources()
-     <cmake-ref-current:command:target_sources>`. Mutually-exclusive
+     <cmake-ref-current:command:target_sources>`. Mutually exclusive
      with ``SOURCE <source> ...``.
 
    ``SOURCE <source> ...``
-     Source files for inclusion in the library. Mutually-exclusive with
+     Source files for inclusion in the library. Mutually exclusive with
      ``NO_SOURCE``.
 
    ``SOVERSION <api-version>``
