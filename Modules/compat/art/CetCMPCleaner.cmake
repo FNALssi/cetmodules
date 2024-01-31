@@ -2,7 +2,7 @@
 X
 -
 #]================================================================]
-include_guard(GLOBAL)
+include_guard()
 
 cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
@@ -10,6 +10,8 @@ set(_cet_cmp_compat_dir "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "art suite co
 set(_cet_cmp_compat_art_version 3.13.02-alpha CACHE INTERNAL "art suite compatibility modules version")
 set(_cet_cmp_compat_canvas_root_io_version 1.11.00-alpha CACHE INTERNAL "canvas_root_io compatibility modules version")
 set(_cet_cmp_compat_messagefacility_version 2.10.00-alpha CACHE INTERNAL "messagefacility compatibility modules version")
+
+include_guard(GLOBAL)
 
 if (COMMAND _include)
   message(WARNING "include() has already been overridden: compatibility with art suites < ${_cet_cmp_compat_art_version} cannot be assured")

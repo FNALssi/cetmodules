@@ -2,16 +2,18 @@
 CetGenerateSphinxDocs
 ---------------------
 #]================================================================]
-include_guard(GLOBAL)
+include_guard()
+
+cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
 get_property(_cgs_job_pools GLOBAL PROPERTY JOB_POOLS)
 if (NOT _cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
   set_property(GLOBAL APPEND PROPERTY JOB_POOLS sphinx_doc=1)
 endif()
 
-cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
-
 set(_CGSD_VDATA_VERSION 1)
+
+include_guard(GLOBAL)
 
 function(cet_generate_sphinx_docs)
   if (NOT BUILD_DOCS) # Disabled.
