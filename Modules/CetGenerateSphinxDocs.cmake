@@ -5,7 +5,7 @@ CetGenerateSphinxDocs
 include_guard(GLOBAL)
 
 get_property(_cgs_job_pools GLOBAL PROPERTY JOB_POOLS)
-if (NOT cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
+if (NOT _cgs_job_pools MATCHES "(^|;)sphinx_doc=[0-9]")
   set_property(GLOBAL APPEND PROPERTY JOB_POOLS sphinx_doc=1)
 endif()
 
