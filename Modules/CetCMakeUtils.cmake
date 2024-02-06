@@ -638,15 +638,24 @@ endfunction()
      Also add the corresponding directories in the project build tree to
      :variable:`CMAKE_MODULE_PATH
      <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
-     scope.
+     scope (e.g. for generated CMake modules).
 
-     .. seealso:: :ref:`NO_LOCAL
-                  <cet_cmake_module_directories-NO_LOCAL>`
+     .. rst-class:: text-start
+
+     .. seealso:: :command:`configure_file()
+                  <cmake-ref-current:command:configure_file>`,
+                  :command:`cet_make_plugin_builder`,
+                  :command:`cet_collect_plugin_builders`.
+
+   .. _cet_cmake_module_directories-NO_CONFIG:
 
    ``NO_CONFIG``
      Do not add these directories to :variable:`CMAKE_MODULE_PATH
      <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the CMake config
      file for ``<project>``.
+
+     .. seealso:: :ref:`NO_LOCAL
+                  <cet_cmake_module_directories-NO_LOCAL>`
 
    .. _cet_cmake_module_directories-NO_LOCAL:
 
@@ -655,6 +664,9 @@ endfunction()
      <cmake-ref-current:variable:CMAKE_MODULE_PATH>` in the current
      scope. Implied if ``<project>`` is not equal to the value of
      :variable:`CETMODULES_CURRENT_PROJECT_NAME`
+
+     .. seealso:: :ref:`NO_CONFIG
+                  <cet_cmake_module_directories-NO_CONFIG>`
 
    ``PROJECT <project>``
      Specify the project to which these module directories belong. If
