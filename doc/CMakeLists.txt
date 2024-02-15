@@ -214,7 +214,7 @@ function(_set_version_release)
     else()
       find_package(Git 2.22.0 REQUIRED)
       # Try to get the current branch for the version.
-      execute_process(COMMAND Git::Git branch --show-current
+      execute_process(COMMAND ${GIT_EXECUTABLE} branch --show-current
         COMMAND_ERROR_IS_FATAL ANY
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         OUTPUT_VARIABLE current_branch
