@@ -39,7 +39,12 @@ function(cet_rootcint OUTPUT_NAME)
     message(FATAL_ERROR  "cet_rootcint: Incorrect arguments. ${ARGV} \n ${cet_rootcint_usage}")
   endif()
   warn_deprecated("cet_rootcint()" SINCE 3.23.00 NEW "\n  build_dictionary(<name> [<options>] SOURCE <header-file> ... LinkDef.h)"
-    ", e.g.:\n  \n  build_dictionary(<name> NO_LIBRARY [LIB_TARGET <lib-target-name>] GENERATED_SOURCE <name>Cint.cc SOURCE  <header-file> ... LinkDef.h)")
+    ", e.g.:\n  \n  build_dictionary(<name> NO_LIBRARY [LIB_TARGET <lib-target-name>] GENERATED_SOURCE <name>Cint.cc SOURCE <header-file> ... LinkDef.h)"
+    "\n  Notes:\n    * If the LIB_TARGET destination for the compiled code for the generated source is to be defined elsewhere, then:"
+    "\n      1. the NO_LIBRARY option *must* be given to cet_rootcint(), and"
+    "\n      2. the definition of that target (e.g. via cet_make_library()) should be placed *before* the call to cet_rootcint()"
+    "\n    * Following CMake best practice, one should specify to build_dictionary() all headers to be parsed via the SOURCE option, with LinkDef.h specified last in that list\
+")
   # generate the list of headers to be parsed by cint
   cet_package_path(curdir)
   file(GLOB CINT_CXX *.cxx)
