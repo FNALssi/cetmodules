@@ -314,10 +314,9 @@ function(build_dictionary)
     target_sources(${BD_LIB_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BD_GENERATED_SOURCE_FILENAME})
     add_dependencies(BuildDictionary_AllDicts ${BD_LIB_TARGET})
   else()
-    message(FATAL_ERROR "${lib_target_specified}target ${BD_LIB_TARGET} must be defined before calling build_dictionary(): either
-(1) define target ${BD_LIB_TARGET} prior to calling build_dictionary();
-(2) use LIB_TARGET to specify the intended destination library; or
-(3) remove NO_LIBRARY to allow build_dictionary() to define ${BD_LIB_TARGET}\
+    message(FATAL_ERROR "${lib_target_specified}target ${BD_LIB_TARGET} is not defined:
+1. Ensure that the target name (${BD_LIB_TARGET}) is correct via the LIB_TARGET option.
+2. If the target is to be defined elsewhere (as specified by NO_LIBRARY), it must be defined *prior* to the call to build_dictionary().\
 ")
   endif()
   if (BD_NO_CHECK_CLASS_VERSION OR NOT DEFINED CCV_DEFAULT_RECURSIVE)
