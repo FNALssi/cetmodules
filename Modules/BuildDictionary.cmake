@@ -44,7 +44,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
    * a selection XML file (:file:`classes_def.xml`), optionally checking
    versions and checksums for selected classes; *or*
 
-   * a :file:`Linkdef.h` or equivalent (*cf* :command:`cet_rootcint`).
+   * a :file:`LinkDef.h` or equivalent (*cf* :command:`cet_rootcint`).
 
    .. code-block:: cmake
 
@@ -66,7 +66,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
 
      .. deprecated:: 3.23.00
 
-        use :ref:`SOURCE \<filepath> <build_dictionary-SOURCE>` instead.
+        Use :ref:`SOURCE \<filepath> <build_dictionary-SOURCE>` instead.
 
    ``CLASSES_H <filepath>``
      .. rst-class:: text-start
@@ -142,17 +142,23 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      determined by :command:`check_class_version`).
 
    ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
-     .. deprecated:: 3.23.00 remove.
+     .. deprecated:: 3.23.00
+        Ignored.
 
    .. _build_dictionary-SOURCE:
 
    ``SOURCE <filepath> ...``
-     Pass ``<filepath>`` to :program:`rootcint`. The location of
-     non-absolute sources will be calculated relative to
-     :variable:`CMAKE_CURRENT_SOURCE_DIR
-     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`. Valid
-     sources are header files, optionally preceded by precisely one XML
-     selection file (e.g. :file:`classes_def.xml`).
+     Pass ``<filepath>`` to :program:`rootcint`.
+
+     ``<filepath>`` should be:
+
+     a. valid as an argument to a pre-processor ``#include`` directive, or
+
+     a. a path (absolute, or relative to
+        :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`) to either
+        an XML selection file (e.g. :file:`classes_def.xml`), a
+        :file:`classes.h` file, or a :file:`LinkDef.h` file.
 
    ``USE_PRODUCT_NAME``
      .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
