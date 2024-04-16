@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-  <title>BuildDictionary &mdash; Cetmodules git-develop-3602328e Reference</title>
+  <title>BuildDictionary &mdash; Cetmodules git-develop-28d0573d Reference</title>
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a2c47e09" />
     <link rel="stylesheet" type="text/css" href="../_static/cetmodules.css?v=cb7d28bf" />
@@ -14,7 +14,7 @@
     
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=3a0788d9"></script>
+    <script src="../_static/documentation_options.js?v=9e242fee"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/bootstrap.bundle.min.js?v=89176c1c"></script>
@@ -55,7 +55,7 @@
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3602328e</span>
+    <span class="version_switch">git-develop-28d0573d</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
@@ -103,7 +103,7 @@ a ROOT dictionary from a selection XML (<code class="file docutils literal notra
 </ul>
 <p>versions and checksums for selected classes; <em>or</em></p>
 <ul class="simple">
-<li><p>a <code class="file docutils literal notranslate"><span class="pre">Linkdef.h</span></code> or equivalent (<em>cf</em> <span class="target" id="index-0-command:cet_rootcint"></span><a class="reference internal" href="CetRootCint.html#command:cet_rootcint" title="cet_rootcint"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_rootcint()</span></code></a>).</p></li>
+<li><p>a <code class="file docutils literal notranslate"><span class="pre">LinkDef.h</span></code> or equivalent (<em>cf</em> <span class="target" id="index-0-command:cet_rootcint"></span><a class="reference internal" href="CetRootCint.html#command:cet_rootcint" title="cet_rootcint"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">cet_rootcint()</span></code></a>).</p></li>
 </ul>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nf">build_dictionary(</span><span class="p">[</span><span class="nv">&lt;name&gt;</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="nv">&lt;options&gt;</span><span class="p">]</span><span class="nf">)</span>
 </pre></div>
@@ -117,7 +117,7 @@ a ROOT dictionary from a selection XML (<code class="file docutils literal notra
 <dt><code class="docutils literal notranslate"><span class="pre">CLASSES_DEF_XML</span> <span class="pre">&lt;filepath&gt;</span></code></dt><dd><p class="text-start">The name and location of the selection XML file to be used
 (default: <span class="target" id="index-0-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CMAKE_CURRENT_SOURCE_DIR}</span></code></a><code class="file docutils literal notranslate"><span class="pre">/classes_def.xml</span></code>).</p>
 <div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>use <a class="reference internal" href="#build-dictionary-source"><span class="std std-ref">SOURCE &lt;filepath&gt;</span></a> instead.</p>
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>Use <a class="reference internal" href="#build-dictionary-source"><span class="std std-ref">SOURCE &lt;filepath&gt;</span></a> instead.</p>
 </div>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">CLASSES_H</span> <span class="pre">&lt;filepath&gt;</span></code></dt><dd><p class="text-start">The name and location of the top-level C++ header file to be read
@@ -174,16 +174,22 @@ presence and validity of class dictionaries recursively (default
 determined by <span class="target" id="index-0-command:check_class_version"></span><a class="reference internal" href="hidden/CheckClassVersion.html#command:check_class_version" title="check_class_version"><code class="xref cmake cmake-command docutils literal notranslate"><span class="pre">check_class_version()</span></code></a>).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">REQUIRED_DICTIONARIES</span> <span class="pre">&lt;dictionary-dependency&gt;...</span></code></dt><dd><div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>remove.</p>
+<p><span class="versionmodified deprecated">Deprecated since version 3.23.00: </span>Ignored.</p>
 </div>
 </dd>
 </dl>
 <dl id="build-dictionary-source">
-<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;filepath&gt;</span> <span class="pre">...</span></code></dt><dd><p>Pass <code class="docutils literal notranslate"><span class="pre">&lt;filepath&gt;</span></code> to <strong class="program">rootcint</strong>. The location of
-non-absolute sources will be calculated relative to
-<span class="target" id="index-2-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">CMAKE_CURRENT_SOURCE_DIR</span></code></a>. Valid
-sources are header files, optionally preceded by precisely one XML
-selection file (e.g. <code class="file docutils literal notranslate"><span class="pre">classes_def.xml</span></code>).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">SOURCE</span> <span class="pre">&lt;filepath&gt;</span> <span class="pre">...</span></code></dt><dd><p>Pass <code class="docutils literal notranslate"><span class="pre">&lt;filepath&gt;</span></code> to <strong class="program">rootcint</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;filepath&gt;</span></code> should be:</p>
+<ol class="loweralpha simple">
+<li><p>valid as an argument to a pre-processor <code class="docutils literal notranslate"><span class="pre">#include</span></code> directive, or</p></li>
+</ol>
+<ol class="loweralpha simple">
+<li><p>a path (absolute, or relative to
+<span class="target" id="index-2-variable:cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR"></span><a class="reference external" href="https://cmake.org/cmake/help/v3.27/variable/CMAKE_CURRENT_SOURCE_DIR.html#variable:CMAKE_CURRENT_SOURCE_DIR" title="(in CMake v3.27.9)"><code class="xref cmake cmake-variable docutils literal notranslate"><span class="pre">${CMAKE_CURRENT_SOURCE_DIR}</span></code></a>) to either
+an XML selection file (e.g. <code class="file docutils literal notranslate"><span class="pre">classes_def.xml</span></code>), a
+<code class="file docutils literal notranslate"><span class="pre">classes.h</span></code> file, or a <code class="file docutils literal notranslate"><span class="pre">LinkDef.h</span></code> file.</p></li>
+</ol>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">USE_PRODUCT_NAME</span></code></dt><dd><div class="deprecated">
 <p><span class="versionmodified deprecated">Deprecated since version 2.0: </span>use <code class="docutils literal notranslate"><span class="pre">USE_PROJECT_NAME</span></code> instead.</p>
@@ -287,7 +293,7 @@ directory via <span class="target" id="index-0-command:cet_package_path"></span>
     <a href="../../">Cetmodules Documentation</a> &#187;
   </li>
   <li>
-    <span class="version_switch">git-develop-3602328e</span>
+    <span class="version_switch">git-develop-28d0573d</span>
     <a href="../index.html">Reference</a> &#187;
   </li>
 
