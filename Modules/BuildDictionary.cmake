@@ -44,7 +44,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
    * a selection XML file (:file:`classes_def.xml`), optionally checking
    versions and checksums for selected classes; *or*
 
-   * a :file:`Linkdef.h` or equivalent (*cf* :command:`cet_rootcint`).
+   * a :file:`LinkDef.h` or equivalent (*cf* :command:`cet_rootcint`).
 
    .. code-block:: cmake
 
@@ -66,7 +66,7 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
 
      .. deprecated:: 3.23.00
 
-        use :ref:`SOURCE \<filepath> <build_dictionary-SOURCE>` instead.
+        Use :ref:`SOURCE \<filepath> <build_dictionary-SOURCE>` instead.
 
    ``CLASSES_H <filepath>``
      .. rst-class:: text-start
@@ -142,17 +142,23 @@ set(_cet_build_dictionary_list_options CCV_ENVIRONMENT COMPILE_FLAGS
      determined by :command:`check_class_version`).
 
    ``REQUIRED_DICTIONARIES <dictionary-dependency>...``
-     .. deprecated:: 3.23.00 remove.
+     .. deprecated:: 3.23.00
+        Ignored.
 
    .. _build_dictionary-SOURCE:
 
    ``SOURCE <filepath> ...``
-     Pass ``<filepath>`` to :program:`rootcint`. The location of
-     non-absolute sources will be calculated relative to
-     :variable:`CMAKE_CURRENT_SOURCE_DIR
-     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`. Valid
-     sources are header files, optionally preceded by precisely one XML
-     selection file (e.g. :file:`classes_def.xml`).
+     Pass ``<filepath>`` to :program:`rootcint`.
+
+     ``<filepath>`` should be:
+
+     a. valid as an argument to a pre-processor ``#include`` directive, or
+
+     a. a path (absolute, or relative to
+        :variable:`${CMAKE_CURRENT_SOURCE_DIR}
+        <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`) to either
+        an XML selection file (e.g. :file:`classes_def.xml`), a
+        :file:`classes.h` file, or a :file:`LinkDef.h` file.
 
    ``USE_PRODUCT_NAME``
      .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
@@ -225,12 +231,6 @@ function(build_dictionary)
   endif()
   if (BD_SOURCE)
     list(REMOVE_DUPLICATES BD_SOURCE)
-    set(source_list)
-    foreach(filepath IN LISTS BD_SOURCE)
-      cmake_path(ABSOLUTE_PATH filepath BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" NORMALIZE)
-      list(APPEND source_list "${filepath}")
-    endforeach()
-    set(BD_SOURCE ${source_list})
     set(xml_files ${BD_SOURCE})
     list(FILTER xml_files INCLUDE REGEX "(^|/)classes_def\\.xml\$")
     list(LENGTH xml_files n_xml_files)
@@ -245,28 +245,26 @@ function(build_dictionary)
       message(FATAL_ERROR "build_dictionary: SOURCE should specify at most ONE classes.h file")
     endif()
     list(REMOVE_ITEM BD_SOURCE "${classes_h_files}")
-  endif()
-  if (BD_SOURCE)
-    list(REMOVE_DUPLICATES BD_SOURCE)
-    set(xml_files "${BD_SOURCE}")
-    list(FILTER xml_files INCLUDE REGEX "(^|/)classes_def\\.xml\$")
-    list(REMOVE_ITEM BD_SOURCE ${xml_files})
-    set(classes_h_files "${BD_SOURCE}")
-    list(FILTER classes_h_files INCLUDE REGEX "(^|/)classes\\.h\$")
-    list(REMOVE_ITEM BD_SOURCE ${classes_h_files})
+    set(linkdef_h_files ${BD_SOURCE})
+    list(FILTER linkdef_h_files INCLUDE REGEX "(^|/)LinkDef\\.h\$")
+    list(LENGTH linkdef_h_files n_linkdef_h_files)
+    if (n_linkdef_h_files GREATER 1)
+      message(FATAL_ERROR "build_dictionary: SOURCE should specify at most ONE LinkDef.h file")
+    endif()
+    list(REMOVE_ITEM BD_SOURCE "${linkdef_h_files}")
   endif()
   if (NOT BD_CLASSES_DEF_XML)
     if (xml_files)
       set(BD_CLASSES_DEF_XML "${xml_files}")
     elseif (NOT BD_SOURCE)
-      set(BD_CLASSES_DEF_XML "${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml")
+      set(BD_CLASSES_DEF_XML "classes_def.xml")
     endif()
   endif()
   if (BD_CLASSES_DEF_XML AND NOT BD_CLASSES_H)
     if (classes_h_files)
       set(BD_CLASSES_H "${classes_h_files}")
     elseif (NOT BD_SOURCE)
-      set(BD_CLASSES_H ${CMAKE_CURRENT_SOURCE_DIR}/classes.h)
+      set(BD_CLASSES_H "classes.h")
     endif()
   endif()
   if (BD_LIB_TARGET)
@@ -278,6 +276,20 @@ function(build_dictionary)
       set(BD_LIB_TARGET "${dictname}_dict")
     endif()
   endif()
+  if (BD_SOURCE)
+    set(BD_SOURCES_H "${CMAKE_CURRENT_BINARY_DIR}/${BD_LIB_TARGET}_headers.h")
+    list(TRANSFORM BD_SOURCE PREPEND "#include \"" OUTPUT_VARIABLE BD_SOURCES_H_LINES)
+    list(TRANSFORM BD_SOURCES_H_LINES APPEND "\"")
+    list(JOIN BD_SOURCES_H_LINES "\n" BD_SOURCES_H_CONTENT)
+    file(GENERATE OUTPUT ${BD_SOURCES_H} CONTENT "${BD_SOURCES_H_CONTENT}\n" NO_SOURCE_PERMISSIONS)
+  else()
+    set(BD_SOURCES_H)
+  endif()
+  foreach(item IN ITEMS BD_CLASSES_H BD_CLASSES_DEF_XML linkdef_h_files)
+    if (${item})
+      cmake_path(ABSOLUTE_PATH ${item})
+    endif()
+  endforeach()
   if (BD_LIB_TARGET_VAR)
     set(${BD_LIB_TARGET_VAR} ${BD_LIB_TARGET} PARENT_SCOPE)
   endif()
@@ -314,10 +326,9 @@ function(build_dictionary)
     target_sources(${BD_LIB_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BD_GENERATED_SOURCE_FILENAME})
     add_dependencies(BuildDictionary_AllDicts ${BD_LIB_TARGET})
   else()
-    message(FATAL_ERROR "${lib_target_specified}target ${BD_LIB_TARGET} must be defined before calling build_dictionary(): either
-(1) define target ${BD_LIB_TARGET} prior to calling build_dictionary();
-(2) use LIB_TARGET to specify the intended destination library; or
-(3) remove NO_LIBRARY to allow build_dictionary() to define ${BD_LIB_TARGET}\
+    message(FATAL_ERROR "${lib_target_specified}target ${BD_LIB_TARGET} is not defined:
+1. Ensure that the target name (${BD_LIB_TARGET}) is correct via the LIB_TARGET option.
+2. If the target is to be defined elsewhere (as specified by NO_LIBRARY), it must be defined *prior* to the call to build_dictionary().\
 ")
   endif()
   if (BD_NO_CHECK_CLASS_VERSION OR NOT DEFINED CCV_DEFAULT_RECURSIVE)
@@ -361,9 +372,11 @@ function(_generate_dictionary)
     --noGlobalUsingStd
     --noIncludePaths
     )
+  if (BD_CLASSES_DEF_XML OR BD_SOURCES_H)
+    list(APPEND ROOTCLING_FLAGS --inlineInputHeader)
+  endif()
   if (BD_CLASSES_DEF_XML)
     list(PREPEND ROOTCLING_FLAGS --reflex)
-    list(APPEND ROOTCLING_FLAGS --inlineInputHeader)
   else()
     set(BD_NO_CHECK_CLASS_VERSION TRUE)
   endif()
@@ -405,15 +418,22 @@ function(_generate_dictionary)
   if (GD_AUX_OUTPUT_VAR)
     set(${GD_AUX_OUTPUT_VAR} ${AUX_OUTPUT} PARENT_SCOPE)
   endif()
+  set(implicit_depends)
+  foreach(item IN LISTS BD_CLASSES_H BD_SOURCES_H)
+    list(APPEND implicit_depends CXX ${item})
+  endforeach()
   add_custom_command(
     # See https://gitlab.kitware.com/cmake/cmake/-/issues/21364#note_849331
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BD_GENERATED_SOURCE_FILENAME} # ${AUX_OUTPUT}
     COMMAND ROOT::rootcling
     ${ROOTCLING_FLAGS}
     ${BD_CLASSES_H}
-    ${BD_CLASSES_DEF_XML} ${BD_SOURCE}
-    IMPLICIT_DEPENDS CXX ${BD_CLASSES_H} ${BD_SOURCE}
+    ${BD_CLASSES_DEF_XML}
+    ${BD_SOURCES_H}
+    ${linkdef_h_files}
+    IMPLICIT_DEPENDS ${implicit_depends}
     DEPENDS ${BD_CLASSES_DEF_XML} ${ROOTCLING_MODULEMAP}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMAND_EXPAND_LISTS
     COMMENT "Generating dictionary files for target ${dictname}")
   # set variable for install_source
