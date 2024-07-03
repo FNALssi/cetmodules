@@ -64,8 +64,8 @@ X
 #   appropriate time.
 
 
-# Once only!
-include_guard(GLOBAL)
+# Once only per directory!
+include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
@@ -74,12 +74,6 @@ include(ParseVersionString)
 include(private/CetAddTransitiveDependency)
 
 include(CMakeFindDependencyMacro)
-
-if (COMMAND _find_package)
-  message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
-endif()
-
-option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
   COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
@@ -98,6 +92,15 @@ set(_cet_fp_new_flags BUILD_ONLY EXPORT INTERFACE NOP PRIVATE PUBLIC)
 set(_cet_fp_new_options REQUIRED_BY)
 set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options})
 set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords})
+
+# Once only!
+include_guard(GLOBAL)
+
+if (COMMAND _find_package)
+  message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
+endif()
+
+option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 # Intercept calls to find_package() for IN_TREE packages and make them
 # do the right thing.
