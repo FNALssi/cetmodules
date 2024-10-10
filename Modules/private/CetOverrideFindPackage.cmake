@@ -76,7 +76,7 @@ include(private/CetAddTransitiveDependency)
 include(CMakeFindDependencyMacro)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
-  COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D; }"
   OUTPUT_VARIABLE _cet_fp_keywords
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
