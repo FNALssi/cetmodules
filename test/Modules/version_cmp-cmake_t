@@ -38,7 +38,7 @@ sub compare_or_show {
 } ## end sub compare_or_show
 my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
-my $_FLIP_OPERANDS => -1;
+my $_FLIP_OPERANDS = -1;
 
 
 sub cmake_version_cmp {
