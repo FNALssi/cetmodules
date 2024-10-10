@@ -27,7 +27,6 @@ BEGIN {
 } ## end BEGIN
 ##
 use List::Util qw(shuffle);
-use Readonly qw();
 use Test::More;
 
 
@@ -39,7 +38,7 @@ sub compare_or_show {
 } ## end sub compare_or_show
 my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
-Readonly::Scalar my $_FLIP_OPERANDS => -1;
+my $_FLIP_OPERANDS => -1;
 
 
 sub cmake_version_cmp {
