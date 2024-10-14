@@ -7,6 +7,7 @@ project(@CETMODULES_CURRENT_PROJECT_NAME@_COMPILE_ONLY_TEST
 include(CetCMakeEnv)
 cet_cmake_env()
 
+include(SetCompilerFlags)
 cet_set_compiler_flags(DIAGS VIGILANT DWARF_VER 4
   WERROR NO_UNDEFINED EXTRA_FLAGS -pedantic)
 

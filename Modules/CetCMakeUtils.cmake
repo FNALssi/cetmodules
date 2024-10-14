@@ -11,6 +11,8 @@ include_guard()
 cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
 include(CetRegexEscape)
+include(CetRegisterExportSet)
+include(ProjectVariable)
 
 #[================================================================[.rst:
 .. command:: cet_passthrough
