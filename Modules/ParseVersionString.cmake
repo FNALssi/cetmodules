@@ -30,12 +30,6 @@ non-CMake-compliant version strings:
   Convert a version string or list into a ``.``-delimited version string
   with ``-``-separated non-numeric extra component.
 
-.. admonition:: cetbuildtools
-   :class: admonition-legacy
-
-   .. seealso:: :command:`to_ups_version`,
-                :command:`check_prod_version()`.
-
 #]================================================================]
 
 include_guard()

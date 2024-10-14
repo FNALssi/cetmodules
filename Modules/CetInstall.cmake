@@ -25,9 +25,10 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-include (CetCopy)
-include (private/CetExclude)
-include (ProjectVariable)
+include(CetCMakeUtils)
+include(CetCopy)
+include(ProjectVariable)
+include(private/CetExclude)
 
 #[============================================================[.rst:
 .. command:: _cet_install
