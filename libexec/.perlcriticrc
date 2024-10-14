@@ -1,4 +1,0 @@
-[-BuiltinFunctions::ProhibitComplexMappings]
-[-ErrorHandling::RequireCarping]
-[-ErrorHandling::RequireUseOfExceptions]
-[-Modules::RequireVersionVar]

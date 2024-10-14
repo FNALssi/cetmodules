@@ -1,2 +1,0 @@
-printf "\n"
-$CETBUILDTOOLS_DIR/libexec/verify_build_environment "$CETPKG_BUILD"

@@ -94,7 +94,3 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Smc
   VERSION_VAR Smc_VERSION
   REQUIRED_VARS Smc_JAR Smc_FOUND Smc_statemap_h)
-
-if (smc_FOUND AND ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
-  set(SMC Smc::Smc)
-endif()

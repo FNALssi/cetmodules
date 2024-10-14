@@ -46,10 +46,6 @@ if (ifdhc_FOUND)
       IMPORTED_LOCATION "${ifdhc_LIBRARY}"
       )
   endif()
-  if (CETMODULES_CURRENT_PROJECT_NAME AND
-      ${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS)
-    include_directories("${ifdhc_INCLUDE_DIRS}")
-  endif()
 endif()
 
 include(FindPackageHandleStandardArgs)

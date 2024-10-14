@@ -1,6 +1,0 @@
-[-BuiltinFunctions::ProhibitComplexMappings]
-[-Modules::ProhibitAutomaticExportation]
-[-Modules::RequireVersionVar]
-
-[Subroutines::RequireArgUnpacking]
-short_subroutine_statements = 2

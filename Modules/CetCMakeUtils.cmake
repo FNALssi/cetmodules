@@ -445,41 +445,6 @@ endfunction()
 
 #]================================================================]
 
-function(cet_find_simple_package NAME)
-  warn_deprecated("cet_find_simple_package()" NEW
-    "find_package() with custom Find module where appropriate")
-  cmake_parse_arguments(PARSE_ARGV 1 CFSP
-    ""
-    "INCPATH_VAR;LIB_VAR"
-    "HEADERS;LIBNAMES;LIBPATH_SUFFIXES;INCPATH_SUFFIXES")
-  if (NOT CFSP_LIB_VAR)
-    string(TOUPPER "${NAME}" CFSP_LIB_VAR)
-    string(MAKE_C_IDENTIFIER "${CFSP_LIB_VAR}" CFSP_LIB_VAR)
-  endif()
-  if (CFSB_PATH_SUFFIXES)
-    list(INSERT CFSB_PATH_SUFFIXES 0 PATH_SUFFIXES)
-  endif()
-  cet_find_library(${CFSP_LIB_VAR} NAMES "${NAME}" ${CFSP_LIBNAMES}
-    ${CFSP_LIBPATH_SUFFIXES}
-    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH)
-  set(${CFSP_LIB_VAR} ${${CFSP_LIB_VAR}} PARENT_SCOPE)
-  if (NOT CFSP_HEADERS)
-    set(CFSP_HEADERS "${NAME}.h" "${NAME}.hh" "${NAME}.H" "${NAME}.hxx"
-      "${NAME}.hpp")
-  endif()
-  if (NOT CFSP_INCPATH_VAR)
-    set(CFSP_INCPATH_VAR ${CFSP_LIB_VAR}_INCLUDE)
-  endif()
-  find_path(${CFSP_INCPATH_VAR}
-    NAMES ${CFSP_HEADERS}
-    PATH_SUFFIXES ${CFSP_INCPATH_SUFFIXES}
-    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH
-    )
-  if (CFSP_INCPATH_VAR AND ${CFSP_INCPATH_VAR})
-    include_directories(${${CFSP_INCPATH_VAR}})
-  endif()
-endfunction()
-
 #[================================================================[.rst:
 .. command:: cet_localize_pv
 
@@ -1114,4 +1079,26 @@ function(_add_to_exported_targets)
     set(${cache_var} ${_add_TARGETS} CACHE INTERNAL
       "List of exported ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
+endfunction()
+
+set(CET_WARN_DEPRECATED TRUE)
+
+function(warn_deprecated OLD)
+  if (NOT CET_WARN_DEPRECATED)
+    return()
+  endif()
+  cmake_parse_arguments(PARSE_ARGV 1 WD "" "NEW;SINCE" "")
+  if (WD_NEW)
+    set(msg " - use ${WD_NEW} instead")
+  endif()
+  if (NOT DEFINED WD_SINCE OR "SINCE" IN_LIST WD_KEYWORDS_MISSING_VALUES)
+    set(WD_SINCE "cetmodules 2.10")
+  elseif (WD_SINCE MATCHES "^((v|[Vv]ersion)[ 	]+)?[0-9][^ 	]*$")
+    set(WD_SINCE "cetmodules ${WD_SINCE}")
+  endif()
+  if (NOT "${WD_SINCE}" STREQUAL "")
+    string(PREPEND WD_SINCE " since ")
+  endif()
+  message(DEPRECATION "${OLD} is deprecated" "${WD_SINCE}"
+    ${msg} ${WD_UNPARSED_ARGUMENTS})
 endfunction()

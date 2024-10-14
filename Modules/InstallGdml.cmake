@@ -79,8 +79,4 @@ function(install_gdml)
     _cet_install(gdml ${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR ${ARGN}
       _GLOBS "?*.C" "?*.gdml" "?*.xml" "?*.xsd" "README")
   endif()
-  # Historical compatibility.
-  if ("cetbuildtools" IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES)
-    set(gdml_install_dir "${${CETMODULES_CURRENT_PROJECT_NAME}_GDML_DIR}" PARENT_SCOPE)
-  endif()
 endfunction()

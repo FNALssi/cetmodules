@@ -32,13 +32,9 @@ X
 #   Filter program arguments.
 # OUTPUT_FILTERS
 #   A list of filters with arguments, quoted as appropriate
-#   (mutually exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS). Use
-#   DEFAULT to specify the default filter(s) somewhere in the chain.
+#   (mutually exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS).
 ########################################################################
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
-
-# Defaults
-set(DEFAULT_FILTERS "${cetmodules_LIBEXEC_DIR}/filter-output")
 
 # Utility function.
 function(filter_and_compare FILE REF)
@@ -93,30 +89,15 @@ if (TEST_REF_ERR)
 endif()
 
 set(COMMANDS)
-if (NOT OUTPUT_FILTER AND NOT OUTPUT_FILTERS)
-  set(OUTPUT_FILTERS ${DEFAULT_FILTERS})
-endif()
 if (NOT OUTPUT_FILTERS)
   set(OUTPUT_FILTERS "${OUTPUT_FILTER} ${OUTPUT_FILTER_ARGS}")
 endif()
-if (OUTPUT_FILTERS)
-  list(FIND OUTPUT_FILTERS "DEFAULT" found_default)
-  if (found_default GREATER -1)
-    list(REMOVE_AT OUTPUT_FILTERS ${found_default})
-    list(LENGTH OUTPUT_FILTERS of_length)
-    if (of_length EQUAL ${found_default})
-      list(APPEND OUTPUT_FILTERS ${DEFAULT_FILTERS})
-    else()
-      list(INSERT OUTPUT_FILTERS ${found_default} ${DEFAULT_FILTERS})
-    endif()
-  endif()
-  foreach (filter IN LISTS OUTPUT_FILTERS)
-    separate_arguments(args UNIX_COMMAND "${filter}")
-    list(POP_FRONT args cmd)
-    find_program(cmd "${cmd}" HINTS "${cetmodules_LIBEXEC_DIR}" REQUIRED)
-    list(APPEND COMMANDS COMMAND ${cmd} ${args})
-  endforeach()
-endif()
+foreach (filter IN LISTS OUTPUT_FILTERS)
+  separate_arguments(args UNIX_COMMAND "${filter}")
+  list(POP_FRONT args cmd)
+  find_program(cmd "${cmd}" HINTS "${cetmodules_LIBEXEC_DIR}" REQUIRED)
+  list(APPEND COMMANDS COMMAND ${cmd} ${args})
+endforeach()
 
 # Run the test command and save the output.
 execute_process(COMMAND ${TEST_EXEC} ${TEST_ARGS}

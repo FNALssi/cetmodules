@@ -1,4 +1,0 @@
-[-Documentation::RequirePodSections]
-[-ErrorHandling::RequireCarping]
-[-Modules::ProhibitExcessMainComplexity]
-[-Modules::RequireVersionVar]

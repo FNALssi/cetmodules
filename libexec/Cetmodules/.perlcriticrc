@@ -1,8 +1,0 @@
-[-ErrorHandling::RequireCarping]
-[-ErrorHandling::RequireUseOfExceptions]
-[-Modules::ProhibitAutomaticExportation]
-[-Modules::RequireVersionVar]
-[-RegularExpressions::ProhibitComplexRegexes]
-
-[Subroutines::RequireArgUnpacking]
-short_subroutine_statements = 2

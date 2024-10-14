@@ -1,5 +1,0 @@
-[-Modules::RequireVersionVar]
-[-Modules::ProhibitAutomaticExportation]
-
-[Subroutines::RequireArgUnpacking]
-short_subroutine_statements = 2

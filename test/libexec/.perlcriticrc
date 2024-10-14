@@ -1,4 +1,0 @@
-[-ErrorHandling::RequireCarping]
-[-ErrorHandling::RequireUseOfExceptions]
-[-Modules::RequireVersionVar]
-[-ValuesAndExpressions::RequireNumberSeparators]

@@ -1,2 +1,2 @@
-cmake -DCMAKE_INSTALL_PREFIX=<prefix> [-DWANT_UPS:BOOL=ON] <source-path>
+cmake -DCMAKE_INSTALL_PREFIX=<prefix> ... <source-path>
 make install [package]
