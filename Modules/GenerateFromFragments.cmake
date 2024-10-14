@@ -6,6 +6,9 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
+include(CetCMakeUtils)
+include(CetPackagePath)
+
 function(generate_from_fragments OUTFILE)
   # Assemble the OUTFILE from its components, configuring each as many
   # times as necessary to resolve all @VAR@ references, including those

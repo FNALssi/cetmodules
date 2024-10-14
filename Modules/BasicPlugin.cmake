@@ -18,8 +18,8 @@ include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
 include(CetCMakeUtils)
+include(CetMakeLibrary)
 include(CetPackagePath)
-include(CetProcessLiblist)
 include(CetRegexEscape)
 
 set(cet_bp_flags ALLOW_UNDERSCORES BASENAME_ONLY NOP NO_EXPORT NO_INSTALL

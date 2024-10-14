@@ -23,9 +23,10 @@ cmake_minimum_required(VERSION 3.19.6...3.27 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetCMakeUtils)
-include(CetPackagePath)
+include(CetRegexEscape)
 include(GenerateFromFragments)
 include(ParseVersionString)
+include(ProjectVariable)
 
 #[================================================================[.rst:
 .. command:: cet_cmake_config

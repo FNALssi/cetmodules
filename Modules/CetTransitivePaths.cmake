@@ -8,6 +8,8 @@ Defines the function :commmand:`cet_transitive_paths`.
 
 include_guard()
 
+include(CetCMakeUtils)
+
 #[================================================================[.rst:
 .. command:: cet_transitive_paths
 

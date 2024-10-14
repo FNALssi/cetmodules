@@ -11,9 +11,12 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
 
-include(CetInstalledPath)
 include(CetCMakeUtils)
+include(CetInstalledPath)
+include(CetPackagePath)
+include(CetProcessLiblist)
 include(CetRegexEscape)
+include(CetRegisterExportSet)
 
 set(_cet_make_library_usage "")
 

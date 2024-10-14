@@ -12,15 +12,15 @@ include_guard()
 
 cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
 
+# Escape characters for literal use in regular expressions.
+include(CetRegexEscape)
+
 # Override find package to deal with IN_TREE projects and reduce repeat
 # initializations.
 include(private/CetOverrideFindPackage)
 
 # Handle setting of versions with a non-numeric component:
 include(private/CetHandleExtendedVersion)
-
-# Escape characters for literal use in regular expressions.
-include(CetRegexEscape)
 
 # Project variables.
 include(ProjectVariable)

@@ -8,6 +8,10 @@ cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
 
 set(_CGSD_VDATA_VERSION 1)
 
+include(CetCMakeUtils)
+include(CetPackagePath)
+include(ParseVersionString)
+include(ProjectVariable)
 
 function(cet_generate_sphinx_docs)
   if (NOT BUILD_DOCS) # Disabled.

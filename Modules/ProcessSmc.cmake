@@ -54,6 +54,10 @@ find_package(Smc 6.0.1 REQUIRED)
 
 #]================================================================]
 
+include(CetPackagePath)
+include(InstallHeaders)
+include(InstallSource)
+
 function(process_smc TARGET_OR_VAR)
   cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL;NO_INSTALL_SOURCE" "OUTPUT_DIR" "")
   if (NOT PSMC_OUTPUT_DIR)
