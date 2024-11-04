@@ -596,6 +596,7 @@ cet_make_exec(NAME ${CET_TARGET}
         message(FATAL_ERROR "Cannot specify REF option for test ${CET_TARGET} in conjunction with (PASS|FAIL)_REGULAR_EXPESSION.")
       endif()
       list(POP_FRONT CET_REF OUTPUT_REF ERROR_REF)
+      set(CET_REF ${OUTPUT_REF} ${ERROR_REF})
       if (ERROR_REF)
         set(DEFINE_ERROR_REF "-DTEST_REF_ERR=${ERROR_REF}")
         set(DEFINE_TEST_ERR "-DTEST_ERR=${CET_TARGET}.err")
