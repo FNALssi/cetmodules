@@ -692,6 +692,7 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
       endif()
       if (CET_COMPILE_ONLY)
         cet_transitive_paths(BINARY_DIR IN_TREE)
+        list(PREPEND TRANSITIVE_PATHS_WITH_BINARY_DIR "${cetmodules_DIR}")
         list(JOIN TRANSITIVE_PATHS_WITH_BINARY_DIR ":" DIRS_FOR_PREFIX_PATH)
         set(TEST_CMAKE_PREFIX_PATH "CMAKE_PREFIX_PATH=path_list_prepend:${DIRS_FOR_PREFIX_PATH}")
         get_test_property(${target} ENVIRONMENT_MODIFICATION CET_TEST_ENV_TMP)
