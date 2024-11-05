@@ -8,6 +8,9 @@
                   -DCMAKE_C_COMPILER="@CMAKE_C_COMPILER@" \
                   -DCMAKE_CXX_COMPILER="@CMAKE_CXX_COMPILER@" \
                   -DCMAKE_BUILD_TYPE="@CMAKE_BUILD_TYPE@" ||
-  exit @skip_return_code@
+  {
+    echo "<<ERROR: build system failure for COMPILE_ONLY test>>" 1>&2
+    exit
+  }
 
 "@CMAKE_COMMAND@" --build build "$@"
