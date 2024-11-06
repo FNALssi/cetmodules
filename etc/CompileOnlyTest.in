@@ -1,13 +1,13 @@
 #!/bin/bash
 
-"@CMAKE_COMMAND@" -S . -B build -G@CMAKE_GENERATOR@ \
-                  -DCMAKE_CXX_EXTENSIONS:BOOL=@CMAKE_CXX_EXTENSIONS@ \
-                  -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=@CMAKE_CXX_STANDARD_REQUIRED@ \
-                  -DCMAKE_CXX_STANDARD=@CMAKE_CXX_STANDARD@ \
-                  -DCMAKE_C_STANDARD=@CMAKE_C_STANDARD@ \
-                  -DCMAKE_C_COMPILER=@CMAKE_C_COMPILER@ \
-                  -DCMAKE_CXX_COMPILER=@CMAKE_CXX_COMPILER@ \
-                  -DCMAKE_BUILD_TYPE=@CMAKE_BUILD_TYPE@ ||
+"@CMAKE_COMMAND@" -S . -B build -G"@CMAKE_GENERATOR@" \
+                  -DCMAKE_CXX_EXTENSIONS:BOOL="@CMAKE_CXX_EXTENSIONS@" \
+                  -DCMAKE_CXX_STANDARD_REQUIRED:BOOL="@CMAKE_CXX_STANDARD_REQUIRED@" \
+                  -DCMAKE_CXX_STANDARD="@CMAKE_CXX_STANDARD@" \
+                  -DCMAKE_C_STANDARD="@CMAKE_C_STANDARD@" \
+                  -DCMAKE_C_COMPILER="@CMAKE_C_COMPILER@" \
+                  -DCMAKE_CXX_COMPILER="@CMAKE_CXX_COMPILER@" \
+                  -DCMAKE_BUILD_TYPE="@CMAKE_BUILD_TYPE@" ||
   exit @skip_return_code@
 
 "@CMAKE_COMMAND@" --build build "$@"
