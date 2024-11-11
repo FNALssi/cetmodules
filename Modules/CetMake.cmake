@@ -263,6 +263,13 @@ endfunction()
    ``NOP``
      Option / argument disambiguator; no other function.
 
+   ``ONLY_QUALIFIED_TARGET``
+     .. versionadded:: 3.27.00
+
+        Create only a qualified name-based target (`namespace::target`)
+        for the source, rather than both qualified and unqualified
+        targets.
+
    ``REMOVE_EXTENSIONS``
      Extensions will be removed from script names when they are
      installed.
@@ -270,7 +277,7 @@ endfunction()
 #]================================================================]
 
 function(cet_script)
-  cmake_parse_arguments(PARSE_ARGV 0 CS "ALWAYS_COPY;GENERATED;NO_EXPORT;NO_INSTALL;NOP;REMOVE_EXTENSIONS"
+  cmake_parse_arguments(PARSE_ARGV 0 CS "ALWAYS_COPY;GENERATED;NO_EXPORT;NO_INSTALL;NOP;ONLY_QUALIFIED_TARGET;REMOVE_EXTENSIONS"
     "DESTINATION;EXPORT_SET" "DEPENDENCIES")
   if (CS_GENERATED)
     warn_deprecated("cet_script(GENERATED)"
@@ -310,8 +317,13 @@ function(cet_script)
       if (NOT CS_ALWAYS_COPY)
         message(WARNING "${script} is not executable: copying to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} as PROGRAM")
       endif()
+      if (CS_ONLY_QUALIFIED_TARGET)
+        set(nat)
+      else()
+        set(nat NAME_AS_TARGET)
+      endif()
       cet_copy("${script_source}" PROGRAMS
-        NAME ${target} NAME_AS_TARGET
+        NAME ${target} ${nat}
         DEPENDENCIES ${CS_DEPENDENCIES}
         DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
       # cet_copy() will create the primary (non-qualified) target as a
@@ -326,10 +338,16 @@ function(cet_script)
       # source file, and the namespaced target is an ALIAS for
       # transparency between standalone and multi-project (e.g. MRB)
       # builds.
-      add_executable(${target} IMPORTED GLOBAL)
-      set_target_properties(${target} PROPERTIES
-        IMPORTED_LOCATION "${script_source}")
-      add_executable(${ns}::${target} ALIAS ${target})
+      if (CS_ONLY_QUALIFIED_TARGET)
+        add_executable(${ns}::${target} IMPORTED GLOBAL)
+        set_target_properties(${ns}::${target} PROPERTIES
+          IMPORTED_LOCATION "${script_source}")
+      else()
+        add_executable(${target} IMPORTED GLOBAL)
+        set_target_properties(${target} PROPERTIES
+          IMPORTED_LOCATION "${script_source}")
+        add_executable(${ns}::${target} ALIAS ${target})
+      endif()
     endif()
     if (NOT CS_NO_INSTALL)
       install(PROGRAMS "${script_source}"
