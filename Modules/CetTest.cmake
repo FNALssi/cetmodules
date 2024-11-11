@@ -547,6 +547,7 @@ cet_make_exec(NAME ${CET_TARGET}
         @ONLY)
       configure_file(${cetmodules_ETC_DIR}/CompileOnlyTest.in
         ${CET_TARGET}-src/${CET_TARGET}
+        @ONLY
         FILE_PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE
