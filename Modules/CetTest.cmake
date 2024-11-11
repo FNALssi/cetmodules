@@ -81,8 +81,13 @@ define_property(TEST PROPERTY KEYWORDS
       .. note::
 
          * In the event of a configuration failure of the generated
-           project, the test will be marked by :manual:`!ctest(1)` as
-           "skipped" rather than failed.
+           project, the test will fail regardless of ``WILL_FAIL``
+           status with a message:
+
+           .. code-block:: console
+
+              Error regular expression found in output. Regex=[<<ERROR: build system failure for COMPILE_ONLY test>>
+              ]
 
          * The test compilation is implemented as a separate
            configuration/build of a generated, dedicated project as part
@@ -704,6 +709,18 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
           set_tests_properties(${target} PROPERTIES
             ENVIRONMENT_MODIFICATION "${TEST_CMAKE_PREFIX_PATH}")
         endif()
+        cmake_language(EVAL CODE
+          "cmake_language(DEFER CALL
+             cmake_language EVAL CODE
+             \"get_property(will_fail TEST ${target} PROPERTY WILL_FAIL)
+             if (will_fail)
+               set(failit PASS)
+             else()
+               set(failit FAIL)
+             endif()
+             set_property(TEST ${target} APPEND PROPERTY \\\${failit}_REGULAR_EXPRESSION [=[<<ERROR: build system failure for COMPILE_ONLY test>>
+]=])\")"
+        )
       endif()
       if (CET_REF)
         get_test_property(${target} REQUIRED_FILES REQUIRED_FILES_TMP)
