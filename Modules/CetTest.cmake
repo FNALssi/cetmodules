@@ -547,6 +547,7 @@ cet_make_exec(NAME ${CET_TARGET}
         @ONLY)
       configure_file(${cetmodules_ETC_DIR}/CompileOnlyTest.in
         ${CET_TARGET}-src/${CET_TARGET}
+        @ONLY
         FILE_PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE
@@ -596,6 +597,7 @@ cet_make_exec(NAME ${CET_TARGET}
         message(FATAL_ERROR "Cannot specify REF option for test ${CET_TARGET} in conjunction with (PASS|FAIL)_REGULAR_EXPESSION.")
       endif()
       list(POP_FRONT CET_REF OUTPUT_REF ERROR_REF)
+      set(CET_REF ${OUTPUT_REF} ${ERROR_REF})
       if (ERROR_REF)
         set(DEFINE_ERROR_REF "-DTEST_REF_ERR=${ERROR_REF}")
         set(DEFINE_TEST_ERR "-DTEST_ERR=${CET_TARGET}.err")
@@ -691,6 +693,7 @@ test ${test} must be defined already to be specified as a fixture for ${CET_TARG
       endif()
       if (CET_COMPILE_ONLY)
         cet_transitive_paths(BINARY_DIR IN_TREE)
+        list(PREPEND TRANSITIVE_PATHS_WITH_BINARY_DIR "${cetmodules_DIR}")
         list(JOIN TRANSITIVE_PATHS_WITH_BINARY_DIR ":" DIRS_FOR_PREFIX_PATH)
         set(TEST_CMAKE_PREFIX_PATH "CMAKE_PREFIX_PATH=path_list_prepend:${DIRS_FOR_PREFIX_PATH}")
         get_test_property(${target} ENVIRONMENT_MODIFICATION CET_TEST_ENV_TMP)

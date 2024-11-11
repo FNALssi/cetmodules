@@ -237,7 +237,8 @@ def main():
     (options, args) = oparser.parse_args()
     # Reset argv to avoid ROOT's TApplication getting confused.
     sys.argv = []
-    ROOT.gROOT.SetBatch()
+    ROOT.gROOT.SetBatch(True)
+    ROOT.gROOT.ProcessLine(".autodict")
 
     if options.want_dictChecker:
         dictCheckerClass = ROOT.TClass.GetClass("art::DictionaryChecker")

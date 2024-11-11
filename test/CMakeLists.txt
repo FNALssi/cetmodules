@@ -1,2 +1,4 @@
 add_subdirectory(Modules)
-add_subdirectory(libexec)
+if (WANT_UPS)
+  add_subdirectory(libexec)
+endif()

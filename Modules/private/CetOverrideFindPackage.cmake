@@ -76,7 +76,7 @@ include(private/CetAddTransitiveDependency)
 include(CMakeFindDependencyMacro)
 
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
-  COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D }"
+  COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D; }"
   OUTPUT_VARIABLE _cet_fp_keywords
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
@@ -154,10 +154,12 @@ macro(find_package PKG)
         # Restore CMAKE_FIND_PACKAGE_NAME.
         set(CMAKE_FIND_PACKAGE_NAME ${_fp_CMAKE_FIND_PACKAGE_NAME_${PKG}})
       endif()
-      if (${PKG}_FOUND AND
-          NOT ("${${PKG}_CMAKE_PROJECT_VERSION_STRING}" STREQUAL "" OR
-            ${PKG}_CMAKE_PROJECT_VERSION_STRING STREQUAL PROJECT_VERSION))
-        set(${PKG}_VERSION ${${PKG}_CMAKE_PROJECT_VERSION_STRING})
+      if (${PKG}_FOUND)
+        if (NOT ("${${PKG}_CMAKE_PROJECT_VERSION_STRING}" STREQUAL "" OR
+              ${PKG}_CMAKE_PROJECT_VERSION_STRING STREQUAL PROJECT_VERSION))
+          set(${PKG}_VERSION ${${PKG}_CMAKE_PROJECT_VERSION_STRING})
+        endif()
+        set(${PKG}_DIR ${${PKG}_BINARY_DIR})
       endif()
     endif()
     if (NOT "${PKG}" STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
