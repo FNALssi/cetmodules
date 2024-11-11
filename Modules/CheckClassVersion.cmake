@@ -143,7 +143,7 @@ function(check_class_version)
       set(DY)
     endif()
     string(JOIN ":" LD_PATH_FOR_DICT "${LD_PATH_FOR_DICT}" $ENV{ROOT_LIBRARY_PATH} $ENV{${DY}LD_LIBRARY_PATH})
-    list(APPEND CMD_ENV "ROOT_LIBRARY_PATH=${LD_PATH_FOR_DICT}")
+    list(APPEND CMD_ENV "ROOT_LIBRARY_PATH=$<TARGET_LINKER_FILE_DIR:${dictname}_dict>:${LD_PATH_FOR_DICT}")
     list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>")
   endif()
   # Add the check to the end of the dictionary building step.
