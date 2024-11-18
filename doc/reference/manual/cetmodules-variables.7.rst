@@ -7,6 +7,15 @@ cetmodules-variables(7)
 
    .. contents::
 
+Variables Providing Information
+===============================
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   /variable/CETMODULES_CURRENT_PROJECT_*
+
 Variables Affecting Behavior
 ============================
 
@@ -15,5 +24,6 @@ Variables Affecting Behavior
    :glob:
 
    /variable/BUILD_STATIC_LIBS
+   /variable/DEFAULT_ARCH_DIRS
+   /variable/CET_TEST_ENV*
    /variable/PROJECT-NAME_*
-   /variable/WANT_UPS

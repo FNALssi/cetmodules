@@ -42,14 +42,14 @@ features will be marked with appropriate admonitions:
    :class: admonition-legacy
 
    You will only care about this information if you are porting code
-   from cetbuidltools.
+   from cetbuildtools.
 
 ... or:
 
 .. admonition:: :abbr:`HEP`
    :class: admonition-domain
 
-   This is a Find module specific to HEP.
+   This information is specific to HEP.
 
 ... or:
 
@@ -66,8 +66,8 @@ Compatibility
 .. admonition:: cetbuildtools
    :class: admonition-legacy
 
-   * Cetmodules >= 2.10.00 is backward-compatible with cetbuildtools >=
-     7.00.00.
+   * 2.10.00 <= Cetmodules < 4.00.00 is backward-compatible with
+     cetbuildtools >= 7.00.00.
 
    Unported cetbuildtools code will generate many deprecation and other
    warnings. To temporarily disable these warnings, add
@@ -81,3 +81,6 @@ Compatibility
    targets in dependency lists. These can be enabled on a per-package
    basis by adding ``-D{project}_OLD_STYLE_CONFIG_VARS:BOOL=YES`` to
    your CMake configuration command-line options.
+
+   All cetbuildtools compatibility has been removed from Cetmodules
+   4.00.00.

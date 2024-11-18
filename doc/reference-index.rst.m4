@@ -4,11 +4,6 @@ esyscmd([cat ]LANDING_TOP)dnl
 Reference
 =========
 
-Command-Line Tools
-------------------
-
-esyscmd([cat ]REF_TOOLS)dnl
-
 Reference Manuals
 -----------------
 
