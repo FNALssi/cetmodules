@@ -277,7 +277,7 @@ endfunction()
 
 function(_use_maybe_unused)
   get_property(cache_vars DIRECTORY PROPERTY CACHE_VARIABLES)
-  list(FILTER cache_vars INCLUDE REGEX "(^${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_|_INIT$)")
+  list(FILTER cache_vars INCLUDE REGEX "_INIT$")
   foreach (var IN LISTS cache_vars ITEMS CMAKE_WARN_DEPRECATED)
     if (${var})
     endif()

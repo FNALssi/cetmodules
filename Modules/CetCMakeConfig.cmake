@@ -55,13 +55,6 @@ include(ProjectVariable)
      Specify files containing CMake code to be included in the CMake
      config file at the appropriate place.
 
-   .. admonition:: cetbuildtools
-      :class: admonition-legacy
-
-      ``EXTRA_TARGET_VARS <target>``
-        Create cetbuidltools-compatible variables for the specified
-        targets.
-
    ``PATH_VARS <path-vars>``
      Specify variables containing paths that will be defined in the
      CMake config file relative to the installation path.

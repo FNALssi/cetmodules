@@ -82,14 +82,6 @@ include(CetPackagePath)
      Prepend :variable:`CETMODULES_CURRENT_PROJECT_NAME` to the
      calculated destination path.
 
-   Variables affecting behavior
-   ----------------------------
-
-   .. admonition:: cetbuildtools
-      :class: admonition-legacy
-
-      * :variable:`ART_MAKE_PREPEND_PRODUCT_NAME`
-
 #]================================================================]
 
 function(install_headers)
@@ -98,8 +90,7 @@ function(install_headers)
     "NO_RELATIVE_SUBDIR;SQUASH_SUBDIRS;USE_PRODUCT_NAME;USE_PROJECT_NAME"
     "SUBDIRNAME" "")
   cet_package_path(CURRENT_SUBDIR)
-  if (ART_MAKE_PREPEND_PRODUCT_NAME # Historical compatibility.
-      OR IHDR_USE_PROJECT_NAME OR IHDR_USE_PRODUCT_NAME)
+  if (IHDR_USE_PROJECT_NAME OR IHDR_USE_PRODUCT_NAME)
     string(JOIN "/" IHDR_SUBDIRNAME "${IHDR_SUBDIRNAME}" "${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
   if (NOT IHDR_NO_RELATIVE_SUBDIR)
