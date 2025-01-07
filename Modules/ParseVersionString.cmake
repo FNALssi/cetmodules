@@ -35,7 +35,7 @@ non-CMake-compliant version strings:
 include_guard()
 
 # Need list(POP_FRONT...).
-cmake_minimum_required(VERSION 3.15...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15...3.31 FATAL_ERROR)
 
 set(CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION 2.21.00)
 

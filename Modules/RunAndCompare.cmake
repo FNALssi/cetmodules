@@ -34,7 +34,7 @@ X
 #   A list of filters with arguments, quoted as appropriate
 #   (mutually exclusive with OUTPUT_FILTER and OUTPUT_FILTER_ARGS).
 ########################################################################
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 # Utility function.
 function(filter_and_compare FILE REF)

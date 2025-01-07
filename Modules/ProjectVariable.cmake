@@ -36,7 +36,7 @@ Defined functions:
 include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 # Default architecture-specific install directory types.
 set(CETMODULES_DEFAULT_ARCH_DIRS

@@ -24,7 +24,7 @@
 set(cetmodules_MIN_CMAKE_VERSION 3.22)
 
 # Required to keep CMake happy.
-cmake_minimum_required(VERSION ${cetmodules_MIN_CMAKE_VERSION}...3.27
+cmake_minimum_required(VERSION ${cetmodules_MIN_CMAKE_VERSION}...3.31
   FATAL_ERROR)
 
 ####################################

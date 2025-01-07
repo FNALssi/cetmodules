@@ -19,7 +19,7 @@ Module defining the lazy functions:
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19.6...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19.6...3.31 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
 include(CetCMakeUtils)

@@ -9,7 +9,7 @@ libraries and plugins.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 include(CetCMakeUtils)
 include(CetInstalledPath)

@@ -33,7 +33,7 @@ Variables affecting Behavior
   deleted upon non-zero exit from the command.
 
 #]================================================================]
-cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20...3.31 FATAL_ERROR)
 
 if (NOT CMD)
   message(FATAL_ERROR "vacuous command")
