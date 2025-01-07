@@ -123,12 +123,6 @@ macro(cet_cmake_env)
   # See https://cmake.org/cmake/help/latest/policy/CMP0082.html
   cmake_policy(SET CMP0082 NEW)
 
-  if (POLICY CMP0116)
-    # https://cmake.org/cmake/help/latest/policy/CMP0116.html
-    cmake_policy(SET CMP0116 NEW)
-  endif()
-  ########################################################################
-
   # Remove unwanted information from any previous run.
   _clean_internal_cache_entries()
 
