@@ -153,7 +153,7 @@ function(_cet_cmake_config_impl)
   if (CCC_CONFIG_POST_TARGET_VARS)
     warn_deprecated("cet_cmake_config(CONFIG_POST_TARGET_VARS)"
       SINCE "cetmodules 4.00.00"
-      NEW "cet_cmake_config(CONFIG_POST_TARGETS)")
+      NEW "cet_cmake_config(CONFIG_POST_TARGETS ...) - or remove as moot")
   endif()
   if (CCC_EXTRA_TARGET_VARS)
     warn_deprecated("cet_cmake_config(EXTRA_TARGET_VARS)"
