@@ -467,21 +467,29 @@ endfunction()
    Options
    ^^^^^^^
 
-   ``BINARY``
+   ``BINARY|SOURCE|TRY_BINARY``
+      .. deprecated:: 4.0
+
+      These options are deprecated due to possible ambiguity of meaning:
+      use option :ref:`BINARY_ONLY <_cet_localize_pv-BINARY_ONLY>`,
+      :ref:`SOURCE_ONLY <_cet_localize_pv-SOURCE_ONLY>`, or
+      :ref:`PREFER_BINARY <_cet_localize_pv-PREFER_BINARY>` instead,
+      respectively.
+
+   .. _cet_localize_pv-BINARY_ONLY:
+
+   ``BINARY_ONLY``
      Unconditionally resolve non-absolute paths with respect to the
-     binary tree (mutually exclusive with ``SOURCE`` and
-     ``TRY_BINARY``).
+     binary tree (mutually exclusive with ``SOURCE_ONLY`` and
+     ``PREFER_BINARY``).
 
    ``NO_CHECK_VALIDITY``
-     Do not report an error if a project variable does not exist or does
-     not represent a path or path fragment (ignored for ``ALL``).
+     Do not report an error if a project variable does not exist, or
+     does not represent a path or path fragment (ignored for ``ALL``).
 
-   ``SOURCE``
-     Unconditionally resolve non-absolute paths with respect to the
-     source tree (mutually exclusive with ``BINARY`` and
-     ``TRY_BINARY``).
+   .. _cet_localize_pv-PREFER_BINARY:
 
-   ``TRY_BINARY``
+   ``PREFER_BINARY``
      Try to resolve a non-absolute path with respect to the binary
      rather than the source tree (default for ``FILEPATH`` and
      ``FILEPATH_FRAGMENT`` :ref:`project-variables-types`). If the path
@@ -489,7 +497,14 @@ endfunction()
      <cmake-ref-current:prop_sf:GENERATED>` :manual:`CMake source file
      <cmake-ref-current:manual:cmake-properties(7)>`, it will be
      resolved with respect to the source tree. This option is mutually
-     exclusive with ``BINARY`` and ``SOURCE``.
+     exclusive with ``BINARY_ONLY`` and ``SOURCE_ONLY``.
+
+   .. _cet_localize_pv-SOURCE_ONLY:
+
+   ``SOURCE_ONLY``
+     Unconditionally resolve non-absolute paths with respect to the
+     source tree (mutually exclusive with ``BINARY_ONLY`` and
+     ``PREFER_BINARY``).
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
@@ -501,12 +516,39 @@ endfunction()
      The name of one or more project variables (without a ``<project>_``
      prefix).
 
+   Notes
+   ^^^^^
+
+   .. versionchanged:: 4.00.00
+
+      Deprecated ``BINARY|SOURCE|TRY_BINARY`` options in favor of their
+      respective replacements.
+
 #]================================================================]
 function(cet_localize_pv PROJECT)
   if (NOT ${PROJECT}_IN_TREE)
     return() # Nothing to do.
   endif()
-  cmake_parse_arguments(PARSE_ARGV 1 CLPV "BINARY;NO_CHECK_VALIDITY;SOURCE;TRY_BINARY" "" "")
+  cmake_parse_arguments(PARSE_ARGV 1 CLPV "BINARY;BINARY_ONLY;NO_CHECK_VALIDITY;PREFER_BINARY;SOURCE;SOURCE_ONLY;TRY_BINARY" "" "")
+  if (CLPV_SOURCE)
+    warn_deprecated("SOURCE" SINCE 4.00.00 NEW "SOURCE_ONLY")
+    set(CLPV_SOURCE_ONLY TRUE)
+  elseif (CLPV_BINARY)
+    warn_deprecated("BINARY" SINCE 4.00.00 NEW "BINARY_ONLY")
+    set(CLPV_BINARY_ONLY TRUE)
+  elseif (CLPV_TRY_BINARY)
+    warn_deprecated("TRY_BINARY" SINCE 4.00.00 NEW "PREFER_BINARY")
+    set(CLPV_PREFER_BINARY TRUE)
+  endif()
+  set(n_exc)
+  foreach (opt IN ITEMS BINARY_ONLY PREFER_BINARY SOURCE_ONLY)
+    if (CLPV_${opt})
+      math(EXPR n_exc "${n_exc} + 1")
+    endif()
+  endforeach()
+  if (n_exc GREATER 1)
+    message(FATAL_ERROR "options BINARY_ONLY, SOURCE_ONLY and PREFER_BINARY are mutually exclusive")
+  endif()
   set(check_pv_validity)
   if (CLPV_UNPARSED_ARGUMENTS STREQUAL "ALL")
     set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
@@ -515,15 +557,6 @@ function(cet_localize_pv PROJECT)
     if (NOT CLPV_NO_CHECK_VALIDITY)
       set(check_pv_validity TRUE)
     endif()
-  endif()
-  set(n_exc)
-  foreach (opt IN ITEMS BINARY SOURCE TRY_BINARY)
-    if (CLPV_${opt})
-      math(EXPR n_exc "${n_exc} + 1")
-    endif()
-  endforeach()
-  if (n_exc GREATER 1)
-    message(FATAL_ERROR "options BINARY, SOURCE and TRY_BINARY are mutually exclusive")
   endif()
   foreach (var IN LISTS ${var_list})
     if (NOT var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
@@ -540,24 +573,34 @@ function(cet_localize_pv PROJECT)
       endif()
       continue()
     endif()
-    if (CMAKE_MATCH_1 AND NOT CLPV_SOURCE)
-      set(try_binary TRUE)
-    else()
-      set(try_binary ${CLPV_TRY_BINARY})
-    endif()
     foreach (item IN ITEMS $CACHE{${PROJECT}_${var}})
-      set(item_result)
-      set(generated)
-      if (CLPV_BINARY OR (try_binary AND NOT CLPV_SOURCE))
-        get_filename_component(item_result "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
-        get_property(generated SOURCE "${item_result}" PROPERTY GENERATED)
+      if (NOT CLPV_SOURCE_ONLY)
+        get_filename_component(binary_path "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
+        get_property(binary_generated SOURCE "${binary_path}" PROPERTY GENERATED)
+        if (NOT (binary_path AND
+              (EXISTS "${binary_path}" OR binary_generated) OR CLPV_BINARY_ONLY))
+          unset(binary_path)
+        endif()
+        if (CLPV_BINARY_ONLY OR (CLPV_PREFER_BINARY AND binary_path))
+          list(APPEND result "${binary_path}")
+          continue()
+        endif()
       endif()
-      if (NOT CLPV_BINARY AND (CLPV_SOURCE OR NOT
-            (item_result AND (EXISTS "${item_result}" OR generated))))
-        get_filename_component(item_result "${${PROJECT}_${var}}"
-          ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
+      get_filename_component(source_path "${${PROJECT}_${var}}"
+        ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
+      if (NOT ((source_path AND EXISTS "${source_path}")) OR CLPV_SOURCE_ONLY)
+        unset(source_path)
       endif()
-      list(APPEND result "${item_result}")
+      if (source_path OR CLPV_SOURCE_ONLY)
+        list(APPEND result "${source_path}")
+      elseif (binary_path)
+        list(APPEND result "${binary_path}")
+      else()
+        if (check_pv_validity)
+          message(SEND_ERROR "requested localization of path project variable ${var} for project ${PROJECT} is not present and is not known to be generated")
+        endif()
+        list(APPEND result "")
+      endif()
     endforeach()
     set(${PROJECT}_${var} "${result}" PARENT_SCOPE)
   endforeach()
@@ -578,7 +621,7 @@ endfunction()
 #]================================================================]
 
 function(cet_localize_pv_all PROJECT)
-  if (ARGN AND NOT ARGN MATCHES "^(BINARY|SOURCE|TRY_BINARY)$")
+  if (ARGN AND NOT ARGN MATCHES "^(BINARY|BINARY_ONLY|SOURCE|SOURCE_ONLY|TRY_BINARY|PREFER_BINARY)$")
     message(WARNING "unrecognized extra arguments ${ARGN}")
     set(ARGN)
   endif()
