@@ -75,6 +75,9 @@ include(private/CetAddTransitiveDependency)
 
 include(CMakeFindDependencyMacro)
 
+# Once only!
+include_guard(GLOBAL)
+
 execute_process(COMMAND ${CMAKE_COMMAND} --help-command find_package
   COMMAND sed -E -n -e "/((Basic|Full) Signature( and Module Mode)?|signature is)\$/,/\\)\$/ { s&^[[:space:]]+&&g; s&[[:space:]|]+&\\n&g; s&[^A-Z_\\n]&\\n&g; /^[A-Z_]{2,}(\\n|\$)/ ! D; P; D; }"
   OUTPUT_VARIABLE _cet_fp_keywords
@@ -88,13 +91,11 @@ unable to obtain current list of find_package() keywords from CMake ${CMAKE_VERS
 endif()
 string(REPLACE "\n" ";" _cet_fp_keywords ${_cet_fp_keywords})
 list(REMOVE_DUPLICATES _cet_fp_keywords)
-set(_cet_fp_new_flags BUILD_ONLY EXPORT INTERFACE NOP PRIVATE PUBLIC)
-set(_cet_fp_new_options REQUIRED_BY)
-set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options})
-set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords})
-
-# Once only!
-include_guard(GLOBAL)
+set(_cet_fp_keywords ${_cet_fp_keywords} CACHE INTERNAL "List of original find_package() keywords")
+set(_cet_fp_new_flags BUILD_ONLY EXPORT INTERFACE NOP PRIVATE PUBLIC CACHE INTERNAL "List of new find_package() flags")
+set(_cet_fp_new_options REQUIRED_BY CACHE INTERNAL "List of new find_package() options")
+set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options} CACHE INTERNAL "All new find_package() keywords")
+set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords} CACHE INTERNAL "All find_package() keywords")
 
 if (COMMAND _find_package)
   message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
