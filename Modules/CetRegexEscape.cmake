@@ -12,7 +12,7 @@ unwanted interpolation or interpretation by CMake.
 include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 #[================================================================[.rst:
 .. command:: cet_armor_string

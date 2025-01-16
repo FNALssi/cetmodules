@@ -77,9 +77,3 @@ Utility
 * :command:`to_cmake_version`
 * :command:`to_dot_version`
 * :command:`to_version_string`
-
-Deprecated
-==========
-
-* :command:`cet_find_simple_package`
-* :command:`cet_register_export_name`

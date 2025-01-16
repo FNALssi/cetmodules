@@ -37,7 +37,6 @@ function(_generate_reference)
   add_custom_command(OUTPUT "${doc_root}/reference/index.rst"
     COMMAND M4::M4
     -DLANDING_TOP="${LANDING_TOP}"
-    -DREF_TOOLS="${REF_TOOLS}"
     -DREF_MANUALS="${REF_MANUALS}"
     -DREF_HELPERS="${REF_HELPERS}"
     -DLANDING_BOTTOM="${LANDING_BOTTOM}"
@@ -46,7 +45,6 @@ function(_generate_reference)
     DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/reference-index.rst.m4"
     "${LANDING_TOP}"
-    "${REF_TOOLS}"
     "${REF_MANUALS}"
     "${REF_HELPERS}"
     "${LANDING_BOTTOM}"
@@ -115,14 +113,12 @@ function(_publish_to_root)
   _symlink_reference_to("${doc_root}/reference")
   add_custom_command(OUTPUT "${doc_root}/reference/index.rst"
     COMMAND M4::M4
-    -DREF_TOOLS="${REF_TOOLS}"
     -DREF_MANUALS="${REF_MANUALS}"
     -DREF_HELPERS="${REF_HELPERS}"
     "${CMAKE_CURRENT_SOURCE_DIR}/publish-reference-index.rst.m4"
     > "${doc_root}/reference/index.rst"
     DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/publish-reference-index.rst.m4"
-    "${REF_TOOLS}"
     "${REF_MANUALS}"
     "${REF_HELPERS}"
     VERBATIM
@@ -308,7 +304,6 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/common-conf.py.in" COMMON_CONF)
 set(LANDING_TOP "${CMAKE_CURRENT_SOURCE_DIR}/landing-top.rst")
 set(LANDING_REF "${CMAKE_CURRENT_SOURCE_DIR}/landing-reference.rst")
 set(LANDING_BOTTOM "${CMAKE_CURRENT_SOURCE_DIR}/landing-bottom.rst")
-set(REF_TOOLS "${CMAKE_CURRENT_SOURCE_DIR}/reference-command-line-tools.rst")
 set(REF_MANUALS "${CMAKE_CURRENT_SOURCE_DIR}/reference-manuals.rst")
 set(REF_HELPERS "${CMAKE_CURRENT_SOURCE_DIR}/reference-helpers-etc.rst")
 

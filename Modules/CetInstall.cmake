@@ -23,11 +23,11 @@ default or enforced characteristics for files of a particular type.
 # Avoid unwanted repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
-include (CetCopy)
-include (private/CetExclude)
-include (ProjectVariable)
+include(CetCMakeUtils)
+include(CetCopy)
+include(private/CetExclude)
 
 #[============================================================[.rst:
 .. command:: _cet_install

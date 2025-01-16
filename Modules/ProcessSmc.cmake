@@ -10,7 +10,7 @@ from an `SMC <https://smc.sourceforge.net/>`_ :file:`.sm` file.
 # Avoid unwanted repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 find_package(Smc 6.0.1 REQUIRED)
 
@@ -53,6 +53,10 @@ find_package(Smc 6.0.1 REQUIRED)
         ``<target-or-var>`` in the caller's scope.`
 
 #]================================================================]
+
+include(CetPackagePath)
+include(InstallHeaders)
+include(InstallSource)
 
 function(process_smc TARGET_OR_VAR)
   cmake_parse_arguments (PARSE_ARGV 1 PSMC "NO_INSTALL;NO_INSTALL_SOURCE" "OUTPUT_DIR" "")
@@ -109,7 +113,6 @@ function(process_smc TARGET_OR_VAR)
   if (TARGET ${TARGET_OR_VAR})
     target_sources(${TARGET_OR_VAR} PRIVATE ${SMC_CPP_OUTPUTS})
   else()
-    warn_deprecated("process_smc(<var>)" NEW "process_smc(<library-target>)")
-    set(${TARGET_OR_VAR} ${SMC_CPP_OUTPUTS} PARENT_SCOPE)
+    message(FATAL_ERROR "${TARGET_OR_VAR} must be a valid target")
   endif()
 endfunction()

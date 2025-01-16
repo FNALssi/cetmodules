@@ -9,4 +9,3 @@
    manual/cetmodules-project-variables.7
    manual/cetmodules-properties.7
    manual/cetmodules-variables.7
-   manual/setup_for_development.7

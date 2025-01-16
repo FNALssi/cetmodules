@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 include(CetExclude)
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")

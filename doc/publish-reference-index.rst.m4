@@ -4,11 +4,6 @@ changecom([//])dnl
 Reference Documentation
 #######################
 
-Command-Line Tools
-==================
-
-esyscmd([cat ]REF_TOOLS)dnl
-
 Reference Manuals
 =================
 

@@ -8,7 +8,7 @@ Defines the deprecated function :commmand:`cet_rootcint`.
 
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 include(CetPackagePath)
 

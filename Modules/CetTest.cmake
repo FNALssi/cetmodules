@@ -11,13 +11,15 @@ CetTest
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...3.31 FATAL_ERROR)
 
-# Copy function.
+# For warn_deprecated()
+include(CetCMakeUtils)
+# Copy function
 include(CetCopy)
 # Need cet_script for PREBUILT scripts
 include(CetMake)
-# To ascertain the current subdirectory within a package.
+# To ascertain the current subdirectory within a package
 include(CetPackagePath)
 # May need to escape a string to avoid misinterpretation as regex
 include(CetRegexEscape)
@@ -249,16 +251,6 @@ define_property(TEST PROPERTY KEYWORDS
      output. Each specified filter with its arguments must be quoted as
      a single shell "word." Mutually exclusive with ``OUTPUT_FILTER``
      and ``OUTPUT_FILTER_ARGS``.
-
-     .. note::
-
-        If no output filters are specified, a :manual:`default output
-        filter <filter-output(1)>` is run to remove dates, times,
-        pointer values and other sources of
-        distinction-without-a-difference. If you wish to invoke this
-        filter in addition to your own, use the alias ``DEFAULT`` as a
-        ``<filter>`` to specify its position in the filter invocation
-        sequence.
 
    ``OUTPUT_FILTER_ARGS <arg> ...``
      Specify arguments to ``<filter>`` as specified by
@@ -540,6 +532,7 @@ TEST_WORKDIR")
       get_property(CETMODULES_COMPILE_ONLY_TEST_ENABLED_LANGUAGES
         GLOBAL PROPERTY ENABLED_LANGUAGES)
       set(CETMODULES_COMPILE_ONLY_TEST_COMPILE_COMMANDS "\
+include(CetMake)
 cet_make_exec(NAME ${CET_TARGET}
   ${exec_extra_args}
   ${CET_USE_BOOST_UNIT} ${CET_USE_CATCH2_MAIN}
@@ -608,12 +601,9 @@ cet_make_exec(NAME ${CET_TARGET}
         set(DEFINE_TEST_ERR "-DTEST_ERR=${CET_TARGET}.err")
       endif()
       if (CET_OUTPUT_FILTER)
-        set(DEFINE_OUTPUT_FILTER "-DOUTPUT_FILTER=${CET_OUTPUT_FILTER}")
-        if (CET_OUTPUT_FILTER_ARGS)
-          separate_arguments(FILTER_ARGS NATIVE_COMMAND "${CET_OUTPUT_FILTER_ARGS}")
-          string(PREPEND DEFINE_OUTPUT_FILTER_ARGS "-DOUTPUT_FILTER_ARGS=")
-        endif()
-      elseif (CET_OUTPUT_FILTERS)
+        string(JOIN " " CET_OUTPUT_FILTERS ${CET_OUTPUT_FILTER} ${CET_OUTPUT_FILTER_ARGS})
+      endif()
+      if (CET_OUTPUT_FILTERS)
         foreach (filter IN LISTS CET_OUTPUT_FILTERS)
           separate_arguments(args NATIVE_COMMAND "${filter}")
           set(filter)

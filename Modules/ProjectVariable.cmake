@@ -36,7 +36,7 @@ Defined functions:
 include_guard()
 
 # Non-disruptive CMake version requirements.
-cmake_minimum_required(VERSION 3.18.2...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
 # Default architecture-specific install directory types.
 set(CETMODULES_DEFAULT_ARCH_DIRS
@@ -374,13 +374,6 @@ endfunction()
       .. rst-class:: text-start
 
       The value of a CMake or cached variable
-      :variable:`${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}
-      <CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX>`\ ``_<var-name>``.
-
-   #.
-      .. rst-class:: text-start
-
-      The value of a CMake or cached variable
       :variable:`!${CETMODULES_CURRENT_PROJECT_NAME}_<var-name>_INIT`.
 
    #. ``<init-val> ...``.
@@ -450,12 +443,6 @@ function(project_variable VAR_NAME)
     set(DEFAULT_VAL "${${VAR_NAME}}")
     set(FORCE FORCE)
     set(ORIGIN "${VAR_NAME}")
-  elseif (CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX AND DEFINED
-      ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME})
-    # 3.
-    set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}}")
-    set(FORCE FORCE)
-    set(ORIGIN "${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_${VAR_NAME}")
   elseif (DEFINED ${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT)
     # 4.
     set(DEFAULT_VAL "${${CETMODULES_CURRENT_PROJECT_NAME}_${VAR_NAME}_INIT}")
@@ -477,11 +464,11 @@ function(project_variable VAR_NAME)
   endif()
   ##################
   # Avoid hysteresis.
-  set(prefixes CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX CETMODULES_CURRENT_PROJECT_NAME)
-  set(suffixes "" _INIT)
-  foreach (prefix suffix IN ZIP_LISTS prefixes suffixes)
+  set(prefix_vars CETMODULES_CURRENT_PROJECT_NAME)
+  set(suffixes _INIT)
+  foreach (prefix_var suffix IN ZIP_LISTS prefix_vars suffixes)
     foreach (vtype IN ITEMS "" CACHE PARENT_SCOPE)
-      unset(${${prefix}}_${VAR_NAME}${suffix} ${vtype})
+      unset(${${prefix_var}}_${VAR_NAME}${suffix} ${vtype})
     endforeach()
   endforeach()
   ##################
@@ -507,11 +494,9 @@ function(project_variable VAR_NAME)
       (VAR_NAME IN_LIST CETMODULES_DEFAULT_ARCH_DIRS OR
         VAR_NAME IN_LIST ADD_ARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS OR
-        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_ADD_ARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_ARCH_DIRS_INIT) AND
       NOT (VAR_NAME IN_LIST ADD_NOARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS OR
-        VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_VARIABLE_PREFIX}_ADD_NOARCH_DIRS OR
         VAR_NAME IN_LIST ${CETMODULES_CURRENT_PROJECT_NAME}_ADD_NOARCH_DIRS_INIT))
     # Need to prepend EXEC_PREFIX to relative paths.
     set(new_val)

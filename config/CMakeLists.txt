@@ -8,7 +8,6 @@ set(install_files
   package-config.cmake.preamble.in
   package-config.cmake.init.in
   package-config.cmake.bottom.in
-  MyConfig.pm
   )
 
 foreach (compat IN ITEMS AnyNewer Exact SameMajor SameMinor)
@@ -17,7 +16,3 @@ endforeach()
 
 install(FILES ${install_files}
   DESTINATION ${${PROJECT_NAME}_CONFIG_DIR})
-
-if (WANT_UPS)
-  add_subdirectory(ups)
-endif()

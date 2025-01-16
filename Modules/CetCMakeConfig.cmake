@@ -19,13 +19,14 @@ Module defining the lazy functions:
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19.6...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19.6...3.31 FATAL_ERROR)
 
 include(CMakePackageConfigHelpers)
-include(CetPackagePath)
-include(compat/Compatibility)
+include(CetCMakeUtils)
+include(CetRegexEscape)
 include(GenerateFromFragments)
 include(ParseVersionString)
+include(ProjectVariable)
 
 #[================================================================[.rst:
 .. command:: cet_cmake_config
@@ -53,22 +54,6 @@ include(ParseVersionString)
    ``CONFIG_PRE_INIT <config-fragment-file>... CONFIG_POST_(DEPS|INIT|TARGETS|TARGET_VARS|VARS) <config-fragment-file>...``
      Specify files containing CMake code to be included in the CMake
      config file at the appropriate place.
-
-   .. admonition:: cetbuildtools
-      :class: admonition-legacy
-
-      ``EXTRA_TARGET_VARS <target>``
-        Create cetbuidltools-compatible variables for the specified
-        targets.
-
-   ``NO_CMAKE_CONFIG``
-     .. rst-class:: text-start
-
-     Disable the production of ``<PROJECT-NAME>Config.cmake`` and
-     ``<PROJECT-NAME>ConfigVersion.cmake``; necessary bookkeeping is
-     still done.
-
-     .. deprecated:: 3.23.00 use :command:`cet_finalize`
 
    ``PATH_VARS <path-vars>``
      Specify variables containing paths that will be defined in the
@@ -128,14 +113,18 @@ endfunction()
       necessary if :command:`cet_cmake_config` is invoked for that
       project.
 
+   .. deprecated:: 4.00.00
+
+      No longer necessary with removal of compatibility with
+      cetbuildtools.
+
 #]================================================================]
 
 function(cet_finalize)
-  # Delay the call until we're (almost) done with the project.
-  cmake_language(EVAL CODE "
-    cmake_language(DEFER DIRECTORY \"${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}\"
-      CALL _cet_finalize_impl)\
-")
+  warn_deprecated("cet_finalize()"
+    SINCE "cetmodules 4.00.00"
+    " - remove"
+  )
 endfunction()
 
 # Generate config and version files for the current project.
@@ -143,7 +132,6 @@ function(_cet_cmake_config_impl)
   message(VERBOSE "executing delayed generation of config files")
   project_variable(NOARCH TYPE BOOL
     DOCSTRING "If TRUE, ${CETMODULES_CURRENT_PROJECT_NAME} is (at least nominally) architecture-independent.")
-  _cet_finalize_impl()
   ####################################
   # Parse and verify arguments.
   cmake_parse_arguments(PARSE_ARGV 0 CCC
@@ -162,10 +150,16 @@ function(_cet_cmake_config_impl)
     warn_deprecated("cet_cmake_config(NO_FLAVOR)"
       NEW "\${<PROJECT-NAME>_NOARCH}")
   endif()
-  ####################################
-  # Generate UPS table files, etc. if requested.
-  if (WANT_UPS)
-    process_ups_files()
+  if (CCC_CONFIG_POST_TARGET_VARS)
+    warn_deprecated("cet_cmake_config(CONFIG_POST_TARGET_VARS)"
+      SINCE "cetmodules 4.00.00"
+      NEW "cet_cmake_config(CONFIG_POST_TARGETS ...) - or remove as moot")
+  endif()
+  if (CCC_EXTRA_TARGET_VARS)
+    warn_deprecated("cet_cmake_config(EXTRA_TARGET_VARS)"
+      SINCE "cetmodules 4.00.00"
+      " - remove EXTRA_TARGET_VARS argument as moot"
+    )
   endif()
   ####################################
   # Process config-related arguments.
@@ -229,28 +223,6 @@ cet_cmake_config() with the NO_CMAKE_CONFIG flag to prevent the generation \
 of these configuration files\
 ")
       endif()
-    elseif (WANT_UPS AND origin STREQUAL "<initial-value>" AND
-        NOT (${CETMODULES_CURRENT_PROJECT_NAME}_NOARCH OR
-          IS_ABSOLUTE "${distdir}")) # Defaulted.
-      # Is EXEC_PREFIX non-empty?
-      if (${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX)
-        string(FIND "${distdir}"
-          "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}"
-          idx)
-        if (NOT idx EQUAL 0)
-          message(SEND_ERROR "refusing to install architecture-dependent \
-CMake Config files in architecture-independent default location ${distdir}.
-Set project variable NOARCH TRUE, or set project variable \
-CONFIG_OUTPUT_ROOT_DIR to confirm intention\
-")
-        endif()
-      else()
-        message(WARNING "installing architecture-dependent CMake Config \
-files in possibly architecture-independent default location ${distdir}.
-Set project variable NOARCH TRUE, or set project variable \
-CONFIG_OUTPUT_ROOT_DIR to suppress this message\
-")
-      endif()
     endif()
     if (NOT CCC_COMPATIBILITY)
       set(CCC_COMPATIBILITY AnyNewerVersion)
@@ -270,17 +242,6 @@ CONFIG_OUTPUT_ROOT_DIR to suppress this message\
   # Packaging.
   if (CETMODULES_CONFIG_CPACK_MACRO)
     _configure_cpack()
-  endif()
-endfunction()
-
-function(_cet_finalize_impl)
-  if (NOT $CACHE{_CETMODULES_FINALIZED_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-    set(_CETMODULES_FINALIZED_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} TRUE
-      CACHE INTERNAL "Have we finalized project ${CETMODULES_CURRENT_PROJECT_NAME}?")
-    # Save CMAKE_MODULE_PATH for later.
-    cet_checkpoint_cmp()
-    # Save INCLUDE_DIRECTORIES for later.
-    cet_checkpoint_did()
   endif()
 endfunction()
 
@@ -341,10 +302,6 @@ function(_generate_config_parts FRAG_LIST PATH_VARS_VAR)
   ####################################
   _generate_target_imports(${FRAG_LIST})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_TARGETS})
-  ####################################
-  # Stage: target_vars
-  ####################################
-  _generate_target_vars(${FRAG_LIST})
   list(APPEND ${FRAG_LIST} ${CCC_CONFIG_POST_TARGET_VARS})
   # Propagate variables required upstream.
   list(APPEND ${PATH_VARS_VAR} "${_GCP_${PATH_VARS_VAR}}")
@@ -647,82 +604,6 @@ function(_verify_transitive_dependencies _cet_target_file)
        \"${_cet_iadt_regex}\")
   endif()\
 ")
-endfunction()
-
-# Generate old cetbuildtools-style variables for targets produced by
-# this package.
-function(_generate_target_vars FRAG_LIST)
-  set(var_settings)
-  cet_regex_escape("${CETMODULES_CURRENT_PROJECT_NAME}" e_proj)
-  string(TOUPPER "${${CETMODULES_CURRENT_PROJECT_NAME}_UPS_PRODUCT_NAME}" product_name_uc)
-  cet_regex_escape("${product_name_uc}" e_pname_uc)
-  list(TRANSFORM CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME} REPLACE
-    "^(.+)$" "CETMODULES_EXPORTED_TARGETS_EXPORT_SET_\\1_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}"
-    OUTPUT_VARIABLE target_lists)
-  set(handled_targets)
-  foreach (target_list IN ITEMS ${target_lists}
-      CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-    if (target_list MATCHES "_EXPORT_SET_(.*)_PROJECT_${e_proj}\$")
-      set(namespace ${CETMODULES_NAMESPACE_EXPORT_SET_${CMAKE_MATCH_1}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-    else()
-      set(namespace "${${CETMODULES_CURRENT_PROJECT_NAME}_NAMESPACE}")
-    endif()
-    foreach (target IN LISTS "${target_list}")
-      get_property(var_target TARGET ${target}
-        PROPERTY ALIASED_TARGET)
-      set(var)
-      if (NOT (var_target AND var_target IN_LIST handled_targets))
-        get_property(target_type TARGET ${target} PROPERTY TYPE)
-        if (NOT var_target)
-          set(var_target "${target}")
-        endif()
-        if (CCC_EXTRA_TARGET_VARS)
-          string(REGEX REPLACE "^.*::(.*)$" "\\1" var "${var_target}")
-          string(TOUPPER "${var}" var)
-          if (var IN_LIST CCC_EXTRA_TARGET_VARS)
-          elseif ("${product_name_uc}_${var}" IN_LIST CCC_EXTRA_TARGET_VARS)
-            set(var "${product_name_uc}_${var}")
-          else()
-            unset(var)
-          endif()
-        endif()
-        if (NOT var AND
-            target_type MATCHES "^(MODULE|SHARED|STATIC)_LIBRARY\$")
-          string(TOUPPER "${var_target}" var)
-          if (NOT var MATCHES "^${e_pname_uc}(_|\$)")
-            string(PREPEND var "${product_name_uc}_")
-          endif()
-        endif()
-        if (var)
-          get_property(val TARGET ${target} PROPERTY EXPORT_NAME)
-          if (NOT val)
-            set(val ${target})
-          endif()
-          if (NOT val MATCHES "::")
-            string(PREPEND val "${namespace}::")
-          endif()
-          list(APPEND var_settings "  set(${var} ${val})")
-          list(APPEND handled_targets "${var_target}")
-        endif()
-      endif()
-    endforeach()
-  endforeach()
-  if (var_settings)
-    list(JOIN var_settings "\n" tmp)
-    set(var_settings "\
-####################################
-# Old cetbuildtools-style target variables.
-####################################
-if (\${CETMODULES_CURRENT_PROJECT_NAME}_OLD_STYLE_CONFIG_VARS OR # Per-dependent setting.
- cetbuildtools_UPS_VERSION OR # Backward-compatibility.
- \${CETMODULES_CURRENT_PROJECT_NAME}_UPS_BUILD_ONLY_DEPENDENCIES
- MATCHES \"(^|\\\;)cetbuildtools(\\\;|$)\")
-${tmp}
-endif()\
-")
-  endif()
-  _write_stage(target_vars ${FRAG_LIST} "${var_settings}")
-  set(${FRAG_LIST} "${${FRAG_LIST}}" PARENT_SCOPE)
 endfunction()
 
 function(_generate_transitive_deps FRAG_LIST)

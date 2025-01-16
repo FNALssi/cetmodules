@@ -116,7 +116,7 @@ register them with :command:`add_test()
 #                                                                                                  #
 #==================================================================================================#
 
-cmake_minimum_required(VERSION 2.8.12...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12...3.31 FATAL_ERROR)
 
 option(PARSE_CATCH_TESTS_VERBOSE "Print Catch to CTest parser debug messages" OFF)
 option(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS "Exclude tests with [!hide], [.] or [.foo] tags" OFF)
