@@ -65,6 +65,7 @@ cet_cmake_module_directories(NO_LOCAL Modules Modules/compat)
 
 ####################################
 # Build components.
+add_subdirectory(bin)
 add_subdirectory(config)
 add_subdirectory(etc)
 add_subdirectory(Modules)
