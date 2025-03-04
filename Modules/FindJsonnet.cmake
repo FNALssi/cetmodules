@@ -60,7 +60,7 @@ if (Jsonnet_EXECUTABLE)
     DOC "Jsonnet C++ library")
   mark_as_advanced(Jsonnet_CXX_LIBRARY)
   if (Jsonnet_LIBRARY OR Jsonnet_CXX_LIBRARY)
-    find_path(Jsonnet_INCLUDE_DIRS NAMES libsonnet.h libjsonnet++.h libjsonnet_fmt.h
+    find_path(Jsonnet_INCLUDE_DIRS NAMES libjsonnet.h libjsonnet++.h libjsonnet_fmt.h
       DOC "Jsonnet header includes")
     mark_as_advanced(Jsonnet_INCLUDE_DIRS)
   endif()
@@ -98,7 +98,7 @@ if (Jsonnet_EXECUTABLE)
       OUTPUT_VARIABLE __jsonnetVersionString
       ERROR_QUIET
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    list(GET __jsonnetVersionString 0 Jsonnet_VERSION_STRING
+    list(GET __jsonnetVersionString 0 Jsonnet_VERSION_STRING)
     list(GET __jsonnetVersionString 1 Jsonnet_VERSION_EXTRA)
     set_property(GLOBAL PROPERTY _CETMODULES_FindJsonnet_Jsonnet_EXECUTABLE_VERSION
       "${Jsonnet_EXECUTABLE};${Jsonnet_VERSION_STRING};${Jsonnet_VERSION_EXTRA}")
@@ -121,7 +121,7 @@ if (Jsonnet_EXECUTABLE)
       set_target_properties(Jsonnet::libjsonnet PROPERTIES
         IMPORTED_LOCATION ${Jsonnet_LIBRARY})
       if (Jsonnet_INCLUDE_DIRS)
-        set_target_properties(Jsonnet::libsonnet PROPERTIES
+        set_target_properties(Jsonnet::libjsonnet PROPERTIES
           INTERFACE_INCLUDE_DIRECTORIES "${Jsonnet_INCLUDE_DIRS}")
       endif()
     endif()
@@ -130,7 +130,7 @@ if (Jsonnet_EXECUTABLE)
       set_target_properties(Jsonnet::libjsonnet++ PROPERTIES
         IMPORTED_LOCATION ${Jsonnet_CXX_LIBRARY})
       if (Jsonnet_INCLUDE_DIRS)
-        set_target_properties(Jsonnet::libsonnet++ PROPERTIES
+        set_target_properties(Jsonnet::libjsonnet++ PROPERTIES
           INTERFACE_INCLUDE_DIRECTORIES "${Jsonnet_INCLUDE_DIRS}")
       endif()
     endif()
