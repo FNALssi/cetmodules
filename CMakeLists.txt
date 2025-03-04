@@ -21,20 +21,24 @@
 # This variable is required in the cmake_minimum_required() call below,
 # and is also used as the initial value of the corresponding project
 # variable MIN_CMAKE_VERSION defined below.
-set(cetmodules_MIN_CMAKE_VERSION 3.22)
+set(cetmodules_MIN_CMAKE_VERSION 3.24)
 
 # Required to keep CMake happy.
 cmake_minimum_required(VERSION ${cetmodules_MIN_CMAKE_VERSION}...3.31
   FATAL_ERROR)
 
+# Bootstrap finding our own modules.
+list(PREPEND CMAKE_MODULE_PATH
+  ${CMAKE_CURRENT_SOURCE_DIR}/Modules
+  ${CMAKE_CURRENT_BINARY_DIR}/Modules)
+
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES CetProvideDependency)
+endif()
+
 ####################################
 # Project information.
 project(cetmodules LANGUAGES NONE)
-
-# Bootstrap finding our own modules.
-list(PREPEND CMAKE_MODULE_PATH
-  ${PROJECT_SOURCE_DIR}/Modules
-  ${PROJECT_BINARY_DIR}/Modules)
 
 # Version handling.
 include(CetSetVersionFromFile)

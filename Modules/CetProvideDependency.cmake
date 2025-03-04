@@ -67,7 +67,7 @@ X
 # Once only per directory!
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24...3.31 FATAL_ERROR)
 
 include(CetCMakeUtils)
 include(ParseVersionString)
@@ -97,15 +97,11 @@ set(_cet_fp_new_options REQUIRED_BY CACHE INTERNAL "List of new find_package() o
 set(_cet_fp_new_keywords ${_cet_fp_new_flags} ${cet_fp_new_options} CACHE INTERNAL "All new find_package() keywords")
 set(_cet_fp_all_keywords ${_cet_fp_keywords} ${_cet_fp_new_keywords} CACHE INTERNAL "All find_package() keywords")
 
-if (COMMAND _find_package)
-  message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
-endif()
-
 option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 # Intercept calls to find_package() for IN_TREE packages and make them
 # do the right thing.
-macro(find_package PKG)
+macro(cet_provide_dependency METHOD PKG)
   # Due to the high likelihood that find_package() calls will be nested,
   # we need to be extremely careful to reset variables to avoid
   # hysteresis.
@@ -180,7 +176,7 @@ macro(find_package PKG)
         set(_fp_QUIET)
       endif()
       # Underlying built-in find_package() call.
-      _find_package(${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS} ${_fp_QUIET})
+      find_package(${PKG} ${_fp_minver_${PKG}} BYPASS_PROVIDER ${_fp_UNPARSED_ARGUMENTS} ${_fp_QUIET})
       if (DEFINED CACHE{${PKG}_DIR})
         mark_as_advanced(${PKG}_DIR) # Generally don't need to configure this.
       endif()
@@ -244,7 +240,7 @@ function(_cet_fp_check_find_package_needed PKG RESULT_VAR)
   set(${RESULT_VAR} FALSE PARENT_SCOPE)
 endfunction()
 
-function(_cet_fp_parse_args PKG)
+function(_cet_fp_parse_args METHOD PKG)
   set(_fp_args "${ARGN}")
   if ("${PKG}" STREQUAL "" OR "${_fp_args}" STREQUAL "")
     return()
@@ -360,3 +356,9 @@ macro(_cet_ROOT_post_find_package)
     endif()
   endforeach()
 endmacro()
+
+# Allow bookkeeping and extra options to find_package()
+cmake_language(
+  SET_DEPENDENCY_PROVIDER cet_provide_dependency
+  SUPPORTED_METHODS FIND_PACKAGE
+)
