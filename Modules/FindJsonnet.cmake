@@ -24,16 +24,16 @@ The module defines the following variables:
 \... and targets:
 
 ``Jsonnet::jsonnet``
-  Executable of the Jsonnet command-line interpreter.
+  The Jsonnet command-line interpreter.
 
 ``Jsonnet::jsonnetfmt``
-  Executable of the Jsonnet reformatter.
+  The Jsonnet reformatter.
 
 ``Jsonnet::libjsonnet``
-  Executable of the libjsonnet library.
+  The libjsonnet library.
 
 ``Jsonnet::libjsonnet++``
-  Executable of the libjsonnet++ library.
+  The libjsonnet++ library.
 
 Example usage:
 
