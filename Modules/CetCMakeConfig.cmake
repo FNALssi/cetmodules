@@ -88,6 +88,11 @@ include(ProjectVariable)
 #]================================================================]
 
 function(cet_cmake_config)
+  if (NOT COMMAND cet_provide_dependency)
+    message(FATAL_ERROR "cet_cmake_config() requires
+   `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES:STRING=CetProvideDependency'
+for proper operation")
+  endif()
   # Delay the call until we're (almost) done with the project.
   cmake_language(EVAL CODE "
     cmake_language(DEFER DIRECTORY \"${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}\"
