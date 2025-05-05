@@ -643,16 +643,6 @@ list(PREPEND transitive_deps "\
 ####################################
 set(_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR \"\${PACKAGE_PREFIX_DIR}\")\
 ")
-    if (EXISTS "${CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}")
-      cmake_path(GET CETMODULES_PMM_MODULE_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-        FILENAME _cetmodules_pmm_module_filename)
-      list(PREPEND transitive_deps "\
-# Bootstrap PMM/CMakeCM (see https://github.com/vector-of-bool/pmm).
-include(\${CMAKE_CURRENT_LIST_DIR}/${_cetmodules_pmm_module_filename})
-pmm(CMakeCM ROLLING)
-\
-")
-    endif()
     list(APPEND transitive_deps "\
 set(PACKAGE_PREFIX_DIR \"\${_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR}\")
 unset(_${CETMODULES_CURRENT_PROJECT_NAME}_PACKAGE_PREFIX_DIR)\
