@@ -39,21 +39,28 @@ cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 function(cet_armor_string)
   # Handle options.
   cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
-  _handle_regex_options("\
+  _handle_regex_options(
+    "\
 USAGE: cet_armor_string(<val> <var> [<num>])
-       cet_armor_string(<val>... VAR <var> [NUM <num>])")
-  if (DEFINED CRE_UNPARSED_ARGUMENTS)
-    if (NOT DEFINED CRE_NUM)
+       cet_armor_string(<val>... VAR <var> [NUM <num>])"
+    )
+  if(DEFINED CRE_UNPARSED_ARGUMENTS)
+    if(NOT DEFINED CRE_NUM)
       set(CRE_NUM 1) # Default.
     endif()
-    # Duplicate any escape characters found to handle interpolation by
-    # CMake's macro argument handling.
-    if (CRE_NUM GREATER 0)
+    # Duplicate any escape characters found to handle interpolation by CMake's
+    # macro argument handling.
+    if(CRE_NUM GREATER 0)
       foreach(count RANGE 1 ${CRE_NUM})
-        string(REPLACE "\\" "\\\\" CRE_UNPARSED_ARGUMENTS "${CRE_UNPARSED_ARGUMENTS}")
+        string(REPLACE "\\" "\\\\" CRE_UNPARSED_ARGUMENTS
+                       "${CRE_UNPARSED_ARGUMENTS}"
+               )
       endforeach()
     endif()
-    set(${CRE_VAR} "${CRE_UNPARSED_ARGUMENTS}" PARENT_SCOPE)
+    set(${CRE_VAR}
+        "${CRE_UNPARSED_ARGUMENTS}"
+        PARENT_SCOPE
+        )
   else()
     unset(${CRE_VAR} PARENT_SCOPE)
   endif()
@@ -87,37 +94,45 @@ endfunction()
 function(cet_regex_escape)
   cmake_parse_arguments(PARSE_ARGV 0 CRE "" "VAR;NUM" "")
   # Handle options.
-  _handle_regex_options([=[
+  _handle_regex_options(
+    [=[
 USAGE: cet_regex_escape(<val> <var> <num>)
-       cet_regex_escape(<val>... VAR <var> [NUM <num>])]=])
-  # Escape special characters to prevent them being interpreted by the
-  # regex engine.
+       cet_regex_escape(<val>... VAR <var> [NUM <num>])]=]
+    )
+  # Escape special characters to prevent them being interpreted by the regex
+  # engine.
   set(RESULT)
-  foreach (val IN LISTS CRE_UNPARSED_ARGUMENTS)
+  foreach(val IN LISTS CRE_UNPARSED_ARGUMENTS)
     string(REGEX REPLACE [=[([].|^()?+$*\\[])]=] "\\\\\\1" val "${val}")
     string(REGEX REPLACE "/+" "/" val "${val}")
     # Armor against macro interpolation if requested via NUM.
-    if (CRE_NUM GREATER 0)
+    if(CRE_NUM GREATER 0)
       cet_armor_string("${val}" VAR val NUM ${CRE_NUM})
     endif()
     list(APPEND RESULT "${val}")
   endforeach()
-  set(${CRE_VAR} "${RESULT}" PARENT_SCOPE)
+  set(${CRE_VAR}
+      "${RESULT}"
+      PARENT_SCOPE
+      )
 endfunction()
 
 function(_handle_regex_options MSG)
-  if (NOT (DEFINED CRE_VAR OR DEFINED CRE_NUM)) # No keywords.
+  if(NOT (DEFINED CRE_VAR OR DEFINED CRE_NUM)) # No keywords.
     list(LENGTH CRE_UNPARSED_ARGUMENTS len)
-    if (len GREATER 3)
+    if(len GREATER 3)
       message(FATAL_ERROR "${MSG}")
     endif()
     list(POP_FRONT CRE_UNPARSED_ARGUMENTS VAL CRE_VAR)
     set(CRE_UNPARSED_ARGUMENTS "${VAL}")
   endif()
-  if (CRE_VAR)
-    foreach (var IN ITEMS VAR NUM KEYWORDS_MISSING_VALUES UNPARSED_ARGUMENTS)
-      if (DEFINED CRE_${var})
-        set(CRE_${var} "${CRE_${var}}" PARENT_SCOPE)
+  if(CRE_VAR)
+    foreach(var IN ITEMS VAR NUM KEYWORDS_MISSING_VALUES UNPARSED_ARGUMENTS)
+      if(DEFINED CRE_${var})
+        set(CRE_${var}
+            "${CRE_${var}}"
+            PARENT_SCOPE
+            )
       else()
         unset(CRE_${var} PARENT_SCOPE)
       endif()

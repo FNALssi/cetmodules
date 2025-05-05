@@ -2,8 +2,8 @@
 FindFFTW3[flq]?
 ---------------
 #]================================================================]
-# Mitigate a possible FFTW3 packaging error if built with autotools
-# instead of CMake.
+# Mitigate a possible FFTW3 packaging error if built with autotools instead of
+# CMake.
 
 # Attempt to load the normal way without fatal error on failure.
 set(_cet_findfftw3_required ${${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED})
@@ -17,7 +17,9 @@ unset(_cet_findfftw3_quietly)
 unset(_cet_findfftw3_required)
 
 # Alternative attempt to find FFTW3* using pkg-config.
-if (NOT (${CMAKE_FIND_PACKAGE_NAME}_FOUND AND TARGET FFTW3::${CMAKE_FIND_PACKAGE_NAME}))
+if(NOT (${CMAKE_FIND_PACKAGE_NAME}_FOUND AND TARGET
+                                             FFTW3::${CMAKE_FIND_PACKAGE_NAME})
+   )
   unset(${CMAKE_FIND_PACKAGE_NAME}_FOUND)
   unset(${CMAKE_FIND_PACKAGE_NAME}_FOUND CACHE)
   include(CetFindPkgConfigPackage)

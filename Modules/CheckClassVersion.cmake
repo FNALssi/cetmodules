@@ -13,28 +13,40 @@ CheckClassVersion
 include_guard()
 cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
 
-set(CCV_DEFAULT_RECURSIVE FALSE
-  CACHE BOOL "Default setting for recursive checks by checkClassVersion (may be time-consuming)."
-  )
+set(CCV_DEFAULT_RECURSIVE
+    FALSE
+    CACHE
+      BOOL
+      "Default setting for recursive checks by checkClassVersion (may be time-consuming)."
+    )
 
 function(_verify_pyroot)
-  if (NOT DEFINED CACHE{_CheckClassVersion_ENABLED})
-    set(_CheckClassVersion_ENABLED FALSE CACHE INTERNAL
-      "Activation status of ROOT ClassVersion checking via PYROOT")
-    execute_process(COMMAND root-config --features
+  if(NOT DEFINED CACHE{_CheckClassVersion_ENABLED})
+    set(_CheckClassVersion_ENABLED
+        FALSE
+        CACHE INTERNAL
+              "Activation status of ROOT ClassVersion checking via PYROOT"
+        )
+    execute_process(
+      COMMAND root-config --features
       RESULT_VARIABLE CCV_ROOT_CONFIG_OK
       OUTPUT_VARIABLE CCV_ROOT_CONFIG_OUT
       OUTPUT_STRIP_TRAILING_WHITESPACE
       )
     if(NOT CCV_ROOT_CONFIG_OK EQUAL 0)
-      message(FATAL_ERROR "Could not execute root-config successfully to interrogate configuration: exit code ${CCV_ROOT_CONFIG_OK}")
+      message(
+        FATAL_ERROR
+          "Could not execute root-config successfully to interrogate configuration: exit code ${CCV_ROOT_CONFIG_OK}"
+        )
     endif()
     string(REPLACE " " ";" CCV_ROOT_FEATURES "${CCV_ROOT_CONFIG_OUT}")
     if("pyroot" IN_LIST CCV_ROOT_FEATURES OR "python" IN_LIST CCV_ROOT_FEATURES)
       set_property(CACHE _CheckClassVersion_ENABLED PROPERTY VALUE TRUE)
     else()
-      message("WARNING: The version of root against which we are building currently has not been built "
-        "with python support: ClassVersion checking is disabled.")
+      message(
+        "WARNING: The version of root against which we are building currently has not been built "
+        "with python support: ClassVersion checking is disabled."
+        )
     endif()
   endif()
 endfunction()
@@ -87,78 +99,99 @@ endfunction()
 
 function(check_class_version)
   _verify_pyroot()
-  if (NOT $CACHE{_CheckClassVersion_ENABLED})
+  if(NOT $CACHE{_CheckClassVersion_ENABLED})
     return()
   endif()
-  cmake_parse_arguments(PARSE_ARGV 0 CCV
-    "UPDATE_IN_PLACE;RECURSIVE;NO_RECURSIVE"
-    "CLASSES_DEF_XML"
-    "ENVIRONMENT;LIBRARIES;REQUIRED_DICTIONARIES")
-  if (CCV_LIBRARIES)
-    MESSAGE(FATAL_ERROR "LIBRARIES option not supported at this time: "
-      "ensure your library is linked to any necessary libraries not already pulled in by ART.")
+  cmake_parse_arguments(
+    PARSE_ARGV 0 CCV "UPDATE_IN_PLACE;RECURSIVE;NO_RECURSIVE" "CLASSES_DEF_XML"
+    "ENVIRONMENT;LIBRARIES;REQUIRED_DICTIONARIES"
+    )
+  if(CCV_LIBRARIES)
+    message(
+      FATAL_ERROR
+        "LIBRARIES option not supported at this time: "
+        "ensure your library is linked to any necessary libraries not already pulled in by ART."
+      )
   endif()
-  if (CCV_REQUIRED_DICTIONARIES)
+  if(CCV_REQUIRED_DICTIONARIES)
     warn_deprecated("REQUIRED_DICTIONARIES" SINCE 3.23.00 " - remove")
   endif()
-  if (CCV_UNPARSED_ARGUMENTS)
+  if(CCV_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "Unparsed arguments: ${CCV_UNPARSED_ARGUMENTS}")
   endif()
   if(CCV_UPDATE_IN_PLACE)
-    SET(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "-G")
+    set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "-G")
   endif()
-  if (CCV_RECURSIVE)
+  if(CCV_RECURSIVE)
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--recursive")
-  elsif (CCV_NO_RECURSIVE)
+    elsif(CCV_NO_RECURSIVE)
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--no-recursive")
-  elseif (CCV_DEFAULT_RECURSIVE)
+  elseif(CCV_DEFAULT_RECURSIVE)
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--recursive")
   else()
     set(CCV_EXTRA_ARGS ${CCV_EXTRA_ARGS} "--no-recursive")
   endif()
-  IF(NOT dictname)
-    MESSAGE(FATAL_ERROR "CHECK_CLASS_VERSION must be called after BUILD_DICTIONARY.")
-  ENDIF()
-  if (NOT CCV_CLASSES_DEF_XML)
+  if(NOT dictname)
+    message(
+      FATAL_ERROR "CHECK_CLASS_VERSION must be called after BUILD_DICTIONARY."
+      )
+  endif()
+  if(NOT CCV_CLASSES_DEF_XML)
     set(CCV_CLASSES_DEF_XML ${CMAKE_CURRENT_SOURCE_DIR}/classes_def.xml)
   endif()
   set(ASAN_OPTIONS "detect_leaks=0:new_delete_type_mismatch=0")
-  if ("$ENV{ASAN_OPTIONS}")
+  if("$ENV{ASAN_OPTIONS}")
     string(PREPEND ASAN_OPTIONS "$ENV{ASAN_OPTIONS}:")
   endif()
   set(CMD_ENV "ASAN_OPTIONS=${ASAN_OPTIONS}")
-  if (CETB_SANITIZER_PRELOADS)
-    list(APPEND CMD_ENV "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}")
+  if(CETB_SANITIZER_PRELOADS)
+    list(APPEND CMD_ENV
+         "LD_PRELOAD=$ENV{LD_PRELOAD} ${CETB_SANITIZER_PRELOADS}"
+         )
   endif()
   foreach(ev IN ITEMS LSAN_OPTIONS MSAN_OPTIONS TSAN_OPTIONS UBSAN_OPTIONS)
-    if (DEFINED ENV{${ev}})
+    if(DEFINED ENV{${ev}})
       list(APPEND CMD_ENV "${ev}=$ENV{${ev}}")
     endif()
   endforeach()
-  if (TARGET ${dictname}_dict)
-    set(LD_PATH_FOR_DICT "$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>")
-    if (APPLE)
+  if(TARGET ${dictname}_dict)
+    set(LD_PATH_FOR_DICT
+        "$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,LINK_DIRECTORIES>,:>"
+        )
+    if(APPLE)
       set(DY DY)
     else()
       set(DY)
     endif()
-    string(JOIN ":" LD_PATH_FOR_DICT "${LD_PATH_FOR_DICT}" $ENV{ROOT_LIBRARY_PATH} $ENV{${DY}LD_LIBRARY_PATH})
-    list(APPEND CMD_ENV "ROOT_LIBRARY_PATH=$<TARGET_LINKER_FILE_DIR:${dictname}_dict>:${LD_PATH_FOR_DICT}")
-    list(APPEND CMD_ENV "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>")
+    string(JOIN ":" LD_PATH_FOR_DICT "${LD_PATH_FOR_DICT}"
+           $ENV{ROOT_LIBRARY_PATH} $ENV{${DY}LD_LIBRARY_PATH}
+           )
+    list(
+      APPEND
+      CMD_ENV
+      "ROOT_LIBRARY_PATH=$<TARGET_LINKER_FILE_DIR:${dictname}_dict>:${LD_PATH_FOR_DICT}"
+      )
+    list(
+      APPEND
+      CMD_ENV
+      "ROOT_INCLUDE_PATH=$<JOIN:$<TARGET_PROPERTY:${dictname}_dict,INCLUDE_DIRECTORIES>,:>"
+      )
   endif()
   # Add the check to the end of the dictionary building step.
-  add_custom_command(OUTPUT ${dictname}_dict_checked
-    COMMAND ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
-    $<TARGET_FILE:cetmodules::checkClassVersion> ${CCV_EXTRA_ARGS}
-    -l "$<TARGET_LINKER_FILE:${dictname}_dict>"
-    -x ${CCV_CLASSES_DEF_XML}
-    -t ${dictname}_dict_checked
+  add_custom_command(
+    OUTPUT ${dictname}_dict_checked
+    COMMAND
+      ${CMAKE_COMMAND} -E env ${CMD_ENV} ${CCV_ENVIRONMENT}
+      $<TARGET_FILE:cetmodules::checkClassVersion> ${CCV_EXTRA_ARGS} -l
+      "$<TARGET_LINKER_FILE:${dictname}_dict>" -x ${CCV_CLASSES_DEF_XML} -t
+      ${dictname}_dict_checked
     COMMENT "Checking class versions for ROOT dictionary ${dictname}"
     DEPENDS ${dictname}_dict cetmodules::checkClassVersion
     )
-  add_custom_target(checkClassVersion_${dictname} ALL
-    DEPENDS ${dictname}_dict_checked)
-  # All checkClassVersion invocations must wait until after *all*
-  # dictionaries have been built.
+  add_custom_target(
+    checkClassVersion_${dictname} ALL DEPENDS ${dictname}_dict_checked
+    )
+  # All checkClassVersion invocations must wait until after *all* dictionaries
+  # have been built.
   add_dependencies(checkClassVersion_${dictname} BuildDictionary_AllDicts)
 endfunction()

@@ -56,31 +56,49 @@ include(CetRegexEscape)
 #]================================================================]
 
 function(cet_installed_path OUT_VAR)
-  cmake_parse_arguments(PARSE_ARGV 1 CIP "NOP" "BASE_SUBDIR;RELATIVE;RELATIVE_VAR" "")
+  cmake_parse_arguments(
+    PARSE_ARGV 1 CIP "NOP" "BASE_SUBDIR;RELATIVE;RELATIVE_VAR" ""
+    )
   list(POP_FRONT CIP_UNPARSED_ARGUMENTS PATH)
-  if (CIP_RELATIVE AND CIP_RELATIVE_VAR)
+  if(CIP_RELATIVE AND CIP_RELATIVE_VAR)
     message(FATAL_ERROR "RELATIVE and RELATIVE_VAR are mutually exclusive")
-  elseif (NOT (CIP_RELATIVE OR CIP_RELATIVE_VAR))
+  elseif(NOT (CIP_RELATIVE OR CIP_RELATIVE_VAR))
     message(FATAL_ERROR "one of RELATIVE or RELATIVE_VAR are required")
   endif()
   cet_package_path(pkg_path PATH "${PATH}")
-  if (NOT pkg_path)
+  if(NOT pkg_path)
     set(pkg_path "${PATH}")
   endif()
-  if (CIP_RELATIVE_VAR)
-    if (NOT ${CIP_RELATIVE_VAR} IN_LIST CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-      message(FATAL_ERROR "RELATIVE_VAR ${CIP_RELATIVE_VAR} is not a project variable for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  if(CIP_RELATIVE_VAR)
+    if(NOT ${CIP_RELATIVE_VAR} IN_LIST
+       CETMODULES_VARS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+       )
+      message(
+        FATAL_ERROR
+          "RELATIVE_VAR ${CIP_RELATIVE_VAR} is not a project variable for project ${CETMODULES_CURRENT_PROJECT_NAME}"
+        )
     endif()
-    cet_regex_escape("${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}" VAR e_exec_prefix)
-    string(REGEX REPLACE "^(${e_exec_prefix}/+)?(.+)$" "\\2" relvar "${${CETMODULES_CURRENT_PROJECT_NAME}_${CIP_RELATIVE_VAR}}")
+    cet_regex_escape(
+      "${${CETMODULES_CURRENT_PROJECT_NAME}_EXEC_PREFIX}" VAR e_exec_prefix
+      )
+    string(REGEX
+           REPLACE "^(${e_exec_prefix}/+)?(.+)$" "\\2" relvar
+                   "${${CETMODULES_CURRENT_PROJECT_NAME}_${CIP_RELATIVE_VAR}}"
+           )
     cet_regex_escape("${relvar}" VAR e_relvar)
   else()
     cet_regex_escape("${CIP_RELATIVE}" VAR e_relvar)
   endif()
   string(REGEX REPLACE "^(${e_relvar}/+)?(.+)$" "\\2" result "${pkg_path}")
-  if (IS_ABSOLUTE "${result}")
-    message(FATAL_ERROR "unable to calculate relative install path for ${PATH} in project ${CETMODULES_CURRENT_PROJECT_NAME}")
+  if(IS_ABSOLUTE "${result}")
+    message(
+      FATAL_ERROR
+        "unable to calculate relative install path for ${PATH} in project ${CETMODULES_CURRENT_PROJECT_NAME}"
+      )
   endif()
   string(JOIN "/" result ${CIP_BASE_SUBDIR} "${result}")
-  set(${OUT_VAR} "${result}" PARENT_SCOPE)
+  set(${OUT_VAR}
+      "${result}"
+      PARENT_SCOPE
+      )
 endfunction()
