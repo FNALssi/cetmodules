@@ -53,6 +53,9 @@ appropriate admonition:
 Compatibility
 -------------
 
-* Cetmodules requires CMake >= |CMAKE_MIN_VERSION|.
+* Cetmodules |CETMODULES_VERSION| requires CMake >= |CMAKE_MIN_VERSION|.
+  For the specific minimum version of CMake required by older versions
+  of Cetmodules, see that version's reference documentation.
 * All cetbuildtools compatibility has been removed from Cetmodules
   4.00.00.
+* All |UPS| support has been removed from Cetmodules 4.00.00.
