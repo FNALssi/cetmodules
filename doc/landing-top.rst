@@ -35,21 +35,13 @@ functionality, or other endearing quirks.
 Documentation notes
 -------------------
 
-Information specific to legacy compatibility and domain-specific
-features will be marked with appropriate admonitions:
-
-.. admonition:: cetbuildtools
-   :class: admonition-legacy
-
-   You will only care about this information if you are porting code
-   from cetbuidltools.
-
-... or:
+Information specific to domain-specific features will be marked with an
+appropriate admonition:
 
 .. admonition:: :abbr:`HEP`
    :class: admonition-domain
 
-   This is a Find module specific to HEP.
+   This information is specific to HEP.
 
 ... or:
 
@@ -61,23 +53,9 @@ features will be marked with appropriate admonitions:
 Compatibility
 -------------
 
-* Cetmodules requires CMake >= |CMAKE_MIN_VERSION|.
-
-.. admonition:: cetbuildtools
-   :class: admonition-legacy
-
-   * Cetmodules >= 2.10.00 is backward-compatible with cetbuildtools >=
-     7.00.00.
-
-   Unported cetbuildtools code will generate many deprecation and other
-   warnings. To temporarily disable these warnings, add
-   ``-DCET_WARN_DEPRECATED:BOOL=NO`` to your CMake configuration
-   command-line options.
-
-   Some cetbuildtools-style behavior is different or disabled in
-   Cetmodules by default either because it is inefficient, inflexible or
-   against modern best practice. Examples include use of |UPS|-specific
-   variables or terminology, or library-path variables instead of
-   targets in dependency lists. These can be enabled on a per-package
-   basis by adding ``-D{project}_OLD_STYLE_CONFIG_VARS:BOOL=YES`` to
-   your CMake configuration command-line options.
+* Cetmodules |CETMODULES_VERSION| requires CMake >= |CMAKE_MIN_VERSION|.
+  For the specific minimum version of CMake required by older versions
+  of Cetmodules, see that version's reference documentation.
+* All cetbuildtools compatibility has been removed from Cetmodules
+  4.00.00.
+* All |UPS| support has been removed from Cetmodules 4.00.00.

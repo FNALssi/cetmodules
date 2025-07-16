@@ -8,9 +8,11 @@ General functions and macros.
 
 include_guard()
 
-cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20...3.31 FATAL_ERROR)
 
 include(CetRegexEscape)
+include(CetRegisterExportSet)
+include(ProjectVariable)
 
 #[================================================================[.rst:
 .. command:: cet_passthrough
@@ -126,72 +128,105 @@ include(CetRegexEscape)
 #]================================================================]
 
 function(cet_passthrough)
-  cmake_parse_arguments(PARSE_ARGV 0 CP
-    "APPEND;FLAG;IN_PLACE" "EMPTY_KEYWORD;KEYWORD" "VALUES")
-  if (NOT (CP_VALUES OR "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
+  cmake_parse_arguments(
+    PARSE_ARGV 0 CP "APPEND;FLAG;IN_PLACE" "EMPTY_KEYWORD;KEYWORD" "VALUES"
+    )
+  if(NOT (CP_VALUES OR "VALUES" IN_LIST CP_KEYWORDS_MISSING_VALUES))
     list(POP_FRONT CP_UNPARSED_ARGUMENTS CP_IN_VAR)
-    if (CP_IN_VAR MATCHES
-        "^(ARG[VN]|CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES))$")
-      message(FATAL_ERROR "value of IN_VAR non-option argument (\"${CP_IN_VAR}\") is \
+    if(CP_IN_VAR
+       MATCHES
+       "^(ARG[VN]|CP_(APPEND|EMPTY_KEYWORD|IN_PLACE|IN_VAR|KEYWORD|KEYWORDS_MISSING_VALUES|OUT_VAR|UNPARSED_ARGUMENTS|VALUES))$"
+       )
+      message(
+        FATAL_ERROR
+          "value of IN_VAR non-option argument (\"${CP_IN_VAR}\") is \
 not permitted - specify values with VALUES instead\
-")
-    elseif (NOT CP_IN_VAR)
-      message(FATAL_ERROR "vacuous <in-var> non-option argument - missing VALUES?")
-    elseif (NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
+"
+        )
+    elseif(NOT CP_IN_VAR)
+      message(
+        FATAL_ERROR "vacuous <in-var> non-option argument - missing VALUES?"
+        )
+    elseif(NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
       string(REGEX REPLACE "^_*[^_]+_(.*)$" "\\1" CP_KEYWORD "${CP_IN_VAR}")
     endif()
-    if (CP_IN_PLACE)
-      if (CP_APPEND)
-        message(FATAL_ERROR "options IN_PLACE and APPEND are mutually exclusive")
+    if(CP_IN_PLACE)
+      if(CP_APPEND)
+        message(
+          FATAL_ERROR "options IN_PLACE and APPEND are mutually exclusive"
+          )
       endif()
       set(CP_OUT_VAR "${CP_IN_VAR}")
     endif()
-  elseif (CP_IN_PLACE)
+  elseif(CP_IN_PLACE)
     message(FATAL_ERROR "options IN_PLACE and VALUES are mutually exclusive")
   else()
     set(CP_IN_VAR CP_VALUES)
   endif()
-  if (NOT CP_OUT_VAR)
+  if(NOT CP_OUT_VAR)
     list(POP_FRONT CP_UNPARSED_ARGUMENTS CP_OUT_VAR)
-    if (NOT CP_OUT_VAR)
+    if(NOT CP_OUT_VAR)
       message(FATAL_ERROR "vacuous OUT_VAR non-option argument")
     endif()
   endif()
-  if (NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
-    set(CP_KEYWORD  "${CP_OUT_VAR}")
+  if(NOT (CP_KEYWORD OR "KEYWORD" IN_LIST CP_KEYWORDS_MISSING_VALUES))
+    set(CP_KEYWORD "${CP_OUT_VAR}")
   endif()
-  if (CP_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "unexpected non-option arguments ${CP_UNPARSED_ARGUMENTS}")
+  if(CP_UNPARSED_ARGUMENTS)
+    message(
+      FATAL_ERROR "unexpected non-option arguments ${CP_UNPARSED_ARGUMENTS}"
+      )
   endif()
-  if (CP_FLAG)
-    if (CP_APPEND)
-      if (${CP_IN_VAR})
+  if(CP_FLAG)
+    if(CP_APPEND)
+      if(${CP_IN_VAR})
         list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD})
-      elseif (CP_EMPTY_KEYWORD)
+      elseif(CP_EMPTY_KEYWORD)
         list(APPEND ${CP_OUT_VAR} ${CP_EMPTY_KEYWORD})
       endif()
-      set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
+      set(${CP_OUT_VAR}
+          "${${CP_OUT_VAR}}"
+          PARENT_SCOPE
+          )
     else()
-      if (${CP_IN_VAR})
-        set(${CP_OUT_VAR} ${CP_KEYWORD} PARENT_SCOPE)
-      elseif (CP_EMPTY_KEYWORD)
-        set(${CP_OUT_VAR} ${CP_EMPTY_KEYWORD} PARENT_SCOPE)
+      if(${CP_IN_VAR})
+        set(${CP_OUT_VAR}
+            ${CP_KEYWORD}
+            PARENT_SCOPE
+            )
+      elseif(CP_EMPTY_KEYWORD)
+        set(${CP_OUT_VAR}
+            ${CP_EMPTY_KEYWORD}
+            PARENT_SCOPE
+            )
       else()
         unset(${CP_OUT_VAR} PARENT_SCOPE)
       endif()
     endif()
-  elseif (NOT DEFINED ${CP_IN_VAR} OR "${${CP_IN_VAR}}" STREQUAL "")
-    if (CP_APPEND)
+  elseif(NOT DEFINED ${CP_IN_VAR} OR "${${CP_IN_VAR}}" STREQUAL "")
+    if(CP_APPEND)
       list(APPEND ${CP_OUT_VAR} ${CP_EMPTY_KEYWORD})
-      set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
-    elseif (CP_EMPTY_KEYWORD)
-      set(${CP_OUT_VAR} ${CP_EMPTY_KEYWORD} PARENT_SCOPE)
+      set(${CP_OUT_VAR}
+          "${${CP_OUT_VAR}}"
+          PARENT_SCOPE
+          )
+    elseif(CP_EMPTY_KEYWORD)
+      set(${CP_OUT_VAR}
+          ${CP_EMPTY_KEYWORD}
+          PARENT_SCOPE
+          )
     endif()
-  elseif (CP_APPEND)
+  elseif(CP_APPEND)
     list(APPEND ${CP_OUT_VAR} ${CP_KEYWORD} ${${CP_IN_VAR}})
-    set(${CP_OUT_VAR} "${${CP_OUT_VAR}}" PARENT_SCOPE)
+    set(${CP_OUT_VAR}
+        "${${CP_OUT_VAR}}"
+        PARENT_SCOPE
+        )
   else()
-    set(${CP_OUT_VAR} ${CP_KEYWORD} ${${CP_IN_VAR}} PARENT_SCOPE)
+    set(${CP_OUT_VAR}
+        ${CP_KEYWORD} ${${CP_IN_VAR}}
+        PARENT_SCOPE
+        )
   endif()
 endfunction()
 
@@ -222,15 +257,26 @@ function(cet_source_file_extensions RESULTS_VAR)
   set(RESULTS)
   get_property(enabled_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
   # Specific order.
-  list(REMOVE_ITEM enabled_languages ASM Fortran C CXX CUDA)
+  list(
+    REMOVE_ITEM
+    enabled_languages
+    ASM
+    Fortran
+    C
+    CXX
+    CUDA
+    )
   list(PREPEND enabled_languages CUDA CXX C Fortran)
   list(APPEND enabled_languages ASM)
-  foreach (lang IN LISTS enabled_languages)
-    if (CMAKE_${lang}_COMPILER_LOADED)
+  foreach(lang IN LISTS enabled_languages)
+    if(CMAKE_${lang}_COMPILER_LOADED)
       list(APPEND RESULTS ${CMAKE_${lang}_SOURCE_FILE_EXTENSIONS})
     endif()
   endforeach()
-  set(${RESULTS_VAR} "${RESULTS}" PARENT_SCOPE)
+  set(${RESULTS_VAR}
+      "${RESULTS}"
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[================================================================[.rst:
@@ -272,26 +318,30 @@ endfunction()
 
 #]================================================================]
 function(cet_exclude_files_from SOURCES_VAR)
-  if (NOT (${SOURCES_VAR} AND ARGN)) # Nothing to do.
+  if(NOT (${SOURCES_VAR} AND ARGN)) # Nothing to do.
     return()
   endif()
   # Remove known plugin sources and anything else the user specifies.
   cmake_parse_arguments(PARSE_ARGV 1 CEFF "NOP" "" "REGEX")
-  if (CEFF_REGEX)
+  if(CEFF_REGEX)
     list(JOIN CEFF_REGEX "|" regex)
     list(FILTER ${SOURCES_VAR} EXCLUDE REGEX "(${regex})")
   endif()
-  if (CEFF_UNPARSED_ARGUMENTS)
-    # Transform relative paths with respect to the current source
-    # directory.
-    list(TRANSFORM CEFF_UNPARSED_ARGUMENTS
+  if(CEFF_UNPARSED_ARGUMENTS)
+    # Transform relative paths with respect to the current source directory.
+    list(
+      TRANSFORM CEFF_UNPARSED_ARGUMENTS
       PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/"
-      REGEX [=[^[^/]]=])
+      REGEX [=[^[^/]]=]
+      )
     # Remove exact matches only.
     list(REMOVE_ITEM ${SOURCES_VAR} ${CEFF_UNPARSED_ARGUMENTS})
   endif()
   list(REMOVE_DUPLICATES ${SOURCES_VAR})
-  set(${SOURCES_VAR} "${${SOURCES_VAR}}" PARENT_SCOPE)
+  set(${SOURCES_VAR}
+      "${${SOURCES_VAR}}"
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[================================================================[.rst:
@@ -363,27 +413,35 @@ endfunction()
 function(cet_timestamp VAR)
   cmake_parse_arguments(PARSE_ARGV 1 _CT "SYSTEM_DATE_CMD" "" "")
   list(POP_FRONT ARGN fmt)
-  if (NOT fmt)
+  if(NOT fmt)
     set(fmt "%a %b %d %H:%M:%S %Z %Y")
   endif()
-  if (_CT_SYSTEM_DATE_CMD OR fmt MATCHES "(^|[^%])%[^%dHIjmbBMsSUwaAyY]")
-    # We want to use the system date command explicitly, or there's a
-    # format code not recognized by string(TIMESTAMP).
+  if(_CT_SYSTEM_DATE_CMD OR fmt MATCHES "(^|[^%])%[^%dHIjmbBMsSUwaAyY]")
+    # We want to use the system date command explicitly, or there's a format
+    # code not recognized by string(TIMESTAMP).
     set(date_cmd date "+${fmt}")
-    execute_process(COMMAND ${date_cmd}
+    execute_process(
+      COMMAND ${date_cmd}
       OUTPUT_VARIABLE result
       OUTPUT_STRIP_TRAILING_WHITESPACE
       ERROR_VARIABLE error
-      RESULT_VARIABLE status)
-    if (error OR NOT (status EQUAL 0 AND result))
-      message(WARNING "attempt to obtain date/time with \"${date_cmd}\" \
+      RESULT_VARIABLE status
+      )
+    if(error OR NOT (status EQUAL 0 AND result))
+      message(
+        WARNING
+          "attempt to obtain date/time with \"${date_cmd}\" \
 returned status code ${status} and error output \"${error}\" in addition to output \"${result}\"\
-")
+"
+        )
     endif()
   else()
     string(TIMESTAMP result "${fmt}")
   endif()
-  set(${VAR} "${result}" PARENT_SCOPE)
+  set(${VAR}
+      "${result}"
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[================================================================[.rst:
@@ -445,41 +503,6 @@ endfunction()
 
 #]================================================================]
 
-function(cet_find_simple_package NAME)
-  warn_deprecated("cet_find_simple_package()" NEW
-    "find_package() with custom Find module where appropriate")
-  cmake_parse_arguments(PARSE_ARGV 1 CFSP
-    ""
-    "INCPATH_VAR;LIB_VAR"
-    "HEADERS;LIBNAMES;LIBPATH_SUFFIXES;INCPATH_SUFFIXES")
-  if (NOT CFSP_LIB_VAR)
-    string(TOUPPER "${NAME}" CFSP_LIB_VAR)
-    string(MAKE_C_IDENTIFIER "${CFSP_LIB_VAR}" CFSP_LIB_VAR)
-  endif()
-  if (CFSB_PATH_SUFFIXES)
-    list(INSERT CFSB_PATH_SUFFIXES 0 PATH_SUFFIXES)
-  endif()
-  cet_find_library(${CFSP_LIB_VAR} NAMES "${NAME}" ${CFSP_LIBNAMES}
-    ${CFSP_LIBPATH_SUFFIXES}
-    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH)
-  set(${CFSP_LIB_VAR} ${${CFSP_LIB_VAR}} PARENT_SCOPE)
-  if (NOT CFSP_HEADERS)
-    set(CFSP_HEADERS "${NAME}.h" "${NAME}.hh" "${NAME}.H" "${NAME}.hxx"
-      "${NAME}.hpp")
-  endif()
-  if (NOT CFSP_INCPATH_VAR)
-    set(CFSP_INCPATH_VAR ${CFSP_LIB_VAR}_INCLUDE)
-  endif()
-  find_path(${CFSP_INCPATH_VAR}
-    NAMES ${CFSP_HEADERS}
-    PATH_SUFFIXES ${CFSP_INCPATH_SUFFIXES}
-    NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH
-    )
-  if (CFSP_INCPATH_VAR AND ${CFSP_INCPATH_VAR})
-    include_directories(${${CFSP_INCPATH_VAR}})
-  endif()
-endfunction()
-
 #[================================================================[.rst:
 .. command:: cet_localize_pv
 
@@ -500,21 +523,29 @@ endfunction()
    Options
    ^^^^^^^
 
-   ``BINARY``
+   ``BINARY|SOURCE|TRY_BINARY``
+      .. deprecated:: 4.0
+
+      These options are deprecated due to possible ambiguity of meaning:
+      use option :ref:`BINARY_ONLY <_cet_localize_pv-BINARY_ONLY>`,
+      :ref:`SOURCE_ONLY <_cet_localize_pv-SOURCE_ONLY>`, or
+      :ref:`PREFER_BINARY <_cet_localize_pv-PREFER_BINARY>` instead,
+      respectively.
+
+   .. _cet_localize_pv-BINARY_ONLY:
+
+   ``BINARY_ONLY``
      Unconditionally resolve non-absolute paths with respect to the
-     binary tree (mutually exclusive with ``SOURCE`` and
-     ``TRY_BINARY``).
+     binary tree (mutually exclusive with ``SOURCE_ONLY`` and
+     ``PREFER_BINARY``).
 
    ``NO_CHECK_VALIDITY``
-     Do not report an error if a project variable does not exist or does
-     not represent a path or path fragment (ignored for ``ALL``).
+     Do not report an error if a project variable does not exist, or
+     does not represent a path or path fragment (ignored for ``ALL``).
 
-   ``SOURCE``
-     Unconditionally resolve non-absolute paths with respect to the
-     source tree (mutually exclusive with ``BINARY`` and
-     ``TRY_BINARY``).
+   .. _cet_localize_pv-PREFER_BINARY:
 
-   ``TRY_BINARY``
+   ``PREFER_BINARY``
      Try to resolve a non-absolute path with respect to the binary
      rather than the source tree (default for ``FILEPATH`` and
      ``FILEPATH_FRAGMENT`` :ref:`project-variables-types`). If the path
@@ -522,7 +553,14 @@ endfunction()
      <cmake-ref-current:prop_sf:GENERATED>` :manual:`CMake source file
      <cmake-ref-current:manual:cmake-properties(7)>`, it will be
      resolved with respect to the source tree. This option is mutually
-     exclusive with ``BINARY`` and ``SOURCE``.
+     exclusive with ``BINARY_ONLY`` and ``SOURCE_ONLY``.
+
+   .. _cet_localize_pv-SOURCE_ONLY:
+
+   ``SOURCE_ONLY``
+     Unconditionally resolve non-absolute paths with respect to the
+     source tree (mutually exclusive with ``BINARY_ONLY`` and
+     ``PREFER_BINARY``).
 
    Non-option arguments
    ^^^^^^^^^^^^^^^^^^^^
@@ -534,65 +572,126 @@ endfunction()
      The name of one or more project variables (without a ``<project>_``
      prefix).
 
+   Notes
+   ^^^^^
+
+   .. versionchanged:: 4.00.00
+
+      Deprecated ``BINARY|SOURCE|TRY_BINARY`` options in favor of their
+      respective replacements.
+
 #]================================================================]
 function(cet_localize_pv PROJECT)
-  if (NOT ${PROJECT}_IN_TREE)
+  if(NOT ${PROJECT}_IN_TREE)
     return() # Nothing to do.
   endif()
-  cmake_parse_arguments(PARSE_ARGV 1 CLPV "BINARY;NO_CHECK_VALIDITY;SOURCE;TRY_BINARY" "" "")
-  set(check_pv_validity)
-  if (CLPV_UNPARSED_ARGUMENTS STREQUAL "ALL")
-    set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
-  else()
-    set(var_list CLPV_UNPARSED_ARGUMENTS)
-    if (NOT CLPV_NO_CHECK_VALIDITY)
-      set(check_pv_validity TRUE)
-    endif()
+  cmake_parse_arguments(
+    PARSE_ARGV
+    1
+    CLPV
+    "BINARY;BINARY_ONLY;NO_CHECK_VALIDITY;PREFER_BINARY;SOURCE;SOURCE_ONLY;TRY_BINARY"
+    ""
+    ""
+    )
+  if(CLPV_SOURCE)
+    warn_deprecated("SOURCE" SINCE 4.00.00 NEW "SOURCE_ONLY")
+    set(CLPV_SOURCE_ONLY TRUE)
+  elseif(CLPV_BINARY)
+    warn_deprecated("BINARY" SINCE 4.00.00 NEW "BINARY_ONLY")
+    set(CLPV_BINARY_ONLY TRUE)
+  elseif(CLPV_TRY_BINARY)
+    warn_deprecated("TRY_BINARY" SINCE 4.00.00 NEW "PREFER_BINARY")
+    set(CLPV_PREFER_BINARY TRUE)
   endif()
   set(n_exc)
-  foreach (opt IN ITEMS BINARY SOURCE TRY_BINARY)
-    if (CLPV_${opt})
+  foreach(opt IN ITEMS BINARY_ONLY PREFER_BINARY SOURCE_ONLY)
+    if(CLPV_${opt})
       math(EXPR n_exc "${n_exc} + 1")
     endif()
   endforeach()
-  if (n_exc GREATER 1)
-    message(FATAL_ERROR "options BINARY, SOURCE and TRY_BINARY are mutually exclusive")
+  if(n_exc GREATER 1)
+    message(
+      FATAL_ERROR
+        "options BINARY_ONLY, SOURCE_ONLY and PREFER_BINARY are mutually exclusive"
+      )
   endif()
-  foreach (var IN LISTS ${var_list})
-    if (NOT var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
-      if (check_pv_validity)
-        message(SEND_ERROR "cannot localize unknown project variable ${var} for project ${PROJECT}")
+  set(check_pv_validity)
+  if(CLPV_UNPARSED_ARGUMENTS STREQUAL "ALL")
+    set(var_list "CETMODULES_VARS_PROJECT_${PROJECT}")
+  else()
+    set(var_list CLPV_UNPARSED_ARGUMENTS)
+    if(NOT CLPV_NO_CHECK_VALIDITY)
+      set(check_pv_validity TRUE)
+    endif()
+  endif()
+  foreach(var IN LISTS ${var_list})
+    if(NOT var IN_LIST "CETMODULES_VARS_PROJECT_${PROJECT}")
+      if(check_pv_validity)
+        message(
+          SEND_ERROR
+            "cannot localize unknown project variable ${var} for project ${PROJECT}"
+          )
       endif()
       continue()
     endif()
     set(result)
     cet_get_pv_property(pv_type PROJECT ${PROJECT} ${var} PROPERTY TYPE)
-    if (NOT pv_type MATCHES [=[^(FILE)?PATH(_FRAGMENT)$]=])
-      if (check_pv_validity)
-        message(SEND_ERROR "cannot localize non-path project variable ${var} for project ${PROJECT}")
+    if(NOT pv_type MATCHES [=[^(FILE)?PATH(_FRAGMENT)$]=])
+      if(check_pv_validity)
+        message(
+          SEND_ERROR
+            "cannot localize non-path project variable ${var} for project ${PROJECT}"
+          )
       endif()
       continue()
     endif()
-    if (CMAKE_MATCH_1 AND NOT CLPV_SOURCE)
-      set(try_binary TRUE)
-    else()
-      set(try_binary ${CLPV_TRY_BINARY})
-    endif()
-    foreach (item IN ITEMS $CACHE{${PROJECT}_${var}})
-      set(item_result)
-      set(generated)
-      if (CLPV_BINARY OR (try_binary AND NOT CLPV_SOURCE))
-        get_filename_component(item_result "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}")
-        get_property(generated SOURCE "${item_result}" PROPERTY GENERATED)
+    foreach(item IN ITEMS $CACHE{${PROJECT}_${var}})
+      if(NOT CLPV_SOURCE_ONLY)
+        get_filename_component(
+          binary_path "${item}" ABSOLUTE BASE_DIR "${${PROJECT}_BINARY_DIR}"
+          )
+        get_property(
+          binary_generated
+          SOURCE "${binary_path}"
+          PROPERTY GENERATED
+          )
+        if(NOT
+           (binary_path
+            AND (EXISTS "${binary_path}" OR binary_generated)
+            OR CLPV_BINARY_ONLY)
+           )
+          unset(binary_path)
+        endif()
+        if(CLPV_BINARY_ONLY OR (CLPV_PREFER_BINARY AND binary_path))
+          list(APPEND result "${binary_path}")
+          continue()
+        endif()
       endif()
-      if (NOT CLPV_BINARY AND (CLPV_SOURCE OR NOT
-            (item_result AND (EXISTS "${item_result}" OR generated))))
-        get_filename_component(item_result "${${PROJECT}_${var}}"
-          ABSOLUTE BASE_DIR "${${PROJECT}_SOURCE_DIR}")
+      get_filename_component(
+        source_path "${${PROJECT}_${var}}" ABSOLUTE BASE_DIR
+        "${${PROJECT}_SOURCE_DIR}"
+        )
+      if(NOT ((source_path AND EXISTS "${source_path}")) OR CLPV_SOURCE_ONLY)
+        unset(source_path)
       endif()
-      list(APPEND result "${item_result}")
+      if(source_path OR CLPV_SOURCE_ONLY)
+        list(APPEND result "${source_path}")
+      elseif(binary_path)
+        list(APPEND result "${binary_path}")
+      else()
+        if(check_pv_validity)
+          message(
+            SEND_ERROR
+              "requested localization of path project variable ${var} for project ${PROJECT} is not present and is not known to be generated"
+            )
+        endif()
+        list(APPEND result "")
+      endif()
     endforeach()
-    set(${PROJECT}_${var} "${result}" PARENT_SCOPE)
+    set(${PROJECT}_${var}
+        "${result}"
+        PARENT_SCOPE
+        )
   endforeach()
 endfunction()
 
@@ -611,7 +710,10 @@ endfunction()
 #]================================================================]
 
 function(cet_localize_pv_all PROJECT)
-  if (ARGN AND NOT ARGN MATCHES "^(BINARY|SOURCE|TRY_BINARY)$")
+  if(ARGN
+     AND NOT ARGN MATCHES
+         "^(BINARY|BINARY_ONLY|SOURCE|SOURCE_ONLY|TRY_BINARY|PREFER_BINARY)$"
+     )
     message(WARNING "unrecognized extra arguments ${ARGN}")
     set(ARGN)
   endif()
@@ -682,34 +784,52 @@ endfunction()
 
 #]================================================================]
 function(cet_cmake_module_directories)
-  cmake_parse_arguments(PARSE_ARGV 0 CMD "BINARY;NO_CONFIG;NO_LOCAL" "PROJECT" "")
-  if (CMD_PROJECT)
-    if (NOT CMD_PROJECT STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
+  cmake_parse_arguments(
+    PARSE_ARGV 0 CMD "BINARY;NO_CONFIG;NO_LOCAL" "PROJECT" ""
+    )
+  if(CMD_PROJECT)
+    if(NOT CMD_PROJECT STREQUAL CETMODULES_CURRENT_PROJECT_NAME)
       set(NO_LOCAL TRUE)
     endif()
   else()
     set(CMD_PROJECT "${CETMODULES_CURRENT_PROJECT_NAME}")
   endif()
-  if (NOT CMD_NO_LOCAL)
-    list(TRANSFORM CMD_UNPARSED_ARGUMENTS PREPEND "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/"
-      REGEX "^[^/]+" OUTPUT_VARIABLE tmp_installed)
-    if (CMD_BINARY)
-      list(TRANSFORM CMD_UNPARSED_ARGUMENTS PREPEND "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/"
-        REGEX "^[^/]+" OUTPUT_VARIABLE tmp_local)
+  if(NOT CMD_NO_LOCAL)
+    list(
+      TRANSFORM CMD_UNPARSED_ARGUMENTS
+      PREPEND "${CETMODULES_CURRENT_PROJECT_SOURCE_DIR}/"
+      REGEX "^[^/]+" OUTPUT_VARIABLE tmp_installed
+      )
+    if(CMD_BINARY)
+      list(
+        TRANSFORM CMD_UNPARSED_ARGUMENTS
+        PREPEND "${CETMODULES_CURRENT_PROJECT_BINARY_DIR}/"
+        REGEX "^[^/]+" OUTPUT_VARIABLE tmp_local
+        )
     else()
       unset(tmp_local)
     endif()
     list(PREPEND CMAKE_MODULE_PATH ${tmp_installed} ${tmp_local})
-    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
+    set(CMAKE_MODULE_PATH
+        "${CMAKE_MODULE_PATH}"
+        PARENT_SCOPE
+        )
   endif()
-  if (NOT CMD_NO_CONFIG)
-    if (NOT DEFINED CACHE{CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT}})
-      set(CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT} ${CMD_UNPARSED_ARGUMENTS}
-        CACHE INTERNAL "CMAKE_MODULE_PATH additions for ${CMD_PROJECT}Config.cmake")
+  if(NOT CMD_NO_CONFIG)
+    if(NOT DEFINED
+       CACHE{CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT}}
+       )
+      set(CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT}
+          ${CMD_UNPARSED_ARGUMENTS}
+          CACHE INTERNAL
+                "CMAKE_MODULE_PATH additions for ${CMD_PROJECT}Config.cmake"
+          )
     else()
-      set_property(CACHE
-        CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT}
-        APPEND PROPERTY VALUE ${CMD_UNPARSED_ARGUMENTS})
+      set_property(
+        CACHE CETMODULES_CMAKE_MODULES_DIRECTORIES_PROJECT_${CMD_PROJECT}
+        APPEND
+        PROPERTY VALUE ${CMD_UNPARSED_ARGUMENTS}
+        )
     endif()
   endif()
 endfunction()
@@ -775,47 +895,66 @@ endfunction()
 #]============================================================]
 function(cet_export_alias)
   warn_deprecated("cet_export_alias()" NEW "cet_make_alias()")
-  cmake_parse_arguments(PARSE_ARGV 0 _cea "NOP" "ALIAS_NAMESPACE;EXPORT_SET" "ALIAS")
+  cmake_parse_arguments(
+    PARSE_ARGV 0 _cea "NOP" "ALIAS_NAMESPACE;EXPORT_SET" "ALIAS"
+    )
   set(default_export_namespace)
   set(export_namespace)
-  if (_cea_UNPARSED_ARGUMENTS)
+  if(_cea_UNPARSED_ARGUMENTS)
     list(APPEND _cea_ALIAS ${_cea_UNPARSED_ARGUMENTS})
   endif()
-  if (_cea_EXPORT_SET)
-    cet_register_export_set(SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE)
+  if(_cea_EXPORT_SET)
+    cet_register_export_set(
+      SET_NAME ${_cea_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE
+      )
   endif()
-  if (_cea_ALIAS_NAMESPACE)
-    list(TRANSFORM _cea_ALIAS PREPEND ${_cea_ALIAS_NAMESPACE}::
-      REGEX "^([^:]|:([^:]|$))*$") # Only transform aliases without ::
+  if(_cea_ALIAS_NAMESPACE)
+    list(
+      TRANSFORM _cea_ALIAS
+      PREPEND ${_cea_ALIAS_NAMESPACE}::
+      REGEX "^([^:]|:([^:]|$))*$"
+      ) # Only transform aliases without ::
   endif()
-  foreach (alias IN LISTS _cea_ALIAS)
-    get_property(primary_exported_target TARGET ${alias} PROPERTY EXPORT_NAME)
-    if (NOT primary_exported_target)
-      get_property(primary_exported_target TARGET ${alias} PROPERTY ALIASED_TARGET)
+  foreach(alias IN LISTS _cea_ALIAS)
+    get_property(
+      primary_exported_target
+      TARGET ${alias}
+      PROPERTY EXPORT_NAME
+      )
+    if(NOT primary_exported_target)
+      get_property(
+        primary_exported_target
+        TARGET ${alias}
+        PROPERTY ALIASED_TARGET
+        )
     endif()
-    if (alias MATCHES "^(.*)::(.*)$")
-      if (export_namespace)
+    if(alias MATCHES "^(.*)::(.*)$")
+      if(export_namespace)
         set(export_alias "${export_namespace}::${CMAKE_MATCH_2}")
       else()
         set(export_alias "${alias}")
       endif()
       string(PREPEND primary_exported_target "${CMAKE_MATCH_1}::")
     else()
-      if (NOT default_export_namespace)
+      if(NOT default_export_namespace)
         cet_register_export_set(NAMESPACE_VAR default_export_namespace)
       endif()
-      if (export_namespace)
+      if(export_namespace)
         set(export_alias "${export_namespace}::${alias}")
       else()
         set(export_alias "${default_export_namespace}::${alias}")
       endif()
       string(PREPEND primary_exported_target "${default_exported_namespace}::")
     endif()
-    _cet_export_import_cmd(TARGETS ${alias} COMMANDS
+    _cet_export_import_cmd(
+      TARGETS
+      ${alias}
+      COMMANDS
       "if (TARGET ${primary_exported_target})
   add_library(${export_alias} ALIAS ${primary_exported_target})
 endif()\
-")
+"
+      )
   endforeach()
 endfunction()
 
@@ -869,29 +1008,46 @@ endfunction()
 
 #]============================================================]
 function(cet_make_alias)
-  cmake_parse_arguments(PARSE_ARGV 0 _cma "NOP" "NAME;EXPORT_SET;TARGET;TARGET_EXPORT_SET" "")
-  if (DEFINED _cma_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "unrecognized unparsed arguments ${_cma_UNPARSED_ARGUMENTS}")
+  cmake_parse_arguments(
+    PARSE_ARGV 0 _cma "NOP" "NAME;EXPORT_SET;TARGET;TARGET_EXPORT_SET" ""
+    )
+  if(DEFINED _cma_UNPARSED_ARGUMENTS)
+    message(
+      FATAL_ERROR "unrecognized unparsed arguments ${_cma_UNPARSED_ARGUMENTS}"
+      )
   endif()
   set(export_namespace)
-  if (NOT "${_cma_EXPORT_SET}" STREQUAL "")
-    if (_cma_NAME MATCHES "::")
-      message(FATAL_ERROR "<name> cannot be namespace-scoped when <export_set> is specified")
+  if(NOT "${_cma_EXPORT_SET}" STREQUAL "")
+    if(_cma_NAME MATCHES "::")
+      message(
+        FATAL_ERROR
+          "<name> cannot be namespace-scoped when <export_set> is specified"
+        )
     endif()
-    cet_register_export_set(SET_NAME ${_cma_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE)
-  elseif (NOT _cma_NAME MATCHES "::")
+    cet_register_export_set(
+      SET_NAME ${_cma_EXPORT_SET} NAMESPACE_VAR export_namespace NO_REDEFINE
+      )
+  elseif(NOT _cma_NAME MATCHES "::")
     cet_register_export_set(NAMESPACE_VAR export_namespace)
   endif()
-  if ("${_cma_NAME}" STREQUAL "")
+  if("${_cma_NAME}" STREQUAL "")
     string(REGEX REPLACE "^.*::" "" _cma_NAME "${_cma_TARGET}")
   endif()
   set(primary_target)
   set(current_target "${_cma_TARGET}")
-  while ("${primary_target}" STREQUAL "")
-    get_property(next_target TARGET "${current_target}" PROPERTY ALIASED_TARGET)
-    if ("${next_target}" STREQUAL "")
-      get_property(primary_target TARGET "${current_target}" PROPERTY EXPORT_NAME)
-      if ("${primary_target}" STREQUAL "")
+  while("${primary_target}" STREQUAL "")
+    get_property(
+      next_target
+      TARGET "${current_target}"
+      PROPERTY ALIASED_TARGET
+      )
+    if("${next_target}" STREQUAL "")
+      get_property(
+        primary_target
+        TARGET "${current_target}"
+        PROPERTY EXPORT_NAME
+        )
+      if("${primary_target}" STREQUAL "")
         set(primary_target "${current_target}")
       endif()
     else()
@@ -900,36 +1056,60 @@ function(cet_make_alias)
   endwhile()
   string(JOIN "::" export_alias ${export_namespace} ${_cma_NAME})
   add_library(${export_alias} ALIAS ${current_target})
-  if (export_namespace)
-    if ("${_cma_TARGET_EXPORT_SET}" STREQUAL "")
-      foreach (export_set_candidate IN LISTS
-          ${CETMODULES_CURRENT_PROJECT_NAME}_DEFAULT_EXPORT_SET
-          CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-        if ("${primary_target}" IN_LIST
-            CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${export_set_candidate}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+  if(export_namespace)
+    if("${_cma_TARGET_EXPORT_SET}" STREQUAL "")
+      foreach(
+        export_set_candidate IN
+        LISTS ${CETMODULES_CURRENT_PROJECT_NAME}_DEFAULT_EXPORT_SET
+              CETMODULES_EXPORT_SETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+        )
+        if("${primary_target}"
+           IN_LIST
+           CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${export_set_candidate}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+           )
           list(APPEND _cma_TARGET_EXPORT_SET "${export_set_candidate}")
         endif()
       endforeach()
       list(REMOVE_DUPLICATES _cma_TARGET_EXPORT_SET)
-      if ("${_cma_TARGET_EXPORT_SET}" STREQUAL "")
-        message(FATAL_ERROR "cannot export an alias to a non-exported primary target (${primary_target})")
-      elseif ("${_cma_TARGET_EXPORT_SET}" MATCHES ";")
-        message(FATAL_ERROR "ambiguity: primary target ${primary_target} (resolved from ${_cma_TARGET}) \
+      if("${_cma_TARGET_EXPORT_SET}" STREQUAL "")
+        message(
+          FATAL_ERROR
+            "cannot export an alias to a non-exported primary target (${primary_target})"
+          )
+      elseif("${_cma_TARGET_EXPORT_SET}" MATCHES ";")
+        message(
+          FATAL_ERROR
+            "ambiguity: primary target ${primary_target} (resolved from ${_cma_TARGET}) \
 found in multiple export sets: ${_cma_TARGET_EXPORT_SET} - use _CMA_TARGET_EXPORT_SET to resolve ambiguity\
-")
+"
+          )
       endif()
-    elseif (NOT "${primary_target}" IN_LIST
-        CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_cma_TARGET_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
-      message(FATAL_ERROR "primary target ${primary_target} (resolved from ${_cma_TARGET}) \
-not found in specified export set ${_cma_TARGET_EXPORT_SET}")
+    elseif(
+      NOT
+      "${primary_target}"
+      IN_LIST
+      CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_cma_TARGET_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      )
+      message(
+        FATAL_ERROR
+          "primary target ${primary_target} (resolved from ${_cma_TARGET}) \
+not found in specified export set ${_cma_TARGET_EXPORT_SET}"
+        )
     endif()
-    cet_register_export_set(NAMESPACE_VAR target_export_namespace ${_cma_TARGET_EXPORT_SET} NO_REDEFINE)
+    cet_register_export_set(
+      NAMESPACE_VAR target_export_namespace ${_cma_TARGET_EXPORT_SET}
+      NO_REDEFINE
+      )
     string(JOIN "::" export_target ${target_export_namespace} ${primary_target})
-    _cet_export_import_cmd(TARGETS ${export_alias} COMMANDS
+    _cet_export_import_cmd(
+      TARGETS
+      ${export_alias}
+      COMMANDS
       "if (TARGET ${export_target})
   add_library(${export_alias} ALIAS ${export_target})
 endif()\
-")
+"
+      )
   endif()
 endfunction()
 
@@ -966,14 +1146,21 @@ function(cet_real_path OUT_VAR)
   cmake_parse_arguments(PARSE_ARGV 1 CRP "LIST" "" "")
   set(result)
   string(REPLACE ":" ";" items "${CRP_UNPARSED_ARGUMENTS}")
-  foreach (item IN LISTS items)
+  foreach(
+    item IN
+    LISTS
+    items
+    )
     file(REAL_PATH "${item}" item)
     list(APPEND result "${item}")
   endforeach()
-  if (NOT CRP_LIST)
+  if(NOT CRP_LIST)
     string(REPLACE ";" ":" result "${result}")
   endif()
-  set(${OUT_VAR} "${result}" PARENT_SCOPE)
+  set(${OUT_VAR}
+      "${result}"
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[============================================================[.rst:
@@ -1001,117 +1188,191 @@ endfunction()
 #]============================================================]
 function(cet_filter_subdirs OUT_VAR)
   cmake_parse_arguments(PARSE_ARGV 1 CFS "NOP" "" "EXCLUDE;INCLUDE")
-  if (DEFINED CFS_EXCLUDE AND DEFINED CFS_INCLUDE)
+  if(DEFINED CFS_EXCLUDE AND DEFINED CFS_INCLUDE)
     message(FATAL_ERROR "EXCLUDE and INCLUDE options are mutually exclusive")
   endif()
   string(REPLACE ":" ";" CFS_UNPARSED_ARGUMENTS "${CFS_UNPARSED_ARGUMENTS}")
   set(selected)
   set(remainder)
-  if (DEFINED CFS_EXCLUDE)
+  if(DEFINED CFS_EXCLUDE)
     set(mode EXCLUDE)
-  elseif (DEFINED CFS_INCLUDE)
+  elseif(DEFINED CFS_INCLUDE)
     set(mode INCLUDE)
   else() # Short-circuit.
     set(mode)
-    set(selected "${CFS_UNPARSED_ARGUMENTS}" PARENT_SCOPE)
+    set(selected
+        "${CFS_UNPARSED_ARGUMENTS}"
+        PARENT_SCOPE
+        )
     unset(CFS_UNPARSED_ARGUMENTS)
   endif()
-  foreach (raw_candidate IN LISTS CFS_UNPARSED_ARGUMENTS)
+  foreach(raw_candidate IN LISTS CFS_UNPARSED_ARGUMENTS)
     file(REAL_PATH "${raw_candidate}" candidate EXPAND_TILDE)
     cmake_path(GET candidate FILENAME end_dir)
     cet_regex_escape("${end_dir}" end_dir_re)
     set(found)
-    foreach (root IN LISTS CFS_EXCLUDE CFS_INCLUDE)
+    foreach(root IN LISTS CFS_EXCLUDE CFS_INCLUDE)
       file(REAL_PATH "${root}" root EXPAND_TILDE)
       cmake_path(IS_PREFIX root "${candidate}" found)
-      if (found)
+      if(found)
         break()
       endif()
-      file(GLOB_RECURSE pool FOLLOW_SYMLINKS LIST_DIRECTORIES TRUE
-        "${root}/${end_dir}" "${root}/*/${end_dir}")
-      foreach (pool_item IN LISTS pool)
+      file(
+        GLOB_RECURSE pool FOLLOW_SYMLINKS
+        LIST_DIRECTORIES TRUE
+        "${root}/${end_dir}" "${root}/*/${end_dir}"
+        )
+      foreach(pool_item IN LISTS pool)
         file(REAL_PATH "${pool_item}" pool_item)
-        if (pool_item MATCHES "/${end_dir_re}$")
+        if(pool_item MATCHES "/${end_dir_re}$")
           cmake_path(COMPARE "${pool_item}" EQUAL "${candidate}" found)
-          if (found)
+          if(found)
             break()
           endif()
         endif()
       endforeach()
-      if (found)
+      if(found)
         break()
       endif()
     endforeach()
-    if (found)
+    if(found)
       list(APPEND selected "${raw_candidate}")
     else()
       list(APPEND remainder "${raw_candidate}")
     endif()
   endforeach()
-  if (mode STREQUAL "EXCLUDE")
-    set(${OUT_VAR} "${remainder}" PARENT_SCOPE)
+  if(mode STREQUAL "EXCLUDE")
+    set(${OUT_VAR}
+        "${remainder}"
+        PARENT_SCOPE
+        )
   else()
-    set(${OUT_VAR} "${selected}" PARENT_SCOPE)
+    set(${OUT_VAR}
+        "${selected}"
+        PARENT_SCOPE
+        )
   endif()
 endfunction()
 
-if (CMAKE_SCRIPT_MODE_FILE) # Smoke test.
-  cet_passthrough(KEYWORD RHYME MARY_LAMB "Mary had a little lamb\\; Its fleece was white as snow")
+if(CMAKE_SCRIPT_MODE_FILE) # Smoke test.
+  cet_passthrough(
+    KEYWORD RHYME MARY_LAMB
+    "Mary had a little lamb\\; Its fleece was white as snow"
+    )
   list(LENGTH MARY_LAMB len)
-  if (NOT len EQUAL 2)
+  if(NOT len EQUAL 2)
     message(FATAL_ERROR "MARY_LAMB has ${len} elements - expected 2")
   endif()
 endif()
 
 function(_cet_export_import_cmd)
   cmake_parse_arguments(PARSE_ARGV 0 _cc "NOP" "EXPORT_SET" "COMMANDS;TARGETS")
-  if (NOT _cc_COMMANDS)
+  if(NOT _cc_COMMANDS)
     set(_cc_COMMANDS "${_cc_UNPARSED_ARGUMENTS}")
   endif()
   string(REPLACE "\n" ";" _cc_COMMANDS "${_cc_COMMANDS}")
-  if (DEFINED CACHE{CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-    set_property(CACHE CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-      APPEND PROPERTY VALUE "${_cc_COMMANDS}")
+  if(DEFINED
+     CACHE{CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}
+     )
+    set_property(
+      CACHE
+        CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+      APPEND
+      PROPERTY VALUE "${_cc_COMMANDS}"
+      )
   else()
     set(CETMODULES_IMPORT_COMMANDS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-      "${_cc_COMMANDS}" CACHE INTERNAL
-      "Convenience aliases for exported non-runtime targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+        "${_cc_COMMANDS}"
+        CACHE
+          INTERNAL
+          "Convenience aliases for exported non-runtime targets for project ${CETMODULES_CURRENT_PROJECT_NAME}"
+        )
   endif()
   _add_to_exported_targets(TARGETS ${_cc_TARGETS})
 endfunction()
 
 function(_add_to_exported_targets)
   cmake_parse_arguments(PARSE_ARGV 0 _add "" "EXPORT_SET" "TARGETS")
-  if (NOT _add_TARGETS OR (NOT _add_EXPORT_SET AND "EXPORT_SET" IN_LIST _add_KEYWORDS_MISSING_VALUES))
+  if(NOT _add_TARGETS OR (NOT _add_EXPORT_SET AND "EXPORT_SET" IN_LIST
+                                                  _add_KEYWORDS_MISSING_VALUES)
+     )
     return()
   endif()
-  if (_add_EXPORT_SET)
-    set(cache_var CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+  if(_add_EXPORT_SET)
+    set(cache_var
+        CETMODULES_EXPORTED_TARGETS_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+        )
     set(export_names)
-    foreach (tgt IN LISTS _add_TARGETS)
-      get_property(export_name TARGET ${tgt} PROPERTY EXPORT_NAME)
-      if (export_name)
+    foreach(tgt IN LISTS _add_TARGETS)
+      get_property(
+        export_name
+        TARGET ${tgt}
+        PROPERTY EXPORT_NAME
+        )
+      if(export_name)
         list(APPEND export_names ${export_name})
       else()
         list(APPEND export_names ${tgt})
       endif()
     endforeach()
-    if (DEFINED CACHE{CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}})
-      set_property(CACHE CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-        APPEND PROPERTY VALUE ${export_names})
+    if(DEFINED
+       CACHE{CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}}
+       )
+      set_property(
+        CACHE
+          CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+        APPEND
+        PROPERTY VALUE ${export_names}
+        )
     else()
       set(CETMODULES_TARGET_EXPORT_NAMES_EXPORT_SET_${_add_EXPORT_SET}_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
-        ${export_names} CACHE INTERNAL
-        "List of export names for ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+          ${export_names}
+          CACHE
+            INTERNAL
+            "List of export names for ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}"
+          )
     endif()
   else()
     set(_add_EXPORT_SET manual)
-    set(cache_var CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME})
+    set(cache_var
+        CETMODULES_EXPORTED_MANUAL_TARGETS_PROJECT_${CETMODULES_CURRENT_PROJECT_NAME}
+        )
   endif()
-  if (DEFINED CACHE{${cache_var}})
-    set_property(CACHE ${cache_var} APPEND PROPERTY VALUE ${_add_TARGETS})
+  if(DEFINED CACHE{${cache_var}})
+    set_property(
+      CACHE ${cache_var}
+      APPEND
+      PROPERTY VALUE ${_add_TARGETS}
+      )
   else()
-    set(${cache_var} ${_add_TARGETS} CACHE INTERNAL
-      "List of exported ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}")
+    set(${cache_var}
+        ${_add_TARGETS}
+        CACHE
+          INTERNAL
+          "List of exported ${_add_EXPORT_SET} targets for project ${CETMODULES_CURRENT_PROJECT_NAME}"
+        )
   endif()
+endfunction()
+
+set(CET_WARN_DEPRECATED TRUE)
+
+function(warn_deprecated OLD)
+  if(NOT CET_WARN_DEPRECATED)
+    return()
+  endif()
+  cmake_parse_arguments(PARSE_ARGV 1 WD "" "NEW;SINCE" "")
+  if(WD_NEW)
+    set(msg " - use ${WD_NEW} instead")
+  endif()
+  if(NOT DEFINED WD_SINCE OR "SINCE" IN_LIST WD_KEYWORDS_MISSING_VALUES)
+    set(WD_SINCE "cetmodules 2.10")
+  elseif(WD_SINCE MATCHES "^((v|[Vv]ersion)[ 	]+)?[0-9][^ 	]*$")
+    set(WD_SINCE "cetmodules ${WD_SINCE}")
+  endif()
+  if(NOT "${WD_SINCE}" STREQUAL "")
+    string(PREPEND WD_SINCE " since ")
+  endif()
+  message(DEPRECATION "${OLD} is deprecated" "${WD_SINCE}" ${msg}
+                      ${WD_UNPARSED_ARGUMENTS}
+          )
 endfunction()

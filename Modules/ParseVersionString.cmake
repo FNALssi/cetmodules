@@ -30,18 +30,12 @@ non-CMake-compliant version strings:
   Convert a version string or list into a ``.``-delimited version string
   with ``-``-separated non-numeric extra component.
 
-.. admonition:: cetbuildtools
-   :class: admonition-legacy
-
-   .. seealso:: :command:`to_ups_version`,
-                :command:`check_prod_version()`.
-
 #]================================================================]
 
 include_guard()
 
 # Need list(POP_FRONT...).
-cmake_minimum_required(VERSION 3.15...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15...3.31 FATAL_ERROR)
 
 set(CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION 2.21.00)
 
@@ -93,26 +87,31 @@ set(CET_PARSE_VERSION_STRING_MIN_CETMODULES_VERSION 2.21.00)
 
 #]================================================================]
 
-function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED _CMPV_REF)
+function(cet_compare_versions _CMPV_RESULT_VAR _CMPV_VERSION _CMPV_PRED
+         _CMPV_REF
+         )
   string(TOUPPER "${_CMPV_PRED}" _CMPV_PRED)
   set(_cmpv_result FALSE)
   cet_version_cmp(_cmpv_cmp "${_CMPV_VERSION}" "${_CMPV_REF}")
-  if (_CMPV_PRED MATCHES "^VERSION_LESS(_EQUAL)?$")
-    if (_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+  if(_CMPV_PRED MATCHES "^VERSION_LESS(_EQUAL)?$")
+    if(_cmpv_cmp LESS 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
       set(_cmpv_result TRUE)
     endif()
-  elseif (_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)?$")
-    if (_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
+  elseif(_CMPV_PRED MATCHES "^VERSION_GREATER(_EQUAL)?$")
+    if(_cmpv_cmp GREATER 0 OR (CMAKE_MATCH_1 AND NOT _cmpv_result))
       set(_cmpv_result TRUE)
     endif()
-  elseif (_CMPV_PRED STREQUAL "VERSION_EQUAL")
-    if (NOT _cmpv_cmp)
+  elseif(_CMPV_PRED STREQUAL "VERSION_EQUAL")
+    if(NOT _cmpv_cmp)
       set(_cmpv_result TRUE)
     endif()
   else()
     message(FATAL_ERROR "predicate \"${_CMPV_PRED}\" not recognized")
   endif()
-  set(${_CMPV_RESULT_VAR} ${_cmpv_result} PARENT_SCOPE)
+  set(${_CMPV_RESULT_VAR}
+      ${_cmpv_result}
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[================================================================[.rst:
@@ -137,56 +136,80 @@ function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
   parse_version_string("${_CVC_VERSION}" _cvc_version_info)
   parse_version_string("${_CVC_REF}" _cvc_ref_info)
   set(_cvc_result 0)
-  to_cmake_version(_cvc_version_info _cvc_version_short EXTRA_VAR _cvc_version_extra)
+  to_cmake_version(
+    _cvc_version_info _cvc_version_short EXTRA_VAR _cvc_version_extra
+    )
   to_cmake_version(_cvc_ref_info _cvc_ref_short EXTRA_VAR _cvc_ref_extra)
-  if (NOT ("${_cvc_version_short}" STREQUAL "" OR
-        "${_cvc_ref_short}" STREQUAL ""))
-    if (_cvc_version_short VERSION_LESS _cvc_ref_short)
+  if(NOT ("${_cvc_version_short}" STREQUAL "" OR "${_cvc_ref_short}" STREQUAL ""
+         )
+     )
+    if(_cvc_version_short VERSION_LESS _cvc_ref_short)
       set(_cvc_result -1)
-    elseif (_cvc_ref_short VERSION_LESS _cvc_version_short)
+    elseif(_cvc_ref_short VERSION_LESS _cvc_version_short)
       set(_cvc_result 1)
     endif()
   endif()
-  if (NOT _cvc_result)
-    parse_version_string(_cvc_version_info
-      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
-      _cvc_version_extra_type _cvc_version_extra_text _cvc_version_extra_num)
-    if (NOT _cvc_version_extra_type)
+  if(NOT _cvc_result)
+    parse_version_string(
+      _cvc_version_info
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_version_extra_type
+      _cvc_version_extra_text
+      _cvc_version_extra_num
+      )
+    if(NOT _cvc_version_extra_type)
       set(_cvc_version_extra_type 0)
     endif()
-    parse_version_string(_cvc_ref_info
-      _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy _cvc_dummy
-      _cvc_ref_extra_type _cvc_ref_extra_text _cvc_ref_extra_num)
-    if (NOT _cvc_ref_extra_type)
+    parse_version_string(
+      _cvc_ref_info
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_dummy
+      _cvc_ref_extra_type
+      _cvc_ref_extra_text
+      _cvc_ref_extra_num
+      )
+    if(NOT _cvc_ref_extra_type)
       set(_cvc_ref_extra_type 0)
     endif()
     # Type codes are ordered.
-    if (${_cvc_version_extra_type} GREATER ${_cvc_ref_extra_type})
+    if(${_cvc_version_extra_type} GREATER ${_cvc_ref_extra_type})
       set(_cvc_result 1)
-    elseif (${_cvc_ref_extra_type} GREATER ${_cvc_version_extra_type})
+    elseif(${_cvc_ref_extra_type} GREATER ${_cvc_version_extra_type})
       set(_cvc_result -1)
-    elseif (${_cvc_version_extra_type} EQUAL 2) # Non-special suffix.
-      if ("${_cvc_version_extra_text}" STRLESS "${_cvc_ref_extra_text}")
+    elseif(${_cvc_version_extra_type} EQUAL 2) # Non-special suffix.
+      if("${_cvc_version_extra_text}" STRLESS "${_cvc_ref_extra_text}")
         set(_cvc_result -1)
-      elseif ("${_cvc_ref_extra_text}" STRLESS "${_cvc_version_extra_text}")
+      elseif("${_cvc_ref_extra_text}" STRLESS "${_cvc_version_extra_text}")
         set(_cvc_result 1)
       endif()
-    elseif (${_cvc_version_extra_type} EQUAL 3 OR ${_cvc_version_extra_type} GREATER 100)
+    elseif(${_cvc_version_extra_type} EQUAL 3 OR ${_cvc_version_extra_type}
+                                                 GREATER 100
+           )
       # Look for a timestamp-ish
-      foreach (v IN ITEMS version ref)
+      foreach(v IN ITEMS version ref)
         set(_cvc_${v}_date)
         set(_cvc_${v}_hh "00")
         set(_cvc_${v}_mm "00")
         set(_cvc_${v}_ss 0)
-        if (_cvc_${v}_extra_num MATCHES "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$")
+        if(_cvc_${v}_extra_num
+           MATCHES
+           "^([0-9][0-9][0-9][0-9][0-1][0-9][0-3][0-9])(([0-2][0-9])(([0-5][0-9])(([0-5][0-9])\\.?([0-9]+)?)?)?)?$"
+           )
           set(_cvc_${v}_date "${CMAKE_MATCH_1}")
-          if (NOT "${CMAKE_MATCH_3}" STREQUAL "")
+          if(NOT "${CMAKE_MATCH_3}" STREQUAL "")
             set(_cvc_${v}_hh "${CMAKE_MATCH_3}")
-            if (NOT "${CMAKE_MATCH_5}" STREQUAL "")
+            if(NOT "${CMAKE_MATCH_5}" STREQUAL "")
               set(_cvc_${v}_mm "${CMAKE_MATCH_5}")
-              if (NOT "${CMAKE_MATCH_7}" STREQUAL "")
+              if(NOT "${CMAKE_MATCH_7}" STREQUAL "")
                 set(_cvc_${v}_ss "${CMAKE_MATCH_7}")
-                if (NOT "${CMAKE_MATCH_8}" STREQUAL "")
+                if(NOT "${CMAKE_MATCH_8}" STREQUAL "")
                   string(APPEND _cvc_${v}_ss ".${CMAKE_MATCH_8}")
                 endif()
               endif()
@@ -194,45 +217,54 @@ function(cet_version_cmp _CVC_RESULT_VAR _CVC_VERSION _CVC_REF)
           endif()
         endif()
       endforeach()
-      if (_cvc_version_date)
-        if (_cvc_version_date VERSION_LESS _cvc_ref_date)
+      if(_cvc_version_date)
+        if(_cvc_version_date VERSION_LESS _cvc_ref_date)
           set(_cvc_result -1)
-        elseif (_cvc_version_date VERSION_GREATER _cvc_ref_date)
+        elseif(_cvc_version_date VERSION_GREATER _cvc_ref_date)
           set(_cvc_result -1)
-        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_LESS
-            "${_cvc_ref_hh}.${_cvc_ref_mm}")
+        elseif("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_LESS
+               "${_cvc_ref_hh}.${_cvc_ref_mm}"
+               )
           set(_cvc_result -1)
-        elseif ("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_GREATER
-            "${_cvc_ref_hh}.${_cvc_ref_mm}")
+        elseif("${_cvc_version_hh}.${_cvc_version_mm}" VERSION_GREATER
+               "${_cvc_ref_hh}.${_cvc_ref_mm}"
+               )
           set(_cvc_result 1)
-        elseif (_cvc_version_ss LESS _cvc_ref_ss)
+        elseif(_cvc_version_ss LESS _cvc_ref_ss)
           set(_cvc_result -1)
-        elseif (_cvc_version_ss GREATER _cvc_ref_ss)
+        elseif(_cvc_version_ss GREATER _cvc_ref_ss)
           set(_cvc_result 1)
         endif()
-      elseif (_cvc_ref_date)
-        if (_cvc_version_date VERSION_GREATER _cvc_ref_date)
+      elseif(_cvc_ref_date)
+        if(_cvc_version_date VERSION_GREATER _cvc_ref_date)
           set(_cvc_result 1)
-        elseif (NOT _cvc_version_date VERSION_EQUAL _cvc_ref_date)
+        elseif(NOT _cvc_version_date VERSION_EQUAL _cvc_ref_date)
           set(_cvc_result -1)
         endif()
       endif()
     endif()
-    if (NOT (_cvc_result OR _cvc_version_date OR _cvc_ref_date))
-      if ("${_cvc_version_extra_num}" STREQUAL "")
+    if(NOT
+       (_cvc_result
+        OR _cvc_version_date
+        OR _cvc_ref_date)
+       )
+      if("${_cvc_version_extra_num}" STREQUAL "")
         set(_cvc_version_extra_num 0)
       endif()
-      if ("${_cvc_ref_extra_num}" STREQUAL "")
+      if("${_cvc_ref_extra_num}" STREQUAL "")
         set(_cvc_ref_extra_num 0)
       endif()
-      if (_cvc_version_extra_num LESS _cvc_ref_extra_num)
+      if(_cvc_version_extra_num LESS _cvc_ref_extra_num)
         set(_cvc_result -1)
-      elseif (_cvc_ref_extra_num LESS _cvc_version_extra_num)
+      elseif(_cvc_ref_extra_num LESS _cvc_version_extra_num)
         set(_cvc_result 1)
       endif()
     endif()
   endif()
-  set(${_CVC_RESULT_VAR} ${_cvc_result} PARENT_SCOPE)
+  set(${_CVC_RESULT_VAR}
+      ${_cvc_result}
+      PARENT_SCOPE
+      )
 endfunction()
 
 #[================================================================[.rst:
@@ -329,40 +361,46 @@ endfunction()
 
 #]================================================================]
 
-function (parse_version_string)
+function(parse_version_string)
   # Argument parsing and validation.
-  cmake_parse_arguments(PARSE_ARGV 0 PVS "NO_EXTRA" "EXTRA_VAR;INPUT_PREAMBLE;PREAMBLE;SEP;EXTRA_SEP;VERSION" "")
-  if (NOT PVS_VERSION)
-    if (NOT PVS_UNPARSED_ARGUMENTS)
+  cmake_parse_arguments(
+    PARSE_ARGV 0 PVS "NO_EXTRA"
+    "EXTRA_VAR;INPUT_PREAMBLE;PREAMBLE;SEP;EXTRA_SEP;VERSION" ""
+    )
+  if(NOT PVS_VERSION)
+    if(NOT PVS_UNPARSED_ARGUMENTS)
       message(FATAL_ERROR "vacuous VERSION not permitted")
     endif()
     list(POP_FRONT PVS_UNPARSED_ARGUMENTS PVS_VERSION)
   endif()
   list(POP_FRONT PVS_UNPARSED_ARGUMENTS _PVS_VAR)
-  if (NOT _PVS_VAR)
+  if(NOT _PVS_VAR)
     message(FATAL_ERROR "missing required non-option argument VAR")
   endif()
-  if (NOT DEFINED PVS_INPUT_PREAMBLE)
+  if(NOT DEFINED PVS_INPUT_PREAMBLE)
     set(PVS_INPUT_PREAMBLE "v")
   endif()
-  if (DEFINED PVS_SEP AND PVS_UNPARSED_ARGUMENTS)
-    message(WARNING "parse_version_string(): ignoring unexpected extra"
-      " non-option arguments ${PVS_UNPARSED_ARGUMENTS} when SEP specified")
+  if(DEFINED PVS_SEP AND PVS_UNPARSED_ARGUMENTS)
+    message(
+      WARNING
+        "parse_version_string(): ignoring unexpected extra"
+        " non-option arguments ${PVS_UNPARSED_ARGUMENTS} when SEP specified"
+      )
   endif()
-  if (PVS_SEP STREQUAL "")
-    if (DEFINED PVS_EXTRA_SEP)
+  if(PVS_SEP STREQUAL "")
+    if(DEFINED PVS_EXTRA_SEP)
       message(WARNING "EXTRA_SEP ignored without non-vacuous SEP")
       unset(PVS_EXTRA_SEP)
     endif()
-    if (PVS_NO_EXTRA)
+    if(PVS_NO_EXTRA)
       message(WARNING "NO_EXTRA ignored without non-vacuous SEP")
       unset(PVS_NO_EXTRA)
     endif()
-    if (PVS_EXTRA_VAR)
+    if(PVS_EXTRA_VAR)
       message(WARNING "EXTRA_VAR ignored without non-vacuous SEP")
       unset(PVS_EXTRA_VAR)
     endif()
-  elseif (PVS_NO_EXTRA AND PVS_EXTRA_SEP)
+  elseif(PVS_NO_EXTRA AND PVS_EXTRA_SEP)
     message(FATAL_ERROR "NO_EXTRA and EXTRA_SEP are mutually exclusive")
   endif()
   # Initialize intermediate variables.
@@ -370,48 +408,48 @@ function (parse_version_string)
   unset(_pvs_extra_bits)
   unset(_pvs_tmp_bits)
   set(_pvs_sep_def "[-_.]")
-  if (${PVS_VERSION} MATCHES "^.+$") # Handle a level of indirection.
+  if(${PVS_VERSION} MATCHES "^.+$") # Handle a level of indirection.
     set(PVS_VERSION "${CMAKE_MATCH_0}")
   else()
     set(PVS_VERSION "")
   endif()
   list(LENGTH PVS_VERSION _pvs_sz)
-  if (_pvs_sz GREATER 1) # We have a pre-parsed list.
-    if (_pvs_sz GREATER 4) # We have a trailing non-numeric version component.
+  if(_pvs_sz GREATER 1) # We have a pre-parsed list.
+    if(_pvs_sz GREATER 4) # We have a trailing non-numeric version component.
       list(GET PVS_VERSION 4 _pvs_extra)
-      if (_pvs_sz GREATER 5)
+      if(_pvs_sz GREATER 5)
         list(SUBLIST PVS_VERSION 5 -1 _pvs_extra_bits)
       endif()
     endif()
     list(SUBLIST PVS_VERSION 0 4 _pvs_tmp_bits)
-  elseif (NOT "${PVS_VERSION}" STREQUAL "")
+  elseif(NOT "${PVS_VERSION}" STREQUAL "")
     set(_pvs_failed TRUE)
     unset(_pvs_major)
     unset(_pvs_minor)
     unset(_pvs_patch)
     unset(_pvs_tweak)
     string(LENGTH "${PVS_INPUT_PREAMBLE}" ip_length)
-    if (ip_length GREATER 0)
+    if(ip_length GREATER 0)
       string(FIND "${PVS_VERSION}" "${PVS_INPUT_PREAMBLE}" ip_idx)
-      if (ip_idx EQUAL 0)
+      if(ip_idx EQUAL 0)
         string(SUBSTRING "${PVS_VERSION}" ${ip_length} -1 PVS_VERSION)
       endif()
     endif()
-    if ("${PVS_VERSION}" MATCHES "^([0-9]*)(${_pvs_sep_def}?)(.*)$")
+    if("${PVS_VERSION}" MATCHES "^([0-9]*)(${_pvs_sep_def}?)(.*)$")
       set(_pvs_major "${CMAKE_MATCH_1}")
-      if (NOT "${CMAKE_MATCH_2}" STREQUAL "")
+      if(NOT "${CMAKE_MATCH_2}" STREQUAL "")
         set(_pvs_sep "[${CMAKE_MATCH_2}]")
       else()
         set(_pvs_sep "${_pvs_sep_def}")
       endif()
-      if ("${CMAKE_MATCH_3}" MATCHES "^([0-9]*)${_pvs_sep}?(.*)$")
+      if("${CMAKE_MATCH_3}" MATCHES "^([0-9]*)${_pvs_sep}?(.*)$")
         set(_pvs_minor "${CMAKE_MATCH_1}")
-        if ("${CMAKE_MATCH_2}" MATCHES "^([0-9]*)${_pvs_sep}?(.*)$")
+        if("${CMAKE_MATCH_2}" MATCHES "^([0-9]*)${_pvs_sep}?(.*)$")
           set(_pvs_patch "${CMAKE_MATCH_1}")
           # Allow a different separator for the non-numeric component.
-          if ("${CMAKE_MATCH_2}" MATCHES "^([0-9]*)(${_pvs_sep_def}?(.*))$")
+          if("${CMAKE_MATCH_2}" MATCHES "^([0-9]*)(${_pvs_sep_def}?(.*))$")
             set(_pvs_tweak "${CMAKE_MATCH_1}")
-            if (NOT "${CMAKE_MATCH_2}" STREQUAL "")
+            if(NOT "${CMAKE_MATCH_2}" STREQUAL "")
               set(_pvs_extra "${CMAKE_MATCH_3}")
             endif()
             set(_pvs_failed FALSE)
@@ -419,19 +457,23 @@ function (parse_version_string)
         endif()
       endif()
     endif()
-    if (_pvs_failed)
-      message(FATAL_ERROR "parse_version_string() cannot parse a version from \"${PVS_VERSION}\"")
+    if(_pvs_failed)
+      message(
+        FATAL_ERROR
+          "parse_version_string() cannot parse a version from \"${PVS_VERSION}\""
+        )
     else()
-      # Make sure a non-empty component is placed at the correct place
-      # in the _pvs_tmp_bits component list. Fill with "0<sep>" if we're
-      # generating a string.
-      foreach (_pvs_tmp_element IN ITEMS _pvs_tweak _pvs_patch _pvs_minor _pvs_major)
+      # Make sure a non-empty component is placed at the correct place in the
+      # _pvs_tmp_bits component list. Fill with "0<sep>" if we're generating a
+      # string.
+      foreach(_pvs_tmp_element IN ITEMS _pvs_tweak _pvs_patch _pvs_minor
+                                        _pvs_major
+              )
         # Important to go through the components in reverse.
-        if (${_pvs_tmp_element} STREQUAL "")
-          if ("${_pvs_tmp_bits}" MATCHES "[^;]")
-            if ("${PVS_SEP}" STREQUAL "")
-              # Need at least a placeholder while we're building the
-              # array.
+        if(${_pvs_tmp_element} STREQUAL "")
+          if("${_pvs_tmp_bits}" MATCHES "[^;]")
+            if("${PVS_SEP}" STREQUAL "")
+              # Need at least a placeholder while we're building the array.
               string(PREPEND _pvs_tmp_bits ";")
             else()
               list(PREPEND _pvs_tmp_bits 0)
@@ -443,29 +485,37 @@ function (parse_version_string)
       endforeach()
     endif()
   endif()
-  if (PVS_SEP)
+  if(PVS_SEP)
     # Generating a string.
     string(JOIN "${PVS_SEP}" _pvs_tmp_string ${_pvs_tmp_bits})
-    if (NOT PVS_NO_EXTRA)
-      if (NOT ("${_pvs_tmp_string}" STREQUAL "" OR
-            "${PVS_EXTRA_SEP}" STREQUAL "" OR
-            "${_pvs_extra}" STREQUAL ""))
+    if(NOT PVS_NO_EXTRA)
+      if(NOT
+         ("${_pvs_tmp_string}" STREQUAL ""
+          OR "${PVS_EXTRA_SEP}" STREQUAL ""
+          OR "${_pvs_extra}" STREQUAL "")
+         )
         string(APPEND _pvs_tmp_string "${PVS_EXTRA_SEP}")
       endif()
       string(APPEND _pvs_tmp_string ${_pvs_extra})
     endif()
-    if (NOT "${PVS_EXTRA_VAR}" STREQUAL "")
-      set(${PVS_EXTRA_VAR} ${_pvs_extra} PARENT_SCOPE)
+    if(NOT "${PVS_EXTRA_VAR}" STREQUAL "")
+      set(${PVS_EXTRA_VAR}
+          ${_pvs_extra}
+          PARENT_SCOPE
+          )
     endif()
-    if (NOT "${_pvs_tmp_string}" STREQUAL "")
+    if(NOT "${_pvs_tmp_string}" STREQUAL "")
       string(PREPEND _pvs_tmp_string ${PVS_PREAMBLE})
     endif()
-    set(${_PVS_VAR} ${_pvs_tmp_string} PARENT_SCOPE)
+    set(${_PVS_VAR}
+        ${_pvs_tmp_string}
+        PARENT_SCOPE
+        )
   else()
-    if (DEFINED _pvs_extra)
+    if(DEFINED _pvs_extra)
       # Make sure the bits array is padded appropriately.
       list(LENGTH _pvs_tmp_bits _pvs_sz)
-      if (_pvs_sz EQUAL 0)
+      if(_pvs_sz EQUAL 0)
         set(_pvs_tmp_bits ";;;;${_pvs_extra}")
       else()
         math(EXPR _pvs_pad_sz "5 - ${_pvs_sz}")
@@ -473,20 +523,26 @@ function (parse_version_string)
         string(APPEND _pvs_tmp_bits "${_pvs_bits_pad}${_pvs_extra}")
         unset(_pvs_pad_sz)
       endif()
-      if (NOT (_pvs_extra STREQUAL "" OR DEFINED _pvs_extra_bits))
+      if(NOT (_pvs_extra STREQUAL "" OR DEFINED _pvs_extra_bits))
         _cet_parse_version_extra()
       endif()
       list(APPEND _pvs_tmp_bits ${_pvs_extra_bits})
     endif()
-    if (PVS_UNPARSED_ARGUMENTS)
+    if(PVS_UNPARSED_ARGUMENTS)
       # Put each component in a variable.
-      foreach (_pvs_v IN LISTS _PVS_VAR PVS_UNPARSED_ARGUMENTS)
+      foreach(_pvs_v IN LISTS _PVS_VAR PVS_UNPARSED_ARGUMENTS)
         list(POP_FRONT _pvs_tmp_bits _pvs_tmp_element)
-        set(${_pvs_v} ${_pvs_tmp_element} PARENT_SCOPE)
+        set(${_pvs_v}
+            ${_pvs_tmp_element}
+            PARENT_SCOPE
+            )
       endforeach()
     else()
       # Return the result as a list of components.
-      set(${_PVS_VAR} "${_pvs_tmp_bits}" PARENT_SCOPE)
+      set(${_PVS_VAR}
+          "${_pvs_tmp_bits}"
+          PARENT_SCOPE
+          )
     endif()
   endif()
 endfunction()
@@ -545,15 +601,23 @@ endmacro()
 #]================================================================]
 
 macro(to_version_string _TDV_VERSION _TDV_VAR)
-  parse_version_string("${_TDV_VERSION}" SEP . EXTRA_SEP - ${_TDV_VAR} ${ARGN})
+  parse_version_string(
+    "${_TDV_VERSION}"
+    SEP
+    .
+    EXTRA_SEP
+    -
+    ${_TDV_VAR}
+    ${ARGN}
+    )
 endmacro()
 
 function(_cet_parse_version_extra)
-  if ("${_pvs_extra}" MATCHES "[0-9]+(\\.?[0-9]*)?$")
+  if("${_pvs_extra}" MATCHES "[0-9]+(\\.?[0-9]*)?$")
     set(_pe_num "${CMAKE_MATCH_0}")
     string(FIND "${_pvs_extra}" "${_pe_num}" _pe_num_idx REVERSE)
     string(SUBSTRING "${_pvs_extra}" 0 ${_pe_num_idx} _pe_text)
-    if (_pe_text MATCHES "^(.*)[_.-]$") # Trim text-num separator.
+    if(_pe_text MATCHES "^(.*)[_.-]$") # Trim text-num separator.
       set(_pe_text "${CMAKE_MATCH_1}")
     endif()
   else()
@@ -561,31 +625,36 @@ function(_cet_parse_version_extra)
     set(_pe_text "${_pvs_extra}")
   endif()
   string(TOLOWER "${_pe_text}" _pe_text_l)
-  if (_pe_text STREQUAL "")
+  if(_pe_text STREQUAL "")
     set(_pe_type 0)
-  elseif (_pe_text_l MATCHES "^(.+-)?(nightly|snapshot)$")
-    if (_pvs_sz)
+  elseif(_pe_text_l MATCHES "^(.+-)?(nightly|snapshot)$")
+    if(_pvs_sz)
       set(_pe_type 3)
     else() # No numeric version component.
       set(_pe_type 103)
     endif()
-  elseif (_pvs_sz EQUAL 0) # No leading numeric component at all.
+  elseif(_pvs_sz EQUAL 0) # No leading numeric component at all.
     set(_pe_type 101)
     set(_pe_num)
     set(_pe_text "${_pvs_extra}")
-  elseif (_pe_text_l STREQUAL "patch" OR (_pe_text_l STREQUAL "p" AND NOT _pe_num STREQUAL ""))
+  elseif(_pe_text_l STREQUAL "patch"
+         OR (_pe_text_l STREQUAL "p" AND NOT _pe_num STREQUAL "")
+         )
     set(_pe_type 1)
-  elseif (_pe_text_l STREQUAL "rc" OR _pe_text_l STREQUAL "pre")
+  elseif(_pe_text_l STREQUAL "rc" OR _pe_text_l STREQUAL "pre")
     set(_pe_type -1)
-  elseif (_pe_text_l STREQUAL "gamma")
+  elseif(_pe_text_l STREQUAL "gamma")
     set(_pe_type -2)
-  elseif (_pe_text_l STREQUAL "beta")
+  elseif(_pe_text_l STREQUAL "beta")
     set(_pe_type -3)
-  elseif (_pet_ext_l STREQUAL "alpha")
+  elseif(_pet_ext_l STREQUAL "alpha")
     set(_pe_type -4)
   else()
     set(_pe_type 2)
     set(_pe_text "${_pe_text_l}") # Standardize for comparison.
   endif()
-  set(_pvs_extra_bits ${_pe_type} "${_pe_text}" ${_pe_num} PARENT_SCOPE)
+  set(_pvs_extra_bits
+      ${_pe_type} "${_pe_text}" ${_pe_num}
+      PARENT_SCOPE
+      )
 endfunction()

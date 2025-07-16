@@ -1,4 +1,0 @@
-[-BuiltinFunctions::ProhibitComplexMappings]
-[-Modules::ProhibitAutomaticExportation]
-[-Modules::RequireVersionVar]
-[-RegularExpressions::ProhibitComplexRegexes]

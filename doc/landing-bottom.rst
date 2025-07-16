@@ -11,9 +11,9 @@ Support
 If `Fermilab <https://www.fnal.gov>`_ has an applicable :abbr:`MOU
 (Memorandum Of Understanding)` and/or :abbr:`SLA (Service Level
 Agreement)` with your organization, support will be provided thereunder;
-otherwise `support is best-effort only
-<https://github.com/FNALssi/cetmodules/issues>`_ and no warranty is
-expressed or implied thereby.
+otherwise support is `best-effort
+<https://github.com/FNALssi/cetmodules/issues>`_ only, and no warranty
+is expressed or implied thereby.
 
 Contributing
 ============

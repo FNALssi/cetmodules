@@ -3,12 +3,14 @@ X
 -
 #]================================================================]
 cmake_policy(PUSH)
-cmake_minimum_required(VERSION 3.20...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20...3.31 FATAL_ERROR)
 
 get_property(_cet_langs GLOBAL PROPERTY ENABLED_LANGUAGES)
-foreach (_cet_lang IN LISTS _cet_langs)
-  if (CMAKE_${_cet_lang}_COMPILER_ID MATCHES "^(GNU|(Apple)?Clang)$")
-    set(CMAKE_${_cet_lang}_FLAGS_RELWITHDEBINFO_INIT "-g -O3 -fno-omit-frame-pointer -DNDEBUG")
+foreach(_cet_lang IN LISTS _cet_langs)
+  if(CMAKE_${_cet_lang}_COMPILER_ID MATCHES "^(GNU|(Apple)?Clang)$")
+    set(CMAKE_${_cet_lang}_FLAGS_RELWITHDEBINFO_INIT
+        "-g -O3 -fno-omit-frame-pointer -DNDEBUG"
+        )
   endif()
 endforeach()
 unset(_cet_langs)

@@ -1,23 +1,20 @@
 include(ProjectVariable)
 
 # Modules will need this when they're being used by other packages.
-project_variable(CONFIG_DIR config CONFIG
-  DOCSTRING "Directory containing cetmodules' fragment templates for generating CMake config files")
-
-set(install_files
-  package-config.cmake.preamble.in
-  package-config.cmake.init.in
-  package-config.cmake.bottom.in
-  MyConfig.pm
+project_variable(
+  CONFIG_DIR
+  config
+  CONFIG
+  DOCSTRING
+  "Directory containing cetmodules' fragment templates for generating CMake config files"
   )
 
-foreach (compat IN ITEMS AnyNewer Exact SameMajor SameMinor)
+set(install_files package-config.cmake.preamble.in package-config.cmake.init.in
+                  package-config.cmake.bottom.in
+    )
+
+foreach(compat IN ITEMS AnyNewer Exact SameMajor SameMinor)
   list(APPEND install_files CetConfigVersion-${compat}Version.cmake.in)
 endforeach()
 
-install(FILES ${install_files}
-  DESTINATION ${${PROJECT_NAME}_CONFIG_DIR})
-
-if (WANT_UPS)
-  add_subdirectory(ups)
-endif()
+install(FILES ${install_files} DESTINATION ${${PROJECT_NAME}_CONFIG_DIR})

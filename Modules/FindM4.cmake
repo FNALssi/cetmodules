@@ -36,30 +36,30 @@ Example usage:
 #]=======================================================================]
 
 # First search the PATH and specific locations.
-find_program(M4_EXECUTABLE
+find_program(
+  M4_EXECUTABLE
   NAMES m4
   DOC "M4 macro processor"
-)
+  )
 
 mark_as_advanced(M4_EXECUTABLE)
 
-if (M4_EXECUTABLE)
-  # Avoid querying the version if we've already done that this run. For
-  # projects that use things like ExternalProject or FetchContent heavily,
-  # this saving can be measurable on some platforms.
+if(M4_EXECUTABLE)
+  # Avoid querying the version if we've already done that this run. For projects
+  # that use things like ExternalProject or FetchContent heavily, this saving
+  # can be measurable on some platforms.
   #
-  # This is an internal property, projects must not try to use it.
-  # We don't want this stored in the cache because it might still change
-  # between CMake runs, but it shouldn't change during a run for a given
-  # m4 executable location.
+  # This is an internal property, projects must not try to use it. We don't want
+  # this stored in the cache because it might still change between CMake runs,
+  # but it shouldn't change during a run for a given m4 executable location.
   set(__doM4VersionCheck TRUE)
-  get_property(__m4VersionProp GLOBAL
-    PROPERTY _CETMODULES_FindM4_M4_EXECUTABLE_VERSION
-  )
-  if (__m4VersionProp)
+  get_property(
+    __m4VersionProp GLOBAL PROPERTY _CETMODULES_FindM4_M4_EXECUTABLE_VERSION
+    )
+  if(__m4VersionProp)
     list(GET __m4VersionProp 0 __m4Exe)
     list(GET __m4VersionProp 1 __m4Version)
-    if (__m4Exe STREQUAL M4_EXECUTABLE AND NOT __m4Version STREQUAL "")
+    if(__m4Exe STREQUAL M4_EXECUTABLE AND NOT __m4Version STREQUAL "")
       set(M4_VERSION_STRING "${__m4Version}")
       set(__doM4VersionCheck FALSE)
     endif()
@@ -68,15 +68,16 @@ if (M4_EXECUTABLE)
   endif()
   unset(__m4VersionProp)
 
-  if (__doM4VersionCheck)
-    execute_process(COMMAND ${M4_EXECUTABLE} --version
+  if(__doM4VersionCheck)
+    execute_process(
+      COMMAND ${M4_EXECUTABLE} --version
       COMMAND sed -Ene "1 s&^.*(GNU)?.* ([0-9][0-9.]*).*$&\\1;\\2&p"
       OUTPUT_VARIABLE __m4VersionString
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
     list(GET __m4VersionString 0 __m4GnuString)
     list(GET __m4VersionString 1 M4_VERSION_STRING)
-    if (__m4GnuString)
+    if(__m4GnuString)
       set(M4_IS_GNU TRUE)
       set(M4_POSIX_OPT "-G")
     else()
@@ -84,14 +85,16 @@ if (M4_EXECUTABLE)
       set(M4_POSIX_OPT "")
     endif()
     unset(__m4GnuString)
-    set_property(GLOBAL PROPERTY _CETMODULES_FindM4_M4_EXECUTABLE_VERSION
-      "${M4_EXECUTABLE};${M4_VERSION_STRING}")
+    set_property(
+      GLOBAL PROPERTY _CETMODULES_FindM4_M4_EXECUTABLE_VERSION
+                      "${M4_EXECUTABLE};${M4_VERSION_STRING}"
+      )
   endif()
   unset(__doM4VersionCheck)
   unset(__m4VersionString)
 
   get_property(_findm4_role GLOBAL PROPERTY CMAKE_ROLE)
-  if (_findm4_role STREQUAL "PROJECT" AND NOT TARGET M4::M4)
+  if(_findm4_role STREQUAL "PROJECT" AND NOT TARGET M4::M4)
     add_executable(M4::M4 IMPORTED)
     set_property(TARGET M4::M4 PROPERTY IMPORTED_LOCATION "${M4_EXECUTABLE}")
   endif()
@@ -99,6 +102,8 @@ if (M4_EXECUTABLE)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(M4
+find_package_handle_standard_args(
+  M4
   REQUIRED_VARS M4_EXECUTABLE
-  VERSION_VAR M4_VERSION_STRING)
+  VERSION_VAR M4_VERSION_STRING
+  )
