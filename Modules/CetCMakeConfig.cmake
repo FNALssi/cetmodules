@@ -93,7 +93,7 @@ function(cet_cmake_config)
       FATAL_ERROR
         "cet_cmake_config() requires
    `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES:STRING=CetProvideDependency'
-for proper operation"
+or equivalent CMake presets setting for proper operation"
       )
   endif()
   # Delay the call until we're (almost) done with the project.
