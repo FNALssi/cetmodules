@@ -108,11 +108,15 @@ set(_cet_fp_all_keywords
     CACHE INTERNAL "All find_package() keywords"
     )
 
+if (COMMAND _find_package)
+  message(FATAL_ERROR "find_package() has already been overridden: cetmodules cannot function")
+endif()
+
 option(CET_FIND_QUIETLY "All find_package() calls will be quiet." OFF)
 
 # Intercept calls to find_package() for IN_TREE packages and make them do the
 # right thing.
-macro(cet_provide_dependency METHOD PKG)
+macro(find_package PKG)
   # Due to the high likelihood that find_package() calls will be nested, we need
   # to be extremely careful to reset variables to avoid hysteresis.
   _cet_fp_reset_variables()
@@ -204,8 +208,8 @@ macro(cet_provide_dependency METHOD PKG)
         set(_fp_QUIET)
       endif()
       # Underlying built-in find_package() call.
-      find_package(
-        ${PKG} ${_fp_minver_${PKG}} BYPASS_PROVIDER ${_fp_UNPARSED_ARGUMENTS}
+      _find_package(
+        ${PKG} ${_fp_minver_${PKG}} ${_fp_UNPARSED_ARGUMENTS}
         ${_fp_QUIET}
         )
       if(DEFINED CACHE{${PKG}_DIR})
@@ -278,7 +282,7 @@ function(_cet_fp_check_find_package_needed PKG RESULT_VAR)
       )
 endfunction()
 
-function(_cet_fp_parse_args METHOD PKG)
+function(_cet_fp_parse_args PKG)
   set(_fp_args "${ARGN}")
   if("${PKG}" STREQUAL "" OR "${_fp_args}" STREQUAL "")
     return()
@@ -341,31 +345,34 @@ function(_cet_fp_parse_args METHOD PKG)
   # Sanitize the minimum and/or maximum version specification(s) in case someone
   # is using extended version semantics not supported by CMake.
   if("${_fp_args}" STREQUAL "")
-    set(_fp_first_arg)
+    set(_fp_have_first_arg)
   else()
-    list(GET _fp_args 0 _fp_first_arg)
+    set(_fp_have_first_arg TRUE)
+    list(GET _fp_args 0 _fp_version_arg)
   endif()
-  if("${_fp_first_arg}" STREQUAL "" OR _fp_first_arg IN_LIST _cet_fp_keywords)
+  if("${_fp_version_arg}" STREQUAL "" OR _fp_version_arg IN_LIST _cet_fp_keywords)
     unset(_fp_minver_${PKG} PARENT_SCOPE)
-  elseif(_fp_first_arg MATCHES "^[0-9.]+$")
+  elseif(_fp_version_arg MATCHES "^[0-9.]+$")
     # Standard case, or ${PKG}_FIND_VERSION_(MIN|MAX)_EXTRA were already set (in
     # which case we don't need to deal with them).
-    list(POP_FRONT _fp_args _fp_minver_${PKG})
+    if (_fp_have_first_arg)
+      list(POP_FRONT _fp_args _fp_minver_${PKG})
+    endif()
     set(_fp_minver_${PKG}
         ${_fp_minver_${PKG}}
         PARENT_SCOPE
         )
-  elseif(_fp_first_arg MATCHES "(\\.\\.\\.[^.]*)(\\.\\.\\.[^.]*)")
+  elseif(_fp_version_arg MATCHES "(\\.\\.\\.[^.]*)(\\.\\.\\.[^.]*)")
     # Unable to parse unambiguously.
     message(
       FATAL_ERROR
-        "cannot parse ambiguous extended version (range?) ${_fp_first_arg}—use 0 for numeric version placeholders."
+        "cannot parse ambiguous extended version (range?) ${_fp_version_arg}—use 0 for numeric version placeholders."
       )
   else()
     string(REGEX REPLACE "\\.\\.\\.(.+)$" "" _fp_minver_${PKG}
-                         "${_fp_first_arg}"
+                         "${_fp_version_arg}"
            )
-    if(NOT _fp_minver_${PKG} STREQUAL _fp_first_arg)
+    if(NOT _fp_minver_${PKG} STREQUAL _fp_version_arg)
       set(_fp_maxver_${PKG} "${CMAKE_MATCH_1}")
     else()
       unset(fp_maxver_${PKG})
@@ -448,8 +455,3 @@ macro(_cet_ROOT_post_find_package)
     endif()
   endforeach()
 endmacro()
-
-# Allow bookkeeping and extra options to find_package()
-cmake_language(
-  SET_DEPENDENCY_PROVIDER cet_provide_dependency SUPPORTED_METHODS FIND_PACKAGE
-  )
