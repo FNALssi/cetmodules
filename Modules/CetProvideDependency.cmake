@@ -53,6 +53,13 @@ X
 # * From the point of view of find_package(), INTERFACE AND EXPORT are
 #   identical: a find_package() call will be executed either way in order to
 #   ensure that targets, etc., are known to CMake at the appropriate time.
+# ##############################################################################
+
+# ##############################################################################
+# N.B. We override `find_package()` directly rather than using the
+# `cmake_language(SET_DEPENDENCY_PROVIDER)` due to the latter's
+# restrictions on the version argument and any new flags or options.
+# ##############################################################################
 
 # Once only per directory!
 include_guard()
