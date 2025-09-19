@@ -25,7 +25,7 @@ set(cetmodules_MIN_CMAKE_VERSION 3.24)
 
 # Required to keep CMake happy.
 cmake_minimum_required(
-  VERSION ${cetmodules_MIN_CMAKE_VERSION}...3.31 FATAL_ERROR
+  VERSION ${cetmodules_MIN_CMAKE_VERSION}...4.1 FATAL_ERROR
   )
 
 # Bootstrap finding our own modules.

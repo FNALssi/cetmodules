@@ -15,7 +15,7 @@ Module defining commands to facilitate the building of plugins:
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.18.2...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.2...4.1 FATAL_ERROR)
 
 include(CetCMakeUtils)
 include(CetMakeLibrary)
@@ -639,7 +639,7 @@ function(cet_write_plugin_builder TYPE BASE DEST_SUBDIR)
     "${${CETMODULES_CURRENT_PROJECT_NAME}_BINARY_DIR}/${DEST_SUBDIR}/${TYPE}.cmake"
     "\
 include_guard()
-cmake_minimum_required(VERSION 3.18...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18...4.1 FATAL_ERROR)
 
 ${extra_includes}include(BasicPlugin)
 
