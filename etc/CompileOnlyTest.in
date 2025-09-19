@@ -1,6 +1,7 @@
 #!/bin/bash
 
 "@CMAKE_COMMAND@" -S . -B build -G"@CMAKE_GENERATOR@" \
+                  -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES:STRING="CetProvideDependency" \
                   -DCMAKE_CXX_EXTENSIONS:BOOL="@CMAKE_CXX_EXTENSIONS@" \
                   -DCMAKE_CXX_STANDARD_REQUIRED:BOOL="@CMAKE_CXX_STANDARD_REQUIRED@" \
                   -DCMAKE_CXX_STANDARD="@CMAKE_CXX_STANDARD@" \
