@@ -88,7 +88,7 @@ include(ProjectVariable)
 #]================================================================]
 
 function(cet_cmake_config)
-  if(NOT COMMAND cet_provide_dependency)
+  if(NOT COMMAND _cet_fp_parse_args)
     message(
       FATAL_ERROR
         "cet_cmake_config() requires
