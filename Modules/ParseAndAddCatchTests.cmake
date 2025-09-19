@@ -95,7 +95,7 @@ register them with :command:`add_test()
 # example to add further labels or properties to the tests.    # #
 # ==================================================================================================#
 
-cmake_minimum_required(VERSION 2.8.12...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5...4.1 FATAL_ERROR)
 
 option(PARSE_CATCH_TESTS_VERBOSE "Print Catch to CTest parser debug messages"
        OFF

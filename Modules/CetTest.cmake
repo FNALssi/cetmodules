@@ -11,7 +11,7 @@ CetTest
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...4.1 FATAL_ERROR)
 
 # For warn_deprecated()
 include(CetCMakeUtils)

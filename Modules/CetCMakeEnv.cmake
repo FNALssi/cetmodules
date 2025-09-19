@@ -45,7 +45,11 @@ if(NOT CMAKE_INSTALL_LIBDIR)
 endif()
 
 # See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html.
+set(_cce_suppress_dev_warnings "$CACHE{CMAKE_SUPPRESS_DEVELOP_WARNINGS}")
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE INTERNAL "" FORCE)
 include(GNUInstallDirs)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${_cce_suppress_dev_warnings}" CACHE INTERNAL "" FORCE)
+unset(_cce_suppress_dev_warnings)
 # ##############################################################################
 
 define_property(
