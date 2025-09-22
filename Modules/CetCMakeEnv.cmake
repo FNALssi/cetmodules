@@ -10,7 +10,7 @@ the current project.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...4.1 FATAL_ERROR)
 
 # Escape characters for literal use in regular expressions.
 include(CetRegexEscape)
@@ -45,7 +45,15 @@ if(NOT CMAKE_INSTALL_LIBDIR)
 endif()
 
 # See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html.
+#
+# We suppress developer warnings for this `include()` to silence
+# complaints from CMake >=4 when no `LANGUAGES` are enabled for this
+# project.
+set(_cce_suppress_dev_warnings "$CACHE{CMAKE_SUPPRESS_DEVELOP_WARNINGS}")
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE INTERNAL "" FORCE)
 include(GNUInstallDirs)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${_cce_suppress_dev_warnings}" CACHE INTERNAL "" FORCE)
+unset(_cce_suppress_dev_warnings)
 # ##############################################################################
 
 define_property(

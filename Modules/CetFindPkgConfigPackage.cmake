@@ -8,7 +8,7 @@ Define the function :command:`cet_find_pkg_config_package` for use in
 #]================================================================]
 include_guard()
 
-cmake_minimum_required(VERSION 2.8.12...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5...4.1 FATAL_ERROR)
 
 include(FindPackageHandleStandardArgs)
 

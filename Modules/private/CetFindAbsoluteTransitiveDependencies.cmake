@@ -5,7 +5,7 @@ X
 
 include_guard()
 
-cmake_minimum_required(VERSION 3.20...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20...4.1 FATAL_ERROR)
 
 function(_cet_find_absolute_transitive_dependencies _cet_target_file_name
          _cet_target_file_data _ignore_regex
