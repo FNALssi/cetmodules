@@ -10,7 +10,7 @@ the current project.
 # Avoid unnecessary repeat inclusion.
 include_guard()
 
-cmake_minimum_required(VERSION 3.19...3.27 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19...4.1 FATAL_ERROR)
 
 # Escape characters for literal use in regular expressions.
 include(CetRegexEscape)
