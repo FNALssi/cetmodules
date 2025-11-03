@@ -86,7 +86,7 @@ include(CTest)
 if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
-if(BUILD_DOCS)
+if(BUILD_DOCS AND CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
   add_subdirectory(doc)
 endif()
 # ##############################################################################
