@@ -52,6 +52,11 @@ set(_cet_make_exec_usage "")
      The executable will be exported as part of the specified
      :external+cmake-ref-current:ref:`export set <install(export)>`.
 
+   ``FILE_SETS <arg> ...``
+     Arguments to pass to the ``FILE_SET`` option of the underlying
+     :command:`install(TARGETS)` command. Note that each file set
+     specification must begin with the ``FILE_SET`` keyword.
+
    ``LIBRARIES <library-specification> ...``
      Library dependencies (passed to :command:`target_link_libraries()
      <cmake-ref-current:command:target_link_libraries>`).
@@ -101,7 +106,7 @@ function(cet_make_exec)
     CME
     "EXCLUDE_FROM_ALL;NO_EXPORT;NO_EXPORT_ALL_SYMBOLS;NO_INSTALL;NOP;USE_BOOST_UNIT;USE_CATCH_MAIN;USE_CATCH2_MAIN"
     "EXEC_NAME;EXPORT_SET;NAME"
-    "LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE"
+    "FILE_SETS;LIBRARIES;LOCAL_INCLUDE_DIRS;SOURCE"
     )
   # Argument verification.
   if(CME_EXEC_NAME)
@@ -253,6 +258,7 @@ If this is intentional, specify with dangling SOURCE keyword to silence this war
     install(
       TARGETS ${CME_NAME}
       EXPORT ${CME_EXPORT_SET}
+      ${CME_FILE_SETS}
       RUNTIME DESTINATION ${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR}
       )
     if(NOT CME_NO_EXPORT)

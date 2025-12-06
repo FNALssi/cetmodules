@@ -158,6 +158,11 @@ set(_cet_make_library_usage "")
      The library will be exported as part of the specified
      :external+cmake-ref-current:ref:`export set <install(export)>`.
 
+   ``FILE_SETS <arg> ...``
+     Arguments to pass to the ``FILE_SET`` option of the underlying
+     :command:`install(TARGETS)` command. Note that each file set
+     specification must begin with the ``FILE_SET`` keyword.
+
    ``HEADERS_TARGET``
      Define an ``INTERFACE`` target
      ``<CETMODULES_CURRENT_PROJECT_NAME>_headers`` embodying the
@@ -226,7 +231,7 @@ function(cet_make_library)
     CML
     "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;HEADERS_TARGET_ONLY;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;WITH_STATIC_LIBRARY"
     "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;LIBRARY_NAME_VAR;VERSION;SOVERSION;TARGET_NAME"
-    "ALIAS;LIBRARIES;LIBRARIES_INTERFACE;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS"
+    "ALIAS;FILE_SETS;LIBRARIES;LIBRARIES_INTERFACE;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS"
     )
   if(CML_LIBRARIES_INTERFACE) # Typo!
     message(
@@ -568,6 +573,7 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
     install(
       TARGETS ${lib_targets}
       EXPORT ${CML_EXPORT_SET}
+      ${CML_FILE_SETS}
       RUNTIME DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_BIN_DIR}"
       LIBRARY DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}"
       ARCHIVE DESTINATION "${${CETMODULES_CURRENT_PROJECT_NAME}_LIBRARY_DIR}"

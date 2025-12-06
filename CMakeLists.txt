@@ -33,9 +33,7 @@ list(PREPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules
      ${CMAKE_CURRENT_BINARY_DIR}/Modules
      )
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES CetProvideDependency)
-endif()
+include(CetProvideDependency)
 
 # ##############################################################################
 # Project information.
