@@ -43,33 +43,75 @@ function set_datafiles() {
 # Main.
 ########################################################################
 
-getopt -T >/dev/null 2>&1
-if (( $? != 4 )); then
-  echo "ERROR: GNU getopt required! Check SETUP_GETOPT and PATH." 1>&2
-  exit 1
-fi
-
-TEMP=`getopt -n "$prog" --long datafiles:,debug,dirty-workdir,remove-on-failure:,required-files:,skip-return-code:,wd: -o + -- "${@}"`
-eval set -- "$TEMP"
-
-while true; do
-  case $1 in
-    --datafiles) set_datafiles "$2"; shift;;
-    --debug) vopt="v";;
-    --dirty-workdir) unset want_clean;;
+# Manual parsing of command-line arguments.
+declare -a remaining_args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --datafiles)
+      set_datafiles "$2"
+      shift 2
+      ;;
+    --datafiles=*)
+      set_datafiles "${1#*=}"
+      shift
+      ;;
+    --debug)
+      vopt="v"
+      shift
+      ;;
+    --dirty-workdir)
+      unset want_clean
+      shift
+      ;;
     --remove-on-failure)
       old_IFS="${IFS}"; IFS=';'; removeOnFailure=($2); IFS=${old_IFS}
-      shift;;
+      shift 2
+      ;;
+    --remove-on-failure=*)
+      old_IFS="${IFS}"; IFS=';'; removeOnFailure=(${1#*=}); IFS=${old_IFS}
+      shift
+      ;;
     --required-files)
       old_IFS="${IFS}"; IFS=';'; requiredfiles=($2); IFS=${old_IFS}
-      shift;;
-    --skip-return-code) (( skip_code = ${2} )); shift;;
-    --wd) wd="$2"; shift;;
-    --) shift; break;;
-    *) echo "Bad argument $1" 1>&2; usage 1
+      shift 2
+      ;;
+    --required-files=*)
+      old_IFS="${IFS}"; IFS=';'; requiredfiles=(${1#*=}); IFS=${old_IFS}
+      shift
+      ;;
+    --skip-return-code)
+      (( skip_code = ${2} ))
+      shift 2
+      ;;
+    --skip-return-code=*)
+      (( skip_code = ${1#*=} ))
+      shift
+      ;;
+    --wd)
+      wd="$2"
+      shift 2
+      ;;
+    --wd=*)
+      wd="${1#*=}"
+      shift
+      ;;
+    --)
+      shift
+      remaining_args+=( "$@" )
+      break
+      ;;
+    -*)
+      echo "Bad argument $1" 1>&2; usage 1
+      ;;
+    *)
+      remaining_args+=( "$@" )
+      break # Stop processing at the first non-option argument
+      ;;
   esac
-  shift
 done
+
+# Restore the positional parameters
+eval set -- "${remaining_args[@]}"
 
 if [[ -z "$wd" ]]; then
   echo "Compulsory argument --wd missing." 1>&2
