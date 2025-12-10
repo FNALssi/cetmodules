@@ -1,3 +1,12 @@
+# Dockerfile for building Cetmodules development image.
+
+# Podman instructions for building and uploading tagged images:
+#   $ DATE="$(date +"%Y-%m-%d")"
+#   $ podman build --tag cetmodules-dev:$DATE .
+#   $ podman login ghcr.io --username <username> -p $(gh auth token)
+#   $ podman push cetmodules-dev:$DATE ghcr.io/fnalssi/cetmodules-dev:$DATE
+# ... and optionally push with destination tag "latest"
+
 # Base image
 FROM ubuntu:latest
 
