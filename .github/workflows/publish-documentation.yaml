@@ -1,0 +1,115 @@
+name: Publish Documentation
+run-name: "Build and publish documentation (ref: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.ref }})"
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'The branch or tag to build documentation from'
+        required: true
+        default: 'develop'
+      publish:
+        description: 'Publish documentation to gh-pages branch'
+        type: boolean
+        default: false
+      versioned:
+        description: 'Build versioned documentation'
+        type: boolean
+        default: false
+      make_tarball:
+        description: 'Create a downloadable tarball of the HTML documentation'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write # Required for pushing to gh-pages
+
+jobs:
+  build-documentation:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/fnalssi/cetmodules-dev:latest
+
+    steps:
+      - name: Set Build Parameters
+        id: params
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "REF=${{ github.ref }}" >> $GITHUB_ENV
+            echo "REF_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "PUBLISH=true" >> $GITHUB_ENV
+            echo "VERSIONED=true" >> $GITHUB_ENV
+            echo "MAKE_TARBALL=false" >> $GITHUB_ENV
+          else # workflow_dispatch
+            echo "REF=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
+            echo "REF_NAME=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
+            echo "PUBLISH=${{ github.event.inputs.publish }}" >> $GITHUB_ENV
+            echo "VERSIONED=${{ github.event.inputs.versioned }}" >> $GITHUB_ENV
+            echo "MAKE_TARBALL=${{ github.event.inputs.make_tarball }}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+          path: src
+
+      - name: Configure CMake
+        run: |
+          cmake_opts="-S src -B build -DBUILD_DOCS=ON"
+          if [[ "${{ env.VERSIONED }}" == "true" ]]; then
+            cmake_opts="$cmake_opts -Dcetmodules_SPHINX_DOC_PUBLISH_VERSION_BRANCH=${{ env.REF_NAME }}"
+          fi
+          cmake $cmake_opts
+
+      - name: Build documentation
+        run: cmake --build build
+
+      - name: Create documentation tarball
+        if: env.MAKE_TARBALL == 'true'
+        run: |
+          cd build/doc/html
+          tar -czf /tmp/cetmodules-doc.tar.gz .
+
+      - name: Upload documentation artifact
+        if: env.MAKE_TARBALL == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cetmodules-doc-${{ env.REF_NAME }}
+          path: /tmp/cetmodules-doc.tar.gz
+
+      - name: Publish to gh-pages
+        if: env.PUBLISH == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git clone --single-branch --depth 1 -b gh-pages https://github.com/${{ github.repository }}.git doc-publish
+
+          if [[ "${{ env.VERSIONED }}" == "true" ]]; then
+            publish_dir="doc-publish/${{ env.REF_NAME }}"
+            mkdir -p "$publish_dir"
+            rsync -a build/doc/html/ "$publish_dir/"
+          else
+            publish_dir="doc-publish"
+            rsync -a build/doc/html/ "$publish_dir/"
+          fi
+
+          cd doc-publish
+          git config user.name "Cetmodules CI"
+          git config user.email "ci_build_reports@fnal.gov"
+          gh auth setup-git
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to documentation."
+            exit 0
+          fi
+
+          commit_hash=$(git -C ../src rev-parse --short HEAD)
+          git commit -m "Update documentation for ${{ env.REF_NAME }} ($commit_hash)"
+          git fetch
+          git rebase --empty=drop
+          git push

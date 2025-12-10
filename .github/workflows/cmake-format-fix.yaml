@@ -1,0 +1,64 @@
+name: CMake Format Fix
+run-name: '${{ github.actor }} fixing CMake format'
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  parse-command:
+    runs-on: ubuntu-latest
+    name: Parse bot command
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '@cetmodulesbot format')
+    outputs:
+      ref: ${{ steps.get_pr.outputs.ref }}
+      sha: ${{ steps.get_pr.outputs.sha }}
+      repo: ${{ steps.get_pr.outputs.repo }}
+
+    steps:
+      - name: Get PR Info
+        id: get_pr
+        uses: ./.github/actions/get-pr-info
+
+  apply_cmake_formatting:
+    runs-on: ubuntu-latest
+    name: Apply CMake formatting
+    needs: parse-command
+    if: ${{ needs.parse-command.result == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: cetmodules-src
+          ref: ${{ needs.parse-command.outputs.ref }}
+          repository: ${{ needs.parse-command.outputs.repo }}
+          token: ${{ secrets.WORKFLOW_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install gersemi
+        run: pip install gersemi
+
+      - name: Apply CMake formatting
+        run: |
+          echo "Applying CMake formatting..."
+          gersemi -i cetmodules-src
+
+      - name: Handle fix commit
+        uses: ./.github/actions/handle-fix-commit
+        with:
+          commit-message: 'Apply cmake-format fixes'
+          working-directory: cetmodules-src
+          token: ${{ secrets.WORKFLOW_PAT }}
+          pr-info-ref: ${{ needs.parse-command.outputs.ref }}
+          pr-info-repo: ${{ needs.parse-command.outputs.repo }}
