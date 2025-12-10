@@ -1,0 +1,131 @@
+name: Clang-Tidy Check
+'run-name': "${{ github.actor }} running clang-tidy check"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+
+  detect-changes:
+    if: >
+      github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    outputs:
+      has_changes: ${{ steps.filter.outputs.matched }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      with:
+        fetch-depth: 0
+        path: phlex-src
+
+    - name: Detect clang-tidy relevant changes
+      id: filter
+      uses: Framework-R-D/phlex/.github/actions/detect-relevant-changes@main
+      with:
+        repo-path: phlex-src
+        base-ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        head-ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        file-type: |
+          cpp
+          cmake
+
+    - name: Report detection outcome
+      run: |
+        if [ "${{ steps.filter.outputs.matched }}" != "true" ]; then
+          echo "::notice::No clang-tidy relevant changes detected; job will be skipped."
+        else
+          echo "::group::Clang-tidy relevant files"
+          printf '%s\n' "${{ steps.filter.outputs.matched_files }}"
+          echo "::endgroup::"
+        fi
+
+  clang-tidy-check:
+    needs: [detect-changes]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && needs.detect-changes.result == 'success' && needs.detect-changes.outputs.has_changes == 'true')
+
+    runs-on: ubuntu-24.04
+
+    container:
+      image: ghcr.io/framework-r-d/phlex-ci:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      with:
+        path: phlex-src
+
+    - name: Setup build environment
+      uses: Framework-R-D/phlex/.github/actions/setup-build-env@main
+
+    - name: Configure CMake (Debug)
+      uses: Framework-R-D/phlex/.github/actions/configure-cmake@main
+      with:
+        build-type: Debug
+        extra-options: "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_CXX_SCAN_FOR_MODULES=OFF"
+
+    - name: Run clang-tidy using CMake target
+      shell: bash
+      run: |
+        . /entrypoint.sh
+        cd "$GITHUB_WORKSPACE/phlex-build"
+
+        echo "➡️ Running clang-tidy checks..."
+        cmake --build . --target clang-tidy-check -- --export-fixes clang-tidy-fixes.yaml > clang-tidy.log 2>&1 || true
+        if [ -s clang-tidy-fixes.yaml ]; then
+          echo "::error::Clang-tidy found issues in the code"
+          echo "Error count by check (full details in clang-tidy-log artifact):"
+          sed -nEe '\&^/& s&^.*\[([^][:space:]]+)\]$&\1&p' clang-tidy.log | sort | uniq -c | sort -n -k 1 -r
+          echo "Comment '@phlexbot tidy-fix [<check>...]' on the PR to attempt auto-fix"
+          exit 1
+        else
+          echo "✅ clang-tidy check passed"
+        fi
+
+    - name: Upload clang-tidy report
+      if: failure()
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: clang-tidy-report
+        path: phlex-build/clang-tidy-fixes.yaml
+        retention-days: 7
+
+    - name: Upload clang-tidy log
+      if: failure()
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: clang-tidy-log
+        path: phlex-build/clang-tidy.log
+        retention-days: 7
+
+  clang-tidy-pr-comments:
+    needs: clang-tidy-check
+    if: failure() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download clang-tidy report
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: clang-tidy-report
+          path: phlex-build
+      - name: Post clang-tidy comments
+        uses: platisd/clang-tidy-pr-comments@28cfb84edafa771c044bde7e4a2a3fae57463818 # v1.8.0
+        with:
+          clang_tidy_fixes: phlex-build/clang-tidy-fixes.yaml
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+

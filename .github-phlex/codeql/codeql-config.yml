@@ -1,0 +1,12 @@
+# CodeQL configuration tuned for this repository (C++ + Python).
+# Adjust the query packs and path excludes for your needs.
+
+queries:
+  - uses: security-extended
+  - uses: code-quality
+
+paths-ignore:
+  - "*-build/**"
+  - build/**
+  - doc/**
+  - test/**
