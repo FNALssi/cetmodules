@@ -32,7 +32,7 @@ RUN git clone https://github.com/catchorg/Catch2.git /tmp/Catch2 && \
     rm -rf /tmp/Catch2
 
 # Create a non-root user
-RUN useradd -m -u 1000 -s /bin/bash developer && \
+RUN useradd -m -u 5000 -s /bin/bash developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Create source and build directories
