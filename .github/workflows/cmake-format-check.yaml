@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Detect act environment
         id: detect_act
-        uses: Framework-R-D/phlex/.github/actions/detect-act-env@a56582b6d7dbc26611b941a8d25ce36e8c32e950
+        uses: Framework-R-D/phlex/.github/actions/detect-act-env@a56582b6d7dbc26611b941a8d25ce36e8c32e950 # main
 
   detect-changes:
     needs: pre-check
@@ -38,7 +38,7 @@ jobs:
 
     - name: Detect CMake formatting changes
       id: filter
-      uses: Framework-R-D/phlex/.github/actions/detect-relevant-changes@a56582b6d7dbc26611b941a8d25ce36e8c32e950
+      uses: Framework-R-D/phlex/.github/actions/detect-relevant-changes@a56582b6d7dbc26611b941a8d25ce36e8c32e950 # main
       with:
         repo-path: cetmodules-src
         base-ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
