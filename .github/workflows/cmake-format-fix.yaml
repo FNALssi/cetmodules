@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Get PR Info
         id: get_pr
-        uses: ./.github/actions/get-pr-info
+        uses: Framework-R-D/phlex/.github/actions/get-pr-info@a56582b6d7dbc26611b941a8d25ce36e8c32e950 # main
 
   apply_cmake_formatting:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
           gersemi -i cetmodules-src
 
       - name: Handle fix commit
-        uses: ./.github/actions/handle-fix-commit
+        uses: Framework-R-D/phlex/.github/actions/handle-fix-commit@a56582b6d7dbc26611b941a8d25ce36e8c32e950 # main
         with:
           commit-message: 'Apply cmake-format fixes'
           working-directory: cetmodules-src

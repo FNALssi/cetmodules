@@ -83,6 +83,15 @@ jobs:
           path: sarif
           merge-multiple: true
 
+      - name: Download check_codeql_alerts.py script
+        id: download_script
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/scripts"
+          curl -sSLo "$RUNNER_TEMP/scripts/check_codeql_alerts.py" \
+            "https://raw.githubusercontent.com/Framework-R-D/phlex/refs/heads/main/scripts/check_codeql_alerts.py"
+          echo "script_path=$RUNNER_TEMP/scripts/check_codeql_alerts.py" >> "$GITHUB_OUTPUT"
+
       - name: Check CodeQL SARIF for new or resolved alerts
         id: check_codeql
         run: |
@@ -95,7 +104,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             ARGS+=(--ref "refs/pull/${{ github.event.pull_request.number }}/merge")
           fi
-          python3 scripts/check_codeql_alerts.py "${ARGS[@]}"
+          python3 "${{ steps.download_script.outputs.script_path }}" "${ARGS[@]}"
 
       - name: Upload CodeQL alerts debug log
         if: always()
