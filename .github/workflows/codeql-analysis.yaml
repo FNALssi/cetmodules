@@ -41,7 +41,7 @@ jobs:
 
       # Run CodeQL analysis (uploads results to code scanning)
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4
         with:
           checkout_path: cetmodules-src
           output: results
