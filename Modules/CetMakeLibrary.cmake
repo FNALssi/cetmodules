@@ -44,23 +44,60 @@ set(_cet_make_library_usage "")
      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`;
      mutually exclusive with ``LIBRARY_NAME``.
 
+   ``EXPORT_NAME <export-name>``
+
+     Export-specific library name (distinct from ``LIBRARY_NAME`` and
+     ``TARGET_NAME``). Defaults to ``TARGET_NAME`` if not
+     specified. Ignored when ``NO_EXPORT`` is set.
+
+     .. seealso:: :external+cmake-ref-current:prop_tgt:`EXPORT_NAME`
+
+     .. versionadded:: 4.02.00
+
    ``LIBRARY_NAME <name>``
      .. rst-class:: text-start
 
-     Specify the library name as ``name``. If this option is not
-     provided the library's name will be calculated from the relative
-     path of :variable:`CMAKE_CURRENT_SOURCE_DIR
+     Specify the library's output file name stem as ``name``. If this
+     option is not provided the library's name will be calculated from
+     the relative path of :variable:`CMAKE_CURRENT_SOURCE_DIR
      <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>` with respect
      to :variable:`CETMODULES_CURRENT_PROJECT_SOURCE_DIR` subject to
      possible modification by ``USE_PROJECT_NAME`` (replacing
      path-separators with ``_``). ``LIBRARY_NAME`` is mutually exclusive
      with ``BASENAME_ONLY``.
 
+     .. note: not meaningful for OBJECT and INTERFACE libraries, except
+        as a default for TARGET_NAME and EXPORT_NAME.
+
+     .. seealso:: :external+cmake-ref-current:prop_tgt:`OUTPUT_NAME`
+
    ``LIBRARY_NAME_VAR <var>``
-     Return the calculated/modified library name in the variable
+     Return the calculated/modified target name in the variable
      ``<var>``.
 
+     .. deprecated:: 4.02.00
+
+        historical, semantically-inaccurate option name; replaced by
+        ``TARGET_NAME_VAR``.
+
+   ``TARGET_NAME <target-name>``
+     Specify the primary target name independently of the library
+     name. If ``<target-name>`` is the special keyword, ``BASENAME``
+     then the target will be set according to the basename of
+     :variable:`CMAKE_CURRENT_SOURCE_DIR
+     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
+
+     .. seealso:: :external+cmake-ref-current:prop_tgt:`TARGET_NAME`
+
+   ``TARGET_NAME_VAR <var>``
+
+     Return the calculated/modified target name in the variable
+     ``<var>``.
+
+     .. versionadded:: 4.02.00
+
    ``USE_PROJECT_NAME``
+
      Modify the provided or calculated library name by prepending
      :variable:`CETMODULES_CURRENT_PROJECT_NAME` and a separating ``_``.
 
@@ -85,6 +122,7 @@ set(_cet_make_library_usage "")
 
    ``WITH_STATIC_LIBRARY``
      .. deprecated:: 3.23.00
+
         use ``STATIC`` instead.
 
    .. _cet_make_library_options:
@@ -171,13 +209,6 @@ set(_cet_make_library_usage "")
    ``NO_EXPORT``
      Targets will not be exported or installed.
 
-   ``TARGET_NAME <target-name>``
-     Specify the primary target name independently of the library
-     name. If ``<target-name>`` is the special keyword, ``BASENAME``
-     then the target will be set to the basename of
-     :variable:`CMAKE_CURRENT_SOURCE_DIR
-     <cmake-ref-current:variable:CMAKE_CURRENT_SOURCE_DIR>`.
-
    .. _cet_make_library_misc_options:
 
    Miscellaneous Options
@@ -215,7 +246,6 @@ set(_cet_make_library_usage "")
                 :command:`cet_cmake_config`,
                 :command:`cet_make_alias`,
                 :command:`cet_register_export_set`
-
 #]================================================================]
 
 function(cet_make_library)
@@ -225,7 +255,7 @@ function(cet_make_library)
     0
     CML
     "BASENAME_ONLY;EXCLUDE_FROM_ALL;HEADERS_TARGET;HEADERS_TARGET_ONLY;MODULE;NO_EXPORT;NO_INSTALL;NO_OBJECT;NO_SOURCE;NOP;OBJECT;SHARED;STATIC;USE_BOOST_UNIT;USE_PROJECT_NAME;WITH_STATIC_LIBRARY"
-    "EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;LIBRARY_NAME_VAR;VERSION;SOVERSION;TARGET_NAME"
+    "EXPORT_NAME;EXPORT_SET;INSTALLED_PATH_BASE;LIBRARY_NAME;LIBRARY_NAME_VAR;VERSION;SOVERSION;TARGET_NAME;TARGET_NAME_VAR"
     "ALIAS;LIBRARIES;LIBRARIES_INTERFACE;LOCAL_INCLUDE_DIRS;SOURCE;STRIP_LIBS"
     )
   if(CML_LIBRARIES_INTERFACE) # Typo!
@@ -234,6 +264,14 @@ function(cet_make_library)
         "likely typo detected: replace \"LIBRARIES_INTERFACE\" with \"LIBRARIES INTERFACE\""
       )
     list(PREPEND CML_LIBRARIES INTERFACE ${CML_LIBRARIES_INTERFACE})
+  endif()
+  if (CML_LIBRARY_NAME_VAR)
+    warn_deprecated("LIBRARY_NAME_VAR" SINCE 4.02.00 NEW "TARGET_NAME_VAR")
+    if (CML_TARGET_NAME_VAR AND NOT CML_TARGET_NAME_VAR STREQUAL CML_LIBRARY_NAME_VAR)
+      message(WARNING "deprecated LIBRARY_NAME_VAR ignored in favor of TARGET_NAME_VAR")
+    elseif(NOT CML_TARGET_NAME_VAR)
+      set("CML_TARGET_NAME_VAR" "${CML_LIBRARY_NAME_VAR}")
+    endif()
   endif()
   cmake_parse_arguments(CML2 "INTERFACE" "" "" ${CML_UNPARSED_ARGUMENTS})
   # ############################################################################
@@ -292,12 +330,16 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
   endif()
   # Sanitize.
   string(REGEX REPLACE "[/:;_]+" "_" CML_LIBRARY_NAME "${libname_bits}")
-  string(REGEX REPLACE "[/:;_]+" "_" CML_TARGET_NAME "${targetname_bits}")
+  if (targetname_bits)
+    string(REGEX REPLACE "[/:;_]+" "_" CML_TARGET_NAME "${targetname_bits}")
+  endif()
   cet_regex_escape("${namespace}" e_namespace)
-  if(CML_TARGET_NAME MATCHES "^${e_namespace}_(.*)$")
-    set(CML_EXPORT_NAME "${CMAKE_MATCH_1}")
-  else()
-    unset(CML_EXPORT_NAME)
+  if(NOT CML_EXPORT_NAME)
+    if(CML_TARGET_NAME MATCHES "^${e_namespace}_(.*)$")
+      set(CML_EXPORT_NAME "${CMAKE_MATCH_1}")
+    elseif(CML_TARGET_NAME)
+      set(CML_EXPORT_NAME "${CML_TARGET_NAME}")
+    endif()
   endif()
   # ############################################################################
   # Make sure we have access to Boost's unit test library if we need it.
@@ -472,8 +514,8 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
       unset(lib_export)
     endif()
     # ##########################################################################
-    list(APPEND lib_targets ${lib_target})
     add_library(${lib_target} ${lib_type} ${CML_EXCLUDE_FROM_ALL})
+    list(APPEND lib_targets ${lib_target})
     target_sources(${lib_target} ${lib_sources})
     target_include_directories(
       ${lib_target} ${include_scope}
@@ -578,10 +620,10 @@ LIBRARY_NAME or USE_PROJECT_NAME options required\
         )
     endif()
   endif()
-  if(TARGET ${CML_TARGET_NAME})
-    # Return the target name if we've been asked.
-    if(CML_LIBRARY_NAME_VAR)
-      set(${CML_LIBRARY_NAME_VAR}
+  if(lib_targets)
+    # Return the base target name if we've been asked.
+    if(CML_TARGET_NAME_VAR)
+      set(${CML_TARGET_NAME_VAR}
           "${CML_TARGET_NAME}"
           PARENT_SCOPE
           )
