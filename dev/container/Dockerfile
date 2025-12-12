@@ -20,6 +20,8 @@ RUN apt-get update && \
     git \
     doxygen \
     graphviz \
+    m4 \
+    ninja-build \
     python3 \
     python3-pip \
     sudo && \
