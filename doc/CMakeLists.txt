@@ -30,9 +30,6 @@ function(_generate_reference)
   set(source_root "${CMAKE_CURRENT_BINARY_DIR}/gen/install")
   set(doc_root "${source_root}/doc")
   file(MAKE_DIRECTORY "${doc_root}/reference")
-  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst" DESTINATION
-           "${doc_root}"
-           )
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
 
@@ -81,7 +78,6 @@ ${ref_conf}
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
     "${doc_root}/reference/index.rst"
-    "${doc_root}/cetmodules-common.rst"
     "${doc_root}/reference/opts-inc.rst"
     TARGETS_VAR
     reference_html_target
@@ -115,7 +111,6 @@ ${ref_conf}
     ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
     DEPENDS
     "${doc_root}/reference/index.rst"
-    "${doc_root}/cetmodules-common.rst"
     TARGETS_VAR
     reference_man_target
     )
@@ -131,9 +126,6 @@ function(_publish_to_root)
   set(source_root "${CMAKE_CURRENT_BINARY_DIR}/gen/publish")
   set(doc_root "${source_root}/doc")
   file(MAKE_DIRECTORY "${doc_root}/landing" "${doc_root}/reference")
-  cet_copy("${CMAKE_CURRENT_SOURCE_DIR}/cetmodules-common.rst" DESTINATION
-           "${doc_root}"
-           )
   _symlink_sourcedirs_to("${source_root}")
   _symlink_reference_to("${doc_root}/reference")
   add_custom_command(
@@ -188,7 +180,6 @@ ${ref_conf}
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
     "${doc_root}/reference/index.rst"
-    "${doc_root}/cetmodules-common.rst"
     "${doc_root}/reference/opts-inc.rst"
     TARGETS_VAR
     publish_ref_target
@@ -235,7 +226,6 @@ ${landing_conf}
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
     "${doc_root}/landing/index.rst"
-    "${doc_root}/cetmodules-common.rst"
     TARGETS_VAR
     publish_landing_target
     )

@@ -92,6 +92,7 @@ html_static_path = [
 rst_prolog = """
 .. |CMAKE_MIN_VERSION| replace:: @cetmodules_MIN_CMAKE_VERSION@
 .. |CETMODULES_VERSION| replace:: @PROJ_RELEASE@
-.. include:: /../cetmodules-common.rst
+.. |UPS| replace:: :abbr:`UPS (Unix™ Product System)`
+.. |pv| replace:: :module:`project variable <ProjectVariable>`
 """
 

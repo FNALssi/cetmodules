@@ -2,7 +2,7 @@
 CetTransitivePaths
 ------------------
 
-Defines the function :commmand:`cet_transitive_paths`.
+Defines the function :command:`cet_transitive_paths`.
 
 #]================================================================]
 

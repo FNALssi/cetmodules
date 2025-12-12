@@ -18,7 +18,6 @@ Utility Modules
    :glob:
 
    /module/hidden/*
-   /module/private/*
 
 Find Modules
 ============
