@@ -2,12 +2,12 @@
 set -e
 
 # Default UID and GID
-UID=${HOST_UID:-1000}
-GID=${HOST_GID:-1000}
+TARGET_UID=${HOST_UID:-1000}
+TARGET_GID=${HOST_GID:-1000}
 
 # Update developer user and group
-groupmod -o -g "$GID" developer
-usermod -o -u "$UID" -g "$GID" developer
+groupmod -o -g "$TARGET_GID" developer
+usermod -o -u "$TARGET_UID" -g "$TARGET_GID" developer
 
 # Take ownership of directories
 chown -R developer:developer /source /build
