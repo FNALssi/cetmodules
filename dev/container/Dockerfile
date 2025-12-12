@@ -42,16 +42,11 @@ RUN git clone https://github.com/catchorg/Catch2.git /tmp/Catch2 && \
     cmake --build /tmp/Catch2/build --target install && \
     rm -rf /tmp/Catch2
 
-# Create a non-root user
-RUN useradd -m -u 5000 -s /bin/bash developer && \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
 # Create source and build directories and make them world-writable
 RUN mkdir /source /build && \
     chmod 777 /source /build
 
-# Set user and working directory
-USER developer
+# Set working directory
 WORKDIR /build
 
 # Set default command
