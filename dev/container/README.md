@@ -4,32 +4,49 @@ This directory contains a `Dockerfile` to create a containerized development env
 
 ## Building the Image
 
-To build the Docker image, run the following command from the root of the repository:
+To build the image, run the following command from the root of the repository:
 
 ```bash
+# For Docker or Podman
 docker build -t cetmodules-dev dev/container
 ```
 
 ## Running the Container
 
-To run the container with the `cetmodules` source code mounted, execute the following command from the root of the repository:
+The command to run the container differs between Docker and Podman due to differences in how they handle user namespaces.
+
+First, create a local `build` directory if it does not already exist:
+
+```bash
+mkdir -p build
+```
+
+### For Docker Users
+
+Docker users should map their host user ID directly to the container to ensure correct file ownership on mounted volumes.
 
 ```bash
 docker run -it --rm \
   --user "$(id -u):$(id -g)" \
   -v "$(pwd):/source" \
+  -v "$(pwd)/build:/build" \
   cetmodules-dev
 ```
 
-This command will start an interactive shell inside the container.
+### For Podman Users (Rootless)
 
-### Command Explanation:
+Rootless Podman uses user namespaces to map your host user to the `root` user (UID 0) inside the container. To ensure you have permission to write to mounted volumes, you should run as `root` inside the container. Any files created in the mounted volumes will be correctly owned by your user on the host.
 
-*   `-it`: Runs the container in interactive mode with a TTY.
-*   `--rm`: Automatically removes the container when it exits.
-*   `--user "$(id -u):$(id -g)"`: Runs the container with your host user and group ID. This ensures that files created in the mounted volume have the correct ownership on your host machine.
-*   `-v "$(pwd):/source"`: Mounts the current directory (the `cetmodules` source) into the `/source` directory inside the container.
-*   `cetmodules-dev`: The name of the image to run.
+```bash
+podman run -it --rm \
+  -v "$(pwd):/source" \
+  -v "$(pwd)/build:/build" \
+  cetmodules-dev
+```
+*(Note: Running as `root` is the intended usage for rootless Podman and is safe because you are in an unprivileged user namespace.)*
+
+
+### Usage
 
 Once inside the container, you can perform an out-of-source build like this:
 
