@@ -46,11 +46,9 @@ RUN git clone https://github.com/catchorg/Catch2.git /tmp/Catch2 && \
 RUN useradd -m -u 5000 -s /bin/bash developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Create source and build directories
-RUN mkdir /source && \
-    chown developer:developer /source && \
-    mkdir /build && \
-    chown developer:developer /build
+# Create source and build directories and make them world-writable
+RUN mkdir /source /build && \
+    chmod 777 /source /build
 
 # Set user and working directory
 USER developer
