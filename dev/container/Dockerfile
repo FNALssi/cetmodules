@@ -17,6 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
+    ca-certificates \
     git \
     doxygen \
     graphviz \
@@ -24,8 +25,13 @@ RUN apt-get update && \
     ninja-build \
     python3 \
     python3-pip \
-    sudo && \
+    sudo \
+    wget && \
     rm -rf /var/lib/apt/lists/*
+
+# Install gosu for privilege dropping
+RUN wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-$(dpkg --print-architecture)" && \
+    chmod +x /usr/local/bin/gosu
 
 # Install Python packages
 RUN pip3 install --no-cache-dir --break-system-packages \
@@ -42,19 +48,20 @@ RUN git clone https://github.com/catchorg/Catch2.git /tmp/Catch2 && \
     cmake --build /tmp/Catch2/build --target install && \
     rm -rf /tmp/Catch2
 
-# Create a non-root user
+# Create a non-root user and directories.
+# The user's UID/GID will be adjusted at runtime by the entrypoint.
 RUN useradd -m -u 5000 -s /bin/bash developer && \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    mkdir /source && \
+    mkdir /build
 
-# Create source and build directories
-RUN mkdir /source && \
-    chown developer:developer /source && \
-    mkdir /build && \
-    chown developer:developer /build
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set user and working directory
-USER developer
+# Set working directory and entrypoint
 WORKDIR /build
+ENTRYPOINT ["entrypoint.sh"]
 
 # Set default command
 CMD ["/bin/bash"]
