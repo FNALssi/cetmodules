@@ -1,0 +1,30 @@
+# Set update schedule for GitHub Actions
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/doc"
+    schedule:
+      interval: "daily"
+    # Cetmodules CI
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+    reviewers:
+      - "core-team"
+    assignees:
+      - "core-team"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    # Cetmodules CI
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+    reviewers:
+      - "core-team"
+    assignees:
+      - "core-team"

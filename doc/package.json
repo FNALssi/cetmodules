@@ -1,0 +1,9 @@
+{
+  "name": "cetmodules-doc",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Documentation for cetmodules",
+  "dependencies": {
+    "bootstrap": "^5.3.3"
+  }
+}

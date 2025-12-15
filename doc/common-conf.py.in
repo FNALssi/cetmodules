@@ -84,8 +84,8 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [
     '@CMAKE_CURRENT_SOURCE_DIR@/static',
-    '@CMAKE_CURRENT_SOURCE_DIR@/Bootstrap/css',
-    '@CMAKE_CURRENT_SOURCE_DIR@/Bootstrap/js'
+    '@CMAKE_CURRENT_SOURCE_DIR@/node_modules/bootstrap/dist/css',
+    '@CMAKE_CURRENT_SOURCE_DIR@/node_modules/bootstrap/dist/js'
 ]
 
 # Included at the beginning of every ReST document.
