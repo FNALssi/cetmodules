@@ -32,7 +32,7 @@ include(CetPackagePath)
 
       Install ``<file> ...`` in :variable:`<PROJECT-NAME>_INCLUDE_DIR`.
 
-      .. include:: /_cet_install_opts/LIST.rst
+      .. include:: /_cet_install_opts/LIST.txt
 
    .. signature:: install_headers(GLOB [<common-options>] [<glob-options>])
 
@@ -54,17 +54,17 @@ include(CetPackagePath)
         * :file:`*.icc`
         * :file:`*.tcc`
 
-      .. include:: /_cet_install_opts/glob-note.rst
+      .. include:: /_cet_install_opts/glob-note.txt
 
-      .. include:: /_cet_install_opts/BASENAME_EXCLUDES.rst
+      .. include:: /_cet_install_opts/BASENAME_EXCLUDES.txt
 
-      .. include:: /_cet_install_opts/EXCLUDES.rst
+      .. include:: /_cet_install_opts/EXCLUDES.txt
 
-      .. include:: /_cet_install_opts/EXTRAS.rst
+      .. include:: /_cet_install_opts/EXTRAS.txt
 
-      .. include:: /_cet_install_opts/SQUASH_SUBDIRS.rst
+      .. include:: /_cet_install_opts/SQUASH_SUBDIRS.txt
 
-      .. include:: /_cet_install_opts/SUBDIRS.rst
+      .. include:: /_cet_install_opts/SUBDIRS.txt
 
    Common Options
    ^^^^^^^^^^^^^^
@@ -73,7 +73,7 @@ include(CetPackagePath)
      Refrain from using the current source directory relative to the
      top-level project directory as the base destination path.
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
    ``USE_PRODUCT_NAME``
      .. deprecated:: 2.10.00

@@ -35,7 +35,7 @@ man_pages = [] # Populated below.
 if want_man:
     # -- U**X man-page output ----------------------------------------------------
     cmake_manuals = sorted(glob.glob(r'@CMAKE_CURRENT_SOURCE_DIR@/reference/manual/*.rst'))
-    cmake_manual_description = re.compile('^\.\. cmake-manual-description:(.*)$')
+    cmake_manual_description = re.compile(r'^\.\. cmake-manual-description:(.*)$')
     man_make_section_directory = True
     man_show_urls = False
     for fpath in cmake_manuals:

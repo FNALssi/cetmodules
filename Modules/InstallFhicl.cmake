@@ -37,7 +37,7 @@ include(ProjectVariable)
 
       Install ``<file> ...`` in :variable:`<PROJECT-NAME>_FHICL_DIR`.
 
-      .. include:: /_cet_install_opts/LIST.rst
+      .. include:: /_cet_install_opts/LIST.txt
 
    .. signature:: install_fhicl(GLOB [SUBDIRNAME <subdir>] [<glob-options>])
 
@@ -53,12 +53,12 @@ include(ProjectVariable)
       Recognized files
         * :file:`*.fcl`
 
-      .. include:: /_cet_install_opts/glob-opts.rst
+      .. include:: /_cet_install_opts/glob-opts.txt
 
    Common Options
    ^^^^^^^^^^^^^^
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
 #]================================================================]
 

@@ -1,0 +1,9 @@
+      .. include:: /_cet_install_opts/glob-note.txt
+
+      .. include:: /_cet_install_opts/BASENAME_EXCLUDES.txt
+
+      .. include:: /_cet_install_opts/EXCLUDES.txt
+
+      .. include:: /_cet_install_opts/EXTRAS.txt
+
+      .. include:: /_cet_install_opts/SUBDIRS.txt

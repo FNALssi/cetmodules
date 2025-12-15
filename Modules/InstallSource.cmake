@@ -55,7 +55,7 @@ include(ProjectVariable)
       Install ``<file> ...`` in
       :variable:`<PROJECT-NAME>_INSTALLED_SOURCE_DIR`.
 
-      .. include:: /_cet_install_opts/LIST.rst
+      .. include:: /_cet_install_opts/LIST.txt
 
    .. signature:: install_source(GLOB [<common-options>] [<glob-options>])
 
@@ -110,12 +110,12 @@ include(ProjectVariable)
            * :file:`#*#`
            * :file:`.DS_Store`
 
-      .. include:: /_cet_install_opts/glob-opts.rst
+      .. include:: /_cet_install_opts/glob-opts.txt
 
    Common Options
    ^^^^^^^^^^^^^^
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
 #]================================================================]
 

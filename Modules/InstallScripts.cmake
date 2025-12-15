@@ -33,7 +33,7 @@ include(ProjectVariable)
       Install ``<file> ...`` in :variable:`<PROJECT-NAME>_SCRIPTS_DIR`
       or :variable:`<PROJECT-NAME>_TEST_DIR` (with ``AS_TEST``).
 
-      .. include:: /_cet_install_opts/LIST.rst
+      .. include:: /_cet_install_opts/LIST.txt
 
    .. signature:: install_scripts(GLOB [<common-options>] [<glob-options>])
 
@@ -53,7 +53,7 @@ include(ProjectVariable)
         * :file:`*.rb`
         * :file:`*.sh`
 
-      .. include:: /_cet_install_opts/glob-opts.rst
+      .. include:: /_cet_install_opts/glob-opts.txt
 
    Common Options
    ^^^^^^^^^^^^^^
@@ -62,7 +62,7 @@ include(ProjectVariable)
      Install scripts in :variable:`<PROJECT-NAME>_TEST_DIR` (default
      :variable:`<PROJECT-NAME>_SCRIPTS_DIR`).
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
 #]================================================================]
 

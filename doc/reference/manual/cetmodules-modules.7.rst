@@ -28,28 +28,3 @@ Find Modules
    :glob:
 
    /module/find/*
-
-Compatibility Modules
-=====================
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   /module/compat/*
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :glob:
-
-   /module/compat/art/*
-
-Compatibility Find Modules
-==========================
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   /module/compat/find/*

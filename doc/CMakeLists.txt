@@ -6,23 +6,25 @@ function(_generate_cet_install_opts_inc)
   set(cet_install_opts_dir "${doc_root}/reference/_cet_install_opts")
 
   add_custom_command(
-    OUTPUT "${doc_root}/reference/opts-inc.rst"
+    OUTPUT "${doc_root}/reference/opts-inc.txt"
     COMMAND
       M4::M4 -Dm4src="${doc_root}/reference/_cet_install_opts"
-      "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.rst.m4" >
-      "${doc_root}/reference/opts-inc.rst"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.rst.m4"
-            "${cet_install_opts_dir}/BASENAME_EXCLUDES.rst"
-            "${cet_install_opts_dir}/DESTINATION.rst"
-            "${cet_install_opts_dir}/DEST_VAR.rst"
-            "${cet_install_opts_dir}/EXCLUDES.rst"
-            "${cet_install_opts_dir}/EXTRAS.rst"
-            "${cet_install_opts_dir}/LIST.rst"
-            "${cet_install_opts_dir}/PROGRAMS.rst"
-            "${cet_install_opts_dir}/SUBDIRNAME.rst"
-            "${cet_install_opts_dir}/SUBDIRS.rst"
+      "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.txt.m4" >
+      "${doc_root}/reference/opts-inc.txt"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/reference/opts-inc.txt.m4"
+            "${cet_install_opts_dir}/BASENAME_EXCLUDES.txt"
+            "${cet_install_opts_dir}/DESTINATION.txt"
+            "${cet_install_opts_dir}/DEST_VAR.txt"
+            "${cet_install_opts_dir}/EXCLUDES.txt"
+            "${cet_install_opts_dir}/EXTRAS.txt"
+            "${cet_install_opts_dir}/LIST.txt"
+            "${cet_install_opts_dir}/PROGRAMS.txt"
+            "${cet_install_opts_dir}/SQUASH_SUBDIRS.txt"
+            "${cet_install_opts_dir}/SUBDIRNAME.txt"
+            "${cet_install_opts_dir}/glob-note.txt"
+            "${cet_install_opts_dir}/glob-opts.txt"
     VERBATIM
-    COMMENT "Generating ${doc_root}/reference/opts-inc.rst with m4"
+    COMMENT "Generating ${doc_root}/reference/opts-inc.txt with m4"
     )
 endfunction()
 
@@ -82,7 +84,7 @@ ${ref_conf}
     DEPENDS
     "${doc_root}/reference/index.rst"
     "${doc_root}/cetmodules-common.rst"
-    "${doc_root}/reference/opts-inc.rst"
+    "${doc_root}/reference/opts-inc.txt"
     TARGETS_VAR
     reference_html_target
     )
@@ -189,7 +191,7 @@ ${ref_conf}
     DEPENDS
     "${doc_root}/reference/index.rst"
     "${doc_root}/cetmodules-common.rst"
-    "${doc_root}/reference/opts-inc.rst"
+    "${doc_root}/reference/opts-inc.txt"
     TARGETS_VAR
     publish_ref_target
     )

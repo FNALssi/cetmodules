@@ -64,8 +64,7 @@ set(_cet_build_dictionary_list_options
    Generate and build a ROOT dictionary module from either:
 
    * a selection XML file (:file:`classes_def.xml`), optionally checking
-   versions and checksums for selected classes; *or*
-
+     versions and checksums for selected classes; *or*
    * a :file:`LinkDef.h` or equivalent (*cf* :command:`cet_rootcint`).
 
    .. code-block:: cmake

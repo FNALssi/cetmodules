@@ -44,7 +44,7 @@ include(private/CetExclude)
    Options
    ^^^^^^^
 
-   .. include:: /opts-inc.rst
+   .. include:: /opts-inc.txt
 
    .. _p_cet_install-meta-options:
 

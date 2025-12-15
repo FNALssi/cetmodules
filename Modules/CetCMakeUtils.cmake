@@ -840,16 +840,17 @@ endfunction()
    Define and export aliases of the specified targets into the specified
    or default export set.
 
-   .. deprecated:: 3.15 in favor of :command:`cet_make_alias()`, which
-   is more flexible, more robust against user error and makes fewer
-   assumptions.
+   .. deprecated:: 3.15
+
+      in favor of :command:`cet_make_alias()`, which is more flexible,
+      more robust against user error and makes fewer assumptions.
 
    .. code-block:: cmake
 
       cet_export_alias([<options>] [ALIAS] <target>...)
 
-   Options
-   ^^^^^^^
+   Arguments
+   ^^^^^^^^^
 
    .. _cet_export_alias_ALIAS:
 

@@ -34,9 +34,9 @@ include(ProjectVariable)
    Options
    ^^^^^^^
 
-   .. include:: /_cet_install_opts/LIST.rst
+   .. include:: /_cet_install_opts/LIST.txt
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
 #]================================================================]
 

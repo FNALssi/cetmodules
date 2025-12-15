@@ -2,7 +2,7 @@
 CetRootCint
 -----------
 
-Defines the deprecated function :commmand:`cet_rootcint`.
+Defines the deprecated function :command:`cet_rootcint`.
 
 #]================================================================]
 

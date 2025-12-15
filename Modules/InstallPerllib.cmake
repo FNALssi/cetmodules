@@ -55,9 +55,9 @@ include(ProjectVariable)
      installation (default
      :variable:`<PROJECT-NAME>_PERLLIB_DIR`).
 
-   .. include:: /_cet_install_opts/SUBDIRNAME.rst
+   .. include:: /_cet_install_opts/SUBDIRNAME.txt
 
-   .. include:: /_cet_install_opts/glob-opts.rst
+   .. include:: /_cet_install_opts/glob-opts.txt
 
 #]================================================================]
 

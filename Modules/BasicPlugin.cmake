@@ -81,8 +81,8 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
    Dependency specification options
    """"""""""""""""""""""""""""""""
 
-   ``LIBRARIES [CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG]
-   <library-dependency>...``
+   ``LIBRARIES [CONDITIONAL|INTERFACE|PRIVATE|PROTECTED|PUBLIC|REG] <library-dependency>...``
+
      Specify targets and/or libraries upon which the implementation
      (``INTERFACE``, ``PUBLIC``, ``PRIVATE``), or registration (``REG``)
      libraries should depend. If implementation and registration share a
@@ -171,11 +171,12 @@ string(REPLACE ";" "|" _e_bp_args "${_e_bp_args}")
    ``SOURCE <source>...``
      Specify sources to compile into the plugin.
 
-    .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
-       ``LIBRARIES REG`` instead.
+     .. deprecated:: 2.11 use ``IMPL_SOURCE``, ``REG_SOURCE`` and
+        ``LIBRARIES REG`` instead.
 
    ``USE_PRODUCT_NAME``
-     .. deprecated:: 2.0 use ``USE_PROJECT_NAME`` instead.
+     .. deprecated:: 2.0
+        use ``USE_PROJECT_NAME`` instead.
 
    Non-option arguments
    """"""""""""""""""""
