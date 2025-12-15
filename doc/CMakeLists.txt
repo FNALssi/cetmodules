@@ -2,6 +2,21 @@ include(CetGenerateSphinxDocs)
 
 find_package(M4 REQUIRED)
 
+find_program(NPM_EXECUTABLE npm)
+if (NPM_EXECUTABLE)
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install"
+    COMMAND ${NPM_EXECUTABLE} install
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/package.json"
+    COMMENT "Installing npm dependencies for documentation"
+    VERBATIM)
+  add_custom_target(npm_doc_deps DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install")
+else()
+  add_custom_target(npm_doc_deps)
+endif()
+
 function(_generate_cet_install_opts_inc)
   set(cet_install_opts_dir "${doc_root}/reference/_cet_install_opts")
 
@@ -80,6 +95,7 @@ ${ref_conf}
     html_EXTRA_ARGS
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
+    npm_doc_deps
     "${doc_root}/reference/index.rst"
     "${doc_root}/cetmodules-common.rst"
     "${doc_root}/reference/opts-inc.rst"
@@ -114,6 +130,7 @@ ${ref_conf}
     man_EXTRA_ARGS
     ${cetmodules_SPHINX_DOC_man_EXTRA_ARGS}
     DEPENDS
+    npm_doc_deps
     "${doc_root}/reference/index.rst"
     "${doc_root}/cetmodules-common.rst"
     TARGETS_VAR
@@ -187,6 +204,7 @@ ${ref_conf}
     html_EXTRA_ARGS
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
+    npm_doc_deps
     "${doc_root}/reference/index.rst"
     "${doc_root}/cetmodules-common.rst"
     "${doc_root}/reference/opts-inc.rst"
@@ -234,6 +252,7 @@ ${landing_conf}
     html_EXTRA_ARGS
     ${cetmodules_SPHINX_DOC_html_EXTRA_ARGS}
     DEPENDS
+    npm_doc_deps
     "${doc_root}/landing/index.rst"
     "${doc_root}/cetmodules-common.rst"
     TARGETS_VAR
