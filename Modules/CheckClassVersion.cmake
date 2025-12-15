@@ -65,8 +65,9 @@ endfunction()
 
       check_class_version([<options>])
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``CLASSES_DEF_XML <xml-file>``
      Specify the selection XML file describing the classes to be

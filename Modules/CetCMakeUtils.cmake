@@ -30,8 +30,9 @@ include(ProjectVariable)
                       KEYWORD <keyword>
                       [EMPTY_KEYWORD <empty-keyword>] <out-var>)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``EMPTY_KEYWORD <empty-keyword>``
      If ``<in-var>`` or ``VALUES`` evaluates to the empty string, the
@@ -289,8 +290,9 @@ endfunction()
 
       cet_exclude_files_from(<sources-var> [REGEX <regex>...] [NOP] <file>...)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``NOP``
      Optional separator between a list option and non-option arguments;
@@ -353,8 +355,9 @@ endfunction()
 
         cet_timestamp(<out-var> [SYSTEM_DATE_CMD] [<fmt>])
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    .. _cet_timestamp-SYSTEM_DATE_CMD:
 
@@ -467,8 +470,9 @@ endfunction()
         [LIBPATH_SUFFIXES <dir>...]
         <name>)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``HEADERS <header>...``
      Look for ``<header>...`` to ascertain the include path. If not
@@ -520,8 +524,9 @@ endfunction()
                 :manual:`cetmodules-project-variables(7)`,
                 :command:`project_variable`.
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``BINARY|SOURCE|TRY_BINARY``
       .. deprecated:: 4.0
@@ -733,8 +738,9 @@ endfunction()
 
       cet_cmake_module_directories([NO_CONFIG] [NO_LOCAL] [PROJECT <project>] <dir>...)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``BINARY``
      Also add the corresponding directories in the project build tree to
@@ -849,8 +855,9 @@ endfunction()
 
       cet_export_alias([<options>] [ALIAS] <target>...)
 
-   Arguments
-   ^^^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    .. _cet_export_alias_ALIAS:
 
@@ -968,8 +975,9 @@ endfunction()
 
       cet_make_alias(TARGET <target> [<options>] [<target-export-set>])
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``EXPORT_SET <export-set>``
      Aliased targets will be exported into ``<export-set>``, which will
@@ -1125,8 +1133,9 @@ endfunction()
 
       cet_real_path(<out-var> [LIST] <path>...)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``LIST``
      Results will be returned in ``<out-var>`` as a ";"-separated CMake
@@ -1173,8 +1182,9 @@ endfunction()
 
       cet_filter_subdirs([EXCLUDE <subdir>...] [INCLUDE <subdir>...] <path>...)
 
-   Options
-   ^^^^^^^
+   .. rst-class:: lead
+
+      Options
 
    ``(EXCLUDE|INCLUDE) <root>...``
      Exclude or select ``<path>`` based on whether it is a subdirectory
