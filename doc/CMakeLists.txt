@@ -4,17 +4,18 @@ find_package(M4 REQUIRED)
 
 find_program(NPM_EXECUTABLE npm)
 if (NPM_EXECUTABLE)
+  set(npm_timestamp_file "${CMAKE_CURRENT_BINARY_DIR}/npm_install_timestamp")
   add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install"
+    OUTPUT "${npm_timestamp_file}"
     COMMAND ${NPM_EXECUTABLE} install
-    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install"
+    COMMAND ${CMAKE_COMMAND} -E touch "${npm_timestamp_file}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/package.json"
     COMMENT "Installing npm dependencies for documentation"
     VERBATIM)
-  add_custom_target(npm_doc_deps DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.ran-npm-install")
+  add_custom_target(npm_doc_deps DEPENDS "${npm_timestamp_file}")
 else()
-  add_custom_target(npm_doc_deps)
+  message(FATAL_ERROR "npm is required to build the documentation, but it was not found.")
 endif()
 
 function(_generate_cet_install_opts_inc)
