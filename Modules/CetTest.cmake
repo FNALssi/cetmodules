@@ -1125,10 +1125,10 @@ function(_cet_add_ref_test_detail TNAME TEST_WORKDIR)
     NAME "${TNAME}"
     CONFIGURATIONS ${CET_CONFIGURATIONS}
     COMMAND
-      ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR} --remove-on-failure
-      "${CET_REMOVE_ON_FAILURE}" --required-files "${CET_REQUIRED_FILES}"
-      --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR} --skip-return-code
-      ${skip_return_code} ${CMAKE_COMMAND} -DTEST_EXEC=${TEXEC}
+      ${CET_TEST_WRAPPER} --wd="${TEST_WORKDIR}" --remove-on-failure="${CET_REMOVE_ON_FAILURE}"
+      --required-files="${CET_REQUIRED_FILES}"
+      --datafiles="${CET_DATAFILES}" ${CET_DIRTY_WORKDIR} --skip-return-code=${skip_return_code}
+      ${CMAKE_COMMAND} -DTEST_EXEC=${TEXEC}
       -DTEST_ARGS=${test_args} -DTEST_REF=${OUTPUT_REF} ${DEFINE_ERROR_REF}
       ${DEFINE_TEST_ERR} -DTEST_OUT=${CET_TARGET}.out ${DEFINE_OUTPUT_FILTER}
       ${DEFINE_OUTPUT_FILTER_ARGS} ${DEFINE_OUTPUT_FILTERS}
@@ -1187,10 +1187,10 @@ function(_cet_add_test_detail TNAME TEXEC TEST_WORKDIR)
     NAME "${TNAME}"
     CONFIGURATIONS ${CET_CONFIGURATIONS}
     COMMAND
-      ${CET_TEST_WRAPPER} --wd ${TEST_WORKDIR} --remove-on-failure
-      "${CET_REMOVE_ON_FAILURE}" --required-files "${CET_REQUIRED_FILES}"
-      --datafiles "${CET_DATAFILES}" ${CET_DIRTY_WORKDIR} --skip-return-code
-      ${skip_return_code} ${TEXEC} ${test_args}
+      ${CET_TEST_WRAPPER} --wd="${TEST_WORKDIR}" --remove-on-failure="${CET_REMOVE_ON_FAILURE}"
+      --required-files="${CET_REQUIRED_FILES}"
+      --datafiles="${CET_DATAFILES}" ${CET_DIRTY_WORKDIR} --skip-return-code=${skip_return_code}
+      ${TEXEC} ${test_args}
     )
   _cet_add_test_properties(${TNAME} ${TEXEC})
 endfunction()
