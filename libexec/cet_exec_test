@@ -24,8 +24,9 @@ function realdir() {
 
 function usage() {
   cat 1>&2<<EOF
-usage: $prog [--datafiles <files>] [--dirty] [--remove-on-failure <files>] \\
-       $fill [--required-files <files>] [--wd <test-working-dir>] [--] \\
+usage: $prog [--datafiles=<files>] [--dirty] [--remove-on-failure=<files>] \\
+       $fill [--required-files=<files>] [--skip-return-code=<code>] \\
+       $fill [--] [--wd=<test-working-dir>] \\
        $fill <cmd> [<args>...]
 
 Multiple <files> should be separated with semicolons (;).
@@ -47,14 +48,6 @@ function set_datafiles() {
 declare -a remaining_args
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --datafiles)
-      if [[ -z "$2" || "$2" == -* ]]; then
-        echo "ERROR: --datafiles requires an argument" 1>&2
-        usage 1
-      fi
-      set_datafiles "$2"
-      shift 2
-      ;;
     --datafiles=*)
       set_datafiles "${1#*=}"
       shift
@@ -67,49 +60,17 @@ while [[ $# -gt 0 ]]; do
       unset want_clean
       shift
       ;;
-    --remove-on-failure)
-      if [[ -z "$2" || "$2" == -* ]]; then
-        echo "ERROR: --remove-on-failure requires an argument" 1>&2
-        usage 1
-      fi
-      old_IFS="${IFS}"; IFS=';'; removeOnFailure=($2); IFS=${old_IFS}
-      shift 2
-      ;;
     --remove-on-failure=*)
       old_IFS="${IFS}"; IFS=';'; removeOnFailure=(${1#*=}); IFS=${old_IFS}
       shift
-      ;;
-    --required-files)
-      if [[ -z "$2" || "$2" == -* ]]; then
-        echo "ERROR: --required-files requires an argument" 1>&2
-        usage 1
-      fi
-      old_IFS="${IFS}"; IFS=';'; requiredfiles=($2); IFS=${old_IFS}
-      shift 2
       ;;
     --required-files=*)
       old_IFS="${IFS}"; IFS=';'; requiredfiles=(${1#*=}); IFS=${old_IFS}
       shift
       ;;
-    --skip-return-code)
-      if [[ -z "$2" || "$2" == -* ]]; then
-        echo "ERROR: --skip-return-code requires an argument" 1>&2
-        usage 1
-      fi
-      (( skip_code = ${2} ))
-      shift 2
-      ;;
     --skip-return-code=*)
       (( skip_code = ${1#*=} ))
       shift
-      ;;
-    --wd)
-      if [[ -z "$2" || "$2" == -* ]]; then
-        echo "ERROR: --wd requires an argument" 1>&2
-        usage 1
-      fi
-      wd="$2"
-      shift 2
       ;;
     --wd=*)
       wd="${1#*=}"
