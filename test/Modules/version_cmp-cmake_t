@@ -11,6 +11,7 @@ use English qw(-no_match_vars);
 use File::Basename qw(dirname);
 use File::Spec qw();
 use FindBin qw();
+use Readonly qw();
 
 my ($_mydir);
 
@@ -38,7 +39,7 @@ sub compare_or_show {
 } ## end sub compare_or_show
 my $cmdir = abs_path(File::Spec->catfile($_mydir, q(..), q(..), 'Modules'));
 my $ans_cache = {};
-my $_FLIP_OPERANDS = -1;
+Readonly::Scalar my $_FLIP_OPERANDS => -1;
 
 
 sub cmake_version_cmp {
