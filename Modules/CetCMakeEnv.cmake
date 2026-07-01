@@ -44,18 +44,6 @@ if(NOT CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR lib) # Don't use lib64 for installation dir.
 endif()
 
-# See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html.
-#
-# We suppress developer warnings for this `include()` to silence
-# complaints from CMake >=4 when no `LANGUAGES` are enabled for this
-# project.
-set(_cce_suppress_dev_warnings "$CACHE{CMAKE_SUPPRESS_DEVELOP_WARNINGS}")
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE INTERNAL "" FORCE)
-include(GNUInstallDirs)
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${_cce_suppress_dev_warnings}" CACHE INTERNAL "" FORCE)
-unset(_cce_suppress_dev_warnings)
-# ##############################################################################
-
 define_property(
   TARGET
   PROPERTY CET_EXEC_LOCATION
@@ -115,6 +103,19 @@ macro(cet_cmake_env)
         "\nIt must be invoked from the project's top level CMakeLists.txt, not in an included .cmake file."
       )
   endif()
+
+  # ##############################################################################
+  # See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html.
+  #
+  # We suppress developer warnings for this `include()` to silence
+  # complaints from CMake >=4 when no `LANGUAGES` are enabled for this
+  # project.
+  set(_cce_suppress_dev_warnings "$CACHE{CMAKE_SUPPRESS_DEVELOP_WARNINGS}")
+  set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE INTERNAL "" FORCE)
+  include(GNUInstallDirs)
+  set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS "${_cce_suppress_dev_warnings}" CACHE INTERNAL "" FORCE)
+  unset(_cce_suppress_dev_warnings)
+  # ##############################################################################
 
   set(CETMODULES_CURRENT_PROJECT_NAME ${PROJECT_NAME})
 
